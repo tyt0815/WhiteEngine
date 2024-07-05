@@ -4,7 +4,6 @@
 
 FWindow::FWindow(const WCHAR* Title, int CmdShow, UINT Width, UINT Height, DWORD Style)
 {
-	Initialize(Title, CmdShow, Width, Height, Style);
 }
 
 std::wstring FWindow::GetTitle()
@@ -60,6 +59,36 @@ bool FWindow::Initialize(const WCHAR* Title, int CmdShow, UINT Width, UINT Heigh
 	ShowWindow(hWnd, CmdShow);
 	UpdateWindow(hWnd);
 	return true;
+}
+
+int FWindow::Execute()
+{
+	MSG msg = { 0 };
+
+	MainTimer.Reset();
+
+	while (msg.message != WM_QUIT)
+	{
+		// If there are Window messages then process them.
+		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		// Otherwise, do animation/game stuff.
+		else
+		{
+			MainTimer.Tick();
+
+			if (!bAppPaused)
+			{
+				CalculateFrameStats();
+				Event();
+			}
+		}
+	}
+
+	return (int)msg.wParam;
 }
 
 LRESULT FWindow::InternalWndProc(HWND HandleWindow, UINT Message, WPARAM WParameter, LPARAM LParameter)
@@ -130,6 +159,41 @@ LRESULT FWindow::InternalWndProc(HWND HandleWindow, UINT Message, WPARAM WParame
 		return DefWindowProc(HandleWindow, Message, WParameter, LParameter);
 	}
 	return 0;
+}
+
+void FWindow::CalculateFrameStats()
+{
+	// Code computes the average frames per second, and also the 
+	// average time it takes to render one frame.  These stats 
+	// are appended to the window caption bar.
+
+	static int frameCnt = 0;
+	static double timeElapsed = 0.0f;
+
+	frameCnt++;
+
+	// Compute averages over one second period.
+	if ((MainTimer.GetTotalTime() - timeElapsed) >= 1.0f)
+	{
+		float fps = (float)frameCnt; // fps = frameCnt / 1
+		float mspf = 1000.0f / fps;
+
+		std::wstring fpsStr = std::to_wstring(fps);
+		std::wstring mspfStr = std::to_wstring(mspf);
+		static std::wstring WindowTitle = GetTitle();
+		std::wstring windowText = WindowTitle +
+			L"    fps: " + fpsStr +
+			L"   mspf: " + mspfStr +
+			L"TotalTime: " + std::to_wstring(MainTimer.GetTotalTime()) +
+			L"ElapsedTime:" + std::to_wstring(timeElapsed);
+
+
+		SetWindowText(GetHWnd(), windowText.c_str());
+
+		// Reset for next average.
+		frameCnt = 0;
+		timeElapsed += 1.0f;
+	}
 }
 
 LRESULT FWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
