@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Sources">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Sources\Render">
+      <UniqueIdentifier>{c7e99ab8-8085-43c3-b825-2ee7fb7f323a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\GamePlay">
+      <UniqueIdentifier>{f89daf12-db13-4f41-bb44-19f3c5f02495}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Windows">
+      <UniqueIdentifier>{6df28f42-f37a-4eb9-abf4-acc61bd8712b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Common">
+      <UniqueIdentifier>{6ca93085-08ff-4fc5-9f36-3d8e5240384f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\DirectX12">
+      <UniqueIdentifier>{f069aaa4-eade-4325-8852-f938511ff0a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{dbb5ee6e-3c54-4326-9fe5-a9d5f879531d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Math">
+      <UniqueIdentifier>{e9589869-0b25-4c7e-b3a1-fa97859a092f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Sources\Windows\Window.cpp">
+      <Filter>Sources\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Windows\WindowsMain.cpp">
+      <Filter>Sources\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Main.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Render\Renderer.cpp">
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\DirectX12\Direct3D12Util.cpp">
+      <Filter>Sources\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\DirectX12\Direct3D12.cpp">
+      <Filter>Sources\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Common\Timer.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Render\Camera.cpp">
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Math\Transform.cpp">
+      <Filter>Sources\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Render\DeferredShadingRenderer.cpp">
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Render\ForwardShadingRenderer.cpp">
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Sources\Common\Class.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Windows\Window.h">
+      <Filter>Sources\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Main.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Common\Container.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Common\Common.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\Renderer.h">
+      <Filter>Sources\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\DirectX12\Direct3D12.h">
+      <Filter>Sources\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\DirectX12\Direct3D12Util.h">
+      <Filter>Sources\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Windows\WindowsUtil.h">
+      <Filter>Sources\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Common\Timer.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\Camera.h">
+      <Filter>Sources\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Math\Math.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Math\Transform.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\DeferredShadingRenderer.h">
+      <Filter>Sources\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\ForwardShadingRenderer.h">
+      <Filter>Sources\Render</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\TrianglePS.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\TriangleVS.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>
