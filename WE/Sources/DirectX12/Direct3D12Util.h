@@ -1,6 +1,6 @@
 #pragma once
 
-//#include "DirectX-Headers/d3dx12.h"
+#include "DirectX-Headers/d3dx12.h"
 
 #include <dxgi1_4.h>
 #include <d3d12.h>
@@ -41,3 +41,5 @@ inline std::wstring AnsiToWString(const std::string& str)
     if(FAILED(hr__)) { throw DxException(hr__, L#x, wfn, __LINE__); } \
 }
 #endif
+
+UINT CalcConstantBufferByteSize(UINT Size);

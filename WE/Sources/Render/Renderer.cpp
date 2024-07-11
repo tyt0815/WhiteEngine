@@ -3,6 +3,10 @@
 #include "Common/Common.h"
 #include "Common/Container.h"
 #include "Common/Timer.h"
+#include "Math/Math.h"
+#include "UploadBuffer.h"
+
+
 
 bool FRenderer::Initialize(const WCHAR* Title, int CmdShow, UINT Width, UINT Height, DWORD Style)
 {
@@ -19,13 +23,13 @@ bool FRenderer::Initialize(const WCHAR* Title, int CmdShow, UINT Width, UINT Hei
 	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&DXGIFactory)));
 
 	// Try to create hardware device.
-	HRESULT HardwareResult = D3D12CreateDevice(
+	HRESULT HResult = D3D12CreateDevice(
 		nullptr,             // default adapter
 		D3D_FEATURE_LEVEL_11_0,
 		IID_PPV_ARGS(&D3D12Device));
 
 	// Fallback to WARP device.
-	if (FAILED(HardwareResult))
+	if (FAILED(HResult))
 	{
 		Microsoft::WRL::ComPtr<IDXGIAdapter> WarpAdapter;
 		ThrowIfFailed(DXGIFactory->EnumWarpAdapter(IID_PPV_ARGS(&WarpAdapter)));
@@ -72,6 +76,197 @@ bool FRenderer::Initialize(const WCHAR* Title, int CmdShow, UINT Width, UINT Hei
 	CreateSwapChain();
 	CreateRTVAndDSVDescriptorHeaps();
 	Resize();
+
+	// BuildDescriptorHeaps
+	{
+		D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc;
+		cbvHeapDesc.NumDescriptors = 1;
+		cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		cbvHeapDesc.NodeMask = 0;
+		ThrowIfFailed(
+			D3D12Device->CreateDescriptorHeap(
+				&cbvHeapDesc,
+				IID_PPV_ARGS(&D3D12CBVHeap)
+			)
+		);
+	}
+
+	// BuildConstantBuffers
+	{
+		
+		mObjectCB = std::make_unique<FUploadBuffer<ObjectConstants>>(D3D12Device.Get(), 1, EUploadBufferType::EUBT_ConstantBuffer);
+
+		UINT objCBByteSize = mObjectCB->GetByteSize();
+
+		D3D12_GPU_VIRTUAL_ADDRESS cbAddress = mObjectCB->Resource()->GetGPUVirtualAddress();
+		// Offset to the ith object constant buffer in the buffer.
+		int boxCBufIndex = 0;
+		cbAddress += boxCBufIndex * objCBByteSize;
+
+		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
+		cbvDesc.BufferLocation = cbAddress;
+		cbvDesc.SizeInBytes = mObjectCB->GetByteSize();
+
+		D3D12Device->CreateConstantBufferView(
+			&cbvDesc,
+			D3D12CBVHeap->GetCPUDescriptorHandleForHeapStart());
+	}
+
+	// BuildRootSignature
+	{
+		D3D12_ROOT_PARAMETER SlotRootParameter[1];
+
+		// CBV를 위한 싱글 디스크립터 테이블 생성
+		D3D12_DESCRIPTOR_RANGE CBVTable;
+		CBVTable.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+		CBVTable.NumDescriptors = 1;
+		CBVTable.BaseShaderRegister = 0;
+		CBVTable.RegisterSpace = 0;
+		CBVTable.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+		SlotRootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		SlotRootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+		SlotRootParameter[0].DescriptorTable.NumDescriptorRanges = 1;
+		SlotRootParameter[0].DescriptorTable.pDescriptorRanges = &CBVTable;
+
+		// 
+		D3D12_ROOT_SIGNATURE_DESC RootSignatureDesc;
+		RootSignatureDesc.NumParameters = 1;
+		RootSignatureDesc.pParameters = SlotRootParameter;
+		RootSignatureDesc.NumStaticSamplers = 0;
+		RootSignatureDesc.pStaticSamplers = nullptr;
+		RootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+		Microsoft::WRL::ComPtr<ID3DBlob> SerializedRootSignature = nullptr;
+		Microsoft::WRL::ComPtr<ID3DBlob> ErrorBlob = nullptr;
+		HRESULT HR = D3D12SerializeRootSignature(
+			&RootSignatureDesc,
+			D3D_ROOT_SIGNATURE_VERSION_1,
+			SerializedRootSignature.GetAddressOf(),
+			ErrorBlob.GetAddressOf()
+		);
+		if (ErrorBlob != nullptr)
+		{
+			::OutputDebugStringA((char*)ErrorBlob->GetBufferPointer());
+		}
+		ThrowIfFailed(HR);
+		
+		ThrowIfFailed(
+			D3D12Device->CreateRootSignature(
+				0,
+				SerializedRootSignature->GetBufferPointer(),
+				SerializedRootSignature->GetBufferSize(),
+				IID_PPV_ARGS(&mRootSignature)
+			)
+		)
+	}
+
+	// BuildShadersAndInputLayout
+	{
+		UINT compileFlags = 0;
+	#if defined(DEBUG) || defined(_DEBUG)  
+		compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+	#endif
+
+		
+
+		HRESULT hr = S_OK;
+		Microsoft::WRL::ComPtr<ID3DBlob> Errors;
+		hr = D3DCompileFromFile(L"Shaders\\UnlitVS.hlsl", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+			"VSMain", "vs_5_0", compileFlags, 0, &mvsByteCode, &Errors);
+		if (Errors != nullptr)
+		{
+			OutputDebugStringA((char*)Errors->GetBufferPointer());
+		}
+		ThrowIfFailed(hr);
+		hr = D3DCompileFromFile(L"Shaders\\UnlitPS.hlsl", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+			"PSMain", "ps_5_0", compileFlags, 0, &mvsByteCode, &Errors);
+		if (Errors != nullptr)
+		{
+			OutputDebugStringA((char*)Errors->GetBufferPointer());
+		}
+		ThrowIfFailed(hr);
+
+		mInputLayout =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+			{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+		};
+	}
+
+	// BuildBoxGeometry
+	{
+		std::array<Vertex, 8> vertices =
+		{
+			Vertex({ DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f), DirectX::XMFLOAT4(DirectX::Colors::White) }),
+			Vertex({ DirectX::XMFLOAT3(-1.0f, +1.0f, -1.0f), DirectX::XMFLOAT4(DirectX::Colors::Black) }),
+			Vertex({ DirectX::XMFLOAT3(+1.0f, +1.0f, -1.0f), DirectX::XMFLOAT4(DirectX::Colors::Red) }),
+			Vertex({ DirectX::XMFLOAT3(+1.0f, -1.0f, -1.0f), DirectX::XMFLOAT4(DirectX::Colors::Green) }),
+			Vertex({ DirectX::XMFLOAT3(-1.0f, -1.0f, +1.0f), DirectX::XMFLOAT4(DirectX::Colors::Blue) }),
+			Vertex({ DirectX::XMFLOAT3(-1.0f, +1.0f, +1.0f), DirectX::XMFLOAT4(DirectX::Colors::Yellow) }),
+			Vertex({ DirectX::XMFLOAT3(+1.0f, +1.0f, +1.0f), DirectX::XMFLOAT4(DirectX::Colors::Cyan) }),
+			Vertex({ DirectX::XMFLOAT3(+1.0f, -1.0f, +1.0f), DirectX::XMFLOAT4(DirectX::Colors::Magenta) })
+		};
+
+		std::array<std::uint16_t, 36> indices =
+		{
+			// front face
+			0, 1, 2,
+			0, 2, 3,
+
+			// back face
+			4, 6, 5,
+			4, 7, 6,
+
+			// left face
+			4, 5, 1,
+			4, 1, 0,
+
+			// right face
+			3, 2, 6,
+			3, 6, 7,
+
+			// top face
+			1, 5, 6,
+			1, 6, 2,
+
+			// bottom face
+			4, 0, 3,
+			4, 3, 7
+		};
+
+		const UINT vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
+		const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
+
+		mBoxGeo = std::make_unique<MeshGeometry>();
+		mBoxGeo->Name = "boxGeo";
+
+		ThrowIfFailed(D3DCreateBlob(vbByteSize, &mBoxGeo->VertexBufferCPU));
+		CopyMemory(mBoxGeo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
+
+		ThrowIfFailed(D3DCreateBlob(ibByteSize, &mBoxGeo->IndexBufferCPU));
+		CopyMemory(mBoxGeo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
+
+		mBoxGeo->VertexBufferGPU = CreateDefaultBuffer(D3D12Device.Get(),
+			D3D12GraphicsCommandList.Get(), vertices.data(), vbByteSize, mBoxGeo->VertexBufferUploader);
+
+		mBoxGeo->IndexBufferGPU = CreateDefaultBuffer(D3D12Device.Get(),
+			D3D12GraphicsCommandList.Get(), indices.data(), ibByteSize, mBoxGeo->IndexBufferUploader);
+
+		mBoxGeo->VertexByteStride = sizeof(Vertex);
+		mBoxGeo->VertexBufferByteSize = vbByteSize;
+		mBoxGeo->IndexFormat = DXGI_FORMAT_R16_UINT;
+		mBoxGeo->IndexBufferByteSize = ibByteSize;
+
+		SubmeshGeometry submesh;
+		submesh.IndexCount = (UINT)indices.size();
+		submesh.StartIndexLocation = 0;
+		submesh.BaseVertexLocation = 0;
+
+		mBoxGeo->DrawArgs["box"] = submesh;
+	}
+	
+
 	return true;
 }
 
@@ -96,7 +291,7 @@ void FRenderer::Resize()
 	// Resize the swap chain.
 	ThrowIfFailed(DXGISwapChain->ResizeBuffers(
 		SwapChainBufferCount,
-		ClientWidth, ClientHeight,
+		GetClientWidth(), GetClientHeight(),
 		DXGIBackBufferFormat,
 		DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH));
 
@@ -125,8 +320,8 @@ void FRenderer::Resize()
 	D3D12_RESOURCE_DESC D3D12DepthStencilDesc;
 	D3D12DepthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	D3D12DepthStencilDesc.Alignment = 0;
-	D3D12DepthStencilDesc.Width = ClientWidth;
-	D3D12DepthStencilDesc.Height = ClientHeight;
+	D3D12DepthStencilDesc.Width = GetClientWidth();
+	D3D12DepthStencilDesc.Height = GetClientHeight();
 	D3D12DepthStencilDesc.DepthOrArraySize = 1;
 	D3D12DepthStencilDesc.MipLevels = 1;
 
@@ -192,12 +387,12 @@ void FRenderer::Resize()
 	// Update the viewport transform to cover the client area.
 	D3D12Viewport.TopLeftX = 0;
 	D3D12Viewport.TopLeftY = 0;
-	D3D12Viewport.Width = static_cast<float>(ClientWidth);
-	D3D12Viewport.Height = static_cast<float>(ClientHeight);
+	D3D12Viewport.Width = static_cast<float>(GetClientWidth());
+	D3D12Viewport.Height = static_cast<float>(GetClientHeight());
 	D3D12Viewport.MinDepth = 0.0f;
 	D3D12Viewport.MaxDepth = 1.0f;
 
-	D3D12ScissorRect = { 0, 0, ClientWidth, ClientHeight };
+	D3D12ScissorRect = { 0, 0, static_cast<long>(GetClientWidth()), static_cast<long>(GetClientHeight()) };
 }
 
 void FRenderer::FlushCommandQueue()
@@ -262,6 +457,23 @@ void FRenderer::Render()
 
 	// Specify the buffers we are going to render to.
 	D3D12GraphicsCommandList->OMSetRenderTargets(1, &RenderTargetView, true, &DepthStencilView);
+
+	// Draw
+
+	/*ID3D12DescriptorHeap* descriptorHeaps[] = { D3D12CBVHeap.Get() };
+	mCommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+
+	mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
+
+	mCommandList->IASetVertexBuffers(0, 1, &mBoxGeo->VertexBufferView());
+	mCommandList->IASetIndexBuffer(&mBoxGeo->IndexBufferView());
+	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	mCommandList->SetGraphicsRootDescriptorTable(0, mCbvHeap->GetGPUDescriptorHandleForHeapStart());
+
+	mCommandList->DrawIndexedInstanced(
+		mBoxGeo->DrawArgs["box"].IndexCount,
+		1, 0, 0, 0);*/
 
 	// Indicate a state transition on the resource usage.
 	ResourceBarrier = CreateResoureceBarrierTransition(
@@ -417,8 +629,8 @@ void FRenderer::CreateSwapChain()
 	DXGISwapChain.Reset();
 
 	DXGI_SWAP_CHAIN_DESC SwapChainDesc;
-	SwapChainDesc.BufferDesc.Width = ClientWidth;
-	SwapChainDesc.BufferDesc.Height = ClientHeight;
+	SwapChainDesc.BufferDesc.Width = GetClientWidth();
+	SwapChainDesc.BufferDesc.Height = GetClientHeight();
 	SwapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
 	SwapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
 	SwapChainDesc.BufferDesc.Format = DXGIBackBufferFormat;

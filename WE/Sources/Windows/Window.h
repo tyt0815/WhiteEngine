@@ -14,6 +14,9 @@ public:
 	);
 	std::wstring GetTitle();
 	std::wstring GetClass();
+	RECT GetClientRect();
+	UINT GetClientWidth() { return this->GetClientRect().right - this->GetClientRect().left; }
+	UINT GetClientHeight() { return this->GetClientRect().bottom - this->GetClientRect().top; }
 	inline static HINSTANCE GetHInstance() { return GetModuleHandle(nullptr); }
 	inline HWND GetHWnd() { return hWnd; }
 	inline void SetTitle(const WCHAR* WString) { SetWindowText(hWnd, WString); }

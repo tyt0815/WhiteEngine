@@ -30,6 +30,9 @@
     <Filter Include="Sources\Math">
       <UniqueIdentifier>{e9589869-0b25-4c7e-b3a1-fa97859a092f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\RHI">
+      <UniqueIdentifier>{34261e0d-6565-47d7-9041-b017fe052e54}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Windows\Window.cpp">
@@ -64,6 +67,30 @@
     </ClCompile>
     <ClCompile Include="Sources\Render\ForwardShadingRenderer.cpp">
       <Filter>Sources\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\DirectX12\D3D12Resource.cpp">
+      <Filter>Sources\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Render\Vertex.cpp">
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Math\Math.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\RHI\RHI.cpp">
+      <Filter>Sources\RHI</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\RHI\RHICommandList.cpp">
+      <Filter>Sources\RHI</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\RHI\RHICommandListAllocator.cpp">
+      <Filter>Sources\RHI</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\RHI\RHIResource.cpp">
+      <Filter>Sources\RHI</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\RHI\RHIDevice.cpp">
+      <Filter>Sources\RHI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -112,12 +139,45 @@
     <ClInclude Include="Sources\Render\ForwardShadingRenderer.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
+    <ClInclude Include="Sources\DirectX12\D3D12Resource.h">
+      <Filter>Sources\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\Vertex.h">
+      <Filter>Sources\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\UploadBuffer.h">
+      <Filter>Sources\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\RHI\RHI.h">
+      <Filter>Sources\RHI</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\RHI\RHICommandList.h">
+      <Filter>Sources\RHI</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\RHI\RHICommandListAllocator.h">
+      <Filter>Sources\RHI</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\RHI\RHIResource.h">
+      <Filter>Sources\RHI</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\RHI\RHIDevice.h">
+      <Filter>Sources\RHI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\TrianglePS.hlsl">
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shaders\TriangleVS.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\UnlitVS.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\UnlitPS.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\UnlitCommon.hlsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

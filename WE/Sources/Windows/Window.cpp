@@ -20,6 +20,13 @@ std::wstring FWindow::GetClass()
 	return std::wstring(ClassName);
 }
 
+RECT FWindow::GetClientRect()
+{
+	RECT Rect;
+	::GetClientRect(hWnd, &Rect);
+	return Rect;
+}
+
 bool FWindow::Initialize(const WCHAR* Title, int CmdShow, UINT Width, UINT Height, DWORD Style)
 {
 	static UINT WindowCount = 0;
