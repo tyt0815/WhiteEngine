@@ -1,12 +1,12 @@
 #pragma once
 
-#include <string>
-#include <memory>
-#include <algorithm>
-#include <cstdint>
-#include <fstream>
-#include <sstream>
-#include <cassert>
+#define SINGLETON(type) public: static type* GetInstance()\
+	{\
+		static type mgr;\
+		return &mgr;\
+	}\
+private: type(){}\
+private: ~type(){}
 
 class FNoncopyable
 {

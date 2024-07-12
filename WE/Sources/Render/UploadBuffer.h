@@ -1,18 +1,17 @@
 #pragma once
 
-#include "DirectX12/Direct3D12Util.h"
+#include "DXHeaders.h"
+#include "Utility/Class.h"
+#include "Utility/Math.h"
 
-enum class EUploadBufferType
-{
-    EUBT_ConstantBuffer
-};
+UINT CalcConstantBufferByteSize(UINT Size);
 
 template<typename T>
 class FUploadBuffer
 {
 public:
-    FUploadBuffer(ID3D12Device* Device, UINT ElementCount, EUploadBufferType UploadBufferType) :
-        Type(UploadBufferType)
+    FUploadBuffer(ID3D12Device* Device, UINT ElementCount, bool InbConstantBuffer) :
+        bConstantBuffer(InbConstantBuffer)
     {
         ElementByteSize = sizeof(T);
 
@@ -23,20 +22,38 @@ public:
         // UINT64 OffsetInBytes; // multiple of 256
         // UINT   SizeInBytes;   // multiple of 256
         // } D3D12_CONSTANT_BUFFER_VIEW_DESC;
-        if (UploadBufferType == EUploadBufferType::EUBT_ConstantBuffer)
+        if (InbConstantBuffer)
             ElementByteSize = CalcConstantBufferByteSize(sizeof(T));
 
-        CD3DX12_HEAP_PROPERTIES D3D12HeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-        CD3DX12_RESOURCE_DESC D3D12ResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(ElementByteSize * ElementCount);
-        ThrowIfFailed(Device->CreateCommittedResource(
-            &D3D12HeapProperties,
+        D3D12_HEAP_PROPERTIES HeapProperties;
+        HeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
+        HeapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+        HeapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+        HeapProperties.CreationNodeMask = 1;
+        HeapProperties.VisibleNodeMask = 1;
+
+        D3D12_RESOURCE_DESC ResourceDesc;
+        ResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+        ResourceDesc.Alignment = 0;
+        ResourceDesc.Width = ElementByteSize * ElementCount;
+        ResourceDesc.Height = 1;
+        ResourceDesc.DepthOrArraySize = 1;
+        ResourceDesc.MipLevels = 1;
+        ResourceDesc.Format = DXGI_FORMAT_UNKNOWN;
+        ResourceDesc.SampleDesc.Count = 1;
+        ResourceDesc.SampleDesc.Quality = 0;
+        ResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+        ResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+        THROWIFFAILED(Device->CreateCommittedResource(
+            &HeapProperties,
             D3D12_HEAP_FLAG_NONE,
-            &D3D12ResourceDesc,
+            &ResourceDesc,
             D3D12_RESOURCE_STATE_GENERIC_READ,
             nullptr,
             IID_PPV_ARGS(&UploadBuffer)));
 
-        ThrowIfFailed(UploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&MappedData)));
+        THROWIFFAILED(UploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&MappedData)));
 
         // We do not need to unmap until we are done with the resource.  However, we must not write to
         // the resource while it is in use by the GPU (so we must use synchronization techniques).
@@ -62,12 +79,15 @@ public:
         memcpy(&MappedData[elementIndex * ElementByteSize], &data, sizeof(T));
     }
 
-    UINT GetByteSize() { return ElementByteSize; }
-
 private:
     Microsoft::WRL::ComPtr<ID3D12Resource> UploadBuffer;
     BYTE* MappedData = nullptr;
 
     UINT ElementByteSize = 0;
-    EUploadBufferType Type = EUploadBufferType::EUBT_ConstantBuffer;
+    bool bConstantBuffer = false;
+};
+
+struct FWVPConstantBuffer
+{
+    DirectX::XMFLOAT4X4 WorldViewProjectMatrix = UMath::IdentityMatrix();
 };

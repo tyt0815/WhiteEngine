@@ -2,10 +2,6 @@
 
 #include <string>
 
-FWindow::FWindow(const WCHAR* Title, int CmdShow, UINT Width, UINT Height, DWORD Style)
-{
-}
-
 std::wstring FWindow::GetTitle()
 {
 	WCHAR Title[256];
@@ -110,6 +106,7 @@ LRESULT FWindow::InternalWndProc(HWND HandleWindow, UINT Message, WPARAM WParame
 	// 윈도우의 사이즈가 변경되었을때
 	case WM_SIZE:
 	{
+		ResizeWindow();
 		return 0;
 	}
 	// 윈도우의 resize바(가장자리)를 끌기 시작할때

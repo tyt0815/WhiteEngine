@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DirectX12/Direct3D12Util.h"
+#include <DirectXMath.h>
 
 class UMath
 {

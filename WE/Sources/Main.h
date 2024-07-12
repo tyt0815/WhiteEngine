@@ -1,5 +1,5 @@
 #pragma once
-#include "Common/Class.h"
+#include "Utility/Class.h"
 
 class UTimer;
 

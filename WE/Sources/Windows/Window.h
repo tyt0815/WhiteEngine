@@ -1,17 +1,13 @@
 #pragma once
 
-#include "thread"
-#include "Windows/WindowsUtil.h"
-#include "Common/Common.h"
-#include "Common/Timer.h"
+#include <string>
+#include "WindowsHeaders.h"
+#include "Utility/Timer.h"
 
 class FWindow
 {
 public:
-	FWindow(const WCHAR* Title = L"DefaultTitle",
-		int CmdShow = 10, UINT Width = 1920, UINT Height = 1080,
-		DWORD Style = WS_OVERLAPPED | WS_SYSMENU
-	);
+	FWindow() {}
 	std::wstring GetTitle();
 	std::wstring GetClass();
 	RECT GetClientRect();
@@ -23,7 +19,7 @@ public:
 	virtual bool Initialize(const WCHAR* Title = L"DefaultTitle",
 		int CmdShow = 10, UINT Width = 1920, UINT Height = 1080,
 		DWORD Style = WS_OVERLAPPED | WS_SYSMENU);
-	virtual int Execute();
+	int Execute();
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 	virtual LRESULT InternalWndProc(HWND HandleWindow, UINT Message, WPARAM WParameter, LPARAM LParameter);
 
@@ -32,8 +28,9 @@ protected:
 	bool bAppPaused = false;
 	void CalculateFrameStats();
 	virtual void Event() {}
+	virtual void ResizeWindow() {};
 
 private:
+	HWND hWnd = nullptr;
 
-	HWND hWnd;
 };

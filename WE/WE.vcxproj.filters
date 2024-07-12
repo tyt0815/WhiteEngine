@@ -18,20 +18,14 @@
     <Filter Include="Sources\Windows">
       <UniqueIdentifier>{6df28f42-f37a-4eb9-abf4-acc61bd8712b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Common">
-      <UniqueIdentifier>{6ca93085-08ff-4fc5-9f36-3d8e5240384f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\DirectX12">
-      <UniqueIdentifier>{f069aaa4-eade-4325-8852-f938511ff0a2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shaders">
       <UniqueIdentifier>{dbb5ee6e-3c54-4326-9fe5-a9d5f879531d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Math">
-      <UniqueIdentifier>{e9589869-0b25-4c7e-b3a1-fa97859a092f}</UniqueIdentifier>
+    <Filter Include="Sources\Utility">
+      <UniqueIdentifier>{6ca93085-08ff-4fc5-9f36-3d8e5240384f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\RHI">
-      <UniqueIdentifier>{34261e0d-6565-47d7-9041-b017fe052e54}</UniqueIdentifier>
+    <Filter Include="Sources\DirectX12">
+      <UniqueIdentifier>{1b0b6bc3-0c8f-44d2-8c09-84b8f28bb198}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -47,91 +41,34 @@
     <ClCompile Include="Sources\Render\Renderer.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\DirectX12\Direct3D12Util.cpp">
-      <Filter>Sources\DirectX12</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\DirectX12\Direct3D12.cpp">
-      <Filter>Sources\DirectX12</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Common\Timer.cpp">
-      <Filter>Sources\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Render\Camera.cpp">
-      <Filter>Sources\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Math\Transform.cpp">
-      <Filter>Sources\Math</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\Render\DeferredShadingRenderer.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Render\ForwardShadingRenderer.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\DirectX12\D3D12Resource.cpp">
-      <Filter>Sources\DirectX12</Filter>
+    <ClCompile Include="Sources\Utility\Timer.cpp">
+      <Filter>Sources\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Render\Vertex.cpp">
+    <ClCompile Include="Sources\Utility\Math.cpp">
+      <Filter>Sources\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Render\DXException.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Math\Math.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\RHI\RHI.cpp">
-      <Filter>Sources\RHI</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\RHI\RHICommandList.cpp">
-      <Filter>Sources\RHI</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\RHI\RHICommandListAllocator.cpp">
-      <Filter>Sources\RHI</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\RHI\RHIResource.cpp">
-      <Filter>Sources\RHI</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\RHI\RHIDevice.cpp">
-      <Filter>Sources\RHI</Filter>
+    <ClCompile Include="Sources\Render\UploadBuffer.cpp">
+      <Filter>Sources\Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Sources\Common\Class.h">
-      <Filter>Sources\Common</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\Windows\Window.h">
       <Filter>Sources\Windows</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Main.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Common\Container.h">
-      <Filter>Sources\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Common\Common.h">
-      <Filter>Sources\Common</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\Render\Renderer.h">
       <Filter>Sources\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\DirectX12\Direct3D12.h">
-      <Filter>Sources\DirectX12</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\DirectX12\Direct3D12Util.h">
-      <Filter>Sources\DirectX12</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Windows\WindowsUtil.h">
-      <Filter>Sources\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Common\Timer.h">
-      <Filter>Sources\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Render\Camera.h">
-      <Filter>Sources\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Math\Math.h">
-      <Filter>Sources\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Math\Transform.h">
-      <Filter>Sources\Math</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Render\DeferredShadingRenderer.h">
       <Filter>Sources\Render</Filter>
@@ -139,29 +76,29 @@
     <ClInclude Include="Sources\Render\ForwardShadingRenderer.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\DirectX12\D3D12Resource.h">
-      <Filter>Sources\DirectX12</Filter>
+    <ClInclude Include="Sources\Windows\WindowsHeaders.h">
+      <Filter>Sources\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Render\Vertex.h">
-      <Filter>Sources\Render</Filter>
+    <ClInclude Include="Sources\Utility\Class.h">
+      <Filter>Sources\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Utility\Timer.h">
+      <Filter>Sources\Utility</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Render\UploadBuffer.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\RHI\RHI.h">
-      <Filter>Sources\RHI</Filter>
+    <ClInclude Include="Sources\Windows\WindowsUtility.h">
+      <Filter>Sources\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\RHI\RHICommandList.h">
-      <Filter>Sources\RHI</Filter>
+    <ClInclude Include="Sources\Utility\Math.h">
+      <Filter>Sources\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\RHI\RHICommandListAllocator.h">
-      <Filter>Sources\RHI</Filter>
+    <ClInclude Include="Sources\Render\DXException.h">
+      <Filter>Sources\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\RHI\RHIResource.h">
-      <Filter>Sources\RHI</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\RHI\RHIDevice.h">
-      <Filter>Sources\RHI</Filter>
+    <ClInclude Include="Sources\Render\DXHeaders.h">
+      <Filter>Sources\Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

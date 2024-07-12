@@ -4,5 +4,6 @@
 
 class FForwardShadingRenderer : public FRenderer
 {
-
+public:
+	virtual void Render();
 };

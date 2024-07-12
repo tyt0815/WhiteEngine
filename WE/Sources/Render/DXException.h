@@ -1,16 +1,8 @@
 #pragma once
 
-#include "DirectX-Headers/d3dx12.h"
-
-#include <dxgi1_4.h>
 #include <d3d12.h>
-#include <D3Dcompiler.h>
-#include <DirectXMath.h>
-#include <DirectXPackedVector.h>
-#include <DirectXColors.h>
-#include <DirectXCollision.h>
+#include <string>
 
-#include "Common/Common.h"
 
 class DxException
 {
@@ -33,8 +25,8 @@ inline std::wstring AnsiToWString(const std::string& str)
     return std::wstring(buffer);
 }
 
-#ifndef ThrowIfFailed
-#define ThrowIfFailed(x)                                              \
+#ifndef THROWIFFAILED
+#define THROWIFFAILED(x)                                              \
 {                                                                     \
     HRESULT hr__ = (x);                                               \
     std::wstring wfn = AnsiToWString(__FILE__);                       \
@@ -42,4 +34,3 @@ inline std::wstring AnsiToWString(const std::string& str)
 }
 #endif
 
-UINT CalcConstantBufferByteSize(UINT Size);
