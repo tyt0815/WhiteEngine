@@ -70,6 +70,8 @@ bool FRenderer::Initialize(const WCHAR* Title, int CmdShow, UINT Width, UINT Hei
 	CreateCommandObjects();
 	CreateSwapChain();
 	CreateDescriptorHeaps();
+	BuildConstantBuffer();
+	BuildRootSignature();
 	Resize();
 
 	// Reset the command list to prep for initialization commands.
@@ -481,12 +483,12 @@ void FRenderer::CreateDescriptorHeaps()
 	DSVHeapDesc.NodeMask = 0;
 	THROWIFFAILED(D3D12Device->CreateDescriptorHeap(&DSVHeapDesc, IID_PPV_ARGS(D3D12DSVHeap.GetAddressOf())));
 
-	/*D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc;
+	D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc;
 	cbvHeapDesc.NumDescriptors = 1;
 	cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	cbvHeapDesc.NodeMask = 0;
-	THROWIFFAILED(D3D12Device->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(D3D12CBVHeap.GetAddressOf())));*/
+	THROWIFFAILED(D3D12Device->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(D3D12CBVHeap.GetAddressOf())));
 }
 
 D3D12_RESOURCE_BARRIER FRenderer::CreateResoureceBarrierTransition(ID3D12Resource* Resource, D3D12_RESOURCE_STATES StateBefore, D3D12_RESOURCE_STATES StateAfter, UINT Subresource, D3D12_RESOURCE_BARRIER_FLAGS Flags)
@@ -504,4 +506,76 @@ D3D12_RESOURCE_BARRIER FRenderer::CreateResoureceBarrierTransition(ID3D12Resourc
 void FRenderer::BuildConstantBuffer()
 {
 	WVPConstantBuffer = std::make_unique<FUploadBuffer<FWVPConstantBuffer>>(D3D12Device.Get(), 1, true);
+
+	WVPConstantBuffer->GetElementByteSize();
+
+	D3D12_GPU_VIRTUAL_ADDRESS WVPConstantBufferAddress = WVPConstantBuffer->GetGPUVirtualAddress();
+	// Offset to the ith object constant buffer in the buffer.
+	int WVPConstantBufferIndex = 0;
+	WVPConstantBufferAddress += WVPConstantBufferIndex * WVPConstantBuffer->GetElementByteSize();
+
+	D3D12_CONSTANT_BUFFER_VIEW_DESC ConstantBufferViewDesc;
+	ConstantBufferViewDesc.BufferLocation = WVPConstantBufferAddress;
+	ConstantBufferViewDesc.SizeInBytes = WVPConstantBuffer->GetElementByteSize();
+
+	D3D12Device->CreateConstantBufferView(&ConstantBufferViewDesc, D3D12CBVHeap->GetCPUDescriptorHandleForHeapStart());
+}
+
+void FRenderer::BuildRootSignature()
+{
+	// Shader programs typically require resources as input (constant buffers,
+	// textures, samplers).  The root signature defines the resources the shader
+	// programs expect.  If we think of the shader programs as a function, and
+	// the input resources as function parameters, then the root signature can be
+	// thought of as defining the function signature.  
+
+	// Root parameter can be a table, root descriptor or root constants.
+
+	D3D12_ROOT_PARAMETER SlotRootParameter[1];
+
+	// Create a single descriptor table of CBVs.
+	D3D12_DESCRIPTOR_RANGE CBVTable;
+	CBVTable.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+	CBVTable.NumDescriptors = 1;
+	CBVTable.BaseShaderRegister = 0;
+	CBVTable.RegisterSpace = 0;
+	CBVTable.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	SlotRootParameter[0].DescriptorTable.NumDescriptorRanges = 1;
+	SlotRootParameter[0].DescriptorTable.pDescriptorRanges = &CBVTable;
+	SlotRootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	SlotRootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+
+	// A root signature is an array of root parameters.
+	D3D12_ROOT_SIGNATURE_DESC RootSignatureDesc;
+	RootSignatureDesc.NumParameters = 1;
+	RootSignatureDesc.pParameters = SlotRootParameter;
+	RootSignatureDesc.NumStaticSamplers = 0;
+	RootSignatureDesc.pStaticSamplers = nullptr;
+	RootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+	// create a root signature with a single slot which points to a descriptor range consisting of a single constant buffer
+	ComPtr<ID3DBlob> SerializedRootSignature = nullptr;
+	ComPtr<ID3DBlob> ErrorBlob = nullptr;
+	HRESULT HResult = D3D12SerializeRootSignature(
+		&RootSignatureDesc,
+		D3D_ROOT_SIGNATURE_VERSION_1,
+		SerializedRootSignature.GetAddressOf(),
+		ErrorBlob.GetAddressOf()
+	);
+
+	if (ErrorBlob != nullptr)
+	{
+		::OutputDebugStringA((char*)ErrorBlob->GetBufferPointer());
+	}
+	THROWIFFAILED(HResult);
+	
+	THROWIFFAILED(
+		D3D12Device->CreateRootSignature(
+			0,
+			SerializedRootSignature->GetBufferPointer(),
+			SerializedRootSignature->GetBufferSize(),
+			IID_PPV_ARGS(&RootSignature)
+		)
+	);
 }

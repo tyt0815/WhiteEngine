@@ -79,6 +79,9 @@ public:
         memcpy(&MappedData[elementIndex * ElementByteSize], &data, sizeof(T));
     }
 
+    inline UINT GetElementByteSize() { return ElementByteSize; }
+    inline D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() { return UploadBuffer->GetGPUVirtualAddress(); }
+
 private:
     Microsoft::WRL::ComPtr<ID3D12Resource> UploadBuffer;
     BYTE* MappedData = nullptr;

@@ -10,4 +10,6 @@
 
 #include "WindowsUtility.h"
 
+using namespace Microsoft::WRL;
+
 #endif // !WINDOWSHEADERS_H

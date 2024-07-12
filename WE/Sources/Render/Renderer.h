@@ -8,7 +8,6 @@
 #include <memory>
 #include "UploadBuffer.h"
 
-
 // Link necessary d3d12 libraries.
 #pragma comment(lib,"d3dcompiler.lib")
 #pragma comment(lib, "D3D12.lib")
@@ -61,20 +60,22 @@ protected:
 		D3D12_RESOURCE_BARRIER_FLAGS Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE
 	);
 	void BuildConstantBuffer();
+	void BuildRootSignature();
 
-	Microsoft::WRL::ComPtr<IDXGIFactory4> DXGIFactory = nullptr;
-	Microsoft::WRL::ComPtr<ID3D12Device> D3D12Device = nullptr;
-	Microsoft::WRL::ComPtr<ID3D12Fence> D3D12Fence = nullptr;
-	Microsoft::WRL::ComPtr<ID3D12CommandQueue> D3D12CommandQueue = nullptr;
-	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> D3D12CommandListAllocator = nullptr;
-	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> D3D12GraphicsCommandList = nullptr;
-	Microsoft::WRL::ComPtr<IDXGISwapChain> DXGISwapChain = nullptr;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> D3D12RTVHeap = nullptr;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> D3D12DSVHeap = nullptr;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> D3D12CBVHeap = nullptr;
+	ComPtr<IDXGIFactory4> DXGIFactory = nullptr;
+	ComPtr<ID3D12Device> D3D12Device = nullptr;
+	ComPtr<ID3D12Fence> D3D12Fence = nullptr;
+	ComPtr<ID3D12CommandQueue> D3D12CommandQueue = nullptr;
+	ComPtr<ID3D12CommandAllocator> D3D12CommandListAllocator = nullptr;
+	ComPtr<ID3D12GraphicsCommandList> D3D12GraphicsCommandList = nullptr;
+	ComPtr<IDXGISwapChain> DXGISwapChain = nullptr;
+	ComPtr<ID3D12DescriptorHeap> D3D12RTVHeap = nullptr;
+	ComPtr<ID3D12DescriptorHeap> D3D12DSVHeap = nullptr;
+	ComPtr<ID3D12DescriptorHeap> D3D12CBVHeap = nullptr;
+	ComPtr<ID3D12RootSignature> RootSignature;
 	static const int SwapChainBufferCount = 2;
-	Microsoft::WRL::ComPtr<ID3D12Resource> D3D12SwapChainBuffer[SwapChainBufferCount];
-	Microsoft::WRL::ComPtr<ID3D12Resource> D3D12DepthStencilBuffer;
+	ComPtr<ID3D12Resource> D3D12SwapChainBuffer[SwapChainBufferCount];
+	ComPtr<ID3D12Resource> D3D12DepthStencilBuffer;
 	std::unique_ptr<FUploadBuffer<FWVPConstantBuffer>> WVPConstantBuffer;
 	
 
