@@ -579,3 +579,43 @@ void FRenderer::BuildRootSignature()
 		)
 	);
 }
+
+void FRenderer::BuildShaderAndLayout()
+{
+	HRESULT hr = S_OK;
+
+	UnlitVSByteCode = CompileShader(L"Shaders\\color.hlsl", nullptr, "VS", "vs_5_0");
+	UnlitPSByteCode = CompileShader(L"Shaders\\color.hlsl", nullptr, "PS", "ps_5_0");
+
+	InputLayout =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+	};
+}
+
+ComPtr<ID3DBlob> FRenderer::CompileShader(
+	const std::wstring& Filename,
+	const D3D_SHADER_MACRO* Defines,
+	const std::string& EntryPoint,
+	const std::string& Target)
+{
+	UINT CompileFlags = 0;
+#if defined(DEBUG) || defined(_DEBUG)  
+	CompileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+	HRESULT HResult = S_OK;
+
+	ComPtr<ID3DBlob> ByteCode = nullptr;
+	ComPtr<ID3DBlob> Errors;
+	HResult = D3DCompileFromFile(Filename.c_str(), Defines, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		EntryPoint.c_str(), Target.c_str(), CompileFlags, 0, &ByteCode, &Errors);
+
+	if (Errors != nullptr)
+		OutputDebugStringA((char*)Errors->GetBufferPointer());
+
+	THROWIFFAILED(HResult);
+
+	return ByteCode;
+}

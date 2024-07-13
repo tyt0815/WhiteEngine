@@ -61,6 +61,13 @@ protected:
 	);
 	void BuildConstantBuffer();
 	void BuildRootSignature();
+	void BuildShaderAndLayout();
+	ComPtr<ID3DBlob> CompileShader(
+		const std::wstring& FileName,
+		const D3D_SHADER_MACRO* Defines,
+		const std::string& EntryPoint,
+		const std::string& Target
+	);
 
 	ComPtr<IDXGIFactory4> DXGIFactory = nullptr;
 	ComPtr<ID3D12Device> D3D12Device = nullptr;
@@ -76,7 +83,10 @@ protected:
 	static const int SwapChainBufferCount = 2;
 	ComPtr<ID3D12Resource> D3D12SwapChainBuffer[SwapChainBufferCount];
 	ComPtr<ID3D12Resource> D3D12DepthStencilBuffer;
+	ComPtr<ID3DBlob> UnlitVSByteCode;
+	ComPtr<ID3DBlob> UnlitPSByteCode;
 	std::unique_ptr<FUploadBuffer<FWVPConstantBuffer>> WVPConstantBuffer;
+	std::vector<D3D12_INPUT_ELEMENT_DESC> InputLayout;
 	
 
 	UINT64 CurrentFence = 0;
