@@ -1,10 +1,8 @@
 #pragma once
 
-#include "DXHeaders.h"
+#include "Directx12/DXUtility.h"
 #include "Utility/Class.h"
 #include "Utility/Math.h"
-
-UINT CalcConstantBufferByteSize(UINT Size);
 
 template<typename T>
 class FUploadBuffer
@@ -23,27 +21,11 @@ public:
         // UINT   SizeInBytes;   // multiple of 256
         // } D3D12_CONSTANT_BUFFER_VIEW_DESC;
         if (InbConstantBuffer)
-            ElementByteSize = CalcConstantBufferByteSize(sizeof(T));
+            ElementByteSize = UDXUtility::CalcConstantBufferByteSize(sizeof(T));
 
-        D3D12_HEAP_PROPERTIES HeapProperties;
-        HeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
-        HeapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-        HeapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-        HeapProperties.CreationNodeMask = 1;
-        HeapProperties.VisibleNodeMask = 1;
+        D3D12_HEAP_PROPERTIES HeapProperties = UDXUtility::CreateHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
 
-        D3D12_RESOURCE_DESC ResourceDesc;
-        ResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-        ResourceDesc.Alignment = 0;
-        ResourceDesc.Width = ElementByteSize * ElementCount;
-        ResourceDesc.Height = 1;
-        ResourceDesc.DepthOrArraySize = 1;
-        ResourceDesc.MipLevels = 1;
-        ResourceDesc.Format = DXGI_FORMAT_UNKNOWN;
-        ResourceDesc.SampleDesc.Count = 1;
-        ResourceDesc.SampleDesc.Quality = 0;
-        ResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-        ResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+        D3D12_RESOURCE_DESC ResourceDesc = UDXUtility::CreateBufferDesc(ElementByteSize * ElementCount);
 
         THROWIFFAILED(Device->CreateCommittedResource(
             &HeapProperties,
@@ -83,7 +65,7 @@ public:
     inline D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() { return UploadBuffer->GetGPUVirtualAddress(); }
 
 private:
-    Microsoft::WRL::ComPtr<ID3D12Resource> UploadBuffer;
+    ComPtr<ID3D12Resource> UploadBuffer;
     BYTE* MappedData = nullptr;
 
     UINT ElementByteSize = 0;

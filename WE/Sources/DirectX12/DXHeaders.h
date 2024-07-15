@@ -10,7 +10,6 @@
 #include <DirectXColors.h>
 #include <DirectXCollision.h>
 #include "Windows/WindowsHeaders.h"
-#include "DXException.h"
 
 //#include "DirectX12/DirectX-Headers/d3dx12.h"
 

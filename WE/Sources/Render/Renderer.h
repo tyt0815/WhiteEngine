@@ -1,12 +1,15 @@
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////
-#include "DXHeaders.h"
+//#include "DXHeaders.h"
+#include "DirectX12/DXUtility.h"
 #include "Windows/Window.h"
 /////////////////////////////////////////////////////////////////////////////////
 
 #include <memory>
+#include <vector>
 #include "UploadBuffer.h"
+#include "MeshGeometry.h"
 
 // Link necessary d3d12 libraries.
 #pragma comment(lib,"d3dcompiler.lib")
@@ -20,14 +23,19 @@ public:
 	FRenderer() {};
 	~FRenderer() {};
 	virtual bool Initialize(const WCHAR* Title = L"DefaultTitle",
-		int CmdShow = 10, UINT Width = 1920, UINT Height = 1080,
-		DWORD Style = WS_OVERLAPPED | WS_SYSMENU
+		int CmdShow = 10, UINT Width = 800, UINT Height = 600,
+		DWORD Style = WS_OVERLAPPEDWINDOW
 	) override;
 
 protected:
+	virtual void ProcessEvent() override;
 	virtual void ResizeWindow() override { if (D3D12Device) Resize(); }
+	virtual void ClickMouse(WPARAM Button, int X, int Y) override;
+	virtual void ReleaseMouse(WPARAM Button, int X, int Y) override;
+	virtual void MoveMouse(WPARAM Button, int X, int Y) override;
+	virtual void PressKey(WPARAM Key) override;
 	virtual void Resize();
-	virtual void Event() override;
+	virtual void Update();
 	virtual void Render();
 	virtual void StartRendering();
 	virtual void EndRendering();
@@ -62,6 +70,7 @@ protected:
 	void BuildConstantBuffer();
 	void BuildRootSignature();
 	void BuildShaderAndLayout();
+	void BuildPipelineState();
 	ComPtr<ID3DBlob> CompileShader(
 		const std::wstring& FileName,
 		const D3D_SHADER_MACRO* Defines,
@@ -74,19 +83,21 @@ protected:
 	ComPtr<ID3D12Fence> D3D12Fence = nullptr;
 	ComPtr<ID3D12CommandQueue> D3D12CommandQueue = nullptr;
 	ComPtr<ID3D12CommandAllocator> D3D12CommandListAllocator = nullptr;
-	ComPtr<ID3D12GraphicsCommandList> D3D12GraphicsCommandList = nullptr;
+	ComPtr<ID3D12GraphicsCommandList> D3D12CommandList = nullptr;
 	ComPtr<IDXGISwapChain> DXGISwapChain = nullptr;
 	ComPtr<ID3D12DescriptorHeap> D3D12RTVHeap = nullptr;
 	ComPtr<ID3D12DescriptorHeap> D3D12DSVHeap = nullptr;
 	ComPtr<ID3D12DescriptorHeap> D3D12CBVHeap = nullptr;
 	ComPtr<ID3D12RootSignature> RootSignature;
+	ComPtr<ID3D12PipelineState> Pipelinestate;
 	static const int SwapChainBufferCount = 2;
-	ComPtr<ID3D12Resource> D3D12SwapChainBuffer[SwapChainBufferCount];
-	ComPtr<ID3D12Resource> D3D12DepthStencilBuffer;
-	ComPtr<ID3DBlob> UnlitVSByteCode;
-	ComPtr<ID3DBlob> UnlitPSByteCode;
+	ComPtr<ID3D12Resource> SwapChainBuffer[SwapChainBufferCount];
+	ComPtr<ID3D12Resource> DepthStencilBuffer;
+	ComPtr<ID3DBlob> VSByteCode;
+	ComPtr<ID3DBlob> PSByteCode;
 	std::unique_ptr<FUploadBuffer<FWVPConstantBuffer>> WVPConstantBuffer;
 	std::vector<D3D12_INPUT_ELEMENT_DESC> InputLayout;
+	std::unique_ptr<FMeshGeometry> MeshGeometry;
 	
 
 	UINT64 CurrentFence = 0;

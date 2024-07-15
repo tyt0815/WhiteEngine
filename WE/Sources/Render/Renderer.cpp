@@ -70,20 +70,62 @@ bool FRenderer::Initialize(const WCHAR* Title, int CmdShow, UINT Width, UINT Hei
 	CreateCommandObjects();
 	CreateSwapChain();
 	CreateDescriptorHeaps();
-	BuildConstantBuffer();
-	BuildRootSignature();
 	Resize();
 
 	// Reset the command list to prep for initialization commands.
 	InitializeCommand();
-	
+	BuildConstantBuffer();
+	BuildRootSignature();
+	BuildShaderAndLayout();
+	MeshGeometry = std::make_unique<FMeshGeometry>(BuildBoxMeshGeometry(D3D12Device.Get(), D3D12CommandList.Get()));
+	BuildPipelineState();
 
 	ExecuteCommand();
 
-	// Wait until initialization is complete.
-	FlushCommandQueue();
-
 	return true;
+}
+
+void FRenderer::ProcessEvent()
+{
+	Super::ProcessEvent();
+	Update();
+	Render();
+}
+
+void FRenderer::ClickMouse(WPARAM Button, int X, int Y)
+{
+	Super::ClickMouse(Button, X, Y);
+}
+
+void FRenderer::ReleaseMouse(WPARAM Button, int X, int Y)
+{
+	Super::ReleaseMouse(Button, X, Y);
+}
+
+void FRenderer::MoveMouse(WPARAM Button, int X, int Y)
+{
+	Super::MoveMouse(Button, X, Y);
+	if (IsMouseClicked(Button, MK_LBUTTON))
+	{
+		
+	}
+	else if (IsMouseClicked(Button, MK_RBUTTON))
+	{
+
+	}
+	else if (IsMouseClicked(Button, MK_MBUTTON))
+	{
+
+	}
+}
+
+void FRenderer::PressKey(WPARAM Key)
+{
+	Super::PressKey(Key);
+	if (Key == 'W')
+	{
+
+	}
 }
 
 void FRenderer::Resize()
@@ -96,14 +138,14 @@ void FRenderer::Resize()
 	FlushCommandQueue();
 
 	InitializeCommand();
-	//THROWIFFAILED(D3D12GraphicsCommandList->Reset(D3D12CommandListAllocator.Get(), nullptr));
+	//THROWIFFAILED(D3D12CommandList->Reset(D3D12CommandListAllocator.Get(), nullptr));
 
 	// Release the previous resources we will be recreating.
 	for (int i = 0; i < SwapChainBufferCount; ++i)
 	{
-		D3D12SwapChainBuffer[i].Reset();
+		SwapChainBuffer[i].Reset();
 	}
-	D3D12DepthStencilBuffer.Reset();
+	DepthStencilBuffer.Reset();
 
 	// Resize the swap chain.
 	THROWIFFAILED(DXGISwapChain->ResizeBuffers(
@@ -117,30 +159,30 @@ void FRenderer::Resize()
 	for (UINT i = 0; i < SwapChainBufferCount; i++)
 	{
 		D3D12_CPU_DESCRIPTOR_HANDLE D3D12RTVHeapHandle = GetRTVHandle(i);
-		THROWIFFAILED(DXGISwapChain->GetBuffer(i, IID_PPV_ARGS(&D3D12SwapChainBuffer[i])));
-		D3D12Device->CreateRenderTargetView(D3D12SwapChainBuffer[i].Get(), nullptr, D3D12RTVHeapHandle);
+		THROWIFFAILED(DXGISwapChain->GetBuffer(i, IID_PPV_ARGS(&SwapChainBuffer[i])));
+		D3D12Device->CreateRenderTargetView(SwapChainBuffer[i].Get(), nullptr, D3D12RTVHeapHandle);
 	}
 
 	// Create the depth/stencil buffer and view.
-	D3D12_RESOURCE_DESC D3D12DepthStencilDesc;
-	D3D12DepthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	D3D12DepthStencilDesc.Alignment = 0;
-	D3D12DepthStencilDesc.Width = GetClientWidth();
-	D3D12DepthStencilDesc.Height = GetClientHeight();
-	D3D12DepthStencilDesc.DepthOrArraySize = 1;
-	D3D12DepthStencilDesc.MipLevels = 1;
+	D3D12_RESOURCE_DESC D3D12DepthStencilBufferDesc;
+	D3D12DepthStencilBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	D3D12DepthStencilBufferDesc.Alignment = 0;
+	D3D12DepthStencilBufferDesc.Width = GetClientWidth();
+	D3D12DepthStencilBufferDesc.Height = GetClientHeight();
+	D3D12DepthStencilBufferDesc.DepthOrArraySize = 1;
+	D3D12DepthStencilBufferDesc.MipLevels = 1;
 
 	// Correction 11/12/2016: SSAO chapter requires an SRV to the depth buffer to read from 
 	// the depth buffer.  Therefore, because we need to create two views to the same resource:
 	//   1. SRV format: DXGI_FORMAT_R24_UNORM_X8_TYPELESS
 	//   2. DSV Format: DXGI_FORMAT_D24_UNORM_S8_UINT
 	// we need to create the depth buffer resource with a typeless format.  
-	D3D12DepthStencilDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
+	D3D12DepthStencilBufferDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
 
-	D3D12DepthStencilDesc.SampleDesc.Count = MSAAState ? 4 : 1;
-	D3D12DepthStencilDesc.SampleDesc.Quality = MSAAState ? (MSAAQuality - 1) : 0;
-	D3D12DepthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	D3D12DepthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+	D3D12DepthStencilBufferDesc.SampleDesc.Count = MSAAState ? 4 : 1;
+	D3D12DepthStencilBufferDesc.SampleDesc.Quality = MSAAState ? (MSAAQuality - 1) : 0;
+	D3D12DepthStencilBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	D3D12DepthStencilBufferDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
 	D3D12_CLEAR_VALUE D3D12ClearValue;
 	D3D12ClearValue.Format = DXGIDepthStencilFormat;
@@ -156,10 +198,10 @@ void FRenderer::Resize()
 		D3D12Device->CreateCommittedResource(
 			&D3D12HeapProperties,
 			D3D12_HEAP_FLAG_NONE,
-			&D3D12DepthStencilDesc,
+			&D3D12DepthStencilBufferDesc,
 			D3D12_RESOURCE_STATE_COMMON,
 			&D3D12ClearValue,
-			IID_PPV_ARGS(D3D12DepthStencilBuffer.GetAddressOf())
+			IID_PPV_ARGS(DepthStencilBuffer.GetAddressOf())
 		)
 	);
 
@@ -169,17 +211,17 @@ void FRenderer::Resize()
 	D3D12DSVDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 	D3D12DSVDesc.Format = DXGIDepthStencilFormat;
 	D3D12DSVDesc.Texture2D.MipSlice = 0;
-	D3D12Device->CreateDepthStencilView(D3D12DepthStencilBuffer.Get(), &D3D12DSVDesc, GetDepthStencilView());
+	D3D12Device->CreateDepthStencilView(DepthStencilBuffer.Get(), &D3D12DSVDesc, GetDepthStencilView());
 
 	// Transition the resource from its initial state to be used as a depth buffer.
 	// CD3DX12
 	D3D12_RESOURCE_BARRIER D3D12ResourceBarrier = CreateResoureceBarrierTransition(
-		D3D12DepthStencilBuffer.Get(),
+		DepthStencilBuffer.Get(),
 		D3D12_RESOURCE_STATE_COMMON,
 		D3D12_RESOURCE_STATE_DEPTH_WRITE
 	);
 
-	D3D12GraphicsCommandList->ResourceBarrier(1, &D3D12ResourceBarrier);
+	D3D12CommandList->ResourceBarrier(1, &D3D12ResourceBarrier);
 
 	ExecuteCommand();
 
@@ -194,22 +236,132 @@ void FRenderer::Resize()
 	D3D12ScissorRect = { 0, 0, static_cast<long>(GetClientWidth()), static_cast<long>(GetClientHeight()) };
 }
 
-void FRenderer::Event()
+void FRenderer::Update()
 {
-	Super::Event();
-	Render();
+	float mPhi = XM_PIDIV4;
+	float mRadius = 5.0f;
+	float mTheta = 1.5f * XM_PI;
+	// Convert Spherical to Cartesian coordinates.
+	float x = mRadius * sinf(mPhi) * cosf(mTheta);
+	float z = mRadius * sinf(mPhi) * sinf(mTheta);
+	float y = mRadius * cosf(mPhi);
+
+	// Build the view matrix.
+	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
+	XMVECTOR target = XMVectorZero();
+	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
+	XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
+
+	XMMATRIX world = XMMatrixIdentity();
+	XMMATRIX proj = XMMatrixPerspectiveFovLH(0.25f * XM_PI, GetAspectRatio(), 1.0f, 1000.0f);
+	XMMATRIX worldViewProj = world * view * proj;
+
+	// Update the constant buffer with the latest worldViewProj matrix.
+	FWVPConstantBuffer objConstants;
+	XMStoreFloat4x4(&objConstants.WorldViewProjectMatrix, XMMatrixTranspose(worldViewProj));
+	WVPConstantBuffer->CopyData(0, objConstants);
 }
 
 void FRenderer::Render()
 {
 	StartRendering();
 
-	EndRendering();
+	D3D12CommandList->SetPipelineState(Pipelinestate.Get());
+
+	ID3D12DescriptorHeap* descriptorHeaps[] = { D3D12CBVHeap.Get() };
+	D3D12CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+
+	D3D12CommandList->SetGraphicsRootSignature(RootSignature.Get());
+
+	D3D12_VERTEX_BUFFER_VIEW VertexBufferView = MeshGeometry->VertexBufferView();
+	D3D12_INDEX_BUFFER_VIEW IndexBufferView = MeshGeometry->IndexBufferView();
+	D3D12CommandList->IASetVertexBuffers(0, 1, &VertexBufferView);
+	D3D12CommandList->IASetIndexBuffer(&IndexBufferView);
+	D3D12CommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	D3D12CommandList->SetGraphicsRootDescriptorTable(0, D3D12CBVHeap->GetGPUDescriptorHandleForHeapStart());
+
+	D3D12CommandList->DrawIndexedInstanced(
+		MeshGeometry->DrawArgs["box"].IndexCount,
+		1, 0, 0, 0);
+	//////////////////////////////////////////////////////////////////////////
+	FVertex TV[] =
+	{
+		FVertex({XMFLOAT3(-0.5f, 0, 0), XMFLOAT4(-0.5f, 0, 0, 1)}),
+		FVertex({XMFLOAT3(0, 0.5f, 0), XMFLOAT4(0, 0.5f, 0, 1)}),
+		FVertex({XMFLOAT3(0.5f, 0, 0), XMFLOAT4(0.5f, 0, 0, 1)})
+	};
+	UINT16 TI[] = { 0, 1, 2 };
+	UINT VBSize = sizeof(FVertex) * 3;
+	UINT IBSize = sizeof(UINT16) * 3;
+	ComPtr<ID3DBlob> VBCPUBuffer;
+	D3DCreateBlob(VBSize, &VBCPUBuffer);
+	CopyMemory(VBCPUBuffer->GetBufferPointer(), TV, VBSize);
+	ComPtr<ID3DBlob> IBCPUBuffer;
+	D3DCreateBlob(IBSize, &IBCPUBuffer);
+	CopyMemory(IBCPUBuffer->GetBufferPointer(), TI, IBSize);
+	ComPtr<ID3D12Resource> VBUploader, IBUploader;
+	ComPtr<ID3D12Resource> VBGPUBuffer = UDXUtility::CreateDefaultBuffer(
+		D3D12Device.Get(),
+		D3D12CommandList.Get(),
+		TV,
+		VBSize,
+		VBUploader
+	);
+	ComPtr<ID3D12Resource> IBGPUBuffer = UDXUtility::CreateDefaultBuffer(
+		D3D12Device.Get(),
+		D3D12CommandList.Get(),
+		TI,
+		IBSize,
+		IBUploader
+	);
+	D3D12_VERTEX_BUFFER_VIEW VBV;
+	VBV.BufferLocation = VBGPUBuffer->GetGPUVirtualAddress();
+	VBV.StrideInBytes = sizeof(FVertex);
+	VBV.SizeInBytes = VBSize;
+	D3D12_INDEX_BUFFER_VIEW IBV;
+	IBV.BufferLocation = IBGPUBuffer->GetGPUVirtualAddress();
+	IBV.Format = DXGI_FORMAT_R16_UINT;
+	IBV.SizeInBytes = IBSize;
+	D3D12CommandList->IASetVertexBuffers(0, 1, &VBV);
+	D3D12CommandList->IASetIndexBuffer(&IBV);
+	D3D12CommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	D3D12CommandList->SetGraphicsRootDescriptorTable(0, D3D12CBVHeap->GetGPUDescriptorHandleForHeapStart());
+
+	D3D12CommandList->DrawIndexedInstanced(3, 1, 0, 0, 0);
+	//////////////////////////////////////////////////////////////////////////
+
+	
+	// Indicate a state transition on the resource usage.
+	ID3D12Resource* RenderTarget = GetCurrentBackBuffer();
+	D3D12_RESOURCE_BARRIER ResourceBarrier = CreateResoureceBarrierTransition(
+		RenderTarget,
+		D3D12_RESOURCE_STATE_RENDER_TARGET,
+		D3D12_RESOURCE_STATE_PRESENT);
+	D3D12CommandList->ResourceBarrier(1, &ResourceBarrier);
+	THROWIFFAILED(D3D12CommandList->Close());
+	ID3D12CommandList* CommandList[] = { D3D12CommandList.Get() };
+	D3D12CommandQueue->ExecuteCommandLists(_countof(CommandList), CommandList);
+	
+	THROWIFFAILED(DXGISwapChain->Present(0, 0));
+	CurrBackBuffer = (CurrBackBuffer + 1) % SwapChainBufferCount;
+
+	FlushCommandQueue();
+
+	// swap the back and front buffers
+	
+	//EndRendering();
 }
 
 void FRenderer::StartRendering()
 {
 	InitializeCommand();
+	
+	// Set the viewport and scissor rect.  This needs to be reset whenever the command list is reset.
+	D3D12CommandList->RSSetViewports(1, &D3D12Viewport);
+	D3D12CommandList->RSSetScissorRects(1, &D3D12ScissorRect);
 
 	// Indicate a state transition on the resource usage.
 	ID3D12Resource* RenderTarget = GetCurrentBackBuffer();
@@ -218,21 +370,16 @@ void FRenderer::StartRendering()
 		D3D12_RESOURCE_STATE_PRESENT,
 		D3D12_RESOURCE_STATE_RENDER_TARGET
 	);
-	D3D12GraphicsCommandList->ResourceBarrier(1, &ResourceBarrier);
-
-	// Set the viewport and scissor rect.  This needs to be reset whenever the command list is reset.
-	D3D12GraphicsCommandList->RSSetViewports(1, &D3D12Viewport);
-	D3D12GraphicsCommandList->RSSetScissorRects(1, &D3D12ScissorRect);
+	D3D12CommandList->ResourceBarrier(1, &ResourceBarrier);
 
 	// Clear the back buffer and depth buffer.
 	D3D12_CPU_DESCRIPTOR_HANDLE RenderTargetView = GetCurrentBackBufferView();
 	D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView = GetDepthStencilView();
-	D3D12GraphicsCommandList->ClearRenderTargetView(RenderTargetView, DirectX::Colors::AliceBlue, 0, nullptr);
-
-	D3D12GraphicsCommandList->ClearDepthStencilView(DepthStencilView, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+	D3D12CommandList->ClearRenderTargetView(RenderTargetView, DirectX::Colors::AliceBlue, 0, nullptr);
+	D3D12CommandList->ClearDepthStencilView(DepthStencilView, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
 	// Specify the buffers we are going to render to.
-	D3D12GraphicsCommandList->OMSetRenderTargets(1, &RenderTargetView, true, &DepthStencilView);
+	D3D12CommandList->OMSetRenderTargets(1, &RenderTargetView, true, &DepthStencilView);
 }
 
 void FRenderer::EndRendering()
@@ -243,7 +390,7 @@ void FRenderer::EndRendering()
 		RenderTarget,
 		D3D12_RESOURCE_STATE_RENDER_TARGET,
 		D3D12_RESOURCE_STATE_PRESENT);
-	D3D12GraphicsCommandList->ResourceBarrier(1, &ResourceBarrier);
+	D3D12CommandList->ResourceBarrier(1, &ResourceBarrier);
 
 	ExecuteCommand();
 
@@ -257,15 +404,14 @@ void FRenderer::EndRendering()
 void FRenderer::InitializeCommand()
 {
 	THROWIFFAILED(D3D12CommandListAllocator->Reset());
-	THROWIFFAILED(D3D12GraphicsCommandList->Reset(D3D12CommandListAllocator.Get(), nullptr));
+	THROWIFFAILED(D3D12CommandList->Reset(D3D12CommandListAllocator.Get(), nullptr));
 }
 
 void FRenderer::ExecuteCommand()
 {
-	
-	THROWIFFAILED(D3D12GraphicsCommandList->Close());
-	ID3D12CommandList* D3D12CommandList[] = { D3D12GraphicsCommandList.Get() };
-	D3D12CommandQueue->ExecuteCommandLists(_countof(D3D12CommandList), D3D12CommandList);
+	THROWIFFAILED(D3D12CommandList->Close());
+	ID3D12CommandList* CommandList[] = { D3D12CommandList.Get() };
+	D3D12CommandQueue->ExecuteCommandLists(_countof(CommandList), CommandList);
 	FlushCommandQueue();
 }
 
@@ -295,7 +441,7 @@ void FRenderer::FlushCommandQueue()
 
 inline ID3D12Resource* FRenderer::GetCurrentBackBuffer()
 {
-	return D3D12SwapChainBuffer[CurrBackBuffer].Get();
+	return SwapChainBuffer[CurrBackBuffer].Get();
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE FRenderer::GetCPUDescriptorHandle(
@@ -425,14 +571,14 @@ void FRenderer::CreateCommandObjects()
 			D3D12_COMMAND_LIST_TYPE_DIRECT,
 			D3D12CommandListAllocator.Get(), // Associated command allocator
 			nullptr,                   // Initial PipelineStateObject
-			IID_PPV_ARGS(D3D12GraphicsCommandList.GetAddressOf())
+			IID_PPV_ARGS(D3D12CommandList.GetAddressOf())
 		)
 	);
 
 	// Start off in a closed state.  This is because the first time we refer 
 	// to the command list we will Reset it, and it needs to be closed before
 	// calling Reset.
-	D3D12GraphicsCommandList->Close();
+	D3D12CommandList->Close();
 }
 
 void FRenderer::CreateSwapChain()
@@ -474,26 +620,48 @@ void FRenderer::CreateDescriptorHeaps()
 	RTVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 	RTVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	RTVHeapDesc.NodeMask = 0;
-	THROWIFFAILED(D3D12Device->CreateDescriptorHeap(&RTVHeapDesc, IID_PPV_ARGS(D3D12RTVHeap.GetAddressOf())));
+	THROWIFFAILED(
+		D3D12Device->CreateDescriptorHeap(
+			&RTVHeapDesc,
+			IID_PPV_ARGS(D3D12RTVHeap.GetAddressOf())
+		)
+	);
 
 	D3D12_DESCRIPTOR_HEAP_DESC DSVHeapDesc;
 	DSVHeapDesc.NumDescriptors = 1;
 	DSVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 	DSVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	DSVHeapDesc.NodeMask = 0;
-	THROWIFFAILED(D3D12Device->CreateDescriptorHeap(&DSVHeapDesc, IID_PPV_ARGS(D3D12DSVHeap.GetAddressOf())));
+	THROWIFFAILED(
+		D3D12Device->CreateDescriptorHeap(
+			&DSVHeapDesc,
+			IID_PPV_ARGS(D3D12DSVHeap.GetAddressOf())
+		)
+	);
 
 	D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc;
 	cbvHeapDesc.NumDescriptors = 1;
 	cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	cbvHeapDesc.NodeMask = 0;
-	THROWIFFAILED(D3D12Device->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(D3D12CBVHeap.GetAddressOf())));
+	THROWIFFAILED(
+		D3D12Device->CreateDescriptorHeap(
+			&cbvHeapDesc,
+			IID_PPV_ARGS(D3D12CBVHeap.GetAddressOf())
+		)
+	);
 }
 
-D3D12_RESOURCE_BARRIER FRenderer::CreateResoureceBarrierTransition(ID3D12Resource* Resource, D3D12_RESOURCE_STATES StateBefore, D3D12_RESOURCE_STATES StateAfter, UINT Subresource, D3D12_RESOURCE_BARRIER_FLAGS Flags)
+D3D12_RESOURCE_BARRIER FRenderer::CreateResoureceBarrierTransition(
+	ID3D12Resource* Resource,
+	D3D12_RESOURCE_STATES StateBefore,
+	D3D12_RESOURCE_STATES StateAfter,
+	UINT Subresource,
+	D3D12_RESOURCE_BARRIER_FLAGS Flags
+)
 {
 	D3D12_RESOURCE_BARRIER D3D12ResourceBarrierTransition;
+	ZeroMemory(&D3D12ResourceBarrierTransition, sizeof(D3D12ResourceBarrierTransition));
 	D3D12ResourceBarrierTransition.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	D3D12ResourceBarrierTransition.Flags = Flags;
 	D3D12ResourceBarrierTransition.Transition.pResource = Resource;
@@ -507,8 +675,6 @@ void FRenderer::BuildConstantBuffer()
 {
 	WVPConstantBuffer = std::make_unique<FUploadBuffer<FWVPConstantBuffer>>(D3D12Device.Get(), 1, true);
 
-	WVPConstantBuffer->GetElementByteSize();
-
 	D3D12_GPU_VIRTUAL_ADDRESS WVPConstantBufferAddress = WVPConstantBuffer->GetGPUVirtualAddress();
 	// Offset to the ith object constant buffer in the buffer.
 	int WVPConstantBufferIndex = 0;
@@ -518,7 +684,10 @@ void FRenderer::BuildConstantBuffer()
 	ConstantBufferViewDesc.BufferLocation = WVPConstantBufferAddress;
 	ConstantBufferViewDesc.SizeInBytes = WVPConstantBuffer->GetElementByteSize();
 
-	D3D12Device->CreateConstantBufferView(&ConstantBufferViewDesc, D3D12CBVHeap->GetCPUDescriptorHandleForHeapStart());
+	D3D12Device->CreateConstantBufferView(
+		&ConstantBufferViewDesc,
+		D3D12CBVHeap->GetCPUDescriptorHandleForHeapStart()
+	);
 }
 
 void FRenderer::BuildRootSignature()
@@ -584,14 +753,43 @@ void FRenderer::BuildShaderAndLayout()
 {
 	HRESULT hr = S_OK;
 
-	UnlitVSByteCode = CompileShader(L"Shaders\\color.hlsl", nullptr, "VS", "vs_5_0");
-	UnlitPSByteCode = CompileShader(L"Shaders\\color.hlsl", nullptr, "PS", "ps_5_0");
+	VSByteCode = CompileShader(L"Shaders\\UnlitVS.hlsl", nullptr, "VSMain", "vs_5_0");
+	PSByteCode = CompileShader(L"Shaders\\UnlitPS.hlsl", nullptr, "PSMain", "ps_5_0");
 
 	InputLayout =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 	};
+}
+
+void FRenderer::BuildPipelineState()
+{
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC PipelineStateDesc;
+	ZeroMemory(&PipelineStateDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+	PipelineStateDesc.InputLayout = { InputLayout.data(), (UINT)InputLayout.size() };
+	PipelineStateDesc.pRootSignature = RootSignature.Get();
+	PipelineStateDesc.VS =
+	{
+		reinterpret_cast<BYTE*>(VSByteCode->GetBufferPointer()),
+		VSByteCode->GetBufferSize()
+	};
+	PipelineStateDesc.PS =
+	{
+		reinterpret_cast<BYTE*>(PSByteCode->GetBufferPointer()),
+		PSByteCode->GetBufferSize()
+	};
+	PipelineStateDesc.RasterizerState = UDXUtility::CreateRasterizerDesc();
+	PipelineStateDesc.BlendState = UDXUtility::CreateBlendDesc();
+	PipelineStateDesc.DepthStencilState = UDXUtility::CreateDepthStencilDesc();
+	PipelineStateDesc.SampleMask = UINT_MAX;
+	PipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	PipelineStateDesc.NumRenderTargets = 1;
+	PipelineStateDesc.RTVFormats[0] = DXGIBackBufferFormat;
+	PipelineStateDesc.SampleDesc.Count = MSAAState ? 4 : 1;
+	PipelineStateDesc.SampleDesc.Quality = MSAAState ? (MSAAQuality- 1) : 0;
+	PipelineStateDesc.DSVFormat = DXGIDepthStencilFormat;
+	THROWIFFAILED(D3D12Device->CreateGraphicsPipelineState(&PipelineStateDesc, IID_PPV_ARGS(&Pipelinestate)));
 }
 
 ComPtr<ID3DBlob> FRenderer::CompileShader(

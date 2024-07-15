@@ -24,6 +24,9 @@
     <Filter Include="Sources\Utility">
       <UniqueIdentifier>{6ca93085-08ff-4fc5-9f36-3d8e5240384f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\DirectX12">
+      <UniqueIdentifier>{0ed08900-a0c8-4842-9c0b-f27fdd5dd28a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Windows\Window.cpp">
@@ -50,11 +53,11 @@
     <ClCompile Include="Sources\Utility\Math.cpp">
       <Filter>Sources\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Render\DXException.cpp">
+    <ClCompile Include="Sources\Render\MeshGeometry.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Render\UploadBuffer.cpp">
-      <Filter>Sources\Render</Filter>
+    <ClCompile Include="Sources\DirectX12\DXUtility.cpp">
+      <Filter>Sources\DirectX12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -85,26 +88,23 @@
     <ClInclude Include="Sources\Render\UploadBuffer.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Windows\WindowsUtility.h">
-      <Filter>Sources\Windows</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\Utility\Math.h">
       <Filter>Sources\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Render\DXException.h">
+    <ClInclude Include="Sources\Render\MeshGeometry.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Render\DXHeaders.h">
-      <Filter>Sources\Render</Filter>
+    <ClInclude Include="Sources\DirectX12\DXUtility.h">
+      <Filter>Sources\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\DirectX12\DXHeaders.h">
+      <Filter>Sources\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Windows\WindowsUtility.h">
+      <Filter>Sources\Windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\TrianglePS.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\TriangleVS.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="Shaders\UnlitVS.hlsl">
       <Filter>Shaders</Filter>
     </None>

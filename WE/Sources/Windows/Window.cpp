@@ -23,35 +23,46 @@ RECT FWindow::GetClientRect()
 	return Rect;
 }
 
-bool FWindow::Initialize(const WCHAR* Title, int CmdShow, UINT Width, UINT Height, DWORD Style)
+bool FWindow::Initialize(
+	const WCHAR* Title,
+	int CmdShow,
+	UINT Width, UINT Height,
+	DWORD Style
+)
 {
 	static UINT WindowCount = 0;
 	WCHAR ClassName[256];
 	lstrcpy(ClassName, std::to_wstring(WindowCount++).c_str());
 	// RegisterClass
-	WNDCLASSEXW wcex;
-	wcex.cbSize = sizeof(WNDCLASSEX);
-	wcex.style = CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc = WndProc;
-	wcex.cbClsExtra = 0;
-	wcex.cbWndExtra = 0;
-	wcex.hInstance = GetHInstance();
-	wcex.hIcon = LoadIcon(GetHInstance(), IDI_APPLICATION);
-	wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-	wcex.lpszMenuName = nullptr;
-	wcex.lpszClassName = ClassName;
-	wcex.hIconSm = LoadIcon(GetHInstance(), IDI_APPLICATION);
-	RegisterClassExW(&wcex);
+	WNDCLASS wc;
+	wc.style = CS_HREDRAW | CS_VREDRAW;
+	wc.lpfnWndProc = WndProc;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = GetHInstance();
+	wc.hIcon = LoadIcon(0, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(0, IDC_ARROW);
+	wc.hbrBackground = (HBRUSH)GetStockObject(NULL_BRUSH);
+	wc.lpszMenuName = 0;
+	wc.lpszClassName = ClassName;
+	if (!RegisterClass(&wc))
+	{
+		MessageBox(0, L"RegisterClass Failed.", 0, 0);
+		return false;
+	}
 
-	// InitInstance
-	hWnd = CreateWindowW(
-		ClassName, Title,
+	RECT R = { 0, 0, static_cast<LONG>(Width), static_cast<LONG>(Height) };
+	AdjustWindowRect(&R, Style, false);
+	Width = R.right - R.left;
+	Height = R.bottom - R.top;
+
+	hWnd = CreateWindow(
+		ClassName,
+		Title,
 		Style,
-		CW_USEDEFAULT, CW_USEDEFAULT, Width, Height,
-		nullptr, nullptr,
-		GetHInstance(),
-		this
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		Width, Height,
+		0, 0, GetHInstance(), 0
 	);
 
 	if (!hWnd)
@@ -86,7 +97,7 @@ int FWindow::Execute()
 			if (!bAppPaused)
 			{
 				CalculateFrameStats();
-				Event();
+				ProcessEvent();
 			}
 		}
 	}
@@ -141,23 +152,19 @@ LRESULT FWindow::InternalWndProc(HWND HandleWindow, UINT Message, WPARAM WParame
 	case WM_LBUTTONDOWN:
 	case WM_MBUTTONDOWN:
 	case WM_RBUTTONDOWN:
+		ClickMouse(WParameter, GET_X_LPARAM(LParameter), GET_Y_LPARAM(LParameter));
+		break;
 	case WM_LBUTTONUP:
 	case WM_MBUTTONUP:
 	case WM_RBUTTONUP:
+		ReleaseMouse(WParameter, GET_X_LPARAM(LParameter), GET_Y_LPARAM(LParameter));
+		break;
 	case WM_MOUSEMOVE:
+		MoveMouse(WParameter, GET_X_LPARAM(LParameter), GET_Y_LPARAM(LParameter));
+		break;
 	case WM_KEYDOWN:
-	{
-		switch (WParameter)
-		{
-		case 'W':
-		{
-			MessageBox(hWnd, L"TestTitle", L"TestCaption", 0);
-			break;
-		}
-		default:
-			break;
-		}
-	}
+		PressKey(WParameter);
+		break;
 	case WM_PAINT:
 	default:
 		return DefWindowProc(HandleWindow, Message, WParameter, LParameter);
@@ -198,6 +205,24 @@ void FWindow::CalculateFrameStats()
 		frameCnt = 0;
 		timeElapsed += 1.0f;
 	}
+}
+
+void FWindow::ClickMouse(WPARAM Button, int X, int Y)
+{
+	ClickedX = X;
+	ClickedY = Y;
+
+	SetCapture(hWnd);
+}
+
+void FWindow::ReleaseMouse(WPARAM Button, int X, int Y)
+{
+	ReleaseCapture();
+}
+
+void FWindow::MoveMouse(WPARAM Button, int X, int Y)
+{
+
 }
 
 LRESULT FWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
