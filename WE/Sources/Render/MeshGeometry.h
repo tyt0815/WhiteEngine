@@ -1,18 +1,17 @@
 #pragma once
 
-#include "DirectX12/DXUtility.h"
-#include <unordered_map>
+#include "DirectX/DXHeaders.h"
 #include <string>
-
-using namespace DirectX;
+#include <unordered_map>
+#include <memory>
 
 struct FVertex
 {
-	XMFLOAT3 Position;
-	XMFLOAT4 Color;
+	DirectX::XMFLOAT3 Pos;
+	DirectX::XMFLOAT3 Normal;
 };
 
-struct SubmeshGeometry
+struct FSubmeshGeometry
 {
 	UINT IndexCount = 0;
 	UINT StartIndexLocation = 0;
@@ -23,8 +22,13 @@ struct SubmeshGeometry
 	DirectX::BoundingBox Bounds;
 };
 
-struct FMeshGeometry
+class FMeshGeometry
 {
+public:
+	using MeshGeometryMap = std::unordered_map<std::string, std::unique_ptr<FMeshGeometry>>;
+	static MeshGeometryMap MeshGeometries;
+	static void BuildMeshGeometries();
+		
 	// Give it a name so we can look it up by name.
 	std::string Name;
 
@@ -48,7 +52,7 @@ struct FMeshGeometry
 	// A MeshGeometry may store multiple geometries in one vertex/index buffer.
 	// Use this container to define the Submesh geometries so we can draw
 	// the Submeshes individually.
-	std::unordered_map<std::string, SubmeshGeometry> DrawArgs;
+	std::unordered_map<std::string, FSubmeshGeometry> DrawArgs;
 
 	D3D12_VERTEX_BUFFER_VIEW VertexBufferView()const
 	{
@@ -76,6 +80,8 @@ struct FMeshGeometry
 		VertexBufferUploader = nullptr;
 		IndexBufferUploader = nullptr;
 	}
-};
 
-FMeshGeometry BuildBoxMeshGeometry(ID3D12Device* md3dDevice, ID3D12GraphicsCommandList* mCommandList);
+private:
+	static void BuildShapeMeshGeometry();
+	static void BuildSkullMeshGeometry();
+};

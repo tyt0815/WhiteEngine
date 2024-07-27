@@ -9,75 +9,93 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Sources\Render">
-      <UniqueIdentifier>{c7e99ab8-8085-43c3-b825-2ee7fb7f323a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\GamePlay">
-      <UniqueIdentifier>{f89daf12-db13-4f41-bb44-19f3c5f02495}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Windows">
-      <UniqueIdentifier>{6df28f42-f37a-4eb9-abf4-acc61bd8712b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shaders">
       <UniqueIdentifier>{dbb5ee6e-3c54-4326-9fe5-a9d5f879531d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Utility">
-      <UniqueIdentifier>{6ca93085-08ff-4fc5-9f36-3d8e5240384f}</UniqueIdentifier>
+    <Filter Include="Sources\Render">
+      <UniqueIdentifier>{217f9cb9-9a7d-4000-ae82-30ab8f8cbf9d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\DirectX12">
-      <UniqueIdentifier>{0ed08900-a0c8-4842-9c0b-f27fdd5dd28a}</UniqueIdentifier>
+    <Filter Include="Sources\Utility">
+      <UniqueIdentifier>{77a9ce16-7395-43f1-8db2-ea618479df90}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Runtime">
+      <UniqueIdentifier>{74f99875-9b98-472a-83c8-973e30810742}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Runtime\Object">
+      <UniqueIdentifier>{2a53950a-9992-4511-a985-4cdcea1079f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Runtime\World">
+      <UniqueIdentifier>{e96a9205-a40d-4b4a-95c8-aaf25e2fd33b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\DirectX">
+      <UniqueIdentifier>{85396068-2f38-4973-9782-3f52e45674df}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Sources\Windows\Window.cpp">
-      <Filter>Sources\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Windows\WindowsMain.cpp">
-      <Filter>Sources\Windows</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\Main.cpp">
       <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Render\Renderer.cpp">
-      <Filter>Sources\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Render\DeferredShadingRenderer.cpp">
-      <Filter>Sources\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Render\ForwardShadingRenderer.cpp">
-      <Filter>Sources\Render</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Utility\Timer.cpp">
       <Filter>Sources\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Utility\Math.cpp">
-      <Filter>Sources\Utility</Filter>
+    <ClCompile Include="Sources\Runtime\World\World.cpp">
+      <Filter>Sources\Runtime\World</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Render\DeferredRenderer.cpp">
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Runtime\Object\ViewCamera.cpp">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Runtime\Object\Object.cpp">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Render\DDSTextureLoader.cpp">
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Render\GeometryGenerator.cpp">
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Runtime\World\TestWorld.cpp">
+      <Filter>Sources\Runtime\World</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\DirectX\DXUtility.cpp">
+      <Filter>Sources\DirectX</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\DirectX\DXMath.cpp">
+      <Filter>Sources\DirectX</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\DirectX\DXWindow.cpp">
+      <Filter>Sources\DirectX</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Render\RendererBase.cpp">
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Render\FrameResource.cpp">
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Render\Material.cpp">
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Render\ForwardRenderer.cpp">
+      <Filter>Sources\Render</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Render\MeshGeometry.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\DirectX12\DXUtility.cpp">
-      <Filter>Sources\DirectX12</Filter>
+    <ClCompile Include="Sources\Runtime\Object\Actor.cpp">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Render\Shader.cpp">
+      <Filter>Sources\Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Sources\Windows\Window.h">
-      <Filter>Sources\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Main.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Render\Renderer.h">
+    <ClInclude Include="Sources\Render\DeferredRenderer.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Render\DeferredShadingRenderer.h">
+    <ClInclude Include="Sources\Render\ForwardRenderer.h">
       <Filter>Sources\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Render\ForwardShadingRenderer.h">
-      <Filter>Sources\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Windows\WindowsHeaders.h">
-      <Filter>Sources\Windows</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Utility\Class.h">
       <Filter>Sources\Utility</Filter>
@@ -85,33 +103,66 @@
     <ClInclude Include="Sources\Utility\Timer.h">
       <Filter>Sources\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Render\UploadBuffer.h">
+    <ClInclude Include="Sources\Runtime\World\World.h">
+      <Filter>Sources\Runtime\World</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Runtime\Object\Object.h">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Runtime\Object\ViewCamera.h">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Runtime\Object\Actor.h">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\FrameResource.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Utility\Math.h">
-      <Filter>Sources\Utility</Filter>
+    <ClInclude Include="Sources\Render\DDSTextureLoader.h">
+      <Filter>Sources\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\GeometryGenerator.h">
+      <Filter>Sources\Render</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Render\MeshGeometry.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\DirectX12\DXUtility.h">
-      <Filter>Sources\DirectX12</Filter>
+    <ClInclude Include="Sources\Render\UploadBuffer.h">
+      <Filter>Sources\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\DirectX12\DXHeaders.h">
-      <Filter>Sources\DirectX12</Filter>
+    <ClInclude Include="Sources\Runtime\World\TestWorld.h">
+      <Filter>Sources\Runtime\World</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Windows\WindowsUtility.h">
-      <Filter>Sources\Windows</Filter>
+    <ClInclude Include="Sources\DirectX\DXMath.h">
+      <Filter>Sources\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\DirectX\DXUtility.h">
+      <Filter>Sources\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\DirectX\DXHeaders.h">
+      <Filter>Sources\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\DirectX\DXWindow.h">
+      <Filter>Sources\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\RendererBase.h">
+      <Filter>Sources\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\Material.h">
+      <Filter>Sources\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\Shader.h">
+      <Filter>Sources\Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\UnlitVS.hlsl">
+    <None Include="Shaders\BasePassCommon.sh">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\UnlitPS.hlsl">
+    <None Include="Shaders\BasePassPixelShader.sf">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\UnlitCommon.hlsl">
+    <None Include="Shaders\BasePassVertexShader.sf">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

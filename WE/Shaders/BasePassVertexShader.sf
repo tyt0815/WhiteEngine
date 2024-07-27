@@ -1,0 +1,13 @@
+#include "BasePassCommon.sh"
+
+FBasePassVSOutput MainVS(FBasePassVSInput VIn)
+{
+    FBasePassVSOutput VOut;
+    
+    float4 WorldPosition = float4(VIn.Position, 1.0f);
+    float4x4 ViewProject = mul(View, Project);
+    VOut.Position = mul(WorldPosition, ViewProject);
+    VOut.Color = VIn.Color;
+    
+    return VOut;
+}

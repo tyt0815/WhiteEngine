@@ -1,85 +1,220 @@
-#include <array>
 #include "MeshGeometry.h"
+#include "GeometryGenerator.h"
+#include "DirectX/DXWindow.h"
 
-FMeshGeometry BuildBoxMeshGeometry(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
+FMeshGeometry::MeshGeometryMap FMeshGeometry::MeshGeometries = FMeshGeometry::MeshGeometryMap();
+
+void FMeshGeometry::BuildMeshGeometries()
 {
-	static std::array<FVertex, 8> Vertices =
-	{
-		FVertex({ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(Colors::White) }),
-		FVertex({ XMFLOAT3(-1.0f, +1.0f, -1.0f), XMFLOAT4(Colors::Black) }),
-		FVertex({ XMFLOAT3(+1.0f, +1.0f, -1.0f), XMFLOAT4(Colors::Red) }),
-		FVertex({ XMFLOAT3(+1.0f, -1.0f, -1.0f), XMFLOAT4(Colors::Green) }),
-		FVertex({ XMFLOAT3(-1.0f, -1.0f, +1.0f), XMFLOAT4(Colors::Blue) }),
-		FVertex({ XMFLOAT3(-1.0f, +1.0f, +1.0f), XMFLOAT4(Colors::Yellow) }),
-		FVertex({ XMFLOAT3(+1.0f, +1.0f, +1.0f), XMFLOAT4(Colors::Cyan) }),
-		FVertex({ XMFLOAT3(+1.0f, -1.0f, +1.0f), XMFLOAT4(Colors::Magenta) })
-	};
-
-	static std::array<std::uint16_t, 36> Indices =
-	{
-		// front face
-		0, 1, 2,
-		0, 2, 3,
-
-		// back face
-		4, 6, 5,
-		4, 7, 6,
-
-		// left face
-		4, 5, 1,
-		4, 1, 0,
-
-		// right face
-		3, 2, 6,
-		3, 6, 7,
-
-		// top face
-		1, 5, 6,
-		1, 6, 2,
-
-		// bottom face
-		4, 0, 3,
-		4, 3, 7
-	};
-
-	const UINT VertexBufferByteSize = (UINT)Vertices.size() * sizeof(FVertex);
-	const UINT IndexBufferByteSize = (UINT)Indices.size() * sizeof(std::uint16_t);
-
-	FMeshGeometry BoxGeometry;
-	BoxGeometry.Name = "boxGeo";
-
-	THROWIFFAILED(D3DCreateBlob(VertexBufferByteSize, &BoxGeometry.VertexBufferCPU));
-	CopyMemory(BoxGeometry.VertexBufferCPU->GetBufferPointer(), Vertices.data(), VertexBufferByteSize);
-
-	THROWIFFAILED(D3DCreateBlob(IndexBufferByteSize, &BoxGeometry.IndexBufferCPU));
-	CopyMemory(BoxGeometry.IndexBufferCPU->GetBufferPointer(), Indices.data(), IndexBufferByteSize);
-
-	BoxGeometry.VertexBufferGPU = UDXUtility::CreateDefaultBuffer(
-		Device,
-		CommandList,
-		Vertices.data(),
-		VertexBufferByteSize,
-		BoxGeometry.VertexBufferUploader
+	FDXWindow* DXWindow = FDXWindow::GetInstance();
+	ThrowIfFailed(
+		DXWindow->GetCommandList()->Reset(DXWindow->GetCommandAllocator(), nullptr)
 	);
+	BuildShapeMeshGeometry();
+	BuildSkullMeshGeometry();
 
-	BoxGeometry.IndexBufferGPU = UDXUtility::CreateDefaultBuffer(
-		Device,
-		CommandList,
-		Indices.data(),
-		IndexBufferByteSize,
-		BoxGeometry.IndexBufferUploader
-	);
+	DXWindow->ExecuteCommand();
+}
 
-	BoxGeometry.VertexByteStride = sizeof(FVertex);
-	BoxGeometry.VertexBufferByteSize = VertexBufferByteSize;
-	BoxGeometry.IndexFormat = DXGI_FORMAT_R16_UINT;
-	BoxGeometry.IndexBufferByteSize = IndexBufferByteSize;
+void FMeshGeometry::BuildShapeMeshGeometry()
+{
+	const std::string Name = "Shape";
+	if (MeshGeometries.find(Name) != MeshGeometries.end()) return;
 
-	SubmeshGeometry Submesh;
-	Submesh.IndexCount = (UINT)Indices.size();
-	Submesh.StartIndexLocation = 0;
-	Submesh.BaseVertexLocation = 0;
+	ID3D12Device* Device = FDXWindow::GetInstance()->GetDevice();
+	ID3D12GraphicsCommandList* CommandList = FDXWindow::GetInstance()->GetCommandList();	
 
-	BoxGeometry.DrawArgs["box"] = Submesh;
-	return BoxGeometry;
+	UGeometryGenerator geoGen;
+	UGeometryGenerator::MeshData box = geoGen.CreateBox(1.5f, 0.5f, 1.5f, 3);
+	UGeometryGenerator::MeshData grid = geoGen.CreateGrid(20.0f, 30.0f, 60, 40);
+	UGeometryGenerator::MeshData sphere = geoGen.CreateSphere(0.5f, 20, 20);
+	UGeometryGenerator::MeshData cylinder = geoGen.CreateCylinder(0.5f, 0.3f, 3.0f, 20, 20);
+
+	//
+	// We are concatenating all the geometry into one big vertex/index buffer.  So
+	// define the regions in the buffer each submesh covers.
+	//
+
+	// Cache the vertex offsets to each object in the concatenated vertex buffer.
+	UINT boxVertexOffset = 0;
+	UINT gridVertexOffset = (UINT)box.Vertices.size();
+	UINT sphereVertexOffset = gridVertexOffset + (UINT)grid.Vertices.size();
+	UINT cylinderVertexOffset = sphereVertexOffset + (UINT)sphere.Vertices.size();
+
+	// Cache the starting index for each object in the concatenated index buffer.
+	UINT boxIndexOffset = 0;
+	UINT gridIndexOffset = (UINT)box.Indices32.size();
+	UINT sphereIndexOffset = gridIndexOffset + (UINT)grid.Indices32.size();
+	UINT cylinderIndexOffset = sphereIndexOffset + (UINT)sphere.Indices32.size();
+
+	FSubmeshGeometry boxSubmesh;
+	boxSubmesh.IndexCount = (UINT)box.Indices32.size();
+	boxSubmesh.StartIndexLocation = boxIndexOffset;
+	boxSubmesh.BaseVertexLocation = boxVertexOffset;
+
+	FSubmeshGeometry gridSubmesh;
+	gridSubmesh.IndexCount = (UINT)grid.Indices32.size();
+	gridSubmesh.StartIndexLocation = gridIndexOffset;
+	gridSubmesh.BaseVertexLocation = gridVertexOffset;
+
+	FSubmeshGeometry sphereSubmesh;
+	sphereSubmesh.IndexCount = (UINT)sphere.Indices32.size();
+	sphereSubmesh.StartIndexLocation = sphereIndexOffset;
+	sphereSubmesh.BaseVertexLocation = sphereVertexOffset;
+
+	FSubmeshGeometry cylinderSubmesh;
+	cylinderSubmesh.IndexCount = (UINT)cylinder.Indices32.size();
+	cylinderSubmesh.StartIndexLocation = cylinderIndexOffset;
+	cylinderSubmesh.BaseVertexLocation = cylinderVertexOffset;
+
+	//
+	// Extract the vertex elements we are interested in and pack the
+	// vertices of all the meshes into one vertex buffer.
+	//
+
+	auto totalVertexCount =
+		box.Vertices.size() +
+		grid.Vertices.size() +
+		sphere.Vertices.size() +
+		cylinder.Vertices.size();
+
+	std::vector<FVertex> vertices(totalVertexCount);
+
+	UINT k = 0;
+	for (size_t i = 0; i < box.Vertices.size(); ++i, ++k)
+	{
+		vertices[k].Pos = box.Vertices[i].Position;
+		vertices[k].Normal = box.Vertices[i].Normal;
+	}
+
+	for (size_t i = 0; i < grid.Vertices.size(); ++i, ++k)
+	{
+		vertices[k].Pos = grid.Vertices[i].Position;
+		vertices[k].Normal = grid.Vertices[i].Normal;
+	}
+
+	for (size_t i = 0; i < sphere.Vertices.size(); ++i, ++k)
+	{
+		vertices[k].Pos = sphere.Vertices[i].Position;
+		vertices[k].Normal = sphere.Vertices[i].Normal;
+	}
+
+	for (size_t i = 0; i < cylinder.Vertices.size(); ++i, ++k)
+	{
+		vertices[k].Pos = cylinder.Vertices[i].Position;
+		vertices[k].Normal = cylinder.Vertices[i].Normal;
+	}
+
+	std::vector<std::uint16_t> indices;
+	indices.insert(indices.end(), std::begin(box.GetIndices16()), std::end(box.GetIndices16()));
+	indices.insert(indices.end(), std::begin(grid.GetIndices16()), std::end(grid.GetIndices16()));
+	indices.insert(indices.end(), std::begin(sphere.GetIndices16()), std::end(sphere.GetIndices16()));
+	indices.insert(indices.end(), std::begin(cylinder.GetIndices16()), std::end(cylinder.GetIndices16()));
+
+	const UINT vbByteSize = (UINT)vertices.size() * sizeof(FVertex);
+	const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
+
+	auto geo = std::make_unique<FMeshGeometry>();
+	geo->Name = Name;
+
+	ThrowIfFailed(D3DCreateBlob(vbByteSize, &geo->VertexBufferCPU));
+	CopyMemory(geo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
+
+	ThrowIfFailed(D3DCreateBlob(ibByteSize, &geo->IndexBufferCPU));
+	CopyMemory(geo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
+
+	geo->VertexBufferGPU = UDXUtility::CreateDefaultBuffer(Device,
+		CommandList, vertices.data(), vbByteSize, geo->VertexBufferUploader);
+
+	geo->IndexBufferGPU = UDXUtility::CreateDefaultBuffer(Device,
+		CommandList, indices.data(), ibByteSize, geo->IndexBufferUploader);
+
+	geo->VertexByteStride = sizeof(FVertex);
+	geo->VertexBufferByteSize = vbByteSize;
+	geo->IndexFormat = DXGI_FORMAT_R16_UINT;
+	geo->IndexBufferByteSize = ibByteSize;
+
+	geo->DrawArgs["Box"] = boxSubmesh;
+	geo->DrawArgs["Grid"] = gridSubmesh;
+	geo->DrawArgs["Sphere"] = sphereSubmesh;
+	geo->DrawArgs["Cylinder"] = cylinderSubmesh;
+
+	MeshGeometries[geo->Name] = std::move(geo);
+}
+
+void FMeshGeometry::BuildSkullMeshGeometry()
+{
+	string Name = "Skull";
+	if (MeshGeometries.find(Name) != MeshGeometries.end()) return;
+
+	ID3D12Device* Device = FDXWindow::GetInstance()->GetDevice();
+	ID3D12GraphicsCommandList* CommandList = FDXWindow::GetInstance()->GetCommandList();
+
+	std::ifstream fin;
+	UDXUtility::ReadFile("Models/Skull.txt", fin);
+
+	UINT vcount = 0;
+	UINT tcount = 0;
+	std::string ignore;
+
+	fin >> ignore >> vcount;
+	fin >> ignore >> tcount;
+	fin >> ignore >> ignore >> ignore >> ignore;
+
+	std::vector<FVertex> vertices(vcount);
+	for (UINT i = 0; i < vcount; ++i)
+	{
+		fin >> vertices[i].Pos.x >> vertices[i].Pos.y >> vertices[i].Pos.z;
+		fin >> vertices[i].Normal.x >> vertices[i].Normal.y >> vertices[i].Normal.z;
+	}
+
+	fin >> ignore;
+	fin >> ignore;
+	fin >> ignore;
+
+	std::vector<std::int32_t> indices(3 * tcount);
+	for (UINT i = 0; i < tcount; ++i)
+	{
+		fin >> indices[i * 3 + 0] >> indices[i * 3 + 1] >> indices[i * 3 + 2];
+	}
+
+	fin.close();
+
+	//
+	// Pack the indices of all the meshes into one index buffer.
+	//
+
+	const UINT vbByteSize = (UINT)vertices.size() * sizeof(FVertex);
+
+	const UINT ibByteSize = (UINT)indices.size() * sizeof(std::int32_t);
+
+	auto geo = std::make_unique<FMeshGeometry>();
+	geo->Name = Name;
+
+	ThrowIfFailed(D3DCreateBlob(vbByteSize, &geo->VertexBufferCPU));
+	CopyMemory(geo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
+
+	ThrowIfFailed(D3DCreateBlob(ibByteSize, &geo->IndexBufferCPU));
+	CopyMemory(geo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
+
+	geo->VertexBufferGPU = UDXUtility::CreateDefaultBuffer(Device,
+		CommandList, vertices.data(), vbByteSize, geo->VertexBufferUploader);
+
+	geo->IndexBufferGPU = UDXUtility::CreateDefaultBuffer(Device,
+		CommandList, indices.data(), ibByteSize, geo->IndexBufferUploader);
+
+	geo->VertexByteStride = sizeof(FVertex);
+	geo->VertexBufferByteSize = vbByteSize;
+	geo->IndexFormat = DXGI_FORMAT_R32_UINT;
+	geo->IndexBufferByteSize = ibByteSize;
+
+	FSubmeshGeometry submesh;
+	submesh.IndexCount = (UINT)indices.size();
+	submesh.StartIndexLocation = 0;
+	submesh.BaseVertexLocation = 0;
+
+	geo->DrawArgs["Skull"] = submesh;
+
+	MeshGeometries[geo->Name] = std::move(geo);
+
 }

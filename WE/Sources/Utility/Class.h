@@ -5,8 +5,8 @@
 		static type mgr;\
 		return &mgr;\
 	}\
-private: type(){}\
-private: ~type(){}
+private: type();\
+private: ~type();
 
 class FNoncopyable
 {

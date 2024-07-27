@@ -1,0 +1,6 @@
+#include "BasePassCommon.sh"
+
+float4 MainPS(FBasePassVSOutput PIn) : SV_Target
+{
+    return PIn.Color;
+}
