@@ -89,6 +89,21 @@
     <ClCompile Include="Sources\Render\Shader.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Runtime\World\BoxWorld.cpp">
+      <Filter>Sources\Runtime\World</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Runtime\Object\Box.cpp">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Runtime\Object\Cylinder.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Runtime\Object\Gird.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Runtime\Object\Skull.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Render\DeferredRenderer.h">
@@ -153,6 +168,24 @@
     </ClInclude>
     <ClInclude Include="Sources\Render\Shader.h">
       <Filter>Sources\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Runtime\World\BoxWorld.h">
+      <Filter>Sources\Runtime\World</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Runtime\Object\Box.h">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Runtime\Object\Cylinder.h">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Runtime\Object\Gird.h">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Runtime\Object\Skull.h">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Runtime\Object\Sphere.h">
+      <Filter>Sources\Runtime\Object</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

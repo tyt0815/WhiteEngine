@@ -17,6 +17,12 @@ const FTransform FTransform::Zeros = {
 	{0.0f, 0.0f, 0.0f}
 };
 
+const FTransform FTransform::Default = {
+	{1.0f, 1.0f, 1.0f},
+	{0.0f, 0.0f, 0.0f},
+	{0.0f, 0.0f, 0.0f}
+};
+
 float UDXMath::AngleFromXY(float x, float y)
 {
 	float theta = 0.0f;
@@ -87,4 +93,10 @@ XMVECTOR UDXMath::RandHemisphereUnitVec3(XMVECTOR n)
 	}
 }
 
-
+XMMATRIX FTransform::GetTransformMatrix()
+{
+	XMMATRIX S = XMMatrixScalingFromVector(GetScaleXMVECTOR());
+	XMMATRIX R = XMMatrixRotationX(Rotation.x) * XMMatrixRotationY(Rotation.y) * XMMatrixRotationZ(Rotation.z);
+	XMMATRIX T = XMMatrixTranslationFromVector(GetTranslationXMVECTOR());
+	return S * R * T;
+}

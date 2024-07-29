@@ -3,6 +3,7 @@
 #include "Render/ForwardRenderer.h"
 #include "Render/MeshGeometry.h"
 #include "Render/Material.h"
+#include "Runtime/World/BoxWorld.h"
 #include "Runtime/World/TestWorld.h"
 
 LRESULT CALLBACK MainWndProc(HWND HWnd, UINT Message, WPARAM WParam, LPARAM LParam)
@@ -132,17 +133,25 @@ bool FDXWindow::InitializeDirectX()
 	CreateCommandObjects();
 	CreateSwapChain();
 	CreateDescriptorHeaps();
+	ResetCameraPosition();
 	Resize();
 	return true;
+}
+
+void FDXWindow::ResetCameraPosition()
+{
+	Camera.Theta = 1.5f * XM_PI;
+	Camera.Phi = XM_PIDIV4;
+	Camera.Radius = 5.0f;
 }
 
 int FDXWindow::Run()
 {
 	MSG msg = { 0 };
 
-	unique_ptr<WTestWorld> StartWorld = make_unique<WTestWorld>();
+	unique_ptr<WWorld> StartWorld = make_unique<WBoxWorld>();
 	StartWorld->Initialize();
-	unique_ptr<FForwardRenderer> Renderer = make_unique<FForwardRenderer>(StartWorld.get());
+	unique_ptr<FRendererBase> Renderer = make_unique<FForwardRenderer>(StartWorld.get());
 	Renderer->Initialize();
 
 	Timer.Reset();
@@ -162,6 +171,7 @@ int FDXWindow::Run()
 			if (!bAppPaused)
 			{
 				CalculateFrameStats();
+				ProcessInput();
 				Renderer->Render();
 			}
 			else
@@ -301,7 +311,11 @@ LRESULT FDXWindow::InternalWndProc(HWND HWnd, UINT msg, WPARAM wParam, LPARAM lP
 	case WM_KEYUP:
 		OnKeyUp(wParam);
 		return 0;
+	case WM_MOUSEWHEEL:
+		OnMouseWheel(wParam);
+		return 0;
 	}
+
 
 	return DefWindowProc(HWnd, msg, wParam, lParam);
 }
@@ -696,8 +710,8 @@ void FDXWindow::OnMouseMove(WPARAM WParam, int X, int Y)
 		float dy = XMConvertToRadians(0.25f * static_cast<float>(Y - LastMousePos.y));
 
 		// Update angles based on input to orbit camera around box.
-		Camera.Theta += dx;
-		Camera.Phi += dy;
+		Camera.Theta -= dx;
+		Camera.Phi -= dy;
 
 		// Restrict the angle mPhi.
 		Camera.Phi = UDXMath::Clamp(Camera.Phi, 0.1f, XM_PI - 0.1f);
@@ -715,5 +729,22 @@ void FDXWindow::OnKeyUp(WPARAM WParam)
 		PostQuitMessage(0);
 	}
 	else if ((int)WParam == VK_F2)
+	{
 		Set4xMsaaState(!bMSAA);
+	}
+}
+
+void FDXWindow::ProcessInput()
+{
+	if (IsKeyPressed('R'))
+	{
+		ResetCameraPosition();
+	}
+}
+
+void FDXWindow::OnMouseWheel(WPARAM WParam)
+{
+	int Delta = GET_WHEEL_DELTA_WPARAM(WParam);
+	Camera.Radius -= (Delta / 100);
+	Camera.Radius = UDXMath::Clamp<float>(Camera.Radius, 5.0f, 15.0f);
 }

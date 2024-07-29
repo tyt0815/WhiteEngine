@@ -25,4 +25,9 @@ protected:
 	ComPtr<ID3D12DescriptorHeap> CBVHeap;
 
 	bool bWireFrame;
+
+private:
+	void RenderOpaqueActors(ID3D12GraphicsCommandList* CommandList);
+
+	UINT PassConstantBufferViewOffset = 0;
 };

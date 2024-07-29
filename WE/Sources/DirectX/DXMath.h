@@ -19,6 +19,12 @@ public:
 	~FTransform() = default;
 
 	const static FTransform Zeros;
+	const static FTransform Default;
+
+	inline XMVECTOR GetScaleXMVECTOR() { return XMLoadFloat3(&Scale); }
+	inline XMVECTOR GetRotationXMVECTOR() { return XMLoadFloat3(&Rotation); }
+	inline XMVECTOR GetTranslationXMVECTOR() { return XMLoadFloat3(&Translation); }
+	XMMATRIX GetTransformMatrix();
 
 	XMFLOAT3 Scale;
 	XMFLOAT3 Rotation;

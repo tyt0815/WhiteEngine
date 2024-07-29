@@ -31,10 +31,11 @@ public:
 		XMFLOAT4X4 View;
 		XMFLOAT4X4 Project;
 	};
-	FCamera Camera = { 1.5f * XM_PI, XM_PIDIV4, 5.0f };
+	FCamera Camera;
 	bool Initialize();
 	bool InitializeWindow();
 	bool InitializeDirectX();
+	void ResetCameraPosition();
 	int Run();
 	virtual LRESULT InternalWndProc(HWND HWnd, UINT Message, WPARAM WParam, LPARAM LParam);
 	RECT GetClientRect();
@@ -91,6 +92,8 @@ private:
 	void OnMouseMove(WPARAM WParam, int X, int Y);
 	void OnKeyDown(WPARAM WParam);
 	void OnKeyUp(WPARAM WParam);
+	void OnMouseWheel(WPARAM WParam);
+	void ProcessInput();
 
 	UTimer Timer;
 	HWND HWnd;
@@ -122,3 +125,5 @@ private:
 	bool bMaximized = false;
 	bool bResized = false;
 };
+
+inline bool IsKeyPressed(char Key) { return GetAsyncKeyState(Key) & 0x8000; }

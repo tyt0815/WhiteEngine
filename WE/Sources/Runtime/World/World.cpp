@@ -8,7 +8,7 @@ WWorld::WWorld()
 
 WWorld::~WWorld()
 {
-	
+	unique_ptr<WWorld> a;
 }
 
 bool WWorld::Initialize()

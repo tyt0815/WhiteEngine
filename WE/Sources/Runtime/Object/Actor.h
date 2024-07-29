@@ -10,11 +10,13 @@ class FMaterial;
 class AActor : public WObject
 {
 public:
+	inline void SetTextureTransform(FTransform TexTransform) { TextureTransform = TexTransform; }
+	inline XMMATRIX GetTextureTransformMatrix() { return TextureTransform.GetTransformMatrix(); }
 
 	// Render Info
 	FMeshGeometry* Geometry = nullptr;
 	FMaterial* Material = nullptr;
-	XMFLOAT4X4 TexTransform = UDXMath::Identity4x4();
+	FTransform TextureTransform = FTransform::Default;
 	D3D12_PRIMITIVE_TOPOLOGY PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	int NumFramesDirty = NumFrameResources;
 	UINT ObjectConstantBufferIndex = -1;

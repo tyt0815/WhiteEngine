@@ -1,5 +1,6 @@
 #include "ForwardRenderer.h"
 #include "Runtime/World/World.h"
+#include "GeometryGenerator.h"
 
 void FForwardRenderer::Render()
 {
@@ -48,65 +49,17 @@ void FForwardRenderer::Render()
 
 	// Render
 
-
-
-	static ComPtr<ID3DBlob> VBCPUBuffer;
-	static ComPtr<ID3DBlob> IBCPUBuffer;
-	static ComPtr<ID3D12Resource> VBUploader, IBUploader;
-	static ComPtr<ID3D12Resource> VBGPUBuffer, IBGPUBuffer = nullptr;
-	static D3D12_VERTEX_BUFFER_VIEW VBV;
-	static D3D12_INDEX_BUFFER_VIEW IBV;
-	if (IBGPUBuffer == nullptr)
-	{
-		Vertex TV[] =
-		{
-			Vertex({XMFLOAT3(-0.5f, 0, 0), XMFLOAT4(-0.5f, 0, 0, 1)}),
-			Vertex({XMFLOAT3(0, 0.5f, 0), XMFLOAT4(0, 0.5f, 0, 1)}),
-			Vertex({XMFLOAT3(0.5f, 0, 0), XMFLOAT4(0.5f, 0, 0, 1)})
-		};
-		UINT16 TI[] = { 0, 1, 2 };
-		UINT VBSize = sizeof(Vertex) * 3;
-		UINT IBSize = sizeof(UINT16) * 3;
-		D3DCreateBlob(VBSize, &VBCPUBuffer);
-		CopyMemory(VBCPUBuffer->GetBufferPointer(), TV, VBSize);
-		D3DCreateBlob(IBSize, &IBCPUBuffer);
-		CopyMemory(IBCPUBuffer->GetBufferPointer(), TI, IBSize);
-		VBGPUBuffer = UDXUtility::CreateDefaultBuffer(
-			Device,
-			CommandList,
-			TV,
-			VBSize,
-			VBUploader
-		);
-		IBGPUBuffer = UDXUtility::CreateDefaultBuffer(
-			Device,
-			CommandList,
-			TI,
-			IBSize,
-			IBUploader
-		);
-		VBV.BufferLocation = VBGPUBuffer->GetGPUVirtualAddress();
-		VBV.StrideInBytes = sizeof(Vertex);
-		VBV.SizeInBytes = VBSize;
-		IBV.BufferLocation = IBGPUBuffer->GetGPUVirtualAddress();
-		IBV.Format = DXGI_FORMAT_R16_UINT;
-		IBV.SizeInBytes = IBSize;
-
-	};	
 	// Constantbuffer
-
 	ID3D12DescriptorHeap* descriptorHeaps[] = { CBVHeap.Get() };
 	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
-
 	CommandList->SetGraphicsRootSignature(RootSignature.Get());
 
-	CommandList->IASetVertexBuffers(0, 1, &VBV);
-	CommandList->IASetIndexBuffer(&IBV);
-	CommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	int PassConstantBufferViewIndex = PassConstantBufferViewOffset + TargetFrameResourceIndex;
+	auto PassConstantBufferViewHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(CBVHeap->GetGPUDescriptorHandleForHeapStart());
+	PassConstantBufferViewHandle.Offset(PassConstantBufferViewIndex, DXWindow->GetCBVSRVUAVDescriptorSize());
+	CommandList->SetGraphicsRootDescriptorTable(0, PassConstantBufferViewHandle);
 
-	CommandList->SetGraphicsRootDescriptorTable(0, CBVHeap->GetGPUDescriptorHandleForHeapStart());
-
-	CommandList->DrawIndexedInstanced(3, 1, 0, 0, 0);
+	RenderOpaqueActors(CommandList);
 
 
 
@@ -132,6 +85,8 @@ void FForwardRenderer::Render()
 
 void FForwardRenderer::BuildDescriptorHeaps()
 {
+	UINT ActorCount = (UINT)World->GetWorldActorsRef().size();
+
 	ID3D12Device* Device = DXWindow->GetDevice();
 	D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc;
 	cbvHeapDesc.NumDescriptors = NumFrameResources;
@@ -278,4 +233,26 @@ void FForwardRenderer::BuildPipelineStateObject()
 			&BasePassWireFramePipelineStateDesc, IID_PPV_ARGS(&PipelineStateObjects["BasePass_WireFrame"])
 		)
 	);
+}
+
+void FForwardRenderer::RenderOpaqueActors(ID3D12GraphicsCommandList* CommandList)
+{
+	const auto& Actors = World->GetWorldActorsRef();
+	for (int i = 0 ; i < Actors.size(); ++i)
+	{
+		AActor* Actor = Actors[i].get();
+		D3D12_VERTEX_BUFFER_VIEW VertexBufferView = Actor->Geometry->VertexBufferView();
+		D3D12_INDEX_BUFFER_VIEW IndexBufferView = Actor->Geometry->IndexBufferView();
+		CommandList->IASetVertexBuffers(0, 1, &VertexBufferView);
+		CommandList->IASetIndexBuffer(&IndexBufferView);
+		CommandList->IASetPrimitiveTopology(Actor->PrimitiveType);
+
+		CommandList->DrawIndexedInstanced(
+			Actor->IndexCount,
+			1,
+			Actor->StartIndexLocation,
+			Actor->BaseVertexLocation,
+			0
+		);
+	}
 }

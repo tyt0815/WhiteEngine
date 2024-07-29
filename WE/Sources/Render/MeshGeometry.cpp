@@ -7,13 +7,17 @@ FMeshGeometry::MeshGeometryMap FMeshGeometry::MeshGeometries = FMeshGeometry::Me
 void FMeshGeometry::BuildMeshGeometries()
 {
 	FDXWindow* DXWindow = FDXWindow::GetInstance();
-	ThrowIfFailed(
-		DXWindow->GetCommandList()->Reset(DXWindow->GetCommandAllocator(), nullptr)
-	);
+	ID3D12GraphicsCommandList* CommandList = DXWindow->GetCommandList();
+	ID3D12CommandAllocator* CommandAllocator = DXWindow->GetCommandAllocator();
+	ID3D12CommandQueue* CommandQueue = DXWindow->GetCommandQueue();
+	ThrowIfFailed(CommandList->Reset(CommandAllocator, nullptr));
 	BuildShapeMeshGeometry();
 	BuildSkullMeshGeometry();
 
-	DXWindow->ExecuteCommand();
+	ThrowIfFailed(CommandList->Close());
+	ID3D12CommandList* CmdLists[] = { CommandList };
+	CommandQueue->ExecuteCommandLists(_countof(CmdLists), CmdLists);
+	DXWindow->FlushCommandQueue();
 }
 
 void FMeshGeometry::BuildShapeMeshGeometry()
@@ -25,7 +29,7 @@ void FMeshGeometry::BuildShapeMeshGeometry()
 	ID3D12GraphicsCommandList* CommandList = FDXWindow::GetInstance()->GetCommandList();	
 
 	UGeometryGenerator geoGen;
-	UGeometryGenerator::MeshData box = geoGen.CreateBox(1.5f, 0.5f, 1.5f, 3);
+	UGeometryGenerator::MeshData box = geoGen.CreateBox(1.0f, 1.0f, 1.0f, 0);
 	UGeometryGenerator::MeshData grid = geoGen.CreateGrid(20.0f, 30.0f, 60, 40);
 	UGeometryGenerator::MeshData sphere = geoGen.CreateSphere(0.5f, 20, 20);
 	UGeometryGenerator::MeshData cylinder = geoGen.CreateCylinder(0.5f, 0.3f, 3.0f, 20, 20);
@@ -84,25 +88,29 @@ void FMeshGeometry::BuildShapeMeshGeometry()
 	for (size_t i = 0; i < box.Vertices.size(); ++i, ++k)
 	{
 		vertices[k].Pos = box.Vertices[i].Position;
-		vertices[k].Normal = box.Vertices[i].Normal;
+		//vertices[k].Normal = box.Vertices[i].Normal;
+		vertices[k].Color = XMFLOAT4(Colors::AliceBlue);
 	}
 
 	for (size_t i = 0; i < grid.Vertices.size(); ++i, ++k)
 	{
 		vertices[k].Pos = grid.Vertices[i].Position;
-		vertices[k].Normal = grid.Vertices[i].Normal;
+		//vertices[k].Normal = grid.Vertices[i].Normal;
+		vertices[k].Color = XMFLOAT4(Colors::Red);
 	}
 
 	for (size_t i = 0; i < sphere.Vertices.size(); ++i, ++k)
 	{
 		vertices[k].Pos = sphere.Vertices[i].Position;
-		vertices[k].Normal = sphere.Vertices[i].Normal;
+		//vertices[k].Normal = sphere.Vertices[i].Normal;
+		vertices[k].Color = XMFLOAT4(Colors::Lime);
 	}
 
 	for (size_t i = 0; i < cylinder.Vertices.size(); ++i, ++k)
 	{
 		vertices[k].Pos = cylinder.Vertices[i].Position;
-		vertices[k].Normal = cylinder.Vertices[i].Normal;
+		//vertices[k].Normal = cylinder.Vertices[i].Normal;
+		vertices[k].Color = XMFLOAT4(Colors::HotPink);
 	}
 
 	std::vector<std::uint16_t> indices;
@@ -165,7 +173,8 @@ void FMeshGeometry::BuildSkullMeshGeometry()
 	for (UINT i = 0; i < vcount; ++i)
 	{
 		fin >> vertices[i].Pos.x >> vertices[i].Pos.y >> vertices[i].Pos.z;
-		fin >> vertices[i].Normal.x >> vertices[i].Normal.y >> vertices[i].Normal.z;
+		vertices[i].Color = XMFLOAT4(Colors::Ivory);
+		//fin >> vertices[i].Normal.x >> vertices[i].Normal.y >> vertices[i].Normal.z;
 	}
 
 	fin >> ignore;

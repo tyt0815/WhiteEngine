@@ -10,17 +10,26 @@ class WWorld
 public:
 	WWorld();
 	~WWorld();
-	bool Initialize();
-	void Tick();
+	virtual bool Initialize();
+	virtual void Tick();
 	inline const vector<unique_ptr<AActor>>& GetWorldActorsRef() { return WorldActors; }
-	inline const vector<AActor*>& GetOpaqueActorsRef() { return OpaqueActors; }
 
 protected:
 	virtual void BuildWorldActors() = 0;
+	template<typename T>
+	void SpawnActor(FTransform Transform = FTransform::Default);
 
 	vector<unique_ptr<AActor>> WorldActors;
-	vector<AActor*> OpaqueActors;
 
 private:
 	
 };
+
+template<typename T>
+inline void WWorld::SpawnActor(FTransform Transform)
+{
+	unique_ptr<AActor> Actor = make_unique<T>();
+	Actor->SetTransform(Transform);
+	Actor->ObjectConstantBufferIndex = (UINT)WorldActors.size();
+	WorldActors.push_back(move(Actor));
+}
