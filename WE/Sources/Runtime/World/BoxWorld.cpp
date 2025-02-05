@@ -10,7 +10,7 @@ void WBoxWorld::BuildWorldActors()
 {
 	FTransform Transform;
 	Transform.Translation.x = 1.0f;
-	SpawnActor<ABox>(Transform);
+	SpawnActor<ABox>(EActorType::EAT_Opaque, Transform);
 	Transform.Translation.x = -1.0f;
-	SpawnActor<ABox>(Transform);
+	SpawnActor<ABox>(EActorType::EAT_Opaque, Transform);
 }

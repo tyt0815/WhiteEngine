@@ -1,36 +1,23 @@
 #include "MeshGeometry.h"
 #include "GeometryGenerator.h"
-#include "DirectX/DXWindow.h"
 
 FMeshGeometry::MeshGeometryMap FMeshGeometry::MeshGeometries = FMeshGeometry::MeshGeometryMap();
 
-void FMeshGeometry::BuildMeshGeometries()
+void FMeshGeometry::BuildMeshGeometries(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
 {
-	FDXWindow* DXWindow = FDXWindow::GetInstance();
-	ID3D12GraphicsCommandList* CommandList = DXWindow->GetCommandList();
-	ID3D12CommandAllocator* CommandAllocator = DXWindow->GetCommandAllocator();
-	ID3D12CommandQueue* CommandQueue = DXWindow->GetCommandQueue();
-	ThrowIfFailed(CommandList->Reset(CommandAllocator, nullptr));
-	BuildShapeMeshGeometry();
-	BuildSkullMeshGeometry();
-
-	ThrowIfFailed(CommandList->Close());
-	ID3D12CommandList* CmdLists[] = { CommandList };
-	CommandQueue->ExecuteCommandLists(_countof(CmdLists), CmdLists);
-	DXWindow->FlushCommandQueue();
+	BuildShapeMeshGeometry(Device, CommandList);
+	BuildSkullMeshGeometry(Device, CommandList);
+	BuildBillboardPoints(Device, CommandList);
 }
 
-void FMeshGeometry::BuildShapeMeshGeometry()
+void FMeshGeometry::BuildShapeMeshGeometry(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
 {
 	const std::string Name = "Shape";
-	if (MeshGeometries.find(Name) != MeshGeometries.end()) return;
-
-	ID3D12Device* Device = FDXWindow::GetInstance()->GetDevice();
-	ID3D12GraphicsCommandList* CommandList = FDXWindow::GetInstance()->GetCommandList();	
+	if (MeshGeometries.find(Name) != MeshGeometries.end()) return;	
 
 	UGeometryGenerator geoGen;
 	UGeometryGenerator::MeshData box = geoGen.CreateBox(1.0f, 1.0f, 1.0f, 0);
-	UGeometryGenerator::MeshData grid = geoGen.CreateGrid(20.0f, 30.0f, 60, 40);
+	UGeometryGenerator::MeshData grid = geoGen.CreateGrid(500.0f, 500.0f, 60, 40);
 	UGeometryGenerator::MeshData sphere = geoGen.CreateSphere(0.5f, 20, 20);
 	UGeometryGenerator::MeshData cylinder = geoGen.CreateCylinder(0.5f, 0.3f, 3.0f, 20, 20);
 
@@ -88,29 +75,29 @@ void FMeshGeometry::BuildShapeMeshGeometry()
 	for (size_t i = 0; i < box.Vertices.size(); ++i, ++k)
 	{
 		vertices[k].Pos = box.Vertices[i].Position;
-		//vertices[k].Normal = box.Vertices[i].Normal;
-		vertices[k].Color = XMFLOAT4(Colors::AliceBlue);
+		vertices[k].Normal = box.Vertices[i].Normal;
+		vertices[k].TexC = box.Vertices[i].TexC;
 	}
 
 	for (size_t i = 0; i < grid.Vertices.size(); ++i, ++k)
 	{
 		vertices[k].Pos = grid.Vertices[i].Position;
-		//vertices[k].Normal = grid.Vertices[i].Normal;
-		vertices[k].Color = XMFLOAT4(Colors::Red);
+		vertices[k].Normal = grid.Vertices[i].Normal;
+		vertices[k].TexC = grid.Vertices[i].TexC;
 	}
 
 	for (size_t i = 0; i < sphere.Vertices.size(); ++i, ++k)
 	{
 		vertices[k].Pos = sphere.Vertices[i].Position;
-		//vertices[k].Normal = sphere.Vertices[i].Normal;
-		vertices[k].Color = XMFLOAT4(Colors::Lime);
+		vertices[k].Normal = sphere.Vertices[i].Normal;
+		vertices[k].TexC = sphere.Vertices[i].TexC;
 	}
 
 	for (size_t i = 0; i < cylinder.Vertices.size(); ++i, ++k)
 	{
 		vertices[k].Pos = cylinder.Vertices[i].Position;
-		//vertices[k].Normal = cylinder.Vertices[i].Normal;
-		vertices[k].Color = XMFLOAT4(Colors::HotPink);
+		vertices[k].Normal = cylinder.Vertices[i].Normal;
+		vertices[k].TexC = cylinder.Vertices[i].TexC;
 	}
 
 	std::vector<std::uint16_t> indices;
@@ -150,13 +137,10 @@ void FMeshGeometry::BuildShapeMeshGeometry()
 	MeshGeometries[geo->Name] = std::move(geo);
 }
 
-void FMeshGeometry::BuildSkullMeshGeometry()
+void FMeshGeometry::BuildSkullMeshGeometry(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
 {
 	string Name = "Skull";
 	if (MeshGeometries.find(Name) != MeshGeometries.end()) return;
-
-	ID3D12Device* Device = FDXWindow::GetInstance()->GetDevice();
-	ID3D12GraphicsCommandList* CommandList = FDXWindow::GetInstance()->GetCommandList();
 
 	std::ifstream fin;
 	UDXUtility::ReadFile("Models/Skull.txt", fin);
@@ -172,9 +156,8 @@ void FMeshGeometry::BuildSkullMeshGeometry()
 	std::vector<FVertex> vertices(vcount);
 	for (UINT i = 0; i < vcount; ++i)
 	{
-		fin >> vertices[i].Pos.x >> vertices[i].Pos.y >> vertices[i].Pos.z;
-		vertices[i].Color = XMFLOAT4(Colors::Ivory);
-		//fin >> vertices[i].Normal.x >> vertices[i].Normal.y >> vertices[i].Normal.z;
+		fin >> vertices[i].Pos.x >> vertices[i].Pos.y >> vertices[i].Pos.z >>
+			vertices[i].Normal.x >> vertices[i].Normal.y >> vertices[i].Normal.z;
 	}
 
 	fin >> ignore;
@@ -226,4 +209,67 @@ void FMeshGeometry::BuildSkullMeshGeometry()
 
 	MeshGeometries[geo->Name] = std::move(geo);
 
+}
+
+void FMeshGeometry::BuildBillboardPoints(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
+{
+	struct FSpriteVertex
+	{
+		XMFLOAT3 Pos;
+		XMFLOAT2 Size;
+	};
+
+	constexpr int PointCount = 16;
+	std::array<FSpriteVertex, PointCount> vertices;
+	for (UINT i = 0; i < PointCount; ++i)
+	{
+		float Offset = .5f;
+		float x = UDXMath::RandF(-Offset, Offset);
+		float z = UDXMath::RandF(-Offset, Offset);
+		float y = 0.0f;
+
+		// Move tree slightly above land height.
+		y += 0.4f;
+
+		vertices[i].Pos = XMFLOAT3(x, y, z);
+		vertices[i].Size = XMFLOAT2(1.0f, 1.0f);
+	}
+
+	std::array<std::uint16_t, 16> indices;
+	for (int i = 0; i < PointCount; ++i)
+	{
+		indices[i] = i;
+	}
+
+	const UINT vbByteSize = (UINT)vertices.size() * sizeof(FSpriteVertex);
+	const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
+
+	auto geo = std::make_unique<FMeshGeometry>();
+	geo->Name = "Sprite";
+
+	ThrowIfFailed(D3DCreateBlob(vbByteSize, &geo->VertexBufferCPU));
+	CopyMemory(geo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
+
+	ThrowIfFailed(D3DCreateBlob(ibByteSize, &geo->IndexBufferCPU));
+	CopyMemory(geo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
+
+	geo->VertexBufferGPU = UDXUtility::CreateDefaultBuffer(Device,
+		CommandList, vertices.data(), vbByteSize, geo->VertexBufferUploader);
+
+	geo->IndexBufferGPU = UDXUtility::CreateDefaultBuffer(Device,
+		CommandList, indices.data(), ibByteSize, geo->IndexBufferUploader);
+
+	geo->VertexByteStride = sizeof(FSpriteVertex);
+	geo->VertexBufferByteSize = vbByteSize;
+	geo->IndexFormat = DXGI_FORMAT_R16_UINT;
+	geo->IndexBufferByteSize = ibByteSize;
+
+	FSubmeshGeometry submesh;
+	submesh.IndexCount = (UINT)indices.size();
+	submesh.StartIndexLocation = 0;
+	submesh.BaseVertexLocation = 0;
+
+	geo->DrawArgs["Points"] = submesh;
+
+	MeshGeometries["Points"] = std::move(geo);
 }

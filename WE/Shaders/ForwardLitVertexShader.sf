@@ -1,0 +1,14 @@
+    #include "ForwardLitCommon.sh"
+
+FVSOutput MainVS(FVSInput VIn)
+{  
+    FVSOutput VOut;
+    
+    float4 PosW = mul(float4(VIn.PosL, 1.0f), World);
+    VOut.PosW = PosW.xyz;
+    VOut.NormalW = mul(VIn.NormalL, (float3x3) World);
+    VOut.PosH = mul(PosW, ViewProj);
+    float4 TexC = mul(float4(VIn.TexC, 0.0f, 1.0f), TexTransform);
+    VOut.TexC = mul(TexC, MatTransform).xy;
+    return VOut;
+}

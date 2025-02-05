@@ -27,14 +27,8 @@
     <Filter Include="Sources\Runtime\World">
       <UniqueIdentifier>{e96a9205-a40d-4b4a-95c8-aaf25e2fd33b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\DirectX">
-      <UniqueIdentifier>{85396068-2f38-4973-9782-3f52e45674df}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Sources\Main.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\Utility\Timer.cpp">
       <Filter>Sources\Utility</Filter>
     </ClCompile>
@@ -43,9 +37,6 @@
     </ClCompile>
     <ClCompile Include="Sources\Render\DeferredRenderer.cpp">
       <Filter>Sources\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Runtime\Object\ViewCamera.cpp">
-      <Filter>Sources\Runtime\Object</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Runtime\Object\Object.cpp">
       <Filter>Sources\Runtime\Object</Filter>
@@ -58,15 +49,6 @@
     </ClCompile>
     <ClCompile Include="Sources\Runtime\World\TestWorld.cpp">
       <Filter>Sources\Runtime\World</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\DirectX\DXUtility.cpp">
-      <Filter>Sources\DirectX</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\DirectX\DXMath.cpp">
-      <Filter>Sources\DirectX</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\DirectX\DXWindow.cpp">
-      <Filter>Sources\DirectX</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Render\RendererBase.cpp">
       <Filter>Sources\Render</Filter>
@@ -95,14 +77,44 @@
     <ClCompile Include="Sources\Runtime\Object\Box.cpp">
       <Filter>Sources\Runtime\Object</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Runtime\Object\Cylinder.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Runtime\Object\Gird.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\Runtime\Object\Skull.cpp">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Runtime\Object\Cylinder.cpp">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Runtime\Object\Grid.cpp">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Runtime\Object\Sphere.cpp">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Utility\DXMath.cpp">
+      <Filter>Sources\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Utility\DXUtility.cpp">
+      <Filter>Sources\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Render\Texture.cpp">
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Main.cpp">
       <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Runtime\Object\WireFence.cpp">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Runtime\Object\WaterBall.cpp">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Runtime\Object\Billboard.cpp">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Runtime\Object\Foliage.cpp">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Runtime\Object\ViewCamera.cpp">
+      <Filter>Sources\Runtime\Object</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -122,9 +134,6 @@
       <Filter>Sources\Runtime\World</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Runtime\Object\Object.h">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Runtime\Object\ViewCamera.h">
       <Filter>Sources\Runtime\Object</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Runtime\Object\Actor.h">
@@ -148,18 +157,6 @@
     <ClInclude Include="Sources\Runtime\World\TestWorld.h">
       <Filter>Sources\Runtime\World</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\DirectX\DXMath.h">
-      <Filter>Sources\DirectX</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\DirectX\DXUtility.h">
-      <Filter>Sources\DirectX</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\DirectX\DXHeaders.h">
-      <Filter>Sources\DirectX</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\DirectX\DXWindow.h">
-      <Filter>Sources\DirectX</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\Render\RendererBase.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
@@ -178,7 +175,7 @@
     <ClInclude Include="Sources\Runtime\Object\Cylinder.h">
       <Filter>Sources\Runtime\Object</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Runtime\Object\Gird.h">
+    <ClInclude Include="Sources\Runtime\Object\Grid.h">
       <Filter>Sources\Runtime\Object</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Runtime\Object\Skull.h">
@@ -187,15 +184,66 @@
     <ClInclude Include="Sources\Runtime\Object\Sphere.h">
       <Filter>Sources\Runtime\Object</Filter>
     </ClInclude>
+    <ClInclude Include="Sources\Runtime\Object\ShapeActorsHeader.h">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Utility\d3dx12.h">
+      <Filter>Sources\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Utility\DXHeaders.h">
+      <Filter>Sources\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Utility\DXMath.h">
+      <Filter>Sources\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Utility\DXUtility.h">
+      <Filter>Sources\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\Texture.h">
+      <Filter>Sources\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Runtime\Object\WireFence.h">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Runtime\Object\WaterBall.h">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Runtime\Object\Billboard.h">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Runtime\Object\Foliage.h">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Runtime\Object\ViewCamera.h">
+      <Filter>Sources\Runtime\Object</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\BasePassCommon.sh">
+    <None Include="Shaders\ForwardLitCommon.sh">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\BasePassPixelShader.sf">
+    <None Include="Shaders\ForwardLitPixelShader.sf">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\BasePassVertexShader.sf">
+    <None Include="Shaders\ForwardLitVertexShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\BillboardCommon.sh">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\BillboardGeometryShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\BillboardPixelShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\BillboardVertexShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Common.sh">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\LitUtility.sh">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

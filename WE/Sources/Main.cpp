@@ -1,4 +1,3 @@
-#include "DirectX/DXWindow.h"
 #include "Render/ForwardRenderer.h"
 #include "Render/DeferredRenderer.h"
 #include "Render/MeshGeometry.h"
@@ -14,15 +13,15 @@ int WINAPI WinMain(
 #if defined(DEBUG) | defined(_DEBUG)
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
+
+    FForwardRenderer Renderer;
     try
     {
-        if (!FDXWindow::GetInstance()->Initialize())
+        if (!Renderer.Initialize())
         {
             return 0;
         }
-        FMeshGeometry::BuildMeshGeometries();
-        FMaterial::BuildMaterial();
-        return FDXWindow::GetInstance()->Run();
+        return Renderer.Run();
     }
     catch (UDXException& e)
     {

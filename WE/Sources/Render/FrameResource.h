@@ -1,10 +1,10 @@
 #pragma once
 
-#include "DirectX/DXUtility.h"
+#include "Utility/DXUtility.h"
 #include "UploadBuffer.h"
 #include "Material.h"
 
-struct Light
+struct FLight
 {
     DirectX::XMFLOAT3 Strength = { 0.5f, 0.5f, 0.5f };
     float FalloffStart = 1.0f;                          // point/spot light only
@@ -16,11 +16,40 @@ struct Light
 
 #define MaxLights 16
 
+// register(b0)
 struct FPassConstants
 {
     DirectX::XMFLOAT4X4 View = UDXMath::Identity4x4();
+    DirectX::XMFLOAT4X4 InvView = UDXMath::Identity4x4();
     DirectX::XMFLOAT4X4 Proj = UDXMath::Identity4x4();
+    DirectX::XMFLOAT4X4 InvProj = UDXMath::Identity4x4();
+    DirectX::XMFLOAT4X4 ViewProj = UDXMath::Identity4x4();
+    DirectX::XMFLOAT4X4 InvViewProj = UDXMath::Identity4x4();
+    DirectX::XMFLOAT3 EyePosW = { 0.0f, 0.0f, 0.0f };
+    float cbPerObjectPad1 = 0.0f;
+    DirectX::XMFLOAT2 RenderTargetSize = { 0.0f, 0.0f };
+    DirectX::XMFLOAT2 InvRenderTargetSize = { 0.0f, 0.0f };
+    float NearZ = 0.0f;
+    float FarZ = 0.0f;
+    float TotalTime = 0.0f;
+    float DeltaTime = 0.0f;
+
+    DirectX::XMFLOAT4 AmbientLight = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+    // Fog Info
+    DirectX::XMFLOAT4 FogColor;
+    float FogStart;
+    float FogRange;
+    DirectX::XMFLOAT2 cbPerObjectPad2;
+
+    // Indices [0, NUM_DIR_LIGHTS) are directional lights;
+    // indices [NUM_DIR_LIGHTS, NUM_DIR_LIGHTS+NUM_POINT_LIGHTS) are point lights;
+    // indices [NUM_DIR_LIGHTS+NUM_POINT_LIGHTS, NUM_DIR_LIGHTS+NUM_POINT_LIGHT+NUM_SPOT_LIGHTS)
+    // are spot lights for a maximum of MaxLights per object.
+    FLight Lights[MaxLights];
 };
+
+// register(b1)
 struct FObjectConstants
 {
 	DirectX::XMFLOAT4X4 World = UDXMath::Identity4x4();

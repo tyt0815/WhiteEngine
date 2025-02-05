@@ -3,12 +3,11 @@
 
 WWorld::WWorld()
 {
-	
+	Actors.resize((int)EActorType::EAT_None);
 }
 
 WWorld::~WWorld()
 {
-	unique_ptr<WWorld> a;
 }
 
 bool WWorld::Initialize()
@@ -17,7 +16,9 @@ bool WWorld::Initialize()
 	return true;
 }
 
-void WWorld::Tick()
+void WWorld::Tick(float Delta)
 {
 	// TODO
+
+	for (auto& Actor : AllActors) Actor->Tick(Delta);
 }

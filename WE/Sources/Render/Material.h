@@ -1,12 +1,13 @@
 #pragma once
 
-#include "DirectX/DXMath.h"
+#include "Utility/DXMath.h"
 #include <string>
 #include <unordered_map>
 #include <memory>
 
 extern const int NumFrameResources;
 
+// register(b2)
 struct FMaterialConstants
 {
 	DirectX::XMFLOAT4 DiffuseAlbedo = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -17,10 +18,25 @@ struct FMaterialConstants
 	DirectX::XMFLOAT4X4 MatTransform = UDXMath::Identity4x4();
 };
 
+enum EMaterialType : UINT16
+{
+	EMT_Tile0,
+	EMT_Brick0,
+	EMT_Stone0,
+	EMT_Skull,
+	EMT_Grass,
+	EMT_WireFence,
+	EMT_Water,
+	EMT_Foliage1,
+	EMT_Default
+};
+
 class FMaterial
 {
 public:
-	using MaterialMap = std::unordered_map<std::string, std::unique_ptr<FMaterial>>;
+	
+public:
+	using MaterialMap = std::unordered_map<EMaterialType, std::unique_ptr<FMaterial>>;
 	static MaterialMap Materials;
 	static void BuildMaterial();
 

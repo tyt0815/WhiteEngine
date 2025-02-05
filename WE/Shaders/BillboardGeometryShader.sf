@@ -1,0 +1,58 @@
+#include "BillboardCommon.sh"
+
+[maxvertexcount(4)]
+void MainGS(
+    point FVSOutput GIn[1],
+    uint PrimID : SV_PrimitiveID,
+    inout TriangleStream<FGSOutput> TriStream
+)
+{
+    //
+	// Compute the local coordinate system of the sprite relative to the world
+	// space such that the billboard is aligned with the y-axis and faces the eye.
+	//
+
+    float3 up = float3(0.0f, 1.0f, 0.0f);
+    float3 look = EyePosW - GIn[0].CenterW;
+    look.y = 0.0f; // y-axis aligned, so project to xz-plane
+    look = normalize(look);
+    float3 right = cross(up, look);
+
+	//
+	// Compute triangle strip vertices (quad) in world space.
+	//
+    float halfWidth = 0.5f * GIn[0].SizeW.x;
+    float halfHeight = 0.5f * GIn[0].SizeW.y;
+	
+    float4 v[4];
+    v[0] = float4(GIn[0].CenterW + halfWidth * right - halfHeight * up, 1.0f);
+    v[1] = float4(GIn[0].CenterW + halfWidth * right + halfHeight * up, 1.0f);
+    v[2] = float4(GIn[0].CenterW - halfWidth * right - halfHeight * up, 1.0f);
+    v[3] = float4(GIn[0].CenterW - halfWidth * right + halfHeight * up, 1.0f);
+
+	//
+	// Transform quad vertices to world space and output 
+	// them as a triangle strip.
+	//
+	
+    float2 texC[4] =
+    {
+        float2(0.0f, 1.0f),
+		float2(0.0f, 0.0f),
+		float2(1.0f, 1.0f),
+		float2(1.0f, 0.0f)
+    };
+	
+    FGSOutput gout;
+	[unroll]
+    for (int i = 0; i < 4; ++i)
+    {
+        gout.PosH = mul(v[i], ViewProj);
+        gout.PosW = v[i].xyz;
+        gout.NormalW = look;
+        gout.TexC = texC[i];
+        gout.PrimID = PrimID;
+		
+        TriStream.Append(gout);
+    }
+}

@@ -1,0 +1,36 @@
+#include "ForwardLitCommon.sh"
+
+float4 MainPS(FVSOutput PIn) : SV_Target
+{
+    float4 Albedo = gDiffuseMap.Sample(gsamLinearWrap, PIn.TexC) * DiffuseAlbedo;
+    
+#ifdef ALPHA_TEST
+    clip(Albedo.a - 0.1f);
+#endif
+
+
+    
+    PIn.NormalW = normalize(PIn.NormalW);
+    float3 ToEyeW = EyePosW - PIn.PosW;
+    float distToEye = length(ToEyeW);
+    ToEyeW /= distToEye;
+    
+    float4 Ambient = AmbientLight * Albedo;
+    
+    const float Shiniess = 1.0f - Roughness;
+    Material Mat = { Albedo, FresnelR0, Shiniess };
+    float3 ShadowFactor = 1.0f;
+    float4 DirectLight = ComputeLighting(gLights, Mat, PIn.PosW,
+        PIn.NormalW, ToEyeW, ShadowFactor
+    );
+    
+    float4 LitColor = Ambient + DirectLight;
+    
+#ifdef FOG
+    float fogAmount = saturate((distToEye - gFogStart) / gFogRange);
+	LitColor = lerp(LitColor, gFogColor, fogAmount);
+#endif
+    
+    LitColor.a = Albedo.a;
+    return LitColor;
+}

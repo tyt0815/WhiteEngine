@@ -2,33 +2,28 @@
 #include "Runtime/World/World.h"
 #include "GeometryGenerator.h"
 
-void FForwardRenderer::Render()
+bool FForwardRenderer::Initialize()
 {
-	Super::Render();
+	Super::Initialize();
+
+	return true;
+}
+
+void FForwardRenderer::Render(UTimer* Timer)
+{
+	Super::Render(Timer);
+	UpdatePassConstantBuffers(Timer);
+	UpdateObjectConstantBuffer();
+	UpdateMaterialConstantBuffer();
 
 	auto TargetCommandAllocator = TargetFrameResource->CommandAllocator.Get();
 
-	ID3D12Device* Device = DXWindow->GetDevice();
-	
-	ID3D12CommandQueue* CommandQueue = DXWindow->GetCommandQueue();
-	ID3D12GraphicsCommandList* CommandList = DXWindow->GetCommandList();
-	ID3D12Fence* Fence = DXWindow->GetFence();
-	ID3D12Resource* RenderTarget = DXWindow->GetCurrentBackBuffer();
+	ID3D12Resource* RenderTarget = GetCurrentBackBuffer();
 
 	ThrowIfFailed(TargetCommandAllocator->Reset());
+	ThrowIfFailed(CommandList->Reset(TargetCommandAllocator, nullptr));
 
-	if (!bWireFrame)
-	{
-		ThrowIfFailed(CommandList->Reset(TargetCommandAllocator, PipelineStateObjects["BasePass"].Get()));
-	}
-	else
-	{
-		ThrowIfFailed(CommandList->Reset(TargetCommandAllocator, PipelineStateObjects["BasePass_WireFrame"].Get()));
-	}
-
-	D3D12_VIEWPORT Viewport = DXWindow->GetViewport();
-	D3D12_RECT ScissorRect = DXWindow->GetScissorRect();
-	CommandList->RSSetViewports(1, &Viewport);
+	CommandList->RSSetViewports(1, &ScreenViewport);
 	CommandList->RSSetScissorRects(1, &ScissorRect);
 
 	D3D12_RESOURCE_BARRIER ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
@@ -38,9 +33,9 @@ void FForwardRenderer::Render()
 	);
 	CommandList->ResourceBarrier(1, &ResourceBarrier);
 
-	D3D12_CPU_DESCRIPTOR_HANDLE RenderTargetView = DXWindow->GetCurrentBackBufferView();
-	D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView = DXWindow->GetDepthStencilView();
-	CommandList->ClearRenderTargetView(RenderTargetView, Colors::Black, 0, nullptr);
+	D3D12_CPU_DESCRIPTOR_HANDLE RenderTargetView = GetCurrentBackBufferView();
+	D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView = GetDepthStencilView();
+	CommandList->ClearRenderTargetView(RenderTargetView, Colors::LightSkyBlue, 0, nullptr);
 	CommandList->ClearDepthStencilView(DepthStencilView, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
 	CommandList->OMSetRenderTargets(1, &RenderTargetView, true, &DepthStencilView);
@@ -49,19 +44,62 @@ void FForwardRenderer::Render()
 
 	// Render
 
-	// Constantbuffer
-	ID3D12DescriptorHeap* descriptorHeaps[] = { CBVHeap.Get() };
+	// Pass Constantbuffer
+	ID3D12DescriptorHeap* descriptorHeaps[] = { SRVHeap.Get() };
 	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 	CommandList->SetGraphicsRootSignature(RootSignature.Get());
 
-	int PassConstantBufferViewIndex = PassConstantBufferViewOffset + TargetFrameResourceIndex;
-	auto PassConstantBufferViewHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(CBVHeap->GetGPUDescriptorHandleForHeapStart());
-	PassConstantBufferViewHandle.Offset(PassConstantBufferViewIndex, DXWindow->GetCBVSRVUAVDescriptorSize());
-	CommandList->SetGraphicsRootDescriptorTable(0, PassConstantBufferViewHandle);
+	auto PassConstantBuffer = TargetFrameResource->PassConstantBuffer->Resource();
+	auto PassConstantBufferAdress = PassConstantBuffer->GetGPUVirtualAddress();
+	CommandList->SetGraphicsRootConstantBufferView(0, PassConstantBufferAdress);
 
-	RenderOpaqueActors(CommandList);
+	{
+		if (!bWireFrame)
+		{
+			CommandList->SetPipelineState(PipelineStateObjects[(int)EPipelineState::EPS_Opaque].Get());
+		}
+		else
+		{
+			CommandList->SetPipelineState(PipelineStateObjects[(int)EPipelineState::EPS_WireFrame].Get());
+		}
+		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Opaque]);
+	}
 
+	{
+		if (!bWireFrame)
+		{
+			CommandList->SetPipelineState(PipelineStateObjects[(int)EPipelineState::EPS_AlphaTest].Get());
+		}
+		else
+		{
+			CommandList->SetPipelineState(PipelineStateObjects[(int)EPipelineState::EPS_WireFrame].Get());
+		}
+		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_AlphaTest]);
+	}
 
+	{
+		if (!bWireFrame)
+		{
+			CommandList->SetPipelineState(PipelineStateObjects[(int)EPipelineState::EPS_Billboard].Get());
+		}
+		else
+		{
+			CommandList->SetPipelineState(PipelineStateObjects[(int)EPipelineState::EPS_WireFrame].Get());
+		}
+		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Billboard]);
+	}
+
+	{
+		if (!bWireFrame)
+		{
+			CommandList->SetPipelineState(PipelineStateObjects[(int)EPipelineState::EPS_Transparency].Get());
+		}
+		else
+		{
+			CommandList->SetPipelineState(PipelineStateObjects[(int)EPipelineState::EPS_WireFrame].Get());
+		}
+		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Transparency]);
+	}
 
 	////////////////////////////////////////////////////////////////////////////////
 
@@ -74,65 +112,70 @@ void FForwardRenderer::Render()
 
 	ThrowIfFailed(CommandList->Close());
 
-	ID3D12CommandList* CommandLists[] = { CommandList };
+	ID3D12CommandList* CommandLists[] = { CommandList.Get()};
 	CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
 
-	DXWindow->SwapRenderTargetBuffers();
+	ThrowIfFailed(SwapChain->Present(0, 0));
+	CurrentBackBuffer = (CurrentBackBuffer + 1) % SwapChainBufferCount;
 
-	TargetFrameResource->Fence = DXWindow->GetNextFence();
-	CommandQueue->Signal(Fence, DXWindow->GetCurrentFence());
+	TargetFrameResource->Fence = ++CurrentFence;
+	CommandQueue->Signal(Fence.Get(), CurrentFence);
 }
 
 void FForwardRenderer::BuildDescriptorHeaps()
 {
-	UINT ActorCount = (UINT)World->GetWorldActorsRef().size();
-
-	ID3D12Device* Device = DXWindow->GetDevice();
-	D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc;
-	cbvHeapDesc.NumDescriptors = NumFrameResources;
-	cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	cbvHeapDesc.NodeMask = 0;
-	ThrowIfFailed(Device->CreateDescriptorHeap(&cbvHeapDesc,
-		IID_PPV_ARGS(&CBVHeap)));
+	// Build SRVHeap
+	D3D12_DESCRIPTOR_HEAP_DESC SRVHeapDesc;
+	ZeroMemory(&SRVHeapDesc, sizeof(D3D12_DESCRIPTOR_HEAP_DESC));
+	SRVHeapDesc.NumDescriptors = (UINT)FTexture::Textures.size();
+	SRVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	SRVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	ThrowIfFailed(Device->CreateDescriptorHeap(&SRVHeapDesc, IID_PPV_ARGS(SRVHeap.GetAddressOf())));
 }
 
-void FForwardRenderer::BuildConstantBuffers()
+void FForwardRenderer::BuildShaderResources()
 {
-	ID3D12Device* Device = DXWindow->GetDevice();
+	//
+	// Fill out the heap with actual descriptors.
+	//
 
-	UINT PassConstantBufferSize = UDXUtility::CalcConstantBufferByteSize(sizeof(FPassConstants));
-	for (int i = 0 ; i < NumFrameResources; ++i)
+	for (auto& Item : FTexture::Textures)
 	{
-		auto& FrameResource = FrameResources[i];
-		D3D12_GPU_VIRTUAL_ADDRESS cbAddress = FrameResource->PassConstantBuffer->Resource()->GetGPUVirtualAddress();
-		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-		cbvDesc.BufferLocation = cbAddress;
-		cbvDesc.SizeInBytes = PassConstantBufferSize;
-		CD3DX12_CPU_DESCRIPTOR_HANDLE Handle = CD3DX12_CPU_DESCRIPTOR_HANDLE(CBVHeap->GetCPUDescriptorHandleForHeapStart());
-		Handle.Offset(i, DXWindow->GetCBVSRVUAVDescriptorSize());
-		Device->CreateConstantBufferView(
-			&cbvDesc,
-			Handle
-		);
+		auto TextureBuffer = Item.second->Resource;
+
+		CD3DX12_CPU_DESCRIPTOR_HANDLE SRVHandle(SRVHeap->GetCPUDescriptorHandleForHeapStart());
+		SRVHandle.Offset(Item.first, CBVSRVUAVDescriptorSize);
+
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srvDesc.Format = TextureBuffer->GetDesc().Format;
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MostDetailedMip = 0;
+		srvDesc.Texture2D.MipLevels = TextureBuffer->GetDesc().MipLevels;
+		srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+
+		Device->CreateShaderResourceView(TextureBuffer.Get(), &srvDesc, SRVHandle);
 	}
 }
 
 void FForwardRenderer::BuildRootSignature()
 {
-	ID3D12Device* Device = DXWindow->GetDevice();
+	CD3DX12_DESCRIPTOR_RANGE TextureTable;
+	TextureTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
 
-	CD3DX12_DESCRIPTOR_RANGE ConstantBufferTable0;
-	ConstantBufferTable0.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
+	CD3DX12_ROOT_PARAMETER RootParameter[4];
+	RootParameter[0].InitAsConstantBufferView(0);
+	RootParameter[1].InitAsConstantBufferView(1);
+	RootParameter[2].InitAsConstantBufferView(2);
+	RootParameter[3].InitAsDescriptorTable(1, &TextureTable, D3D12_SHADER_VISIBILITY_PIXEL);
 
-	CD3DX12_ROOT_PARAMETER RootParameter[1];
-	RootParameter[0].InitAsDescriptorTable(1, &ConstantBufferTable0);
+	auto StaticSamplers = FTexture::GetStaticSamplers();
 
 	CD3DX12_ROOT_SIGNATURE_DESC RootSignatureDesc(
-		1,
+		4,
 		RootParameter,
-		0,
-		nullptr,
+		(UINT)StaticSamplers.size(),
+		StaticSamplers.data(),
 		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
 	);
 
@@ -163,61 +206,108 @@ void FForwardRenderer::BuildRootSignature()
 
 void FForwardRenderer::BuildShaderAndInputLayout()
 {
-	Shaders["BasePassVertexShader"] = UDXUtility::CompileShader(
-		L"Shaders\\BasePassVertexShader.sf",
+
+	D3D_SHADER_MACRO Defines[] = {
+		{"FOG", "1"},
+		{NULL, NULL}
+	};
+
+	D3D_SHADER_MACRO AlphaTestDefine[] = {
+		{"FOG", "1"},
+		{"ALPHA_TEST", "1"},
+		{NULL, NULL}
+	};
+
+	Shaders["ForwardLitVertexShader"] = UDXUtility::CompileShader(
+		L"Shaders\\ForwardLitVertexShader.sf",
 		nullptr,
 		"MainVS",
 		"vs_5_1"
 	);
-	Shaders["BasePassPixelShader"] = UDXUtility::CompileShader(
-		L"Shaders\\BasePassPixelShader.sf",
-		nullptr,
+	Shaders["ForwardLitPixelShader"] = UDXUtility::CompileShader(
+		L"Shaders\\ForwardLitPixelShader.sf",
+		Defines,
 		"MainPS",
 		"ps_5_1"
 	);
 
-	InputLayout =
+	Shaders["AlphTestPixelShader"] = UDXUtility::CompileShader(
+		L"Shaders\\ForwardLitPixelShader.sf",
+		AlphaTestDefine,
+		"MainPS",
+		"ps_5_1"
+	);
+
+	Shaders["BillboardVertexShader"] = UDXUtility::CompileShader(
+		L"Shaders\\BillboardVertexShader.sf",
+		nullptr,
+		"MainVS",
+		"vs_5_1"
+	);
+
+	Shaders["BillboardGeometryShader"] = UDXUtility::CompileShader(
+		L"Shaders\\BillboardGeometryShader.sf",
+		nullptr,
+		"MainGS",
+		"gs_5_1"
+	);
+
+	Shaders["BillboardPixelShader"] = UDXUtility::CompileShader(
+		L"Shaders\\BillboardPixelShader.sf",
+		AlphaTestDefine,
+		"MainPS",
+		"ps_5_1"
+	);
+
+	InputLayouts["Lit"] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+	};
+
+	InputLayouts["Billboard"] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "SIZE", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 	};
 }
 
 void FForwardRenderer::BuildPipelineStateObject()
 {
-	ID3D12Device* Device = DXWindow->GetDevice();
+	PipelineStateObjects.resize((size_t)EPipelineState::EPS_None);
 
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC BasePassPipelineStateDesc;
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC ForwardLitPipelineStateDesc;
 
 	//
 	// PSO for opaque objects.
 	//
-	ZeroMemory(&BasePassPipelineStateDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
-	BasePassPipelineStateDesc.InputLayout = { InputLayout.data(), (UINT)InputLayout.size() };
-	BasePassPipelineStateDesc.pRootSignature = RootSignature.Get();
-	BasePassPipelineStateDesc.VS =
+	ZeroMemory(&ForwardLitPipelineStateDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+	ForwardLitPipelineStateDesc.InputLayout = { InputLayouts["Lit"].data(), (UINT)InputLayouts["Lit"].size()};
+	ForwardLitPipelineStateDesc.pRootSignature = RootSignature.Get();
+	ForwardLitPipelineStateDesc.VS =
 	{
-		reinterpret_cast<BYTE*>(Shaders["BasePassVertexShader"]->GetBufferPointer()),
-		Shaders["BasePassVertexShader"]->GetBufferSize()
+		reinterpret_cast<BYTE*>(Shaders["ForwardLitVertexShader"]->GetBufferPointer()),
+		Shaders["ForwardLitVertexShader"]->GetBufferSize()
 	};
-	BasePassPipelineStateDesc.PS =
+	ForwardLitPipelineStateDesc.PS =
 	{
-		reinterpret_cast<BYTE*>(Shaders["BasePassPixelShader"]->GetBufferPointer()),
-		Shaders["BasePassPixelShader"]->GetBufferSize()
+		reinterpret_cast<BYTE*>(Shaders["ForwardLitPixelShader"]->GetBufferPointer()),
+		Shaders["ForwardLitPixelShader"]->GetBufferSize()
 	};
-	BasePassPipelineStateDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	BasePassPipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	BasePassPipelineStateDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-	BasePassPipelineStateDesc.SampleMask = UINT_MAX;
-	BasePassPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	BasePassPipelineStateDesc.NumRenderTargets = 1;
-	BasePassPipelineStateDesc.RTVFormats[0] = DXWindow->GetBackBufferFormat();
-	BasePassPipelineStateDesc.SampleDesc.Count = DXWindow->Get4xMSAAState() ? 4 : 1;
-	BasePassPipelineStateDesc.SampleDesc.Quality = DXWindow->Get4xMSAAState() ? (DXWindow->Get4xMSAAQuality() - 1) : 0;
-	BasePassPipelineStateDesc.DSVFormat = DXWindow->GetDepthStencilFormat();
+	ForwardLitPipelineStateDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	ForwardLitPipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	ForwardLitPipelineStateDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	ForwardLitPipelineStateDesc.SampleMask = UINT_MAX;
+	ForwardLitPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	ForwardLitPipelineStateDesc.NumRenderTargets = 1;
+	ForwardLitPipelineStateDesc.RTVFormats[0] = BackBufferFormat;
+	ForwardLitPipelineStateDesc.SampleDesc.Count = bMSAA ? 4 : 1;
+	ForwardLitPipelineStateDesc.SampleDesc.Quality = bMSAA ? (MSAAQuality_4x - 1) : 0;
+	ForwardLitPipelineStateDesc.DSVFormat = DepthStencilFormat;
 	ThrowIfFailed(
 		Device->CreateGraphicsPipelineState(
-			&BasePassPipelineStateDesc, IID_PPV_ARGS(&PipelineStateObjects["BasePass"])
+			&ForwardLitPipelineStateDesc, IID_PPV_ARGS(&PipelineStateObjects[(int)EPipelineState::EPS_Opaque])
 		)
 	);
 
@@ -226,21 +316,199 @@ void FForwardRenderer::BuildPipelineStateObject()
 	// PSO for opaque wireframe objects.
 	//
 
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC BasePassWireFramePipelineStateDesc = BasePassPipelineStateDesc;
-	BasePassWireFramePipelineStateDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
-	ThrowIfFailed(
-		Device->CreateGraphicsPipelineState(
-			&BasePassWireFramePipelineStateDesc, IID_PPV_ARGS(&PipelineStateObjects["BasePass_WireFrame"])
-		)
-	);
+	{
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC WireFramePipelineStateDesc = ForwardLitPipelineStateDesc;
+		WireFramePipelineStateDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+		ThrowIfFailed(
+			Device->CreateGraphicsPipelineState(
+				&WireFramePipelineStateDesc, IID_PPV_ARGS(&PipelineStateObjects[(int)EPipelineState::EPS_WireFrame])
+			)
+		);
+	}
+
+	{
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC TransparencyPipelineStateDesc = ForwardLitPipelineStateDesc;
+
+		D3D12_RENDER_TARGET_BLEND_DESC BlendDesc;
+		BlendDesc.BlendEnable = true;
+		BlendDesc.LogicOpEnable = false;
+		BlendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+		BlendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+		BlendDesc.BlendOp = D3D12_BLEND_OP_ADD;
+		BlendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
+		BlendDesc.DestBlendAlpha = D3D12_BLEND_ZERO;
+		BlendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+		BlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
+		BlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+
+		TransparencyPipelineStateDesc.BlendState.RenderTarget[0] = BlendDesc;
+		ThrowIfFailed(
+			Device->CreateGraphicsPipelineState(
+				&TransparencyPipelineStateDesc,
+				IID_PPV_ARGS(&PipelineStateObjects[(int)EPipelineState::EPS_Transparency])
+			)
+		);
+	}
+
+	{
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC AlphaTestPipelineStateDesc = ForwardLitPipelineStateDesc;
+		AlphaTestPipelineStateDesc.PS =
+		{
+			reinterpret_cast<BYTE*>(Shaders["AlphTestPixelShader"]->GetBufferPointer()),
+			Shaders["AlphTestPixelShader"]->GetBufferSize()
+		};
+
+		AlphaTestPipelineStateDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+		ThrowIfFailed(
+			Device->CreateGraphicsPipelineState(
+				&AlphaTestPipelineStateDesc,
+				IID_PPV_ARGS(&PipelineStateObjects[(int)EPipelineState::EPS_AlphaTest])
+			)
+		);
+	}
+
+	// Billboard
+	{
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC BillboardPipelineStateDesc  = ForwardLitPipelineStateDesc;
+		BillboardPipelineStateDesc.VS =
+		{
+			reinterpret_cast<BYTE*>(Shaders["BillboardVertexShader"]->GetBufferPointer()),
+			Shaders["BillboardVertexShader"]->GetBufferSize()
+		};
+		BillboardPipelineStateDesc.GS =
+		{
+			reinterpret_cast<BYTE*>(Shaders["BillboardGeometryShader"]->GetBufferPointer()),
+			Shaders["BillboardGeometryShader"]->GetBufferSize()
+		};
+		BillboardPipelineStateDesc.PS =
+		{
+			reinterpret_cast<BYTE*>(Shaders["BillboardPixelShader"]->GetBufferPointer()),
+			Shaders["BillboardPixelShader"]->GetBufferSize()
+		};
+		BillboardPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+		BillboardPipelineStateDesc.InputLayout = { InputLayouts["Billboard"].data(), (UINT)InputLayouts["Billboard"].size() };
+		BillboardPipelineStateDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+
+		ThrowIfFailed(
+			Device->CreateGraphicsPipelineState(
+				&BillboardPipelineStateDesc,
+				IID_PPV_ARGS(PipelineStateObjects[(int)EPipelineState::EPS_Billboard].GetAddressOf())
+			)
+		);
+	}
+
 }
 
-void FForwardRenderer::RenderOpaqueActors(ID3D12GraphicsCommandList* CommandList)
+void FForwardRenderer::UpdatePassConstantBuffers(UTimer* Timer)
 {
-	const auto& Actors = World->GetWorldActorsRef();
-	for (int i = 0 ; i < Actors.size(); ++i)
+	Camera->UpdateViewMatrix();
+	// Build the view matrix.
+	XMVECTOR target = XMVectorZero();
+	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
+	XMMATRIX view = Camera->GetViewMatrix();
+	XMMATRIX InvView = UDXMath::GetInverseMatrix(view);
+	XMMATRIX proj = Camera->GetProjMatrix();
+	XMMATRIX InvProj = UDXMath::GetInverseMatrix(proj);
+	XMMATRIX ViewProj = view * proj;
+	XMMATRIX InvViewProj = UDXMath::GetInverseMatrix(ViewProj);
+
+	FPassConstants PassConstants;
+	XMStoreFloat4x4(&PassConstants.View, XMMatrixTranspose(view));
+	XMStoreFloat4x4(&PassConstants.InvView, XMMatrixTranspose(InvView));
+	XMStoreFloat4x4(&PassConstants.Proj, XMMatrixTranspose(proj));
+	XMStoreFloat4x4(&PassConstants.InvProj, XMMatrixTranspose(InvProj));
+	XMStoreFloat4x4(&PassConstants.ViewProj, XMMatrixTranspose(ViewProj));
+	XMStoreFloat4x4(&PassConstants.InvViewProj, XMMatrixTranspose(InvViewProj));
+	PassConstants.EyePosW = Camera->GetTranslation();
+	PassConstants.RenderTargetSize = XMFLOAT2((float)GetClientWidth(), (float)GetClientHeight());
+	PassConstants.InvRenderTargetSize = XMFLOAT2(1.0f / GetClientWidth(), 1.0f / GetClientHeight());
+	PassConstants.NearZ = 1.0f;
+	PassConstants.FarZ = 1000.0f;
+	PassConstants.TotalTime = Timer->GetTotalTime();
+	PassConstants.DeltaTime = Timer->GetDeltaTime();
+
+	PassConstants.AmbientLight = { 0.25f, 0.25f, 0.35f, 1.0f };
+
+	PassConstants.FogColor = XMFLOAT4(Colors::LightSkyBlue);
+	PassConstants.FogStart = 200.0f;
+	PassConstants.FogRange = 100.0f;
+
+	PassConstants.Lights[0].Direction = { 0.57735f, -0.57735f, 0.57735f };
+	PassConstants.Lights[0].Strength = { 1.2f, 1.2f, 1.2f };
+	PassConstants.Lights[1].Direction = { -0.57735f, -0.57735f, 0.57735f };
+	PassConstants.Lights[1].Strength = { 0.3f, 0.3f, 0.3f };
+	PassConstants.Lights[2].Direction = { 0.0f, -0.707f, -0.707f };
+	PassConstants.Lights[2].Strength = { 0.15f, 0.15f, 0.15f };
+
+	TargetFrameResource->PassConstantBuffer->CopyData(0, PassConstants);
+}
+
+void FForwardRenderer::UpdateObjectConstantBuffer()
+{
+	const auto& Actors = World->GetAllActorsRef();
+	for (auto& Actor : Actors)
 	{
-		AActor* Actor = Actors[i].get();
+		if (Actor->NumFramesDirty > 0)
+		{
+			FObjectConstants Constants;
+			XMStoreFloat4x4(&Constants.World, XMMatrixTranspose(Actor->GetWorldMatrix()));
+			XMStoreFloat4x4(&Constants.TexTransform, XMMatrixTranspose(Actor->GetTextureTransformMatrix()));
+			TargetFrameResource->ObjectConstantBuffer->CopyData(Actor->ObjectConstantBufferIndex, Constants);
+			--Actor->NumFramesDirty;
+		}
+	}
+}
+
+void FForwardRenderer::UpdateMaterialConstantBuffer()
+{
+	for (auto& Item : FMaterial::Materials)
+	{
+		FMaterial* Material = Item.second.get();
+		if (Material->NumFramesDirty > 0)
+		{
+			XMMATRIX MaterialTransform = XMLoadFloat4x4(&Material->MatTransform);
+			FMaterialConstants MaterialConstants;
+			MaterialConstants.DiffuseAlbedo = Material->DiffuseAlbedo;
+			MaterialConstants.FresnelR0 = Material->FresnelR0;
+			XMStoreFloat4x4(&MaterialConstants.MatTransform, XMMatrixTranspose(MaterialTransform));
+			MaterialConstants.Roughness = Material->Roughness;
+
+			TargetFrameResource->MaterialConstantBuffer->CopyData(Material->MatCBIndex, MaterialConstants);
+			--Material->NumFramesDirty;
+		}
+	}
+}
+
+void FForwardRenderer::DrawActors(const vector<AActor*>& DrawTargets)
+{
+	//auto& DrawTargets = *Actors;
+	int ActorCount = (int)DrawTargets.size();
+	int MaterialCount = (int)FMaterial::Materials.size();
+
+	auto ObjectConstantBuffer = TargetFrameResource->ObjectConstantBuffer->Resource();
+	auto MaterialConstantBuffer = TargetFrameResource->MaterialConstantBuffer->Resource();
+
+	UINT ObjectConstantBufferByteSize = UDXUtility::CalcConstantBufferByteSize(sizeof(FObjectConstants));
+	UINT MaterialConstantBufferByteSize = UDXUtility::CalcConstantBufferByteSize(sizeof(FMaterialConstants));
+
+	for (int i = 0; i < DrawTargets.size(); ++i)
+	{
+		AActor* Actor = DrawTargets[i];
+
+		// ObjectConstantBuffer
+		auto ObjectConstantBufferAddress = ObjectConstantBuffer->GetGPUVirtualAddress() + Actor->ObjectConstantBufferIndex * ObjectConstantBufferByteSize;
+		CommandList->SetGraphicsRootConstantBufferView(1, ObjectConstantBufferAddress);
+
+		// MaterialConstantBuffer
+		auto MaterialConstantBufferAddress = MaterialConstantBuffer->GetGPUVirtualAddress() + Actor->Material->MatCBIndex * MaterialConstantBufferByteSize;
+		CommandList->SetGraphicsRootConstantBufferView(2, MaterialConstantBufferAddress);
+
+		// Texture
+		CD3DX12_GPU_DESCRIPTOR_HANDLE SRVHandle(SRVHeap->GetGPUDescriptorHandleForHeapStart());
+		SRVHandle.Offset(Actor->Material->DiffuseSrvHeapIndex, CBVSRVUAVDescriptorSize);
+		CommandList->SetGraphicsRootDescriptorTable(3, SRVHandle);
+
 		D3D12_VERTEX_BUFFER_VIEW VertexBufferView = Actor->Geometry->VertexBufferView();
 		D3D12_INDEX_BUFFER_VIEW IndexBufferView = Actor->Geometry->IndexBufferView();
 		CommandList->IASetVertexBuffers(0, 1, &VertexBufferView);

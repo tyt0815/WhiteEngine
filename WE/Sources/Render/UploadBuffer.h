@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DirectX/DXUtility.h"
+#include "Utility/DXUtility.h"
 
 template<typename T>
 class TUploadBuffer

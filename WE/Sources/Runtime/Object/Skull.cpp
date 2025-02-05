@@ -5,11 +5,9 @@
 ASkull::ASkull()
 {
 	FMeshGeometry::MeshGeometryMap& Geometries = FMeshGeometry::MeshGeometries;
-	FMaterial::MaterialMap& Materials = FMaterial::Materials;
-	Material = Materials["Skull"].get();
+	Material = FMaterial::Materials[EMT_Skull].get();
 	Geometry = Geometries["Skull"].get();
-	TextureTransform.Scale = { 0.5f, 0.5f, 0.5f };
-	TextureTransform.Translation = { 0.0f, 1.0f, 0.0f };
+	TextureTransform = FTransform::Default;
 	IndexCount = Geometry->DrawArgs["Skull"].IndexCount;
 	StartIndexLocation = Geometry->DrawArgs["Skull"].StartIndexLocation;
 	BaseVertexLocation = Geometry->DrawArgs["Skull"].BaseVertexLocation;

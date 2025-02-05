@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DirectX/DXHeaders.h"
+#include "Utility/DXUtility.h"
 #include <string>
 #include <unordered_map>
 #include <memory>
@@ -8,7 +8,8 @@
 struct FVertex
 {
 	DirectX::XMFLOAT3 Pos;
-	DirectX::XMFLOAT4 Color;
+	DirectX::XMFLOAT3 Normal;
+	DirectX::XMFLOAT2 TexC;
 };
 
 struct FSubmeshGeometry
@@ -27,7 +28,7 @@ class FMeshGeometry
 public:
 	using MeshGeometryMap = std::unordered_map<std::string, std::unique_ptr<FMeshGeometry>>;
 	static MeshGeometryMap MeshGeometries;
-	static void BuildMeshGeometries();
+	static void BuildMeshGeometries(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 		
 	// Give it a name so we can look it up by name.
 	std::string Name;
@@ -82,6 +83,7 @@ public:
 	}
 
 private:
-	static void BuildShapeMeshGeometry();
-	static void BuildSkullMeshGeometry();
+	static void BuildShapeMeshGeometry(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
+	static void BuildSkullMeshGeometry(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
+	static void BuildBillboardPoints(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 };

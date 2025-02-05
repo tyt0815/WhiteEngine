@@ -7,9 +7,19 @@ extern const int NumFrameResources;
 class FMeshGeometry;
 class FMaterial;
 
+enum class EActorType
+{
+	EAT_Opaque,
+	EAT_Transparency,
+	EAT_AlphaTest,
+	EAT_Billboard,
+	EAT_None
+};
+
 class AActor : public WObject
 {
 public:
+	virtual void Tick(float Delta) override;
 	inline void SetTextureTransform(FTransform TexTransform) { TextureTransform = TexTransform; }
 	inline XMMATRIX GetTextureTransformMatrix() { return TextureTransform.GetTransformMatrix(); }
 
@@ -23,4 +33,6 @@ public:
 	UINT IndexCount = 0;
 	UINT StartIndexLocation = 0;
 	int BaseVertexLocation = 0;
+
+	
 };

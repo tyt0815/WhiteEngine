@@ -11,70 +11,91 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Sources\DirectX\DXMath.cpp" />
-    <ClCompile Include="Sources\DirectX\DXUtility.cpp" />
-    <ClCompile Include="Sources\DirectX\DXWindow.cpp" />
     <ClCompile Include="Sources\Main.cpp" />
     <ClCompile Include="Sources\Render\DDSTextureLoader.cpp" />
     <ClCompile Include="Sources\Render\DeferredRenderer.cpp" />
     <ClCompile Include="Sources\Render\ForwardRenderer.cpp" />
-    <ClCompile Include="Sources\Render\FrameResource.cpp" />
+    <ClCompile Include="Sources\Render\FrameResource.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Sources\Render\GeometryGenerator.cpp" />
     <ClCompile Include="Sources\Render\Material.cpp" />
     <ClCompile Include="Sources\Render\MeshGeometry.cpp" />
     <ClCompile Include="Sources\Render\RendererBase.cpp" />
     <ClCompile Include="Sources\Render\Shader.cpp" />
+    <ClCompile Include="Sources\Render\Texture.cpp" />
     <ClCompile Include="Sources\Runtime\Object\Actor.cpp" />
+    <ClCompile Include="Sources\Runtime\Object\Billboard.cpp" />
     <ClCompile Include="Sources\Runtime\Object\Box.cpp" />
     <ClCompile Include="Sources\Runtime\Object\Cylinder.cpp" />
-    <ClCompile Include="Sources\Runtime\Object\Gird.cpp" />
+    <ClCompile Include="Sources\Runtime\Object\Foliage.cpp" />
+    <ClCompile Include="Sources\Runtime\Object\Grid.cpp" />
     <ClCompile Include="Sources\Runtime\Object\Object.cpp" />
     <ClCompile Include="Sources\Runtime\Object\Skull.cpp" />
+    <ClCompile Include="Sources\Runtime\Object\Sphere.cpp" />
     <ClCompile Include="Sources\Runtime\Object\ViewCamera.cpp" />
+    <ClCompile Include="Sources\Runtime\Object\WaterBall.cpp" />
+    <ClCompile Include="Sources\Runtime\Object\WireFence.cpp" />
     <ClCompile Include="Sources\Runtime\World\BoxWorld.cpp" />
     <ClCompile Include="Sources\Runtime\World\TestWorld.cpp" />
     <ClCompile Include="Sources\Runtime\World\World.cpp" />
+    <ClCompile Include="Sources\Utility\DXMath.cpp" />
+    <ClCompile Include="Sources\Utility\DXUtility.cpp" />
     <ClCompile Include="Sources\Utility\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Sources\DirectX\DXHeaders.h" />
-    <ClInclude Include="Sources\DirectX\DXMath.h" />
-    <ClInclude Include="Sources\DirectX\DXUtility.h" />
-    <ClInclude Include="Sources\DirectX\DXWindow.h" />
     <ClInclude Include="Sources\Render\DDSTextureLoader.h" />
     <ClInclude Include="Sources\Render\DeferredRenderer.h" />
-    <ClInclude Include="Sources\Render\FrameResource.h" />
+    <ClInclude Include="Sources\Render\FrameResource.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Sources\Render\GeometryGenerator.h" />
     <ClInclude Include="Sources\Render\Material.h" />
     <ClInclude Include="Sources\Render\MeshGeometry.h" />
     <ClInclude Include="Sources\Render\RendererBase.h" />
     <ClInclude Include="Sources\Render\ForwardRenderer.h" />
     <ClInclude Include="Sources\Render\Shader.h" />
+    <ClInclude Include="Sources\Render\Texture.h" />
     <ClInclude Include="Sources\Render\UploadBuffer.h" />
     <ClInclude Include="Sources\Runtime\Object\Actor.h" />
+    <ClInclude Include="Sources\Runtime\Object\Billboard.h" />
     <ClInclude Include="Sources\Runtime\Object\Box.h" />
     <ClInclude Include="Sources\Runtime\Object\Cylinder.h" />
-    <ClInclude Include="Sources\Runtime\Object\Gird.h" />
+    <ClInclude Include="Sources\Runtime\Object\Foliage.h" />
+    <ClInclude Include="Sources\Runtime\Object\Grid.h" />
     <ClInclude Include="Sources\Runtime\Object\Object.h" />
+    <ClInclude Include="Sources\Runtime\Object\ShapeActorsHeader.h" />
     <ClInclude Include="Sources\Runtime\Object\Skull.h" />
     <ClInclude Include="Sources\Runtime\Object\Sphere.h" />
     <ClInclude Include="Sources\Runtime\Object\ViewCamera.h" />
+    <ClInclude Include="Sources\Runtime\Object\WaterBall.h" />
+    <ClInclude Include="Sources\Runtime\Object\WireFence.h" />
     <ClInclude Include="Sources\Runtime\World\BoxWorld.h" />
     <ClInclude Include="Sources\Runtime\World\TestWorld.h" />
     <ClInclude Include="Sources\Runtime\World\World.h" />
     <ClInclude Include="Sources\Utility\Class.h" />
+    <ClInclude Include="Sources\Utility\d3dx12.h" />
+    <ClInclude Include="Sources\Utility\DXHeaders.h" />
+    <ClInclude Include="Sources\Utility\DXMath.h" />
+    <ClInclude Include="Sources\Utility\DXUtility.h" />
     <ClInclude Include="Sources\Utility\Timer.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\BasePassCommon.sh">
+    <None Include="Shaders\BillboardCommon.sh" />
+    <None Include="Shaders\BillboardGeometryShader.sf" />
+    <None Include="Shaders\BillboardPixelShader.sf" />
+    <None Include="Shaders\BillboardVertexShader.sf" />
+    <None Include="Shaders\Common.sh" />
+    <None Include="Shaders\ForwardLitCommon.sh">
       <FileType>Document</FileType>
     </None>
-    <None Include="Shaders\BasePassPixelShader.sf">
+    <None Include="Shaders\ForwardLitPixelShader.sf">
       <FileType>Document</FileType>
     </None>
-    <None Include="Shaders\BasePassVertexShader.sf">
+    <None Include="Shaders\ForwardLitVertexShader.sf">
       <FileType>Document</FileType>
     </None>
+    <None Include="Shaders\LitUtility.sh" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
