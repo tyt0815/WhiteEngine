@@ -4,8 +4,10 @@
 #include <string>
 #include <functional>
 #include <vector> 
+#include <any>
 
 #include "Utility/Class.h"
+#include "GameFramework/InputSystem/InputSystem.h"
 
 extern HINSTANCE AppInstance;
 
@@ -28,10 +30,14 @@ private:
 	HWND mWindowHandle = nullptr;
 	std::wstring mClassName;
 	std::wstring mWindowName;
-	std::vector<std::function<void()>> mResizeCallbackFunction;
+	std::vector<std::function<void()>> mResizeCallbackFunctions;
+	std::vector<std::vector<std::function<void(WPARAM, FMouseInputParameter&)>>> mInputActionFunctions;
+	FMouseInputParameter mMouseInputParameter;
 
 	UINT mWidth = 0;
 	UINT mHeight = 0;
+	UINT mLastX = 0;
+	UINT mLastY = 0;
 
 	bool bPaused = false;
 	bool bResized = false;
@@ -44,4 +50,10 @@ public:
 	inline UINT GetWidth() const { return mWidth; }
 	inline UINT GetHeight() const { return mHeight; }
 	inline bool IsPaused() const { return bPaused; }
+	void SetResizeCallbackFunction(std::function<void()> Function)
+	{
+		mResizeCallbackFunctions.push_back(Function);
+	}
+	void SetInputAction(char Key, EInputType InputType, void (*Function)(FMouseInputParameter& MouseInputParameter));
+	
 };

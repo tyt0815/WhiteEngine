@@ -36,6 +36,15 @@
     <Filter Include="Sources\Application">
       <UniqueIdentifier>{32660c26-a71e-417e-8286-18fc3c4e9765}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\GameFramework">
+      <UniqueIdentifier>{8621345d-6881-4cfb-836d-e89a77723603}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\GameFramework\InputSystem">
+      <UniqueIdentifier>{793f3d3e-bc8b-42c7-9201-a03db37a53ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Runtime\Object\Component">
+      <UniqueIdentifier>{c197dda0-2007-462a-8228-22ca7b6782c0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Utility\Timer.cpp">
@@ -249,6 +258,9 @@
     </ClInclude>
     <ClInclude Include="Sources\Render\Renderer.h">
       <Filter>Sources\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\InputSystem\InputSystem.h">
+      <Filter>Sources\GameFramework\InputSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

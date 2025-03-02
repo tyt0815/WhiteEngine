@@ -28,7 +28,7 @@ private:
 	void LogAdapterOutputs(IDXGIAdapter* Adapter);
 	void LogOutputDisplayModes(IDXGIOutput* Output, DXGI_FORMAT Format);
 	void CreateCommandObjects();
-	void CreateSwapChain(FWindow* Window);
+	void CreateSwapChain();
 	void CreateDescriptorHeaps();
 
 	Microsoft::WRL::ComPtr<IDXGIFactory4> Factory;
@@ -42,10 +42,11 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> DSVHeap;
 	Microsoft::WRL::ComPtr<ID3D12Resource> SwapChainBuffers[SWAPCHAIN_BUFFERS_NUM];
 	Microsoft::WRL::ComPtr<ID3D12Resource> DepthStencilBuffer;
+	FWindow* mWindow = nullptr;
 	UINT64 CurrentFence = 0;
 
-	D3D12_VIEWPORT ScreenViewport;
-	D3D12_RECT ScissorRect;
+	D3D12_VIEWPORT ScreenViewport = {};
+	D3D12_RECT ScissorRect = {};
 	DXGI_FORMAT BackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	UINT RTVDescriptorSize = 0;

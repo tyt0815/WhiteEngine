@@ -68,6 +68,8 @@ bool FWindow::Initialize(const std::wstring ClassName, const std::wstring Window
 	ShowWindow(mWindowHandle, SW_SHOW);
 	UpdateWindow(mWindowHandle);
 
+	mInputActionFunctions.resize((size_t)EInputType::EIT_None);
+
 	return true;
 }
 
@@ -212,7 +214,7 @@ void FWindow::UpdateWindowSize()
 
 void FWindow::Resize()
 {
-	for (std::function<void()>& Function : mResizeCallbackFunction)
+	for (std::function<void()>& Function : mResizeCallbackFunctions)
 	{
 		Function();
 	}
@@ -220,24 +222,116 @@ void FWindow::Resize()
 
 void FWindow::OnMouseDown(WPARAM WParam, int X, int Y)
 {
+	mLastX = X;
+	mLastY = Y;
+	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[(int)EInputType::EIT_MouseDown])
+	{
+		mMouseInputParameter.SetParameters(X, Y, mLastX, mLastY);
+		Function(WParam, mMouseInputParameter);
+	}
+
+
+	/*LastMousePos.x = X;
+	LastMousePos.y = Y;*/
+	if (WParam == MK_RBUTTON)
+	{
+		SetCapture(mWindowHandle);
+		ShowCursor(false);
+	}
 }
 
 void FWindow::OnMouseUp(WPARAM WParam, int X, int Y)
 {
+	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[(int)EInputType::EIT_MouseUp])
+	{
+		mMouseInputParameter.SetParameters(X, Y, mLastX, mLastY);
+		Function(WParam, mMouseInputParameter);
+	}
+
+	//WParam
+	ReleaseCapture();
+	if (WParam == MK_RBUTTON)
+	{
+		ReleaseCapture();
+		ShowCursor(true);
+	}
 }
 
 void FWindow::OnMouseMove(WPARAM WParam, int X, int Y)
 {
+	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[(int)EInputType::EIT_MouseMove])
+	{
+		mMouseInputParameter.SetParameters(X, Y, mLastX, mLastY);
+		Function(WParam, mMouseInputParameter);
+	}
+
+	//if (WParam == MK_RBUTTON)
+	//{
+	//	static float Speed = 50.0f;
+	//	// Make each pixel correspond to a quarter of a degree.
+	//	float dx = XMConvertToRadians(0.25f * static_cast<float>(X - LastMousePos.x));
+	//	float dy = XMConvertToRadians(0.25f * static_cast<float>(Y - LastMousePos.y));
+
+	//	XMFLOAT3 Rotation = Camera->GetRotation();
+	//	Camera->RotateY(dx * Speed);
+	//	Camera->RotateX(dy * Speed);
+	//}
+	//LastMousePos.x = X;
+	//LastMousePos.y = Y;
 }
 
 void FWindow::OnMouseWheel(WPARAM WParam)
 {
+	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[(int)EInputType::EIT_MouseWheel])
+	{
+		Function(WParam, mMouseInputParameter);
+	}
 }
 
 void FWindow::OnKeyDown(WPARAM WParam)
 {
+	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[(int)EInputType::EIT_KeyDown])
+	{
+		Function(WParam, mMouseInputParameter);
+	}
 }
 
 void FWindow::OnKeyUp(WPARAM WParam)
 {
+	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[(int)EInputType::EIT_KeyUp])
+	{
+		Function(WParam, mMouseInputParameter);
+	}
+}
+
+void FWindow::SetInputAction(char Key, EInputType InputType, void (*Function)(FMouseInputParameter& MouseInputParameter))
+{
+	Key = tolower(Key);
+	if ((int)InputType < (int)EInputType::EIT_KeyDown)
+	{
+		if (Key == 'r')
+		{
+			Key = tolower((char)MK_RBUTTON);
+		}
+		else if (Key == 'l')
+		{
+			Key = tolower((char)MK_LBUTTON);
+		}
+		else if (Key == 'm')
+		{
+			Key = tolower((char)MK_MBUTTON);
+		}
+		else
+		{
+			throw "Undefined MouseAction";
+		}
+	}
+	mInputActionFunctions[(size_t)InputType].push_back([=](WPARAM WParam, FMouseInputParameter& MouseInputParameter)
+		{
+			if (tolower((char)WParam) == Key)
+			{
+				Function(MouseInputParameter);
+			}
+		}
+	);
 }

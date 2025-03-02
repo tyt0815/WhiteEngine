@@ -50,6 +50,7 @@
   <ItemGroup>
     <ClInclude Include="Sources\Application\TestApplication.h" />
     <ClInclude Include="Sources\DirectX\DXDeviceManager.h" />
+    <ClInclude Include="Sources\GameFramework\InputSystem\InputSystem.h" />
     <ClInclude Include="Sources\Render\DDSTextureLoader.h" />
     <ClInclude Include="Sources\Render\DeferredRenderer.h" />
     <ClInclude Include="Sources\Render\FrameResource.h">
