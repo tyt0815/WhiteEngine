@@ -1,8 +1,9 @@
 #pragma once
 
-#include "Utility/DXUtility.h"
 #include "UploadBuffer.h"
 #include "Material.h"
+#include "DirectX/DXUtility.h"
+#include "Utility/Class.h"
 
 struct FLight
 {
@@ -19,12 +20,12 @@ struct FLight
 // register(b0)
 struct FPassConstants
 {
-    DirectX::XMFLOAT4X4 View = UDXMath::Identity4x4();
-    DirectX::XMFLOAT4X4 InvView = UDXMath::Identity4x4();
-    DirectX::XMFLOAT4X4 Proj = UDXMath::Identity4x4();
-    DirectX::XMFLOAT4X4 InvProj = UDXMath::Identity4x4();
-    DirectX::XMFLOAT4X4 ViewProj = UDXMath::Identity4x4();
-    DirectX::XMFLOAT4X4 InvViewProj = UDXMath::Identity4x4();
+    DirectX::XMFLOAT4X4 View = FDXMath::Identity4x4();
+    DirectX::XMFLOAT4X4 InvView = FDXMath::Identity4x4();
+    DirectX::XMFLOAT4X4 Proj = FDXMath::Identity4x4();
+    DirectX::XMFLOAT4X4 InvProj = FDXMath::Identity4x4();
+    DirectX::XMFLOAT4X4 ViewProj = FDXMath::Identity4x4();
+    DirectX::XMFLOAT4X4 InvViewProj = FDXMath::Identity4x4();
     DirectX::XMFLOAT3 EyePosW = { 0.0f, 0.0f, 0.0f };
     float cbPerObjectPad1 = 0.0f;
     DirectX::XMFLOAT2 RenderTargetSize = { 0.0f, 0.0f };
@@ -52,8 +53,8 @@ struct FPassConstants
 // register(b1)
 struct FObjectConstants
 {
-	DirectX::XMFLOAT4X4 World = UDXMath::Identity4x4();
-	DirectX::XMFLOAT4X4 TexTransform = UDXMath::Identity4x4();
+	DirectX::XMFLOAT4X4 World = FDXMath::Identity4x4();
+	DirectX::XMFLOAT4X4 TexTransform = FDXMath::Identity4x4();
 };
 
 struct FFrameResource : FNoncopyable
@@ -61,11 +62,11 @@ struct FFrameResource : FNoncopyable
 public:
 	FFrameResource(ID3D12Device* Device, UINT PassCount, UINT ObjectCount, UINT MaterialCount);
 
-	ComPtr<ID3D12CommandAllocator> CommandAllocator;
+    Microsoft::WRL::ComPtr<ID3D12CommandAllocator> CommandAllocator;
 
-	unique_ptr<TUploadBuffer<FPassConstants>> PassConstantBuffer;
-	unique_ptr<TUploadBuffer<FObjectConstants>> ObjectConstantBuffer;
-	unique_ptr<TUploadBuffer<FMaterialConstants>> MaterialConstantBuffer;
+	std::unique_ptr<TUploadBuffer<FPassConstants>> PassConstantBuffer;
+	std::unique_ptr<TUploadBuffer<FObjectConstants>> ObjectConstantBuffer;
+	std::unique_ptr<TUploadBuffer<FMaterialConstants>> MaterialConstantBuffer;
 
 	UINT64 Fence = 0;
 };

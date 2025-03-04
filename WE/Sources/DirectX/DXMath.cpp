@@ -8,8 +8,8 @@
 
 using namespace DirectX;
 
-const float UDXMath::Infinity = FLT_MAX;
-const float UDXMath::Pi       = 3.1415926535f;
+const float FDXMath::Infinity = FLT_MAX;
+const float FDXMath::Pi       = 3.1415926535f;
 
 const FTransform FTransform::Zeros = {
 	{0.0f, 0.0f, 0.0f},
@@ -23,7 +23,25 @@ const FTransform FTransform::Default = {
 	{0.0f, 0.0f, 0.0f}
 };
 
-float UDXMath::AngleFromXY(float x, float y)
+FTransform::FTransform(XMFLOAT3 InScale, XMFLOAT3 InRotation, XMFLOAT3 InTranslation) :
+	Scale(InScale),
+	Rotation(InRotation),
+	Translation(InTranslation)
+{
+}
+
+XMMATRIX FTransform::GetTransformMatrix()
+{
+	XMMATRIX S = XMMatrixScalingFromVector(GetScaleXMVECTOR());
+	XMMATRIX R =
+		XMMatrixRotationX(XMConvertToRadians(Rotation.x)) *
+		XMMatrixRotationY(XMConvertToRadians(Rotation.y)) *
+		XMMatrixRotationZ(XMConvertToRadians(Rotation.z));
+	XMMATRIX T = XMMatrixTranslationFromVector(GetTranslationXMVECTOR());
+	return S * R * T;
+}
+
+float FDXMath::AngleFromXY(float x, float y)
 {
 	float theta = 0.0f;
  
@@ -45,7 +63,7 @@ float UDXMath::AngleFromXY(float x, float y)
 	return theta;
 }
 
-XMVECTOR UDXMath::RandUnitVec3()
+XMVECTOR FDXMath::RandUnitVec3()
 {
 	XMVECTOR One  = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
 	XMVECTOR Zero = XMVectorZero();
@@ -54,7 +72,7 @@ XMVECTOR UDXMath::RandUnitVec3()
 	while(true)
 	{
 		// Generate random point in the cube [-1,1]^3.
-		XMVECTOR v = XMVectorSet(UDXMath::RandF(-1.0f, 1.0f), UDXMath::RandF(-1.0f, 1.0f), UDXMath::RandF(-1.0f, 1.0f), 0.0f);
+		XMVECTOR v = XMVectorSet(FDXMath::RandF(-1.0f, 1.0f), FDXMath::RandF(-1.0f, 1.0f), FDXMath::RandF(-1.0f, 1.0f), 0.0f);
 
 		// Ignore points outside the unit sphere in order to get an even distribution 
 		// over the unit sphere.  Otherwise points will clump more on the sphere near 
@@ -67,7 +85,7 @@ XMVECTOR UDXMath::RandUnitVec3()
 	}
 }
 
-XMVECTOR UDXMath::RandHemisphereUnitVec3(XMVECTOR n)
+XMVECTOR FDXMath::RandHemisphereUnitVec3(XMVECTOR n)
 {
 	XMVECTOR One  = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
 	XMVECTOR Zero = XMVectorZero();
@@ -76,7 +94,7 @@ XMVECTOR UDXMath::RandHemisphereUnitVec3(XMVECTOR n)
 	while(true)
 	{
 		// Generate random point in the cube [-1,1]^3.
-		XMVECTOR v = XMVectorSet(UDXMath::RandF(-1.0f, 1.0f), UDXMath::RandF(-1.0f, 1.0f), UDXMath::RandF(-1.0f, 1.0f), 0.0f);
+		XMVECTOR v = XMVectorSet(FDXMath::RandF(-1.0f, 1.0f), FDXMath::RandF(-1.0f, 1.0f), FDXMath::RandF(-1.0f, 1.0f), 0.0f);
 
 		// Ignore points outside the unit sphere in order to get an even distribution 
 		// over the unit sphere.  Otherwise points will clump more on the sphere near 
@@ -91,22 +109,4 @@ XMVECTOR UDXMath::RandHemisphereUnitVec3(XMVECTOR n)
 
 		return XMVector3Normalize(v);
 	}
-}
-
-FTransform::FTransform(XMFLOAT3 InScale, XMFLOAT3 InRotation, XMFLOAT3 InTranslation):
-	Scale(InScale),
-	Rotation(InRotation),
-	Translation(InTranslation)
-{
-}
-
-XMMATRIX FTransform::GetTransformMatrix()
-{
-	XMMATRIX S = XMMatrixScalingFromVector(GetScaleXMVECTOR());
-	XMMATRIX R = 
-		XMMatrixRotationX(XMConvertToRadians(Rotation.x)) *
-		XMMatrixRotationY(XMConvertToRadians(Rotation.y)) * 
-		XMMatrixRotationZ(XMConvertToRadians(Rotation.z));
-	XMMATRIX T = XMMatrixTranslationFromVector(GetTranslationXMVECTOR());
-	return S * R * T;
 }

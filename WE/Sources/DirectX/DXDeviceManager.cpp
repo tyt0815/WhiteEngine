@@ -1,6 +1,7 @@
 #include "DXDeviceManager.h"
 
-#include "Utility/DXUtility.h"
+#include "DXException.h"
+#include "DXUtility.h"
 #include "Window/Window.h"
 #include "Runtime/Object/ViewCamera.h"
 
@@ -20,12 +21,12 @@ bool FDXDeviceManager::Initialize(FWindow* Window)
 	// Enable the D3D12 debug layer.
 	{
 		Microsoft::WRL::ComPtr<ID3D12Debug> DebugController;
-		ThrowIfFailed(D3D12GetDebugInterface(IID_PPV_ARGS(&DebugController)));
+		THROW_IF_FAILED(D3D12GetDebugInterface(IID_PPV_ARGS(&DebugController)));
 		DebugController->EnableDebugLayer();
 	}
 #endif
 
-	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&Factory)));
+	THROW_IF_FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&Factory)));
 
 	// Try to create hardware device.
 	HRESULT HResult = D3D12CreateDevice(
@@ -38,15 +39,15 @@ bool FDXDeviceManager::Initialize(FWindow* Window)
 	if (FAILED(HResult))
 	{
 		Microsoft::WRL::ComPtr<IDXGIAdapter> WarpAdapter;
-		ThrowIfFailed(Factory->EnumWarpAdapter(IID_PPV_ARGS(&WarpAdapter)));
+		THROW_IF_FAILED(Factory->EnumWarpAdapter(IID_PPV_ARGS(&WarpAdapter)));
 
-		ThrowIfFailed(D3D12CreateDevice(
+		THROW_IF_FAILED(D3D12CreateDevice(
 			WarpAdapter.Get(),
 			D3D_FEATURE_LEVEL_11_0,
 			IID_PPV_ARGS(&Device)));
 	}
 
-	ThrowIfFailed(Device->CreateFence(0, D3D12_FENCE_FLAG_NONE,
+	THROW_IF_FAILED(Device->CreateFence(0, D3D12_FENCE_FLAG_NONE,
 		IID_PPV_ARGS(&Fence)));
 
 	RTVDescriptorSize = Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
@@ -62,7 +63,7 @@ bool FDXDeviceManager::Initialize(FWindow* Window)
 	MSQualityLevels.SampleCount = 4;
 	MSQualityLevels.Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE;
 	MSQualityLevels.NumQualityLevels = 0;
-	ThrowIfFailed(Device->CheckFeatureSupport(
+	THROW_IF_FAILED(Device->CheckFeatureSupport(
 		D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
 		&MSQualityLevels,
 		sizeof(MSQualityLevels)));
@@ -96,7 +97,7 @@ void FDXDeviceManager::Resize(UINT Width, UINT Height)
 	// Flush before changing any resources.
 	FlushCommandQueue();
 
-	ThrowIfFailed(CommandList->Reset(CommandAllocator.Get(), nullptr));
+	THROW_IF_FAILED(CommandList->Reset(CommandAllocator.Get(), nullptr));
 
 	// Release the previous resources we will be recreating.
 	for (int i = 0; i < SWAPCHAIN_BUFFERS_NUM; ++i)
@@ -104,7 +105,7 @@ void FDXDeviceManager::Resize(UINT Width, UINT Height)
 	DepthStencilBuffer.Reset();
 
 	// Resize the swap chain.
-	ThrowIfFailed(
+	THROW_IF_FAILED(
 		SwapChain->ResizeBuffers(
 			SWAPCHAIN_BUFFERS_NUM,
 			Width, Height,
@@ -118,7 +119,7 @@ void FDXDeviceManager::Resize(UINT Width, UINT Height)
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(RTVHeap->GetCPUDescriptorHandleForHeapStart());
 	for (UINT i = 0; i < SWAPCHAIN_BUFFERS_NUM; i++)
 	{
-		ThrowIfFailed(SwapChain->GetBuffer(i, IID_PPV_ARGS(&SwapChainBuffers[i])));
+		THROW_IF_FAILED(SwapChain->GetBuffer(i, IID_PPV_ARGS(&SwapChainBuffers[i])));
 		Device->CreateRenderTargetView(SwapChainBuffers[i].Get(), nullptr, rtvHeapHandle);
 		rtvHeapHandle.Offset(1, RTVDescriptorSize);
 	}
@@ -149,7 +150,7 @@ void FDXDeviceManager::Resize(UINT Width, UINT Height)
 	optClear.DepthStencil.Depth = 1.0f;
 	optClear.DepthStencil.Stencil = 0;
 	CD3DX12_HEAP_PROPERTIES DepthStencilHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
-	ThrowIfFailed(
+	THROW_IF_FAILED(
 		Device->CreateCommittedResource(
 			&DepthStencilHeapProperties,
 			D3D12_HEAP_FLAG_NONE,
@@ -177,7 +178,7 @@ void FDXDeviceManager::Resize(UINT Width, UINT Height)
 	CommandList->ResourceBarrier(1, &ResourceBarrier);
 
 	// Execute the resize commands.
-	ThrowIfFailed(CommandList->Close());
+	THROW_IF_FAILED(CommandList->Close());
 	ID3D12CommandList* cmdsLists[] = { CommandList.Get() };
 	CommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
 
@@ -208,7 +209,7 @@ void FDXDeviceManager::FlushCommandQueue()
 	// Add an instruction to the command queue to set a new fence point.  Because we 
 	// are on the GPU timeline, the new fence point won't be set until the GPU finishes
 	// processing all the commands prior to this Signal().
-	ThrowIfFailed(CommandQueue->Signal(Fence.Get(), CurrentFence));
+	THROW_IF_FAILED(CommandQueue->Signal(Fence.Get(), CurrentFence));
 
 	// Wait until the GPU has completed commands up to this fence point.
 	if (Fence->GetCompletedValue() < CurrentFence)
@@ -216,7 +217,7 @@ void FDXDeviceManager::FlushCommandQueue()
 		HANDLE eventHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
 
 		// Fire event when GPU hits current fence.  
-		ThrowIfFailed(Fence->SetEventOnCompletion(CurrentFence, eventHandle));
+		THROW_IF_FAILED(Fence->SetEventOnCompletion(CurrentFence, eventHandle));
 
 		// Wait until the GPU hits current fence event is fired.
 		WaitForSingleObject(eventHandle, INFINITE);
@@ -227,9 +228,9 @@ void FDXDeviceManager::FlushCommandQueue()
 void FDXDeviceManager::LogAdapters()
 {
 	UINT i = 0;
-	IDXGIAdapter* Adapter = nullptr;
-	std::vector<IDXGIAdapter*> AdapterList;
-	while (Factory->EnumAdapters(i, &Adapter) != DXGI_ERROR_NOT_FOUND)
+	Microsoft::WRL::ComPtr<IDXGIAdapter> Adapter = nullptr;
+	std::vector<Microsoft::WRL::ComPtr<IDXGIAdapter>> AdapterList;
+	while (Factory->EnumAdapters(i, Adapter.GetAddressOf()) != DXGI_ERROR_NOT_FOUND)
 	{
 		DXGI_ADAPTER_DESC Desc;
 		Adapter->GetDesc(&Desc);
@@ -247,16 +248,15 @@ void FDXDeviceManager::LogAdapters()
 
 	for (size_t i = 0; i < AdapterList.size(); ++i)
 	{
-		LogAdapterOutputs(AdapterList[i]);
-		ReleaseCom(AdapterList[i]);
+		LogAdapterOutputs(AdapterList[i].Get());
 	}
 }
 
 void FDXDeviceManager::LogAdapterOutputs(IDXGIAdapter* Adapter)
 {
 	UINT i = 0;
-	IDXGIOutput* Output = nullptr;
-	while (Adapter->EnumOutputs(i, &Output) != DXGI_ERROR_NOT_FOUND)
+	Microsoft::WRL::ComPtr<IDXGIOutput> Output = nullptr;
+	while (Adapter->EnumOutputs(i, Output.GetAddressOf()) != DXGI_ERROR_NOT_FOUND)
 	{
 		DXGI_OUTPUT_DESC Desc;
 		Output->GetDesc(&Desc);
@@ -266,9 +266,7 @@ void FDXDeviceManager::LogAdapterOutputs(IDXGIAdapter* Adapter)
 		Text += L"\n";
 		OutputDebugString(Text.c_str());
 
-		LogOutputDisplayModes(Output, BackBufferFormat);
-
-		ReleaseCom(Output);
+		LogOutputDisplayModes(Output.Get(), BackBufferFormat);
 
 		++i;
 	}
@@ -304,17 +302,17 @@ void FDXDeviceManager::CreateCommandObjects()
 	D3D12_COMMAND_QUEUE_DESC CommandQueueDesc = {};
 	CommandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 	CommandQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-	ThrowIfFailed(
+	THROW_IF_FAILED(
 		Device->CreateCommandQueue(&CommandQueueDesc, IID_PPV_ARGS(&CommandQueue)));
 
-	ThrowIfFailed(
+	THROW_IF_FAILED(
 		Device->CreateCommandAllocator(
 			D3D12_COMMAND_LIST_TYPE_DIRECT,
 			IID_PPV_ARGS(CommandAllocator.GetAddressOf())
 		)
 	);
 
-	ThrowIfFailed(Device->CreateCommandList(
+	THROW_IF_FAILED(Device->CreateCommandList(
 		0,
 		D3D12_COMMAND_LIST_TYPE_DIRECT,
 		CommandAllocator.Get(), // Associated command allocator
@@ -350,7 +348,7 @@ void FDXDeviceManager::CreateSwapChain()
 	SwapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	// Note: Swap chain uses queue to perform flush.
-	ThrowIfFailed(Factory->CreateSwapChain(
+	THROW_IF_FAILED(Factory->CreateSwapChain(
 		CommandQueue.Get(),
 		&SwapChainDesc,
 		SwapChain.GetAddressOf()));
@@ -363,7 +361,7 @@ void FDXDeviceManager::CreateDescriptorHeaps()
 	RTVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 	RTVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	RTVHeapDesc.NodeMask = 0;
-	ThrowIfFailed(
+	THROW_IF_FAILED(
 		Device->CreateDescriptorHeap(
 			&RTVHeapDesc,
 			IID_PPV_ARGS(RTVHeap.GetAddressOf())
@@ -376,7 +374,7 @@ void FDXDeviceManager::CreateDescriptorHeaps()
 	DSVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 	DSVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	DSVHeapDesc.NodeMask = 0;
-	ThrowIfFailed(
+	THROW_IF_FAILED(
 		Device->CreateDescriptorHeap(
 			&DSVHeapDesc,
 			IID_PPV_ARGS(DSVHeap.GetAddressOf())

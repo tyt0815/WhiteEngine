@@ -1,10 +1,14 @@
 #pragma once
 
-#include "Utility/DXUtility.h"
+//#include "DirectX/DXUtility.h"
+#include <d3d12.h>
+#include <DirectXCollision.h>
 #include <string>
 #include <unordered_map>
 #include <memory>
+#include <wrl.h>
 
+#include "DirectX/DXMath.h"
 struct FVertex
 {
 	DirectX::XMFLOAT3 Pos;

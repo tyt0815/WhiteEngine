@@ -4,9 +4,8 @@
 #include <dxgi1_4.h>
 #include <wrl.h>
 
-#include "Utility/d3dx12.h"
+#include "DirectX/DXUtility.h"
 #include "Utility/Class.h"
-#include "Utility/DXUtility.h"
 
 constexpr int SWAPCHAIN_BUFFERS_NUM = 3;
 
@@ -127,7 +126,7 @@ public:
 	}
 	inline void PresentAndSwapBuffer()
 	{
-		ThrowIfFailed(SwapChain->Present(0, 0));
+		SwapChain->Present(0, 0);
 		CurrentBackBuffer = (CurrentBackBuffer + 1) % SWAPCHAIN_BUFFERS_NUM;
 	}
 	inline void SignalFence()

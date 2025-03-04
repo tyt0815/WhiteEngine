@@ -7,7 +7,7 @@ WViewCamera::WViewCamera()
 void WViewCamera::RotateX(float Angle)
 {
 	Super::RotateX(Angle); 
-	Transform.Rotation.x = UDXMath::Clamp(Transform.Rotation.x, -90.0f, 90.0f);
+	Transform.Rotation.x = FDXMath::Clamp(Transform.Rotation.x, -90.0f, 90.0f);
 	bDirty = true;
 }
 

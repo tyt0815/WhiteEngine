@@ -3,6 +3,10 @@
 #include "Render/MeshGeometry.h"
 #include "Application/TestApplication.h"
 
+#pragma comment(lib,"d3dcompiler.lib")
+#pragma comment(lib, "D3D12.lib")
+#pragma comment(lib, "dxgi.lib")
+
 HINSTANCE AppInstance;
 
 int WINAPI WinMain(
@@ -27,7 +31,7 @@ int WINAPI WinMain(
         }
         return App->Run();
     }
-    catch (UDXException& e)
+    catch (FDXException& e)
     {
         MessageBox(nullptr, e.ToString().c_str(), L"HR Failed", MB_OK);
         return 0;
@@ -42,7 +46,7 @@ int WINAPI WinMain(
     //    }
     //    return Renderer.Run();
     //}
-    //catch (UDXException& e)
+    //catch (FDXException& e)
     //{
     //    MessageBox(nullptr, e.ToString().c_str(), L"HR Failed", MB_OK);
     //    return 0;

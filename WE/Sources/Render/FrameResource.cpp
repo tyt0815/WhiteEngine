@@ -1,10 +1,12 @@
 #include "FrameResource.h"
 
+#include "DirectX/DXException.h"
+
 const int NumFrameResources = 3;
 
 FFrameResource::FFrameResource(ID3D12Device* Device, UINT PassCount, UINT ObjectCount, UINT MaterialCount)
 {
-    ThrowIfFailed(Device->CreateCommandAllocator(
+    THROW_IF_FAILED(Device->CreateCommandAllocator(
         D3D12_COMMAND_LIST_TYPE_DIRECT,
         IID_PPV_ARGS(CommandAllocator.GetAddressOf())));
 

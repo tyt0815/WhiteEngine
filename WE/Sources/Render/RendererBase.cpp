@@ -25,13 +25,13 @@ bool FRendererBase::Initialize()
     }
 
 	
-	ThrowIfFailed(CommandList->Reset(CommandAllocator.Get(), nullptr));
+	THROW_IF_FAILED(CommandList->Reset(CommandAllocator.Get(), nullptr));
 
 	FMeshGeometry::BuildMeshGeometries(Device.Get(), CommandList.Get());
 	FTexture::LoadTexture(Device.Get(), CommandList.Get());
 	FMaterial::BuildMaterial();
 
-	World = make_unique<WTestWorld>();
+	World = std::make_unique<WTestWorld>();
 	World->Initialize();
 	Camera = World->GetCamera();
 	Camera->UpdateProjMatrix(0.25f * XM_PI, GetAspectRatio(), 1.0f, 1000.0f);
@@ -44,7 +44,7 @@ bool FRendererBase::Initialize()
     BuildShaderAndInputLayout();
     BuildPipelineStateObject();
 
-	ThrowIfFailed(CommandList->Close());
+	THROW_IF_FAILED(CommandList->Close());
 	ID3D12CommandList* CmdLists[] = { CommandList.Get() };
 	CommandQueue->ExecuteCommandLists(_countof(CmdLists), CmdLists);
 	FlushCommandQueue();
@@ -143,13 +143,13 @@ bool FRendererBase::InitializeDirectX()
 #if defined(DEBUG) || defined(_DEBUG) 
 	// Enable the D3D12 debug layer.
 	{
-		ComPtr<ID3D12Debug> DebugController;
-		ThrowIfFailed(D3D12GetDebugInterface(IID_PPV_ARGS(&DebugController)));
+		Microsoft::WRL::ComPtr<ID3D12Debug> DebugController;
+		THROW_IF_FAILED(D3D12GetDebugInterface(IID_PPV_ARGS(&DebugController)));
 		DebugController->EnableDebugLayer();
 	}
 #endif
 
-	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&Factory)));
+	THROW_IF_FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&Factory)));
 
 	// Try to create hardware device.
 	HRESULT HResult = D3D12CreateDevice(
@@ -161,16 +161,16 @@ bool FRendererBase::InitializeDirectX()
 	// Fallback to WARP device.
 	if (FAILED(HResult))
 	{
-		ComPtr<IDXGIAdapter> WarpAdapter;
-		ThrowIfFailed(Factory->EnumWarpAdapter(IID_PPV_ARGS(&WarpAdapter)));
+		Microsoft::WRL::ComPtr<IDXGIAdapter> WarpAdapter;
+		THROW_IF_FAILED(Factory->EnumWarpAdapter(IID_PPV_ARGS(&WarpAdapter)));
 
-		ThrowIfFailed(D3D12CreateDevice(
+		THROW_IF_FAILED(D3D12CreateDevice(
 			WarpAdapter.Get(),
 			D3D_FEATURE_LEVEL_11_0,
 			IID_PPV_ARGS(&Device)));
 	}
 
-	ThrowIfFailed(Device->CreateFence(0, D3D12_FENCE_FLAG_NONE,
+	THROW_IF_FAILED(Device->CreateFence(0, D3D12_FENCE_FLAG_NONE,
 		IID_PPV_ARGS(&Fence)));
 
 	RTVDescriptorSize = Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
@@ -186,7 +186,7 @@ bool FRendererBase::InitializeDirectX()
 	MSQualityLevels.SampleCount = 4;
 	MSQualityLevels.Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE;
 	MSQualityLevels.NumQualityLevels = 0;
-	ThrowIfFailed(Device->CheckFeatureSupport(
+	THROW_IF_FAILED(Device->CheckFeatureSupport(
 		D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
 		&MSQualityLevels,
 		sizeof(MSQualityLevels)));
@@ -210,7 +210,7 @@ void FRendererBase::BuildFrameResources()
 	for (int i = 0; i < NumFrameResources; ++i)
 	{
 		FrameResources.push_back(
-			make_unique<FFrameResource>(
+			std::make_unique<FFrameResource>(
 				Device.Get(),
 				1,
 				(UINT)World->GetAllActorsRef().size(),
@@ -220,11 +220,11 @@ void FRendererBase::BuildFrameResources()
 	}
 }
 
-wstring FRendererBase::GetWindowTitle()
+std::wstring FRendererBase::GetWindowTitle()
 {
 	WCHAR Title[MaxTitle];
 	GetWindowText(HWnd, Title, MaxTitle);
-	return wstring(Title);
+	return std::wstring(Title);
 }
 
 RECT FRendererBase::GetClientRect()
@@ -245,7 +245,7 @@ void FRendererBase::SetTargetFrameResource()
     if (TargetFrameResource->Fence != 0 && Fence->GetCompletedValue() < TargetFrameResource->Fence)
     {
         HANDLE eventHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
-        ThrowIfFailed(Fence->SetEventOnCompletion(TargetFrameResource->Fence, eventHandle));
+        THROW_IF_FAILED(Fence->SetEventOnCompletion(TargetFrameResource->Fence, eventHandle));
         WaitForSingleObject(eventHandle, INFINITE);
         CloseHandle(eventHandle);
     }
@@ -259,7 +259,7 @@ void FRendererBase::FlushCommandQueue()
 	// Add an instruction to the command queue to set a new fence point.  Because we 
 	// are on the GPU timeline, the new fence point won't be set until the GPU finishes
 	// processing all the commands prior to this Signal().
-	ThrowIfFailed(CommandQueue->Signal(Fence.Get(), CurrentFence));
+	THROW_IF_FAILED(CommandQueue->Signal(Fence.Get(), CurrentFence));
 
 	// Wait until the GPU has completed commands up to this fence point.
 	if (Fence->GetCompletedValue() < CurrentFence)
@@ -267,7 +267,7 @@ void FRendererBase::FlushCommandQueue()
 		HANDLE eventHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
 
 		// Fire event when GPU hits current fence.  
-		ThrowIfFailed(Fence->SetEventOnCompletion(CurrentFence, eventHandle));
+		THROW_IF_FAILED(Fence->SetEventOnCompletion(CurrentFence, eventHandle));
 
 		// Wait until the GPU hits current fence event is fired.
 		WaitForSingleObject(eventHandle, INFINITE);
@@ -414,9 +414,9 @@ LRESULT FRendererBase::InternalWndProc(HWND HWnd, UINT Message, WPARAM WParam, L
 void FRendererBase::LogAdapters()
 {
 	UINT i = 0;
-	IDXGIAdapter* Adapter = nullptr;
-	std::vector<IDXGIAdapter*> AdapterList;
-	while (Factory->EnumAdapters(i, &Adapter) != DXGI_ERROR_NOT_FOUND)
+	Microsoft::WRL::ComPtr<IDXGIAdapter> Adapter = nullptr;
+	std::vector<Microsoft::WRL::ComPtr<IDXGIAdapter>> AdapterList;
+	while (Factory->EnumAdapters(i, Adapter.GetAddressOf()) != DXGI_ERROR_NOT_FOUND)
 	{
 		DXGI_ADAPTER_DESC Desc;
 		Adapter->GetDesc(&Desc);
@@ -434,16 +434,15 @@ void FRendererBase::LogAdapters()
 
 	for (size_t i = 0; i < AdapterList.size(); ++i)
 	{
-		LogAdapterOutputs(AdapterList[i]);
-		ReleaseCom(AdapterList[i]);
+		LogAdapterOutputs(AdapterList[i].Get());
 	}
 }
 
 void FRendererBase::LogAdapterOutputs(IDXGIAdapter* Adapter)
 {
 	UINT i = 0;
-	IDXGIOutput* Output = nullptr;
-	while (Adapter->EnumOutputs(i, &Output) != DXGI_ERROR_NOT_FOUND)
+	Microsoft::WRL::ComPtr<IDXGIOutput> Output = nullptr;
+	while (Adapter->EnumOutputs(i, Output.GetAddressOf()) != DXGI_ERROR_NOT_FOUND)
 	{
 		DXGI_OUTPUT_DESC Desc;
 		Output->GetDesc(&Desc);
@@ -453,9 +452,7 @@ void FRendererBase::LogAdapterOutputs(IDXGIAdapter* Adapter)
 		Text += L"\n";
 		OutputDebugString(Text.c_str());
 
-		LogOutputDisplayModes(Output, BackBufferFormat);
-
-		ReleaseCom(Output);
+		LogOutputDisplayModes(Output.Get(), BackBufferFormat);
 
 		++i;
 	}
@@ -503,10 +500,10 @@ void FRendererBase::CalculateFrameStats()
 		float fps = (float)frameCnt; // fps = frameCnt / 1
 		float mspf = 1000.0f / fps;
 
-		wstring fpsStr = to_wstring(fps);
-		wstring mspfStr = to_wstring(mspf);
+		std::wstring fpsStr = std::to_wstring(fps);
+		std::wstring mspfStr = std::to_wstring(mspf);
 
-		wstring windowText = GetWindowTitle() +
+		std::wstring windowText = GetWindowTitle() +
 			L"    fps: " + fpsStr +
 			L"   mspf: " + mspfStr +
 			L"TotalTime: " + std::to_wstring(MainTimer.GetTotalTime()) +
@@ -525,17 +522,17 @@ void FRendererBase::CreateCommandObjects()
 	D3D12_COMMAND_QUEUE_DESC CommandQueueDesc = {};
 	CommandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 	CommandQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-	ThrowIfFailed(
+	THROW_IF_FAILED(
 		Device->CreateCommandQueue(&CommandQueueDesc, IID_PPV_ARGS(&CommandQueue)));
 
-	ThrowIfFailed(
+	THROW_IF_FAILED(
 		Device->CreateCommandAllocator(
 			D3D12_COMMAND_LIST_TYPE_DIRECT,
 			IID_PPV_ARGS(CommandAllocator.GetAddressOf())
 		)
 	);
 
-	ThrowIfFailed(Device->CreateCommandList(
+	THROW_IF_FAILED(Device->CreateCommandList(
 		0,
 		D3D12_COMMAND_LIST_TYPE_DIRECT,
 		CommandAllocator.Get(), // Associated command allocator
@@ -571,7 +568,7 @@ void FRendererBase::CreateSwapChain()
 	SwapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	// Note: Swap chain uses queue to perform flush.
-	ThrowIfFailed(Factory->CreateSwapChain(
+	THROW_IF_FAILED(Factory->CreateSwapChain(
 		CommandQueue.Get(),
 		&SwapChainDesc,
 		SwapChain.GetAddressOf()));
@@ -584,7 +581,7 @@ void FRendererBase::CreateDescriptorHeaps()
 	RTVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 	RTVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	RTVHeapDesc.NodeMask = 0;
-	ThrowIfFailed(
+	THROW_IF_FAILED(
 		Device->CreateDescriptorHeap(
 			&RTVHeapDesc,
 			IID_PPV_ARGS(RTVHeap.GetAddressOf())
@@ -597,7 +594,7 @@ void FRendererBase::CreateDescriptorHeaps()
 	DSVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 	DSVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	DSVHeapDesc.NodeMask = 0;
-	ThrowIfFailed(
+	THROW_IF_FAILED(
 		Device->CreateDescriptorHeap(
 			&DSVHeapDesc,
 			IID_PPV_ARGS(DSVHeap.GetAddressOf())
@@ -614,7 +611,7 @@ void FRendererBase::Resize()
 	// Flush before changing any resources.
 	FlushCommandQueue();
 
-	ThrowIfFailed(CommandList->Reset(CommandAllocator.Get(), nullptr));
+	THROW_IF_FAILED(CommandList->Reset(CommandAllocator.Get(), nullptr));
 
 	// Release the previous resources we will be recreating.
 	for (int i = 0; i < SwapChainBufferCount; ++i)
@@ -622,7 +619,7 @@ void FRendererBase::Resize()
 	DepthStencilBuffer.Reset();
 
 	// Resize the swap chain.
-	ThrowIfFailed(
+	THROW_IF_FAILED(
 		SwapChain->ResizeBuffers(
 			SwapChainBufferCount,
 			GetClientWidth(), GetClientHeight(),
@@ -636,7 +633,7 @@ void FRendererBase::Resize()
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(RTVHeap->GetCPUDescriptorHandleForHeapStart());
 	for (UINT i = 0; i < SwapChainBufferCount; i++)
 	{
-		ThrowIfFailed(SwapChain->GetBuffer(i, IID_PPV_ARGS(&SwapChainBuffer[i])));
+		THROW_IF_FAILED(SwapChain->GetBuffer(i, IID_PPV_ARGS(&SwapChainBuffer[i])));
 		Device->CreateRenderTargetView(SwapChainBuffer[i].Get(), nullptr, rtvHeapHandle);
 		rtvHeapHandle.Offset(1, RTVDescriptorSize);
 	}
@@ -667,7 +664,7 @@ void FRendererBase::Resize()
 	optClear.DepthStencil.Depth = 1.0f;
 	optClear.DepthStencil.Stencil = 0;
 	CD3DX12_HEAP_PROPERTIES DepthStencilHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
-	ThrowIfFailed(
+	THROW_IF_FAILED(
 		Device->CreateCommittedResource(
 			&DepthStencilHeapProperties,
 			D3D12_HEAP_FLAG_NONE,
@@ -695,7 +692,7 @@ void FRendererBase::Resize()
 	CommandList->ResourceBarrier(1, &ResourceBarrier);
 
 	// Execute the resize commands.
-	ThrowIfFailed(CommandList->Close());
+	THROW_IF_FAILED(CommandList->Close());
 	ID3D12CommandList* cmdsLists[] = { CommandList.Get() };
 	CommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
 
@@ -772,7 +769,7 @@ void FRendererBase::OnMouseWheel(WPARAM WParam)
 {
 	/*int Delta = GET_WHEEL_DELTA_WPARAM(WParam);
 	Camera.Radius -= (Delta / 100);
-	Camera.Radius = UDXMath::Clamp<float>(Camera.Radius, MinCameraRadius, MaxCameraRadius);*/
+	Camera.Radius = FDXMath::Clamp<float>(Camera.Radius, MinCameraRadius, MaxCameraRadius);*/
 }
 
 void FRendererBase::OnKeyDown(WPARAM WParam)

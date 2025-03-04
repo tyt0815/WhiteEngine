@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Object.h"
+#include <d3d12.h>
 
 extern const int NumFrameResources;
 

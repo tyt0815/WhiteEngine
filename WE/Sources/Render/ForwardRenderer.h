@@ -27,13 +27,13 @@ protected:
 	virtual void BuildShaderAndInputLayout() override;
 	virtual void BuildPipelineStateObject() override;
 
-	ComPtr<ID3D12RootSignature> RootSignature;
-	ComPtr<ID3D12DescriptorHeap> SRVHeap;
+	Microsoft::WRL::ComPtr<ID3D12RootSignature> RootSignature;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> SRVHeap;
 private:
 	void UpdatePassConstantBuffers(UTimer* Timer);
 	void UpdateObjectConstantBuffer();
 	void UpdateMaterialConstantBuffer();
-	void DrawActors(const vector<AActor*>& Actors);
+	void DrawActors(const std::vector<AActor*>& Actors);
 
 	UINT MaterialConstantBufferViewOffset = 0;
 	UINT PassConstantBufferViewOffset = 0;

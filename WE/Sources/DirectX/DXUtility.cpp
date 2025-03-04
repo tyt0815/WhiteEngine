@@ -1,22 +1,12 @@
-
 #include "DXUtility.h"
+
 #include <comdef.h>
+#include <D3Dcompiler.h>
 #include <fstream>
 
-UDXException::UDXException(HRESULT hr, const std::wstring& functionName, const std::wstring& filename, int lineNumber) :
-    ErrorCode(hr),
-    FunctionName(functionName),
-    Filename(filename),
-    LineNumber(lineNumber)
-{
-}
+#include "DXException.h"
 
-bool UDXUtility::IsKeyDown(int vkeyCode)
-{
-    return (GetAsyncKeyState(vkeyCode) & 0x8000) != 0;
-}
-
-ComPtr<ID3DBlob> UDXUtility::LoadBinary(const std::wstring& filename)
+Microsoft::WRL::ComPtr<ID3DBlob> FDXUtility::LoadBinary(const std::wstring& filename)
 {
     std::ifstream fin(filename, std::ios::binary);
 
@@ -24,8 +14,8 @@ ComPtr<ID3DBlob> UDXUtility::LoadBinary(const std::wstring& filename)
     std::ifstream::pos_type size = (int)fin.tellg();
     fin.seekg(0, std::ios_base::beg);
 
-    ComPtr<ID3DBlob> blob;
-    ThrowIfFailed(D3DCreateBlob(size, blob.GetAddressOf()));
+    Microsoft::WRL::ComPtr<ID3DBlob> blob;
+    THROW_IF_FAILED(D3DCreateBlob(size, blob.GetAddressOf()));
 
     fin.read((char*)blob->GetBufferPointer(), size);
     fin.close();
@@ -33,19 +23,19 @@ ComPtr<ID3DBlob> UDXUtility::LoadBinary(const std::wstring& filename)
     return blob;
 }
 
-Microsoft::WRL::ComPtr<ID3D12Resource> UDXUtility::CreateDefaultBuffer(
+Microsoft::WRL::ComPtr<ID3D12Resource> FDXUtility::CreateDefaultBuffer(
     ID3D12Device* device,
     ID3D12GraphicsCommandList* cmdList,
     const void* initData,
     UINT64 byteSize,
     Microsoft::WRL::ComPtr<ID3D12Resource>& uploadBuffer)
 {
-    ComPtr<ID3D12Resource> defaultBuffer;
+    Microsoft::WRL::ComPtr<ID3D12Resource> defaultBuffer;
 
     // Create the actual default buffer resource.
     CD3DX12_HEAP_PROPERTIES HeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
     CD3DX12_RESOURCE_DESC BufferDesc = CD3DX12_RESOURCE_DESC::Buffer(byteSize);
-    ThrowIfFailed(device->CreateCommittedResource(
+    THROW_IF_FAILED(device->CreateCommittedResource(
         &HeapProperties,
         D3D12_HEAP_FLAG_NONE,
         &BufferDesc,
@@ -56,7 +46,7 @@ Microsoft::WRL::ComPtr<ID3D12Resource> UDXUtility::CreateDefaultBuffer(
     // In order to copy CPU memory data into our default buffer, we need to create
     // an intermediate upload heap. 
     HeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-    ThrowIfFailed(device->CreateCommittedResource(
+    THROW_IF_FAILED(device->CreateCommittedResource(
         &HeapProperties,
 		D3D12_HEAP_FLAG_NONE,
         &BufferDesc,
@@ -90,7 +80,7 @@ Microsoft::WRL::ComPtr<ID3D12Resource> UDXUtility::CreateDefaultBuffer(
     return defaultBuffer;
 }
 
-ComPtr<ID3DBlob> UDXUtility::CompileShader(
+Microsoft::WRL::ComPtr<ID3DBlob> FDXUtility::CompileShader(
 	const std::wstring& filename,
 	const D3D_SHADER_MACRO* defines,
 	const std::string& entrypoint,
@@ -103,44 +93,15 @@ ComPtr<ID3DBlob> UDXUtility::CompileShader(
 
 	HRESULT hr = S_OK;
 
-	ComPtr<ID3DBlob> byteCode = nullptr;
-	ComPtr<ID3DBlob> errors;
+	Microsoft::WRL::ComPtr<ID3DBlob> byteCode = nullptr;
+	Microsoft::WRL::ComPtr<ID3DBlob> errors;
 	hr = D3DCompileFromFile(filename.c_str(), defines, D3D_COMPILE_STANDARD_FILE_INCLUDE,
 		entrypoint.c_str(), target.c_str(), compileFlags, 0, &byteCode, &errors);
 
 	if(errors != nullptr)
 		OutputDebugStringA((char*)errors->GetBufferPointer());
 
-	ThrowIfFailed(hr);
+	THROW_IF_FAILED(hr);
 
 	return byteCode;
 }
-
-D3D12_CPU_DESCRIPTOR_HANDLE UDXUtility::GetCPUDescriptorHandle(int i, ID3D12DescriptorHeap* DescriptorHeap, UINT DescriptorSize)
-{
-    D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHandle = DescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-    DescriptorHandle.ptr += i * DescriptorSize;
-    return DescriptorHandle;
-}
-
-void UDXUtility::ReadFile(string FilePath, ifstream& FileIn)
-{
-    FileIn = std::ifstream(FilePath);
-
-    if (!FileIn)
-    {
-        MessageBox(0, AnsiToWString(FilePath + string(" not found.")).c_str(), 0, 0);
-        return;
-    }
-}
-
-std::wstring UDXException::ToString()const
-{
-    // Get the string description of the error code.
-    _com_error err(ErrorCode);
-    std::wstring msg = err.ErrorMessage();
-
-    return FunctionName + L" failed in " + Filename + L"; line " + std::to_wstring(LineNumber) + L"; error: " + msg;
-}
-
-

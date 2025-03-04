@@ -1,5 +1,12 @@
 #include "MeshGeometry.h"
+
+#include <array>
+#include <D3Dcompiler.h>
+
 #include "GeometryGenerator.h"
+#include "DirectX/DXException.h"
+#include "DirectX/DXUtility.h"
+#include "Utility/FileIO.h"
 
 FMeshGeometry::MeshGeometryMap FMeshGeometry::MeshGeometries = FMeshGeometry::MeshGeometryMap();
 
@@ -112,16 +119,16 @@ void FMeshGeometry::BuildShapeMeshGeometry(ID3D12Device* Device, ID3D12GraphicsC
 	auto geo = std::make_unique<FMeshGeometry>();
 	geo->Name = Name;
 
-	ThrowIfFailed(D3DCreateBlob(vbByteSize, &geo->VertexBufferCPU));
+	THROW_IF_FAILED(D3DCreateBlob(vbByteSize, &geo->VertexBufferCPU));
 	CopyMemory(geo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
 
-	ThrowIfFailed(D3DCreateBlob(ibByteSize, &geo->IndexBufferCPU));
+	THROW_IF_FAILED(D3DCreateBlob(ibByteSize, &geo->IndexBufferCPU));
 	CopyMemory(geo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
 
-	geo->VertexBufferGPU = UDXUtility::CreateDefaultBuffer(Device,
+	geo->VertexBufferGPU = FDXUtility::CreateDefaultBuffer(Device,
 		CommandList, vertices.data(), vbByteSize, geo->VertexBufferUploader);
 
-	geo->IndexBufferGPU = UDXUtility::CreateDefaultBuffer(Device,
+	geo->IndexBufferGPU = FDXUtility::CreateDefaultBuffer(Device,
 		CommandList, indices.data(), ibByteSize, geo->IndexBufferUploader);
 
 	geo->VertexByteStride = sizeof(FVertex);
@@ -139,11 +146,11 @@ void FMeshGeometry::BuildShapeMeshGeometry(ID3D12Device* Device, ID3D12GraphicsC
 
 void FMeshGeometry::BuildSkullMeshGeometry(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
 {
-	string Name = "Skull";
+	std::string Name = "Skull";
 	if (MeshGeometries.find(Name) != MeshGeometries.end()) return;
 
 	std::ifstream fin;
-	UDXUtility::ReadFile("Models/Skull.txt", fin);
+	ReadFile("Models/Skull.txt", fin);
 
 	UINT vcount = 0;
 	UINT tcount = 0;
@@ -183,16 +190,16 @@ void FMeshGeometry::BuildSkullMeshGeometry(ID3D12Device* Device, ID3D12GraphicsC
 	auto geo = std::make_unique<FMeshGeometry>();
 	geo->Name = Name;
 
-	ThrowIfFailed(D3DCreateBlob(vbByteSize, &geo->VertexBufferCPU));
+	THROW_IF_FAILED(D3DCreateBlob(vbByteSize, &geo->VertexBufferCPU));
 	CopyMemory(geo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
 
-	ThrowIfFailed(D3DCreateBlob(ibByteSize, &geo->IndexBufferCPU));
+	THROW_IF_FAILED(D3DCreateBlob(ibByteSize, &geo->IndexBufferCPU));
 	CopyMemory(geo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
 
-	geo->VertexBufferGPU = UDXUtility::CreateDefaultBuffer(Device,
+	geo->VertexBufferGPU = FDXUtility::CreateDefaultBuffer(Device,
 		CommandList, vertices.data(), vbByteSize, geo->VertexBufferUploader);
 
-	geo->IndexBufferGPU = UDXUtility::CreateDefaultBuffer(Device,
+	geo->IndexBufferGPU = FDXUtility::CreateDefaultBuffer(Device,
 		CommandList, indices.data(), ibByteSize, geo->IndexBufferUploader);
 
 	geo->VertexByteStride = sizeof(FVertex);
@@ -224,8 +231,8 @@ void FMeshGeometry::BuildBillboardPoints(ID3D12Device* Device, ID3D12GraphicsCom
 	for (UINT i = 0; i < PointCount; ++i)
 	{
 		float Offset = .5f;
-		float x = UDXMath::RandF(-Offset, Offset);
-		float z = UDXMath::RandF(-Offset, Offset);
+		float x = FDXMath::RandF(-Offset, Offset);
+		float z = FDXMath::RandF(-Offset, Offset);
 		float y = 0.0f;
 
 		// Move tree slightly above land height.
@@ -247,16 +254,16 @@ void FMeshGeometry::BuildBillboardPoints(ID3D12Device* Device, ID3D12GraphicsCom
 	auto geo = std::make_unique<FMeshGeometry>();
 	geo->Name = "Sprite";
 
-	ThrowIfFailed(D3DCreateBlob(vbByteSize, &geo->VertexBufferCPU));
+	THROW_IF_FAILED(D3DCreateBlob(vbByteSize, &geo->VertexBufferCPU));
 	CopyMemory(geo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
 
-	ThrowIfFailed(D3DCreateBlob(ibByteSize, &geo->IndexBufferCPU));
+	THROW_IF_FAILED(D3DCreateBlob(ibByteSize, &geo->IndexBufferCPU));
 	CopyMemory(geo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
 
-	geo->VertexBufferGPU = UDXUtility::CreateDefaultBuffer(Device,
+	geo->VertexBufferGPU = FDXUtility::CreateDefaultBuffer(Device,
 		CommandList, vertices.data(), vbByteSize, geo->VertexBufferUploader);
 
-	geo->IndexBufferGPU = UDXUtility::CreateDefaultBuffer(Device,
+	geo->IndexBufferGPU = FDXUtility::CreateDefaultBuffer(Device,
 		CommandList, indices.data(), ibByteSize, geo->IndexBufferUploader);
 
 	geo->VertexByteStride = sizeof(FSpriteVertex);

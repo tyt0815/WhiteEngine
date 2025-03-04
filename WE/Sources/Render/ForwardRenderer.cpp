@@ -20,8 +20,8 @@ void FForwardRenderer::Render(UTimer* Timer)
 
 	ID3D12Resource* RenderTarget = GetCurrentBackBuffer();
 
-	ThrowIfFailed(TargetCommandAllocator->Reset());
-	ThrowIfFailed(CommandList->Reset(TargetCommandAllocator, nullptr));
+	THROW_IF_FAILED(TargetCommandAllocator->Reset());
+	THROW_IF_FAILED(CommandList->Reset(TargetCommandAllocator, nullptr));
 
 	CommandList->RSSetViewports(1, &ScreenViewport);
 	CommandList->RSSetScissorRects(1, &ScissorRect);
@@ -110,12 +110,12 @@ void FForwardRenderer::Render(UTimer* Timer)
 	);
 	CommandList->ResourceBarrier(1, &ResourceBarrier);
 
-	ThrowIfFailed(CommandList->Close());
+	THROW_IF_FAILED(CommandList->Close());
 
 	ID3D12CommandList* CommandLists[] = { CommandList.Get()};
 	CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
 
-	ThrowIfFailed(SwapChain->Present(0, 0));
+	THROW_IF_FAILED(SwapChain->Present(0, 0));
 	CurrentBackBuffer = (CurrentBackBuffer + 1) % SwapChainBufferCount;
 
 	TargetFrameResource->Fence = ++CurrentFence;
@@ -130,7 +130,7 @@ void FForwardRenderer::BuildDescriptorHeaps()
 	SRVHeapDesc.NumDescriptors = (UINT)FTexture::Textures.size();
 	SRVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	SRVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	ThrowIfFailed(Device->CreateDescriptorHeap(&SRVHeapDesc, IID_PPV_ARGS(SRVHeap.GetAddressOf())));
+	THROW_IF_FAILED(Device->CreateDescriptorHeap(&SRVHeapDesc, IID_PPV_ARGS(SRVHeap.GetAddressOf())));
 }
 
 void FForwardRenderer::BuildShaderResources()
@@ -179,8 +179,8 @@ void FForwardRenderer::BuildRootSignature()
 		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
 	);
 
-	ComPtr<ID3DBlob> SerializedRootSignature = nullptr;
-	ComPtr<ID3DBlob> ErrorBlob = nullptr;
+	Microsoft::WRL::ComPtr<ID3DBlob> SerializedRootSignature = nullptr;
+	Microsoft::WRL::ComPtr<ID3DBlob> ErrorBlob = nullptr;
 	HRESULT HResult = D3D12SerializeRootSignature(
 		&RootSignatureDesc,
 		D3D_ROOT_SIGNATURE_VERSION_1,
@@ -192,9 +192,9 @@ void FForwardRenderer::BuildRootSignature()
 	{
 		::OutputDebugStringA((char*)ErrorBlob->GetBufferPointer());
 	}
-	ThrowIfFailed(HResult);
+	THROW_IF_FAILED(HResult);
 
-	ThrowIfFailed(
+	THROW_IF_FAILED(
 		Device->CreateRootSignature(
 			0,
 			SerializedRootSignature->GetBufferPointer(),
@@ -218,41 +218,41 @@ void FForwardRenderer::BuildShaderAndInputLayout()
 		{NULL, NULL}
 	};
 
-	Shaders["ForwardLitVertexShader"] = UDXUtility::CompileShader(
+	Shaders["ForwardLitVertexShader"] = FDXUtility::CompileShader(
 		L"Shaders\\ForwardLitVertexShader.sf",
 		nullptr,
 		"MainVS",
 		"vs_5_1"
 	);
-	Shaders["ForwardLitPixelShader"] = UDXUtility::CompileShader(
+	Shaders["ForwardLitPixelShader"] = FDXUtility::CompileShader(
 		L"Shaders\\ForwardLitPixelShader.sf",
 		Defines,
 		"MainPS",
 		"ps_5_1"
 	);
 
-	Shaders["AlphTestPixelShader"] = UDXUtility::CompileShader(
+	Shaders["AlphTestPixelShader"] = FDXUtility::CompileShader(
 		L"Shaders\\ForwardLitPixelShader.sf",
 		AlphaTestDefine,
 		"MainPS",
 		"ps_5_1"
 	);
 
-	Shaders["BillboardVertexShader"] = UDXUtility::CompileShader(
+	Shaders["BillboardVertexShader"] = FDXUtility::CompileShader(
 		L"Shaders\\BillboardVertexShader.sf",
 		nullptr,
 		"MainVS",
 		"vs_5_1"
 	);
 
-	Shaders["BillboardGeometryShader"] = UDXUtility::CompileShader(
+	Shaders["BillboardGeometryShader"] = FDXUtility::CompileShader(
 		L"Shaders\\BillboardGeometryShader.sf",
 		nullptr,
 		"MainGS",
 		"gs_5_1"
 	);
 
-	Shaders["BillboardPixelShader"] = UDXUtility::CompileShader(
+	Shaders["BillboardPixelShader"] = FDXUtility::CompileShader(
 		L"Shaders\\BillboardPixelShader.sf",
 		AlphaTestDefine,
 		"MainPS",
@@ -305,7 +305,7 @@ void FForwardRenderer::BuildPipelineStateObject()
 	ForwardLitPipelineStateDesc.SampleDesc.Count = bMSAA ? 4 : 1;
 	ForwardLitPipelineStateDesc.SampleDesc.Quality = bMSAA ? (MSAAQuality_4x - 1) : 0;
 	ForwardLitPipelineStateDesc.DSVFormat = DepthStencilFormat;
-	ThrowIfFailed(
+	THROW_IF_FAILED(
 		Device->CreateGraphicsPipelineState(
 			&ForwardLitPipelineStateDesc, IID_PPV_ARGS(&PipelineStateObjects[(int)EPipelineState::EPS_Opaque])
 		)
@@ -319,7 +319,7 @@ void FForwardRenderer::BuildPipelineStateObject()
 	{
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC WireFramePipelineStateDesc = ForwardLitPipelineStateDesc;
 		WireFramePipelineStateDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
-		ThrowIfFailed(
+		THROW_IF_FAILED(
 			Device->CreateGraphicsPipelineState(
 				&WireFramePipelineStateDesc, IID_PPV_ARGS(&PipelineStateObjects[(int)EPipelineState::EPS_WireFrame])
 			)
@@ -342,7 +342,7 @@ void FForwardRenderer::BuildPipelineStateObject()
 		BlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
 		TransparencyPipelineStateDesc.BlendState.RenderTarget[0] = BlendDesc;
-		ThrowIfFailed(
+		THROW_IF_FAILED(
 			Device->CreateGraphicsPipelineState(
 				&TransparencyPipelineStateDesc,
 				IID_PPV_ARGS(&PipelineStateObjects[(int)EPipelineState::EPS_Transparency])
@@ -359,7 +359,7 @@ void FForwardRenderer::BuildPipelineStateObject()
 		};
 
 		AlphaTestPipelineStateDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-		ThrowIfFailed(
+		THROW_IF_FAILED(
 			Device->CreateGraphicsPipelineState(
 				&AlphaTestPipelineStateDesc,
 				IID_PPV_ARGS(&PipelineStateObjects[(int)EPipelineState::EPS_AlphaTest])
@@ -389,7 +389,7 @@ void FForwardRenderer::BuildPipelineStateObject()
 		BillboardPipelineStateDesc.InputLayout = { InputLayouts["Billboard"].data(), (UINT)InputLayouts["Billboard"].size() };
 		BillboardPipelineStateDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 
-		ThrowIfFailed(
+		THROW_IF_FAILED(
 			Device->CreateGraphicsPipelineState(
 				&BillboardPipelineStateDesc,
 				IID_PPV_ARGS(PipelineStateObjects[(int)EPipelineState::EPS_Billboard].GetAddressOf())
@@ -407,11 +407,11 @@ void FForwardRenderer::UpdatePassConstantBuffers(UTimer* Timer)
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
 	XMMATRIX view = Camera->GetViewMatrix();
-	XMMATRIX InvView = UDXMath::GetInverseMatrix(view);
+	XMMATRIX InvView = FDXMath::GetInverseMatrix(view);
 	XMMATRIX proj = Camera->GetProjMatrix();
-	XMMATRIX InvProj = UDXMath::GetInverseMatrix(proj);
+	XMMATRIX InvProj = FDXMath::GetInverseMatrix(proj);
 	XMMATRIX ViewProj = view * proj;
-	XMMATRIX InvViewProj = UDXMath::GetInverseMatrix(ViewProj);
+	XMMATRIX InvViewProj = FDXMath::GetInverseMatrix(ViewProj);
 
 	FPassConstants PassConstants;
 	XMStoreFloat4x4(&PassConstants.View, XMMatrixTranspose(view));
@@ -489,8 +489,8 @@ void FForwardRenderer::DrawActors(const vector<AActor*>& DrawTargets)
 	auto ObjectConstantBuffer = TargetFrameResource->ObjectConstantBuffer->Resource();
 	auto MaterialConstantBuffer = TargetFrameResource->MaterialConstantBuffer->Resource();
 
-	UINT ObjectConstantBufferByteSize = UDXUtility::CalcConstantBufferByteSize(sizeof(FObjectConstants));
-	UINT MaterialConstantBufferByteSize = UDXUtility::CalcConstantBufferByteSize(sizeof(FMaterialConstants));
+	UINT ObjectConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FObjectConstants));
+	UINT MaterialConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FMaterialConstants));
 
 	for (int i = 0; i < DrawTargets.size(); ++i)
 	{

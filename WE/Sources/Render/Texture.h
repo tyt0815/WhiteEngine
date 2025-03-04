@@ -1,10 +1,11 @@
 #pragma once
 
-#include "Utility/DXHeaders.h"
+#include "DirectX/d3dx12.h"
+#include <array>
+#include <memory>
 #include <string>
 #include <unordered_map>
-#include <memory>
-#include <array>
+#include <wrl.h>
 
 enum ETextureType : UINT16
 {

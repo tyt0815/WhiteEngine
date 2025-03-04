@@ -20,8 +20,8 @@ public:
 	void Move(float X, float Y, float Z);
 
 private:
-	XMFLOAT4X4 View = UDXMath::Identity4x4();
-	XMFLOAT4X4 Proj = UDXMath::Identity4x4();
+	XMFLOAT4X4 View = FDXMath::Identity4x4();
+	XMFLOAT4X4 Proj = FDXMath::Identity4x4();
 	XMFLOAT3 Right, Up, Look;
 	bool bDirty = true;
 };

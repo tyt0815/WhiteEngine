@@ -1,10 +1,13 @@
 #pragma once
 
-#include "Utility/DXUtility.h"
+#include <dxgi1_4.h>
+
+#include "DirectX/DXUtility.h"
 #include "FrameResource.h"
 #include "Utility/Timer.h"
 #include "Runtime/World/World.h"
 #include "Texture.h"
+#include "Utility/Class.h"
 
 class AActor;
 class WViewCamera;
@@ -44,7 +47,7 @@ public:
 
 protected:
 
-	wstring GetWindowTitle();
+	std::wstring GetWindowTitle();
 	RECT GetClientRect();
 	inline UINT GetClientWidth() { return GetClientRect().right - GetClientRect().left; }
 	inline UINT GetClientHeight() { return GetClientRect().bottom - GetClientRect().top; }
@@ -63,22 +66,22 @@ protected:
 
 	UTimer MainTimer;
 	HWND HWnd;
-	ComPtr<IDXGIFactory4> Factory;
-	ComPtr<IDXGISwapChain> SwapChain;
-	ComPtr<ID3D12Device> Device;
-	ComPtr<ID3D12Fence> Fence;
-	ComPtr<ID3D12CommandQueue> CommandQueue;
-	ComPtr<ID3D12CommandAllocator> CommandAllocator;
-	ComPtr<ID3D12GraphicsCommandList> CommandList;
-	ComPtr<ID3D12DescriptorHeap> RTVHeap;
-	ComPtr<ID3D12DescriptorHeap> DSVHeap;
-	ComPtr<ID3D12Resource> SwapChainBuffer[SwapChainBufferCount];
-	ComPtr<ID3D12Resource> DepthStencilBuffer;
-	unique_ptr<WWorld> World;
-	vector<unique_ptr<FFrameResource>> FrameResources;
-	unordered_map<string, vector<D3D12_INPUT_ELEMENT_DESC>> InputLayouts;
-	unordered_map<string, ComPtr<ID3DBlob>> Shaders;
-	vector<ComPtr<ID3D12PipelineState>> PipelineStateObjects;
+	Microsoft::WRL::ComPtr<IDXGIFactory4> Factory;
+	Microsoft::WRL::ComPtr<IDXGISwapChain> SwapChain;
+	Microsoft::WRL::ComPtr<ID3D12Device> Device;
+	Microsoft::WRL::ComPtr<ID3D12Fence> Fence;
+	Microsoft::WRL::ComPtr<ID3D12CommandQueue> CommandQueue;
+	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> CommandAllocator;
+	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> CommandList;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> RTVHeap;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> DSVHeap;
+	Microsoft::WRL::ComPtr<ID3D12Resource> SwapChainBuffer[SwapChainBufferCount];
+	Microsoft::WRL::ComPtr<ID3D12Resource> DepthStencilBuffer;
+	std::unique_ptr<WWorld> World;
+	std::vector<std::unique_ptr<FFrameResource>> FrameResources;
+	std::unordered_map<std::string, std::vector<D3D12_INPUT_ELEMENT_DESC>> InputLayouts;
+	std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3DBlob>> Shaders;
+	std::vector<Microsoft::WRL::ComPtr<ID3D12PipelineState>> PipelineStateObjects;
 	FFrameResource* TargetFrameResource = nullptr;
 	WViewCamera* Camera = nullptr;
 	DXGI_FORMAT BackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;

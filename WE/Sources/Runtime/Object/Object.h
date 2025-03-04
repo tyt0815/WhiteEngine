@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Utility/DXUtility.h"
+#include "DirectX/DXMath.h"
 
 class WObject
 {

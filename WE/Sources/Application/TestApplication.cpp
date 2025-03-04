@@ -35,11 +35,11 @@ int FTestApplication::Run()
 	ID3D12GraphicsCommandList* CommandList = DeviceManager->GetCommandListPtr();
 	ID3D12CommandAllocator* CommandAllocator = DeviceManager->GetCommandAllocatorPtr();
 	ID3D12CommandQueue* CommandQueue = DeviceManager->GetCommandQueuePtr();
-	ThrowIfFailed(CommandList->Reset(CommandAllocator, nullptr));
+	THROW_IF_FAILED(CommandList->Reset(CommandAllocator, nullptr));
 	FMeshGeometry::BuildMeshGeometries(Device, CommandList);
 	FTexture::LoadTexture(Device, CommandList);
 	FMaterial::BuildMaterial();
-	ThrowIfFailed(CommandList->Close());
+	THROW_IF_FAILED(CommandList->Close());
 	ID3D12CommandList* CmdLists[] = { CommandList };
 	CommandQueue->ExecuteCommandLists(_countof(CmdLists), CmdLists);
 	DeviceManager->FlushCommandQueue();

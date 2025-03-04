@@ -15,6 +15,10 @@ using namespace DirectX;
 class FTransform
 {
 public:
+	const static FTransform Zeros;
+	const static FTransform Default;
+
+public:
 	FTransform() :
 		Scale(XMFLOAT3(1.0f, 1.0f, 1.0f)),
 		Rotation(XMFLOAT3(0.0f, 0.0f, 0.0f)),
@@ -22,69 +26,80 @@ public:
 	{}
 	FTransform(XMFLOAT3 Scale, XMFLOAT3 Rotation, XMFLOAT3 Translation);
 	~FTransform() = default;
-	
-
-	const static FTransform Zeros;
-	const static FTransform Default;
-
-	inline XMVECTOR GetScaleXMVECTOR() { return XMLoadFloat3(&Scale); }
-	inline XMVECTOR GetRotationXMVECTOR() { return XMLoadFloat3(&Rotation); }
-	inline XMVECTOR GetTranslationXMVECTOR() { return XMLoadFloat3(&Translation); }
 	XMMATRIX GetTransformMatrix();
 
 	XMFLOAT3 Scale;
 	XMFLOAT3 Rotation;
 	XMFLOAT3 Translation;
+public:
+	inline XMVECTOR GetScaleXMVECTOR() 
+	{ 
+		return XMLoadFloat3(&Scale); 
+	}
+	inline XMVECTOR GetRotationXMVECTOR() 
+	{ 
+		return XMLoadFloat3(&Rotation); 
+	}
+	inline XMVECTOR GetTranslationXMVECTOR() 
+	{ 
+		return XMLoadFloat3(&Translation); 
+	}
 };
 
-class UDXMath
+class FDXMath
 {
 public:
+	// Returns the polar angle of the point (x,y) in [0, 2*PI).
+	static float AngleFromXY(float x, float y);
+	static DirectX::XMVECTOR RandUnitVec3();
+	static DirectX::XMVECTOR RandHemisphereUnitVec3(DirectX::XMVECTOR n);
+
+	static const float Infinity;
+	static const float Pi;
+
+public:
 	// Returns random float in [0, 1).
-	static float RandF()
+	inline static float RandF()
 	{
 		return (float)(rand()) / (float)RAND_MAX;
 	}
 
 	// Returns random float in [a, b).
-	static float RandF(float a, float b)
+	inline static float RandF(float a, float b)
 	{
 		return a + RandF()*(b-a);
 	}
 
-    static int Rand(int a, int b)
+	inline static int Rand(int a, int b)
     {
         return a + rand() % ((b - a) + 1);
     }
 
 	template<typename T>
-	static T Min(const T& a, const T& b)
+	inline static T Min(const T& a, const T& b)
 	{
 		return a < b ? a : b;
 	}
 
 	template<typename T>
-	static T Max(const T& a, const T& b)
+	inline static T Max(const T& a, const T& b)
 	{
 		return a > b ? a : b;
 	}
 	 
 	template<typename T>
-	static T Lerp(const T& a, const T& b, float t)
+	inline static T Lerp(const T& a, const T& b, float t)
 	{
 		return a + (b-a)*t;
 	}
 
 	template<typename T>
-	static T Clamp(const T& x, const T& low, const T& high)
+	inline static T Clamp(const T& x, const T& low, const T& high)
 	{
 		return x < low ? low : (x > high ? high : x); 
 	}
 
-	// Returns the polar angle of the point (x,y) in [0, 2*PI).
-	static float AngleFromXY(float x, float y);
-
-	static DirectX::XMVECTOR SphericalToCartesian(float radius, float theta, float phi)
+	inline static DirectX::XMVECTOR SphericalToCartesian(float radius, float theta, float phi)
 	{
 		return DirectX::XMVectorSet(
 			radius*sinf(phi)*cosf(theta),
@@ -93,7 +108,7 @@ public:
 			1.0f);
 	}
 
-    static DirectX::XMMATRIX InverseTranspose(DirectX::CXMMATRIX M)
+	inline static DirectX::XMMATRIX InverseTranspose(DirectX::CXMMATRIX M)
 	{
 		// Inverse-transpose is just applied to normals.  So zero out 
 		// translation row so that it doesn't get into our inverse-transpose
@@ -105,7 +120,7 @@ public:
         return DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(&det, A));
 	}
 
-    static DirectX::XMFLOAT4X4 Identity4x4()
+	inline static DirectX::XMFLOAT4X4 Identity4x4()
     {
         static DirectX::XMFLOAT4X4 I(
             1.0f, 0.0f, 0.0f, 0.0f,
@@ -116,17 +131,11 @@ public:
         return I;
     }
 
-    static DirectX::XMVECTOR RandUnitVec3();
-    static DirectX::XMVECTOR RandHemisphereUnitVec3(DirectX::XMVECTOR n);
+    
 	inline static DirectX::XMMATRIX GetInverseMatrix(XMMATRIX Matrix)
 	{
 		XMVECTOR Determinant = XMMatrixDeterminant(Matrix);
 		return XMMatrixInverse(&Determinant, Matrix);;
 	}
-
-	static const float Infinity;
-	static const float Pi;
-
-
 };
 

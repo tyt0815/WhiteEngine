@@ -46,7 +46,7 @@ private:
 	void UpdatePassConstantBuffers(UTimer* Timer);
 	void UpdateObjectConstantBuffer();
 	void UpdateMaterialConstantBuffer();
-	void DrawActors(const vector<AActor*>& DrawTargets);
+	void DrawActors(const std::vector<AActor*>& DrawTargets);
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> SRVHeap;
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> RootSignature;
 	ID3D12Fence* Fence = nullptr;
@@ -56,10 +56,10 @@ private:
 	ID3D12GraphicsCommandList* CommandList = nullptr;
 	WWorld* World;
 	FFrameResource* TargetFrameResource = nullptr;
-	std::unordered_map<std::string, vector<D3D12_INPUT_ELEMENT_DESC>> InputLayouts;
+	std::unordered_map<std::string, std::vector<D3D12_INPUT_ELEMENT_DESC>> InputLayouts;
 	std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3DBlob>> Shaders;
 	std::vector<std::unique_ptr<FFrameResource>> FrameResources;
-	std::vector<ComPtr<ID3D12PipelineState>> PipelineStateObjects;
+	std::vector<Microsoft::WRL::ComPtr<ID3D12PipelineState>> PipelineStateObjects;
 
 	int TargetFrameResourceIndex = 0;
 

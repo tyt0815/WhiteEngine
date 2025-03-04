@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Utility/DXMath.h"
+#include "DirectX/DXMath.h"
 #include <string>
 #include <unordered_map>
 #include <memory>
@@ -15,7 +15,7 @@ struct FMaterialConstants
 	float Roughness = 0.25f;
 
 	// Used in texture mapping.
-	DirectX::XMFLOAT4X4 MatTransform = UDXMath::Identity4x4();
+	DirectX::XMFLOAT4X4 MatTransform = FDXMath::Identity4x4();
 };
 
 enum EMaterialType : UINT16
@@ -62,5 +62,5 @@ public:
 	DirectX::XMFLOAT4 DiffuseAlbedo = { 1.0f, 1.0f, 1.0f, 1.0f };
 	DirectX::XMFLOAT3 FresnelR0 = { 0.01f, 0.01f, 0.01f };
 	float Roughness = .25f;
-	DirectX::XMFLOAT4X4 MatTransform = UDXMath::Identity4x4();
+	DirectX::XMFLOAT4X4 MatTransform = FDXMath::Identity4x4();
 };

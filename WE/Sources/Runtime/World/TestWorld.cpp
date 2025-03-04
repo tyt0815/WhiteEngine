@@ -47,20 +47,20 @@ void WTestWorld::BuildWorldActors()
 	{
 		float Offset = 40;
 		Transform = FTransform::Default;
-		Transform.Translation.x = Offset * UDXMath::RandF();
-		Transform.Translation.z = Offset * UDXMath::RandF();
+		Transform.Translation.x = Offset * FDXMath::RandF();
+		Transform.Translation.z = Offset * FDXMath::RandF();
 		SpawnActor<AFoliage>(EActorType::EAT_Billboard, Transform);
 
-		Transform.Translation.x = -Offset * UDXMath::RandF();
-		Transform.Translation.z = Offset * UDXMath::RandF();
+		Transform.Translation.x = -Offset * FDXMath::RandF();
+		Transform.Translation.z = Offset * FDXMath::RandF();
 		SpawnActor<AFoliage>(EActorType::EAT_Billboard, Transform);
 
-		Transform.Translation.x = Offset * UDXMath::RandF();
-		Transform.Translation.z = -Offset * UDXMath::RandF();
+		Transform.Translation.x = Offset * FDXMath::RandF();
+		Transform.Translation.z = -Offset * FDXMath::RandF();
 		SpawnActor<AFoliage>(EActorType::EAT_Billboard, Transform);
 
-		Transform.Translation.x = -Offset * UDXMath::RandF();
-		Transform.Translation.z = -Offset * UDXMath::RandF();
+		Transform.Translation.x = -Offset * FDXMath::RandF();
+		Transform.Translation.z = -Offset * FDXMath::RandF();
 		SpawnActor<AFoliage>(EActorType::EAT_Billboard, Transform);
 	}*/
 }

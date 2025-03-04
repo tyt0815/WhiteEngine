@@ -1,5 +1,7 @@
 #pragma once
 
+#include <comdef.h>
+
 enum class EInputType
 {
 	EIT_MouseDown,
@@ -10,6 +12,11 @@ enum class EInputType
 	EIT_KeyUp,
 	EIT_None
 };
+
+inline bool IsKeyDown(int vkeyCode)
+{
+	return (GetAsyncKeyState(vkeyCode) & 0x8000) != 0;
+}
 
 class FMouseInputParameter
 {
