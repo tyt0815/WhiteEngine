@@ -137,10 +137,6 @@ void FRenderer::Render(const FRenderData& RenderData)
 
 	ID3D12CommandList* CommandLists[] = { CommandList };
 	CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
-
-	DeviceManager->SignalFence();
-	DeviceManager->PresentAndSwapBuffer();
-	TargetFrameResource->Fence = DeviceManager->GetCurrentFence();
 }
 
 void FRenderer::BuildDescriptorHeaps()

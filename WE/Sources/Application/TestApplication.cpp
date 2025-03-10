@@ -62,7 +62,7 @@ int FTestApplication::Run()
 				FRenderData RenderData;
 				CreateRenderData(RenderData);
 				Renderer.Render(RenderData);
-				//Render(mTimer.get());
+				DeviceManager->PresentAndSwapBuffer();
 			}
 			else
 			{

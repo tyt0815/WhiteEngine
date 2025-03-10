@@ -280,3 +280,17 @@ void FMeshGeometry::BuildBillboardPoints(ID3D12Device* Device, ID3D12GraphicsCom
 
 	MeshGeometries["Points"] = std::move(geo);
 }
+
+FMeshGeometryManager::FMeshGeometryManager()
+{
+
+}
+
+FMeshGeometryManager::~FMeshGeometryManager()
+{
+
+}
+
+void FMeshGeometryManager::BuildMeshGeometries()
+{
+}

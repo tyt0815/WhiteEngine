@@ -68,12 +68,11 @@ FDXResourceManager::FDXResourceManager()
 	CreateCommandObjects();
 	CreateSwapChain();
 	CreateDescriptorHeaps();
-	FWindow* Window = GetMainWindowPtr();
-	Resize(Window->GetWidth(), Window->GetHeight());
-
-	Window->SetResizeCallbackFunction([&]()
+	Resize(GetMainWindowPtr()->GetWidth(), GetMainWindowPtr()->GetHeight());
+	// MainWindow가 resize될때 Resize함수가 호출되도록 등록
+	GetMainWindowPtr()->SetResizeCallbackFunction([&]()
 		{
-			Resize(Window->GetWidth(), Window->GetHeight());
+			Resize(GetMainWindowPtr()->GetWidth(), GetMainWindowPtr()->GetHeight());
 		}
 	);
 }

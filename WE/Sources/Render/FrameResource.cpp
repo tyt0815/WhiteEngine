@@ -45,6 +45,7 @@ FFrameResourceManager::FFrameResourceManager()
 	{
 		mFrameResources.push_back(std::make_unique<FFrameResource>());
 	}
+	mTargetFrameResource = mFrameResources[mTargetFrameResourceIndex].get();
 }
 
 FFrameResourceManager::~FFrameResourceManager()
@@ -63,13 +64,16 @@ void FFrameResourceManager::Tick()
 
 void FFrameResourceManager::SetTargetFrameResource()
 {
+	FDXResourceManager* DXResourceManager = GetDXResourceManagerPtr();
+	DXResourceManager->SignalFence();
+	mTargetFrameResource->Fence = DXResourceManager->GetCurrentFence();
 	// Cycle through the circular frame resource array.
 	mTargetFrameResourceIndex = (mTargetFrameResourceIndex + 1) % FrameResourcesNum;
 	mTargetFrameResource = mFrameResources[mTargetFrameResourceIndex].get();
 
 	// Has the GPU finished processing the commands of the current frame resource?
 	// If not, wait until the GPU has completed commands up to this fence point.
-	ID3D12Fence* Fence = GetDXResourceManagerPtr()->GetFencePtr();
+	ID3D12Fence* Fence = DXResourceManager->GetFencePtr();
 	if (mTargetFrameResource->Fence != 0 && Fence->GetCompletedValue() < mTargetFrameResource->Fence)
 	{
 		HANDLE eventHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);

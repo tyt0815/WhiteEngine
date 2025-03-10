@@ -16,6 +16,7 @@ class FDXResourceManager
 	SINGLETON(FDXResourceManager);
 public:
 	void Resize(UINT Width, UINT Height);
+	//void 
 	void FlushCommandQueue();
 
 	// TODO

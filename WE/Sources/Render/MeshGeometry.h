@@ -7,8 +7,9 @@
 #include <unordered_map>
 #include <memory>
 #include <wrl.h>
-
 #include "DirectX/DXMath.h"
+#include "Utility/Class.h"
+
 struct FVertex
 {
 	DirectX::XMFLOAT3 Pos;
@@ -90,4 +91,14 @@ private:
 	static void BuildShapeMeshGeometry(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 	static void BuildSkullMeshGeometry(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 	static void BuildBillboardPoints(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
+};
+
+class FMeshGeometryManager
+{
+	SINGLETON(FMeshGeometryManager);
+public:
+
+
+private:
+	void BuildMeshGeometries();
 };
