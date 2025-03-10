@@ -14,7 +14,7 @@
 
 FRenderer::FRenderer()
 {
-	FDXDeviceManager* DeviceManager = FDXDeviceManager::GetInstance();
+	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
 	Device = DeviceManager->GetDevicePtr();
 	CommandQueue = DeviceManager->GetCommandQueuePtr();
 	CommandAllocator = DeviceManager->GetCommandAllocatorPtr();
@@ -46,7 +46,7 @@ void FRenderer::Render(class UTimer* Timer)
 
 	auto TargetCommandAllocator = TargetFrameResource->CommandAllocator.Get();
 
-	FDXDeviceManager* DeviceManager = FDXDeviceManager::GetInstance();
+	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
 	ID3D12Resource* RenderTarget = DeviceManager->GetCurrentBackBufferPtr();
 
 	THROW_IF_FAILED(TargetCommandAllocator->Reset());
@@ -146,8 +146,8 @@ void FRenderer::Render(class UTimer* Timer)
 	ID3D12CommandList* CommandLists[] = { CommandList };
 	CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
 
-	DeviceManager->PresentAndSwapBuffer();
 	DeviceManager->SignalFence();
+	DeviceManager->PresentAndSwapBuffer();
 	TargetFrameResource->Fence = DeviceManager->GetCurrentFence();
 }
 
@@ -188,7 +188,7 @@ void FRenderer::BuildShaderResources()
 		auto TextureBuffer = Item.second->Resource;
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE SRVHandle(SRVHeap->GetCPUDescriptorHandleForHeapStart());
-		SRVHandle.Offset(Item.first, FDXDeviceManager::GetInstance()->GetCBVSRVUAVDescriptorSize());
+		SRVHandle.Offset(Item.first, FDXResourceManager::GetInstance()->GetCBVSRVUAVDescriptorSize());
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -318,7 +318,7 @@ void FRenderer::BuildShaderAndInputLayout()
 
 void FRenderer::BuildPipelineStateObject()
 {
-	FDXDeviceManager* DeviceManager = FDXDeviceManager::GetInstance();
+	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
 
 	PipelineStateObjects.resize((size_t)EPipelineState::EPS_None);
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC ForwardLitPipelineStateDesc;
@@ -460,7 +460,7 @@ void FRenderer::SetTargetFrameResource()
 
 void FRenderer::UpdatePassConstantBuffers(UTimer* Timer)
 {
-	FDXDeviceManager* DeviceManager = FDXDeviceManager::GetInstance();
+	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
 
 	Camera->UpdateViewMatrix();
 	// Build the view matrix.
@@ -554,7 +554,7 @@ void FRenderer::DrawActors(const std::vector<AActor*>& DrawTargets)
 
 	UINT ObjectConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FObjectConstants));
 	UINT MaterialConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FMaterialConstants));
-	UINT CBVSRVUAVDescriptorSize = FDXDeviceManager::GetInstance()->GetCBVSRVUAVDescriptorSize();
+	UINT CBVSRVUAVDescriptorSize = FDXResourceManager::GetInstance()->GetCBVSRVUAVDescriptorSize();
 
 	for (int i = 0; i < DrawTargets.size(); ++i)
 	{

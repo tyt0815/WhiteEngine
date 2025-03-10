@@ -1,7 +1,6 @@
-#include "Render/ForwardRenderer.h"
-#include "Render/DeferredRenderer.h"
 #include "Render/MeshGeometry.h"
 #include "Application/TestApplication.h"
+#include "DirectX/DXException.h"
 
 #pragma comment(lib,"d3dcompiler.lib")
 #pragma comment(lib, "D3D12.lib")

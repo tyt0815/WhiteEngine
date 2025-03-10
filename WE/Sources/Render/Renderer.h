@@ -8,7 +8,7 @@
 #include "Utility/Class.h"
 #include "FrameResource.h"
 
-class FDXDeviceManager;
+class FDXResourceManager;
 class WWorld;
 //class IDXGIFactory4;
 //class IDXGISwapChain;

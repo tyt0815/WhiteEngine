@@ -5,7 +5,7 @@
 #include "Window/Window.h"
 #include "Runtime/Object/ViewCamera.h"
 
-FDXDeviceManager::FDXDeviceManager()
+FDXResourceManager::FDXResourceManager()
 {
 #if defined(DEBUG) || defined(_DEBUG) 
 	// Enable the D3D12 debug layer.
@@ -78,11 +78,11 @@ FDXDeviceManager::FDXDeviceManager()
 	);
 }
 
-FDXDeviceManager::~FDXDeviceManager()
+FDXResourceManager::~FDXResourceManager()
 {
 }
 
-void FDXDeviceManager::Resize(UINT Width, UINT Height)
+void FDXResourceManager::Resize(UINT Width, UINT Height)
 {
 	assert(Device);
 	assert(SwapChain);
@@ -195,7 +195,7 @@ void FDXDeviceManager::Resize(UINT Width, UINT Height)
 	}
 }
 
-void FDXDeviceManager::FlushCommandQueue()
+void FDXResourceManager::FlushCommandQueue()
 {
 	// Advance the fence value to mark commands up to this fence point.
 	CurrentFence++;
@@ -219,7 +219,7 @@ void FDXDeviceManager::FlushCommandQueue()
 	}
 }
 
-void FDXDeviceManager::LogAdapters()
+void FDXResourceManager::LogAdapters()
 {
 	UINT i = 0;
 	Microsoft::WRL::ComPtr<IDXGIAdapter> Adapter = nullptr;
@@ -246,7 +246,7 @@ void FDXDeviceManager::LogAdapters()
 	}
 }
 
-void FDXDeviceManager::LogAdapterOutputs(IDXGIAdapter* Adapter)
+void FDXResourceManager::LogAdapterOutputs(IDXGIAdapter* Adapter)
 {
 	UINT i = 0;
 	Microsoft::WRL::ComPtr<IDXGIOutput> Output = nullptr;
@@ -266,7 +266,7 @@ void FDXDeviceManager::LogAdapterOutputs(IDXGIAdapter* Adapter)
 	}
 }
 
-void FDXDeviceManager::LogOutputDisplayModes(IDXGIOutput* Output, DXGI_FORMAT Format)
+void FDXResourceManager::LogOutputDisplayModes(IDXGIOutput* Output, DXGI_FORMAT Format)
 {
 	UINT Count = 0;
 	UINT Flags = 0;
@@ -291,7 +291,7 @@ void FDXDeviceManager::LogOutputDisplayModes(IDXGIOutput* Output, DXGI_FORMAT Fo
 	}
 }
 
-void FDXDeviceManager::CreateCommandObjects()
+void FDXResourceManager::CreateCommandObjects()
 {
 	D3D12_COMMAND_QUEUE_DESC CommandQueueDesc = {};
 	CommandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
@@ -319,7 +319,7 @@ void FDXDeviceManager::CreateCommandObjects()
 	CommandList->Close();
 }
 
-void FDXDeviceManager::CreateSwapChain()
+void FDXResourceManager::CreateSwapChain()
 {
 	// Release the previous swapchain we will be recreating.
 	SwapChain.Reset();
@@ -348,7 +348,7 @@ void FDXDeviceManager::CreateSwapChain()
 		SwapChain.GetAddressOf()));
 }
 
-void FDXDeviceManager::CreateDescriptorHeaps()
+void FDXResourceManager::CreateDescriptorHeaps()
 {
 	D3D12_DESCRIPTOR_HEAP_DESC RTVHeapDesc;
 	RTVHeapDesc.NumDescriptors = SWAPCHAIN_BUFFERS_NUM;

@@ -11,9 +11,9 @@ constexpr int SWAPCHAIN_BUFFERS_NUM = 3;
 
 class FWindow;
 
-class FDXDeviceManager
+class FDXResourceManager
 {
-	SINGLETON(FDXDeviceManager);
+	SINGLETON(FDXResourceManager);
 public:
 	void Resize(UINT Width, UINT Height);
 	void FlushCommandQueue();
@@ -40,7 +40,6 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> DSVHeap;
 	Microsoft::WRL::ComPtr<ID3D12Resource> SwapChainBuffers[SWAPCHAIN_BUFFERS_NUM];
 	Microsoft::WRL::ComPtr<ID3D12Resource> DepthStencilBuffer;
-	FWindow* mWindow = nullptr;
 	UINT64 CurrentFence = 0;
 
 	D3D12_VIEWPORT ScreenViewport = {};

@@ -56,9 +56,6 @@
     <ClCompile Include="Sources\Runtime\World\World.cpp">
       <Filter>Sources\Runtime\World</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Render\DeferredRenderer.cpp">
-      <Filter>Sources\Render</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\Runtime\Object\Object.cpp">
       <Filter>Sources\Runtime\Object</Filter>
     </ClCompile>
@@ -71,16 +68,10 @@
     <ClCompile Include="Sources\Runtime\World\TestWorld.cpp">
       <Filter>Sources\Runtime\World</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Render\RendererBase.cpp">
-      <Filter>Sources\Render</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\Render\FrameResource.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Render\Material.cpp">
-      <Filter>Sources\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Render\ForwardRenderer.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Render\MeshGeometry.cpp">
@@ -157,12 +148,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Sources\Render\DeferredRenderer.h">
-      <Filter>Sources\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Render\ForwardRenderer.h">
-      <Filter>Sources\Render</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\Utility\Class.h">
       <Filter>Sources\Utility</Filter>
     </ClInclude>
@@ -195,9 +180,6 @@
     </ClInclude>
     <ClInclude Include="Sources\Runtime\World\TestWorld.h">
       <Filter>Sources\Runtime\World</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Render\RendererBase.h">
-      <Filter>Sources\Render</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Render\Material.h">
       <Filter>Sources\Render</Filter>

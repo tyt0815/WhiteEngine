@@ -26,7 +26,7 @@ int FTestApplication::Run()
 {
 	MSG msg = { 0 };
 	mTimer->Reset();
-	FDXDeviceManager* DeviceManager = FDXDeviceManager::GetInstance();
+	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
 	ID3D12Device* Device = DeviceManager->GetDevicePtr();
 	ID3D12GraphicsCommandList* CommandList = DeviceManager->GetCommandListPtr();
 	ID3D12CommandAllocator* CommandAllocator = DeviceManager->GetCommandAllocatorPtr();

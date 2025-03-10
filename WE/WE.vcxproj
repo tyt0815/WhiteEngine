@@ -19,12 +19,6 @@
     <ClCompile Include="Sources\GameFramework\InputSystem\InputSystem.cpp" />
     <ClCompile Include="Sources\Main.cpp" />
     <ClCompile Include="Sources\Render\DDSTextureLoader.cpp" />
-    <ClCompile Include="Sources\Render\DeferredRenderer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Sources\Render\ForwardRenderer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="Sources\Render\FrameResource.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
@@ -32,9 +26,6 @@
     <ClCompile Include="Sources\Render\Material.cpp" />
     <ClCompile Include="Sources\Render\MeshGeometry.cpp" />
     <ClCompile Include="Sources\Render\Renderer.cpp" />
-    <ClCompile Include="Sources\Render\RendererBase.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="Sources\Render\Texture.cpp" />
     <ClCompile Include="Sources\Runtime\Object\Actor.cpp" />
     <ClCompile Include="Sources\Runtime\Object\Billboard.cpp" />
@@ -67,9 +58,6 @@
     <ClInclude Include="Sources\GameFramework\Object\Component\CameraComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\SceneComponent.h" />
     <ClInclude Include="Sources\Render\DDSTextureLoader.h" />
-    <ClInclude Include="Sources\Render\DeferredRenderer.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="Sources\Render\FrameResource.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
@@ -77,12 +65,6 @@
     <ClInclude Include="Sources\Render\Material.h" />
     <ClInclude Include="Sources\Render\MeshGeometry.h" />
     <ClInclude Include="Sources\Render\Renderer.h" />
-    <ClInclude Include="Sources\Render\RendererBase.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Sources\Render\ForwardRenderer.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="Sources\Render\Texture.h" />
     <ClInclude Include="Sources\Render\UploadBuffer.h" />
     <ClInclude Include="Sources\Runtime\Object\Actor.h" />
