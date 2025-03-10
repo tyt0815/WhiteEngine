@@ -15,5 +15,5 @@ void AWaterBall::Tick(float Delta)
 	TextureTransform.Translation.y += 0.5f * Delta;
 	if (TextureTransform.Translation.x > 1.0f) TextureTransform.Translation.x -= 1.0f;
 	if (TextureTransform.Translation.y > 1.0f) TextureTransform.Translation.y -= 1.0f;
-	NumFramesDirty = NumFrameResources;
+	NumFramesDirty = FrameResourcesNum;
 }

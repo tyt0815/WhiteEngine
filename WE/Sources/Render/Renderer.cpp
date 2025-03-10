@@ -444,7 +444,7 @@ void FRenderer::BuildPipelineStateObject()
 void FRenderer::SetTargetFrameResource()
 {
 	// Cycle through the circular frame resource array.
-	TargetFrameResourceIndex = (TargetFrameResourceIndex + 1) % NumFrameResources;
+	TargetFrameResourceIndex = (TargetFrameResourceIndex + 1) % FrameResourcesNum;
 	TargetFrameResource = FrameResources[TargetFrameResourceIndex].get();
 
 	// Has the GPU finished processing the commands of the current frame resource?

@@ -1,9 +1,12 @@
 #pragma once
 #include <memory>
+#include <vector>
 #include "UploadBuffer.h"
 #include "DirectX/DXUtility.h"
 #include "DirectX/DXMath.h"
 #include "Utility/Class.h"
+
+constexpr std::uint32_t FRAME_RESOURCES_NUM = 3;
 
 struct FLight
 {
@@ -81,3 +84,12 @@ public:
 
 	UINT64 Fence = 0;
 };
+
+//class FFrameResourceManager
+//{
+//    SINGLETON(FFrameResourceManager)
+//public:
+//
+//private:
+//    std::vector<
+//};

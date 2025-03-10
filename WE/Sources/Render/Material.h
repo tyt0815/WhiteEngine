@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <memory>
 
-extern const int NumFrameResources;
+extern const int FrameResourcesNum;
 
 enum EMaterialType : UINT16
 {
@@ -45,7 +45,7 @@ public:
 	// Because we have a material constant buffer for each FrameResource, we have to apply the
 	// update to each FrameResource.  Thus, when we modify a material we should set 
 	// NumFramesDirty = gNumFrameResources so that each frame resource gets the update.
-	int NumFramesDirty = NumFrameResources;
+	int NumFramesDirty = FrameResourcesNum;
 
 	// Material constant buffer data used for shading.
 	DirectX::XMFLOAT4 DiffuseAlbedo = { 1.0f, 1.0f, 1.0f, 1.0f };

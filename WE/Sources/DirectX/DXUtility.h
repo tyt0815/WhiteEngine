@@ -11,7 +11,7 @@
 #include <wrl.h>
 #include "d3dx12.h"
 
-extern const int NumFrameResources;
+extern const int FrameResourcesNum;
 
 class FDXUtility
 {

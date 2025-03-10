@@ -17,5 +17,5 @@ void AFoliage::Tick(float Delta)
 {
 	Super::Tick(Delta);
 
-	NumFramesDirty = NumFrameResources;
+	NumFramesDirty = FrameResourcesNum;
 }

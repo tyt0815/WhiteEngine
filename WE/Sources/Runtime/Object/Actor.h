@@ -3,7 +3,7 @@
 #include "Object.h"
 #include <d3d12.h>
 
-extern const int NumFrameResources;
+extern const int FrameResourcesNum;
 
 class FMeshGeometry;
 class FMaterial;
@@ -29,7 +29,7 @@ public:
 	FMaterial* Material = nullptr;
 	FTransform TextureTransform = FTransform::Default;
 	D3D12_PRIMITIVE_TOPOLOGY PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-	int NumFramesDirty = NumFrameResources;
+	int NumFramesDirty = FrameResourcesNum;
 	UINT ObjectConstantBufferIndex = -1;
 	UINT IndexCount = 0;
 	UINT StartIndexLocation = 0;

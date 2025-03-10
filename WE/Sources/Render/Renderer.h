@@ -11,8 +11,6 @@
 class FDXResourceManager;
 class WWorld;
 
-constexpr int FRAME_RESOURCES_NUM = 3;
-
 class FRenderer : FNoncopyable
 {
 	enum class EPipelineState

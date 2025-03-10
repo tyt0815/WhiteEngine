@@ -2,7 +2,7 @@
 
 #include "DirectX/DXException.h"
 
-const int NumFrameResources = 3;
+const int FrameResourcesNum = FRAME_RESOURCES_NUM;
 
 FFrameResource::FFrameResource(ID3D12Device* Device, UINT PassCount, UINT ObjectCount, UINT MaterialCount)
 {
