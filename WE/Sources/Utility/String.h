@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stringapiset.h>
+#include <string>
 
 inline std::wstring AnsiToWString(const std::string& str)
 {

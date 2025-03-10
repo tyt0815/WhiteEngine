@@ -5,7 +5,7 @@
 AFoliage::AFoliage()
 {
 	FMeshGeometry::MeshGeometryMap& Geometries = FMeshGeometry::MeshGeometries;
-	Material = FMaterial::Materials[EMT_Foliage1].get();
+	Material = GetMaterialManager()->GetMaterial(EMT_Foliage1);
 	Geometry = Geometries["Points"].get();
 	TextureTransform.Scale = { 1.0f, 1.0f, 1.0f };
 	IndexCount = Geometry->DrawArgs["Points"].IndexCount;
@@ -17,5 +17,5 @@ void AFoliage::Tick(float Delta)
 {
 	Super::Tick(Delta);
 
-	NumFramesDirty = FrameResourcesNum;
+	DirtyFrameCount = FrameResourcesNum;
 }

@@ -4,5 +4,5 @@
 AWireFence::AWireFence():
 	Super()
 {
-	Material = FMaterial::Materials[EMaterialType::EMT_WireFence].get();
+	Material = GetMaterialManager()->GetMaterial(EMT_WireFence);
 }

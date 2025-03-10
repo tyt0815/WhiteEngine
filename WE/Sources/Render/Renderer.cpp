@@ -421,7 +421,6 @@ void FRenderer::BuildPipelineStateObject()
 void FRenderer::DrawActors(const std::vector<AActor*>& DrawTargets, FFrameResource* TargetFrameResource)
 {
 	int ActorCount = (int)DrawTargets.size();
-	int MaterialCount = (int)FMaterial::Materials.size();
 
 	ID3D12Resource* ObjectConstantBuffer = TargetFrameResource->ObjectConstantBuffer->Resource();
 	ID3D12Resource* MaterialConstantBuffer = TargetFrameResource->MaterialConstantBuffer->Resource();

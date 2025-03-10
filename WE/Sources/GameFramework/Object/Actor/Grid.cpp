@@ -5,7 +5,7 @@
 AGrid::AGrid()
 {
 	FMeshGeometry::MeshGeometryMap& Geometries = FMeshGeometry::MeshGeometries;
-	Material = FMaterial::Materials[EMT_Grass].get();
+	Material = GetMaterialManager()->GetMaterial(EMT_Grass);
 	Geometry = Geometries["Shape"].get();
 	TextureTransform.Scale = { 1.0f, 1.0f, 1.0f };
 	IndexCount = Geometry->DrawArgs["Grid"].IndexCount;

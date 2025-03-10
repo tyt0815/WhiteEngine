@@ -5,7 +5,7 @@
 ASkull::ASkull()
 {
 	FMeshGeometry::MeshGeometryMap& Geometries = FMeshGeometry::MeshGeometries;
-	Material = FMaterial::Materials[EMT_Skull].get();
+	Material = GetMaterialManager()->GetMaterial(EMT_Skull);
 	Geometry = Geometries["Skull"].get();
 	TextureTransform = FTransform::Default;
 	IndexCount = Geometry->DrawArgs["Skull"].IndexCount;

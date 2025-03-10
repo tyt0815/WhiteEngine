@@ -28,7 +28,6 @@ int FTestApplication::Run()
 	THROW_IF_FAILED(CommandList->Reset(CommandAllocator, nullptr));
 	FMeshGeometry::BuildMeshGeometries(Device, CommandList);
 	FTexture::LoadTexture(Device, CommandList);
-	FMaterial::BuildMaterial();
 	THROW_IF_FAILED(CommandList->Close());
 	ID3D12CommandList* CmdLists[] = { CommandList };
 	CommandQueue->ExecuteCommandLists(_countof(CmdLists), CmdLists);

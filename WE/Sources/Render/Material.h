@@ -1,14 +1,14 @@
 #pragma once
 
-#include "DirectX/DXMath.h"
-#include <string>
 #include <unordered_map>
 #include <memory>
-
-extern const int FrameResourcesNum;
+#include "DirectX/DXMath.h"
+#include "Utility/Class.h"
+#include "Utility/String.h"
 
 enum EMaterialType : UINT16
 {
+	EMT_Default,
 	EMT_Tile0,
 	EMT_Brick0,
 	EMT_Stone0,
@@ -17,39 +17,55 @@ enum EMaterialType : UINT16
 	EMT_WireFence,
 	EMT_Water,
 	EMT_Foliage1,
-	EMT_Default
+	EMT_None
 };
 
 class FMaterial
 {
 public:
-	
-public:
-	using MaterialMap = std::unordered_map<EMaterialType, std::unique_ptr<FMaterial>>;
-	static MaterialMap Materials;
-	static void BuildMaterial();
-
-	// Unique material name for lookup.
-	std::string Name;
-
-	// Index into constant buffer corresponding to this material.
+	EMaterialType Type;
 	int MatCBIndex = -1;
-
-	// Index into SRV heap for diffuse texture.
 	int DiffuseSrvHeapIndex = -1;
-
-	// Index into SRV heap for normal texture.
 	int NormalSrvHeapIndex = -1;
-
-	// Dirty flag indicating the material has changed and we need to update the constant buffer.
-	// Because we have a material constant buffer for each FrameResource, we have to apply the
-	// update to each FrameResource.  Thus, when we modify a material we should set 
-	// NumFramesDirty = gNumFrameResources so that each frame resource gets the update.
-	int NumFramesDirty = FrameResourcesNum;
-
-	// Material constant buffer data used for shading.
+	int DirtyFrameCount = -1;
 	DirectX::XMFLOAT4 DiffuseAlbedo = { 1.0f, 1.0f, 1.0f, 1.0f };
 	DirectX::XMFLOAT3 FresnelR0 = { 0.01f, 0.01f, 0.01f };
 	float Roughness = .25f;
 	DirectX::XMFLOAT4X4 MatTransform = FDXMath::Identity4x4();
+
+	friend class FMaterialManager;
 };
+
+class FMaterialManager
+{
+	SINGLETON(FMaterialManager);
+public:
+	
+private:
+	void BuildMaterials();
+	void BuildMaterial(
+		EMaterialType Type,
+		int DiffuseSrvHeapIndex,
+		int NormalSrvHeapIndex,
+		DirectX::XMFLOAT4 DiffuseAlbedo,
+		DirectX::XMFLOAT3 FresnelR0,
+		float Roughness,
+		DirectX::XMFLOAT4X4 MatTransform
+	);
+	std::vector<std::unique_ptr<FMaterial>> mMaterials;
+
+public:
+	inline FMaterial* GetMaterial(EMaterialType MaterialType)
+	{
+		return mMaterials[MaterialType].get();
+	}
+	inline FMaterial* GetMaterial(std::uint16_t i)
+	{
+		return mMaterials[i].get();
+	}
+};
+
+inline FMaterialManager* GetMaterialManager()
+{
+	return FMaterialManager::GetInstance();
+}

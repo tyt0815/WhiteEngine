@@ -19,7 +19,7 @@ FFrameResource::FFrameResource()
 	);
 	PassConstantBuffer = std::make_unique<TUploadBuffer<FPassConstants>>(Device, 1, true);
 	ObjectConstantBuffer = std::make_unique<TUploadBuffer<FObjectConstants>>(Device, (UINT)GetWorld()->GetAllActorsRef().size(), true);
-	MaterialConstantBuffer = std::make_unique<TUploadBuffer<FMaterialConstants>>(Device, (UINT)FMaterial::Materials.size(), true);
+	MaterialConstantBuffer = std::make_unique<TUploadBuffer<FMaterialConstants>>(Device, EMT_None, true);
 }
 
 void FFrameResource::Update()
@@ -33,9 +33,9 @@ void FFrameResource::Update()
 	{
 		ObjectConstantBuffer = std::make_unique<TUploadBuffer<FObjectConstants>>(Device, (UINT)GetWorld()->GetAllActorsRef().size(), true);
 	}
-	if (MaterialConstantBuffer->GetElementCount() < (UINT)FMaterial::Materials.size())
+	if (MaterialConstantBuffer->GetElementCount() < EMT_None)
 	{
-		MaterialConstantBuffer = std::make_unique<TUploadBuffer<FMaterialConstants>>(Device, (UINT)FMaterial::Materials.size(), true);
+		MaterialConstantBuffer = std::make_unique<TUploadBuffer<FMaterialConstants>>(Device, EMT_None, true);
 	}
 }
 
@@ -136,23 +136,23 @@ void FFrameResourceManager::UpdateObjectCB()
 	const auto& Actors = GetWorld()->GetAllActorsRef();
 	for (auto& Actor : Actors)
 	{
-		if (Actor->NumFramesDirty > 0)
+		if (Actor->DirtyFrameCount > 0)
 		{
 			FObjectConstants Constants;
 			XMStoreFloat4x4(&Constants.World, XMMatrixTranspose(Actor->GetWorldMatrix()));
 			XMStoreFloat4x4(&Constants.TexTransform, XMMatrixTranspose(Actor->GetTextureTransformMatrix()));
 			mTargetFrameResource->ObjectConstantBuffer->CopyData(Actor->ObjectConstantBufferIndex, Constants);
-			--Actor->NumFramesDirty;
+			--Actor->DirtyFrameCount;
 		}
 	}
 }
 
 void FFrameResourceManager::UpdateMaterialCB()
 {
-	for (auto& Item : FMaterial::Materials)
+	for (std::uint16_t i = 0; i < EMT_None; ++i)
 	{
-		FMaterial* Material = Item.second.get();
-		if (Material->NumFramesDirty > 0)
+		FMaterial* Material = GetMaterialManager()->GetMaterial(i);
+		if (Material->DirtyFrameCount > 0)
 		{
 			XMMATRIX MaterialTransform = XMLoadFloat4x4(&Material->MatTransform);
 			FMaterialConstants MaterialConstants;
@@ -162,7 +162,7 @@ void FFrameResourceManager::UpdateMaterialCB()
 			MaterialConstants.Roughness = Material->Roughness;
 
 			mTargetFrameResource->MaterialConstantBuffer->CopyData(Material->MatCBIndex, MaterialConstants);
-			--Material->NumFramesDirty;
+			--Material->DirtyFrameCount;
 		}
 	}
 }

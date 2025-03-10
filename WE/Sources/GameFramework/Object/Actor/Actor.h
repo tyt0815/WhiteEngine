@@ -29,7 +29,7 @@ public:
 	FMaterial* Material = nullptr;
 	FTransform TextureTransform = FTransform::Default;
 	D3D12_PRIMITIVE_TOPOLOGY PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-	int NumFramesDirty = FrameResourcesNum;
+	int DirtyFrameCount = FrameResourcesNum;
 	UINT ObjectConstantBufferIndex = -1;
 	UINT IndexCount = 0;
 	UINT StartIndexLocation = 0;
