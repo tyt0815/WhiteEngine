@@ -1,11 +1,14 @@
 #include "Timer.h"
 #include <Windows.h>
 
+UTimer gAppTimer;
+
 UTimer::UTimer()
 {
 	__int64 CountsPerSec;
 	QueryPerformanceFrequency((LARGE_INTEGER*)&CountsPerSec);
 	SecondsPerCount = 1.0 / (double)CountsPerSec;
+	Reset();
 }
 
 float UTimer::GetTotalTime() const

@@ -1,9 +1,5 @@
 #include "TestApplication.h"
 
-#include "DirectX/DXDeviceManager.h"
-#include "Render/Renderer.h"
-#include "Render/Texture.h"
-
 FTestApplication::FTestApplication()
 {
 
@@ -16,7 +12,6 @@ FTestApplication::~FTestApplication()
 
 bool FTestApplication::Initialize()
 {
-	mTimer = std::make_unique<UTimer>();
 	mWorld = std::make_unique<WTestWorld>();
 
 	return true;
@@ -25,7 +20,6 @@ bool FTestApplication::Initialize()
 int FTestApplication::Run()
 {
 	MSG msg = { 0 };
-	mTimer->Reset();
 	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
 	ID3D12Device* Device = DeviceManager->GetDevicePtr();
 	ID3D12GraphicsCommandList* CommandList = DeviceManager->GetCommandListPtr();
@@ -44,9 +38,8 @@ int FTestApplication::Run()
 	Camera = mWorld->GetCamera();
 	Camera->UpdateProjMatrix(0.25f * XM_PI, DeviceManager->GetAspectRatio(), 1.0f, 1000.0f);
 	FRenderer Renderer;
-	Renderer.Camera = Camera;
 	DeviceManager->Camera = Camera;
-	Renderer.Initialize(mWorld.get());
+	Renderer.Initialize();
 	while (msg.message != WM_QUIT)
 	{
 		// If there are Window messages then process them.
@@ -58,21 +51,23 @@ int FTestApplication::Run()
 		// Otherwise, do animation/game stuff.
 		else
 		{
-			mTimer->Tick();
-
+			GetAppTimer()->Tick();
 			if (!GetMainWindowPtr()->IsPaused())
 			{
-				mTimer->Start();
+				GetAppTimer()->Start();
 				CalculateFrameStats();
 				// TODO
 				//ProcessInput();
-				mWorld->Tick(mTimer->GetDeltaTime());
-				Renderer.Render(mTimer.get());
+				mWorld->Tick(GetAppTimer()->GetDeltaTime());
+				GetFrameResourceManager()->Tick();
+				FRenderData RenderData;
+				CreateRenderData(RenderData);
+				Renderer.Render(RenderData);
 				//Render(mTimer.get());
 			}
 			else
 			{
-				mTimer->Stop();
+				GetAppTimer()->Stop();
 				Sleep(100);
 			}
 		}
@@ -93,7 +88,7 @@ void FTestApplication::CalculateFrameStats()
 	frameCnt++;
 
 	// Compute averages over one second period.
-	if ((mTimer->GetTotalTime() - timeElapsed) >= 1.0f)
+	if ((GetAppTimer()->GetTotalTime() - timeElapsed) >= 1.0f)
 	{
 		float fps = (float)frameCnt; // fps = frameCnt / 1
 		float mspf = 1000.0f / fps;
@@ -104,7 +99,7 @@ void FTestApplication::CalculateFrameStats()
 		std::wstring windowText = GetMainWindowPtr()->GetWindowName() +
 			L"    fps: " + fpsStr +
 			L"   mspf: " + mspfStr +
-			L"TotalTime: " + std::to_wstring(mTimer->GetTotalTime()) +
+			L"TotalTime: " + std::to_wstring(GetAppTimer()->GetTotalTime()) +
 			L"ElapsedTime:" + std::to_wstring(timeElapsed);
 
 		SetWindowText(GetMainWindowPtr()->GetWindowHandle(), windowText.c_str());
@@ -113,4 +108,9 @@ void FTestApplication::CalculateFrameStats()
 		frameCnt = 0;
 		timeElapsed += 1.0f;
 	}
+}
+
+void FTestApplication::CreateRenderData(FRenderData& RenderData)
+{
+	RenderData.FrameResource = GetFrameResourceManager()->GetTargetFrameResource();
 }

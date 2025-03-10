@@ -8,8 +8,12 @@
 #include "Utility/Class.h"
 #include "FrameResource.h"
 
-class FDXResourceManager;
 class WWorld;
+
+struct FRenderData
+{
+	FFrameResource* FrameResource;
+};
 
 class FRenderer : FNoncopyable
 {
@@ -24,22 +28,16 @@ class FRenderer : FNoncopyable
 	};
 public:
 	FRenderer();
-	virtual bool Initialize(WWorld* InWorld);
-	virtual void Render(class UTimer* Timer);
-	class WViewCamera* Camera = nullptr;
+	virtual bool Initialize();
+	virtual void Render(const FRenderData& RenderData);
 
 private:
-	void BuildFrameResources();
 	void BuildDescriptorHeaps();
 	void BuildShaderResources();
 	void BuildRootSignature();
 	void BuildShaderAndInputLayout();
 	void BuildPipelineStateObject();
-	void SetTargetFrameResource();
-	void UpdatePassConstantBuffers(UTimer* Timer);
-	void UpdateObjectConstantBuffer();
-	void UpdateMaterialConstantBuffer();
-	void DrawActors(const std::vector<AActor*>& DrawTargets);
+	void DrawActors(const std::vector<AActor*>& DrawTargets, FFrameResource* TargetFrameResource);
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> SRVHeap;
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> RootSignature;
 	ID3D12Fence* Fence = nullptr;
@@ -47,8 +45,6 @@ private:
 	ID3D12CommandQueue* CommandQueue = nullptr;
 	ID3D12CommandAllocator* CommandAllocator = nullptr;
 	ID3D12GraphicsCommandList* CommandList = nullptr;
-	WWorld* World;
-	FFrameResource* TargetFrameResource = nullptr;
 	std::unordered_map<std::string, std::vector<D3D12_INPUT_ELEMENT_DESC>> InputLayouts;
 	std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3DBlob>> Shaders;
 	std::vector<std::unique_ptr<FFrameResource>> FrameResources;

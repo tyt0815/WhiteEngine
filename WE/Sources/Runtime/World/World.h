@@ -38,3 +38,10 @@ inline void WWorld::SpawnActor(EActorType ActorType, FTransform Transform)
 	Actors[(int)ActorType].push_back(Actor.get());
 	AllActors.push_back(move(Actor));
 }
+
+extern WWorld* gWorld;
+
+inline WWorld* GetWorld()
+{
+	return gWorld;
+}

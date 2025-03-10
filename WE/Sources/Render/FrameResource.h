@@ -74,7 +74,7 @@ struct FObjectConstants
 struct FFrameResource : FNoncopyable
 {
 public:
-	FFrameResource(ID3D12Device* Device, UINT PassCount, UINT ObjectCount, UINT MaterialCount);
+    FFrameResource();
 
     Microsoft::WRL::ComPtr<ID3D12CommandAllocator> CommandAllocator;
 
@@ -83,13 +83,48 @@ public:
 	std::unique_ptr<TUploadBuffer<FMaterialConstants>> MaterialConstantBuffer;
 
 	UINT64 Fence = 0;
+private:
+    void Update();
+
+    friend class FFrameResourceManager;
 };
 
-//class FFrameResourceManager
-//{
-//    SINGLETON(FFrameResourceManager)
-//public:
-//
-//private:
-//    std::vector<
-//};
+class FFrameResourceManager
+{
+    SINGLETON(FFrameResourceManager)
+public:
+    void Tick();
+
+private:
+    void SetTargetFrameResource();
+    void UpdatePassCB();
+    void UpdateObjectCB();
+    void UpdateMaterialCB();
+    std::vector<std::unique_ptr<FFrameResource>> mFrameResources;
+    FFrameResource* mTargetFrameResource = nullptr;
+    std::uint32_t mTargetFrameResourceIndex = 0;
+
+public:
+    inline FFrameResource* GetTargetFrameResource() const
+    {
+        return mTargetFrameResource;
+    }
+    inline void SetPassCBOfTargetFrame(int i, const FPassConstants& PassCB)
+    {
+        mTargetFrameResource->PassConstantBuffer->CopyData(i, PassCB);
+    }
+    inline void SetObjectCBOfTargetFrame(int i, const FObjectConstants& ObjectCB)
+    {
+        mTargetFrameResource->ObjectConstantBuffer->CopyData(i, ObjectCB);
+    }
+    inline void SetMaterialCBOfTargetFrame(int i, const FMaterialConstants& MaterialCB)
+    {
+        mTargetFrameResource->MaterialConstantBuffer->CopyData(i, MaterialCB);
+    }
+    
+};
+
+inline FFrameResourceManager* GetFrameResourceManager()
+{
+    return FFrameResourceManager::GetInstance();
+}

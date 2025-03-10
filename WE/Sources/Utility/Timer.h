@@ -25,3 +25,10 @@ private:
 
 	bool bStopped = false;
 };
+
+extern UTimer gAppTimer;
+
+inline UTimer* GetAppTimer()
+{
+	return &gAppTimer;
+}

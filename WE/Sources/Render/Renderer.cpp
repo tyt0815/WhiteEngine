@@ -10,7 +10,6 @@
 #include "DirectX/DXUtility.h"
 #include "Utility/Timer.h"
 #include "Runtime/World/World.h"
-//#include "Runtime/Object/ViewCamera.h"
 
 FRenderer::FRenderer()
 {
@@ -22,11 +21,8 @@ FRenderer::FRenderer()
 	Fence = DeviceManager->GetFencePtr();
 }
 
-bool FRenderer::Initialize(WWorld* InWorld)
+bool FRenderer::Initialize()
 {
-	World = InWorld;
-
-	BuildFrameResources();
 	BuildDescriptorHeaps();
 	BuildShaderResources();
 	BuildRootSignature();
@@ -36,15 +32,11 @@ bool FRenderer::Initialize(WWorld* InWorld)
 	return true;
 }
 
-void FRenderer::Render(class UTimer* Timer)
+void FRenderer::Render(const FRenderData& RenderData)
 {
-	SetTargetFrameResource();
-
-	UpdatePassConstantBuffers(Timer);
-	UpdateObjectConstantBuffer();
-	UpdateMaterialConstantBuffer();
-
-	auto TargetCommandAllocator = TargetFrameResource->CommandAllocator.Get();
+	FFrameResource* TargetFrameResource = RenderData.FrameResource;
+	ID3D12CommandAllocator* TargetCommandAllocator = RenderData.FrameResource->CommandAllocator.Get();
+	WWorld* World = GetWorld();
 
 	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
 	ID3D12Resource* RenderTarget = DeviceManager->GetCurrentBackBufferPtr();
@@ -93,7 +85,7 @@ void FRenderer::Render(class UTimer* Timer)
 		{
 			CommandList->SetPipelineState(PipelineStateObjects[(int)EPipelineState::EPS_WireFrame].Get());
 		}
-		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Opaque]);
+		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Opaque], TargetFrameResource);
 	}
 
 	{
@@ -105,7 +97,7 @@ void FRenderer::Render(class UTimer* Timer)
 		{
 			CommandList->SetPipelineState(PipelineStateObjects[(int)EPipelineState::EPS_WireFrame].Get());
 		}
-		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_AlphaTest]);
+		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_AlphaTest], TargetFrameResource);
 	}
 
 	{
@@ -117,7 +109,7 @@ void FRenderer::Render(class UTimer* Timer)
 		{
 			CommandList->SetPipelineState(PipelineStateObjects[(int)EPipelineState::EPS_WireFrame].Get());
 		}
-		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Billboard]);
+		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Billboard], TargetFrameResource);
 	}
 
 	{
@@ -129,7 +121,7 @@ void FRenderer::Render(class UTimer* Timer)
 		{
 			CommandList->SetPipelineState(PipelineStateObjects[(int)EPipelineState::EPS_WireFrame].Get());
 		}
-		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Transparency]);
+		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Transparency], TargetFrameResource);
 	}
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -149,21 +141,6 @@ void FRenderer::Render(class UTimer* Timer)
 	DeviceManager->SignalFence();
 	DeviceManager->PresentAndSwapBuffer();
 	TargetFrameResource->Fence = DeviceManager->GetCurrentFence();
-}
-
-void FRenderer::BuildFrameResources()
-{
-	for (int i = 0; i < FRAME_RESOURCES_NUM; ++i)
-	{
-		FrameResources.push_back(
-			std::make_unique<FFrameResource>(
-				Device,
-				1u,
-				(UINT)World->GetAllActorsRef().size(),
-				(UINT)FMaterial::Materials.size()
-			)
-		);
-	}
 }
 
 void FRenderer::BuildDescriptorHeaps()
@@ -441,110 +418,7 @@ void FRenderer::BuildPipelineStateObject()
 	}
 }
 
-void FRenderer::SetTargetFrameResource()
-{
-	// Cycle through the circular frame resource array.
-	TargetFrameResourceIndex = (TargetFrameResourceIndex + 1) % FrameResourcesNum;
-	TargetFrameResource = FrameResources[TargetFrameResourceIndex].get();
-
-	// Has the GPU finished processing the commands of the current frame resource?
-	// If not, wait until the GPU has completed commands up to this fence point.
-	if (TargetFrameResource->Fence != 0 && Fence->GetCompletedValue() < TargetFrameResource->Fence)
-	{
-		HANDLE eventHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
-		THROW_IF_FAILED(Fence->SetEventOnCompletion(TargetFrameResource->Fence, eventHandle));
-		WaitForSingleObject(eventHandle, INFINITE);
-		CloseHandle(eventHandle);
-	}
-}
-
-void FRenderer::UpdatePassConstantBuffers(UTimer* Timer)
-{
-	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
-
-	Camera->UpdateViewMatrix();
-	// Build the view matrix.
-	XMVECTOR target = XMVectorZero();
-	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-
-	XMMATRIX view = Camera->GetViewMatrix();
-	XMMATRIX InvView = FDXMath::GetInverseMatrix(view);
-	XMMATRIX proj = Camera->GetProjMatrix();
-	XMMATRIX InvProj = FDXMath::GetInverseMatrix(proj);
-	XMMATRIX ViewProj = view * proj;
-	XMMATRIX InvViewProj = FDXMath::GetInverseMatrix(ViewProj);
-
-	FPassConstants PassConstants;
-	XMStoreFloat4x4(&PassConstants.View, XMMatrixTranspose(view));
-	XMStoreFloat4x4(&PassConstants.InvView, XMMatrixTranspose(InvView));
-	XMStoreFloat4x4(&PassConstants.Proj, XMMatrixTranspose(proj));
-	XMStoreFloat4x4(&PassConstants.InvProj, XMMatrixTranspose(InvProj));
-	XMStoreFloat4x4(&PassConstants.ViewProj, XMMatrixTranspose(ViewProj));
-	XMStoreFloat4x4(&PassConstants.InvViewProj, XMMatrixTranspose(InvViewProj));
-	PassConstants.EyePosW = Camera->GetTranslation();
-	D3D12_VIEWPORT Viewport = DeviceManager->GetScreenViewport();
-	float Width = static_cast<float>(Viewport.Width);
-	float Height = static_cast<float>(Viewport.Height);
-	PassConstants.RenderTargetSize = XMFLOAT2(Width, Height);
-	PassConstants.InvRenderTargetSize = XMFLOAT2(1.0f / Width, 1.0f / Height);
-	PassConstants.NearZ = 1.0f;
-	PassConstants.FarZ = 1000.0f;
-	PassConstants.TotalTime = Timer->GetTotalTime();
-	PassConstants.DeltaTime = Timer->GetDeltaTime();
-
-	PassConstants.AmbientLight = { 0.25f, 0.25f, 0.35f, 1.0f };
-
-	PassConstants.FogColor = XMFLOAT4(Colors::LightSkyBlue);
-	PassConstants.FogStart = 200.0f;
-	PassConstants.FogRange = 100.0f;
-
-	PassConstants.Lights[0].Direction = { 0.57735f, -0.57735f, 0.57735f };
-	PassConstants.Lights[0].Strength = { 1.2f, 1.2f, 1.2f };
-	PassConstants.Lights[1].Direction = { -0.57735f, -0.57735f, 0.57735f };
-	PassConstants.Lights[1].Strength = { 0.3f, 0.3f, 0.3f };
-	PassConstants.Lights[2].Direction = { 0.0f, -0.707f, -0.707f };
-	PassConstants.Lights[2].Strength = { 0.15f, 0.15f, 0.15f };
-
-	TargetFrameResource->PassConstantBuffer->CopyData(0, PassConstants);
-}
-
-void FRenderer::UpdateObjectConstantBuffer()
-{
-	const auto& Actors = World->GetAllActorsRef();
-	for (auto& Actor : Actors)
-	{
-		if (Actor->NumFramesDirty > 0)
-		{
-			FObjectConstants Constants;
-			XMStoreFloat4x4(&Constants.World, XMMatrixTranspose(Actor->GetWorldMatrix()));
-			XMStoreFloat4x4(&Constants.TexTransform, XMMatrixTranspose(Actor->GetTextureTransformMatrix()));
-			TargetFrameResource->ObjectConstantBuffer->CopyData(Actor->ObjectConstantBufferIndex, Constants);
-			--Actor->NumFramesDirty;
-		}
-	}
-}
-
-void FRenderer::UpdateMaterialConstantBuffer()
-{
-	for (auto& Item : FMaterial::Materials)
-	{
-		FMaterial* Material = Item.second.get();
-		if (Material->NumFramesDirty > 0)
-		{
-			XMMATRIX MaterialTransform = XMLoadFloat4x4(&Material->MatTransform);
-			FMaterialConstants MaterialConstants;
-			MaterialConstants.DiffuseAlbedo = Material->DiffuseAlbedo;
-			MaterialConstants.FresnelR0 = Material->FresnelR0;
-			XMStoreFloat4x4(&MaterialConstants.MatTransform, XMMatrixTranspose(MaterialTransform));
-			MaterialConstants.Roughness = Material->Roughness;
-
-			TargetFrameResource->MaterialConstantBuffer->CopyData(Material->MatCBIndex, MaterialConstants);
-			--Material->NumFramesDirty;
-		}
-	}
-}
-
-void FRenderer::DrawActors(const std::vector<AActor*>& DrawTargets)
+void FRenderer::DrawActors(const std::vector<AActor*>& DrawTargets, FFrameResource* TargetFrameResource)
 {
 	int ActorCount = (int)DrawTargets.size();
 	int MaterialCount = (int)FMaterial::Materials.size();

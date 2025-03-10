@@ -8,7 +8,8 @@ class TUploadBuffer
 {
 public:
     TUploadBuffer(ID3D12Device* device, UINT elementCount, bool isConstantBuffer) :
-        mIsConstantBuffer(isConstantBuffer)
+        mIsConstantBuffer(isConstantBuffer),
+        mElementCount(elementCount)
     {
         mElementByteSize = sizeof(T);
 
@@ -23,7 +24,7 @@ public:
             mElementByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(T));
 
         CD3DX12_HEAP_PROPERTIES HeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-        D3D12_RESOURCE_DESC BufferDesc = CD3DX12_RESOURCE_DESC::Buffer(mElementByteSize * elementCount);
+        D3D12_RESOURCE_DESC BufferDesc = CD3DX12_RESOURCE_DESC::Buffer(mElementByteSize * mElementCount);
         THROW_IF_FAILED(device->CreateCommittedResource(
             &HeapProperties,
             D3D12_HEAP_FLAG_NONE,
@@ -61,7 +62,13 @@ public:
 private:
     Microsoft::WRL::ComPtr<ID3D12Resource> mUploadBuffer;
     BYTE* mMappedData = nullptr;
-
+    UINT mElementCount = 0;
     UINT mElementByteSize = 0;
     bool mIsConstantBuffer = false;
+
+public:
+    inline UINT GetElementCount() const
+    {
+        return mElementCount;
+    }
 };
