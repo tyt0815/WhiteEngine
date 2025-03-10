@@ -32,13 +32,10 @@ public:
 	virtual void Render(const FRenderData& RenderData);
 
 private:
-	void BuildDescriptorHeaps();
-	void BuildShaderResources();
 	void BuildRootSignature();
 	void BuildShaderAndInputLayout();
 	void BuildPipelineStateObject();
 	void DrawActors(const std::vector<AActor*>& DrawTargets, FFrameResource* TargetFrameResource);
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> SRVHeap;
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> RootSignature;
 	ID3D12Fence* Fence = nullptr;
 	ID3D12Device* Device = nullptr;

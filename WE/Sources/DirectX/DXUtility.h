@@ -28,6 +28,7 @@ public:
 		const D3D_SHADER_MACRO* defines,
 		const std::string& entrypoint,
 		const std::string& target);
+    static void FlushCommandQueue(ID3D12CommandQueue* CommandQueue, ID3D12Fence* Fence, std::uint64_t& FenceCount);
     inline static UINT CalcConstantBufferByteSize(UINT byteSize)
     {
         // Constant buffers must be a multiple of the minimum hardware

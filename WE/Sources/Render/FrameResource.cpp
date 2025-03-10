@@ -18,7 +18,7 @@ FFrameResource::FFrameResource()
 		)
 	);
 	PassConstantBuffer = std::make_unique<TUploadBuffer<FPassConstants>>(Device, 1, true);
-	ObjectConstantBuffer = std::make_unique<TUploadBuffer<FObjectConstants>>(Device, (UINT)GetWorld()->GetAllActorsRef().size(), true);
+	ObjectConstantBuffer = std::make_unique<TUploadBuffer<FObjectConstants>>(Device, 1, true);
 	MaterialConstantBuffer = std::make_unique<TUploadBuffer<FMaterialConstants>>(Device, EMT_None, true);
 }
 

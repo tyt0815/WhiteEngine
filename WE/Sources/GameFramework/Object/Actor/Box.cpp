@@ -4,11 +4,10 @@
 
 ABox::ABox():Super()
 {
-	FMeshGeometry::MeshGeometryMap& Geometries = FMeshGeometry::MeshGeometries;
 	Material = GetMaterialManager()->GetMaterial(EMT_Stone0);
-	Geometry = Geometries["Shape"].get();
 	TextureTransform.Scale = { 1.0f, 1.0f, 1.0f };
-	IndexCount = Geometry->DrawArgs["Box"].IndexCount;
-	StartIndexLocation = Geometry->DrawArgs["Box"].StartIndexLocation;
-	BaseVertexLocation = Geometry->DrawArgs["Box"].BaseVertexLocation;
+	Geometry = GetMeshGeometryManager()->GetMeshGeometry(EMGT_Box);
+	IndexCount = Geometry->DrawArgs[0].IndexCount;
+	StartIndexLocation = Geometry->DrawArgs[0].StartIndexLocation;
+	BaseVertexLocation = Geometry->DrawArgs[0].BaseVertexLocation;
 }

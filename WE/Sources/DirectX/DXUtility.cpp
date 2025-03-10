@@ -105,3 +105,27 @@ Microsoft::WRL::ComPtr<ID3DBlob> FDXUtility::CompileShader(
 
 	return byteCode;
 }
+
+void FDXUtility::FlushCommandQueue(ID3D12CommandQueue* CommandQueue, ID3D12Fence* Fence, std::uint64_t& FenceCount)
+{
+    // Advance the fence value to mark commands up to this fence point.
+    ++FenceCount;
+
+    // Add an instruction to the command queue to set a new fence point.  Because we 
+    // are on the GPU timeline, the new fence point won't be set until the GPU finishes
+    // processing all the commands prior to this Signal().
+    THROW_IF_FAILED(CommandQueue->Signal(Fence, FenceCount));
+
+    // Wait until the GPU has completed commands up to this fence point.
+    if (Fence->GetCompletedValue() < FenceCount)
+    {
+        HANDLE eventHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
+
+        // Fire event when GPU hits current fence.  
+        THROW_IF_FAILED(Fence->SetEventOnCompletion(FenceCount, eventHandle));
+
+        // Wait until the GPU hits current fence event is fired.
+        WaitForSingleObject(eventHandle, INFINITE);
+        CloseHandle(eventHandle);
+    }
+}

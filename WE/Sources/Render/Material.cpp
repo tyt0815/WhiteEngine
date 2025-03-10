@@ -5,6 +5,8 @@
 
 extern const int FrameResourcesNum;
 
+//FMaterialManager* gMaterialManager = GetMaterialManager();
+
 FMaterialManager::FMaterialManager()
 {
 	BuildMaterials();

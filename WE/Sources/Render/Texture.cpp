@@ -2,108 +2,7 @@
 
 #include "DDSTextureLoader.h"
 #include "DirectX/DXException.h"
-#include "DirectX/DXUtility.h"
-
-FTexture::TextureMap FTexture::Textures = FTexture::TextureMap();
-
-void FTexture::LoadTexture(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
-{
-	auto White = std::make_unique<FTexture>();
-	White->Name = "White";
-	White->Filename = L"./Textures/White.dds";
-	THROW_IF_FAILED(DirectX::CreateDDSTextureFromFile12(Device,
-		CommandList, White->Filename.c_str(),
-		White->Resource, White->UploadHeap));
-
-	Textures[ETT_White] = std::move(White);
-
-	auto woodCrateTex = std::make_unique<FTexture>();
-	woodCrateTex->Name = "woodCrateTex";
-	woodCrateTex->Filename = L"./Textures/WoodCrate01.dds";
-	THROW_IF_FAILED(DirectX::CreateDDSTextureFromFile12(Device,
-		CommandList, woodCrateTex->Filename.c_str(),
-		woodCrateTex->Resource, woodCrateTex->UploadHeap));
-
-	Textures[ETT_WoodCrate] = std::move(woodCrateTex);
-
-	auto Brick3Tex = std::make_unique<FTexture>();
-	Brick3Tex->Name = "Brick3Tex";
-	Brick3Tex->Filename = L"./Textures/bricks3.dds";
-	THROW_IF_FAILED(DirectX::CreateDDSTextureFromFile12(Device,
-		CommandList, Brick3Tex->Filename.c_str(),
-		Brick3Tex->Resource, Brick3Tex->UploadHeap));
-
-	Textures[ETT_Bricks3] = std::move(Brick3Tex);
-
-	auto Stone = std::make_unique<FTexture>();
-	Stone->Name = "Stone";
-	Stone->Filename = L"./Textures/stone.dds";
-	THROW_IF_FAILED(DirectX::CreateDDSTextureFromFile12(Device,
-		CommandList, Stone->Filename.c_str(),
-		Stone->Resource, Stone->UploadHeap));
-
-	Textures[ETT_Stone] = std::move(Stone);
-
-	auto Tile = std::make_unique<FTexture>();
-	Tile->Name = "Tile";
-	Tile->Filename = L"./Textures/tile.dds";
-	THROW_IF_FAILED(DirectX::CreateDDSTextureFromFile12(Device,
-		CommandList, Tile->Filename.c_str(),
-		Tile->Resource, Tile->UploadHeap));
-
-	Textures[ETT_Tile] = std::move(Tile);
-
-	auto Grass = std::make_unique<FTexture>();
-	Grass->Name = "Grass";
-	Grass->Filename = L"./Textures/grass.dds";
-	THROW_IF_FAILED(DirectX::CreateDDSTextureFromFile12(Device,
-		CommandList, Grass->Filename.c_str(),
-		Grass->Resource, Grass->UploadHeap));
-
-	Textures[ETT_Grass] = std::move(Grass);
-
-	auto WireFence = std::make_unique<FTexture>();
-	WireFence->Name = "WireFence";
-	WireFence->Filename = L"./Textures/WireFence.dds";
-	THROW_IF_FAILED(DirectX::CreateDDSTextureFromFile12(Device,
-		CommandList, WireFence->Filename.c_str(),
-		WireFence->Resource, WireFence->UploadHeap));
-
-	Textures[ETT_WireFence] = std::move(WireFence);
-
-	auto WaterTex = std::make_unique<FTexture>();
-	WaterTex->Name = "WaterTex";
-	WaterTex->Filename = L"./Textures/water1.dds";
-	THROW_IF_FAILED(DirectX::CreateDDSTextureFromFile12(Device,
-		CommandList, WaterTex->Filename.c_str(),
-		WaterTex->Resource, WaterTex->UploadHeap));
-
-	Textures[ETT_Water] = std::move(WaterTex);
-
-	auto Foliage1 = std::make_unique<FTexture>();
-	Foliage1->Name = "Foliage1";
-	Foliage1->Filename = L"./Textures/Foliage1.dds";
-	THROW_IF_FAILED(DirectX::CreateDDSTextureFromFile12(Device,
-		CommandList, Foliage1->Filename.c_str(),
-		Foliage1->Resource, Foliage1->UploadHeap));
-	Textures[ETT_Foliage1] = std::move(Foliage1);
-
-	auto Foliage2 = std::make_unique<FTexture>();
-	Foliage2->Name = "Foliage2";
-	Foliage2->Filename = L"./Textures/Foliage2.dds";
-	THROW_IF_FAILED(DirectX::CreateDDSTextureFromFile12(Device,
-		CommandList, Foliage2->Filename.c_str(),
-		Foliage2->Resource, Foliage2->UploadHeap));
-	Textures[ETT_Foliage2] = std::move(Foliage2);
-
-	auto DefualtTex = std::make_unique<FTexture>();
-	DefualtTex->Name = "Default";
-	DefualtTex->Filename = L"./Textures/checkboard.dds";
-	THROW_IF_FAILED(DirectX::CreateDDSTextureFromFile12(Device,
-		CommandList, DefualtTex->Filename.c_str(),
-		DefualtTex->Resource, DefualtTex->UploadHeap));
-	Textures[ETT_Default] = std::move(DefualtTex);
-}
+#include "DirectX/DXResourceManager.h"
 
 std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> FTexture::GetStaticSamplers()
 {
@@ -159,3 +58,87 @@ std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> FTexture::GetStaticSamplers()
 		anisotropicWrap, anisotropicClamp 
 	};
 }
+
+FTextureManager::FTextureManager():
+	mTextures(ETT_None)
+{
+	FDXResourceManager* DRM = GetDXResourceManagerPtr();
+	DRM->FlushAndExecuteCommand(&FTextureManager::LoadTextures, this);
+	BuildShaderResourceDescriptorHeap();
+	BuildShaderResource();
+}
+
+FTextureManager::~FTextureManager()
+{
+
+}
+
+void FTextureManager::LoadTextures(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
+{
+	LoadTexture(ETT_Default, L"./Textures/checkboard.dds", Device, CommandList);
+	LoadTexture(ETT_White, L"./Textures/White.dds", Device, CommandList);
+	LoadTexture(ETT_WoodCrate, L"./Textures/WoodCrate01.dds", Device, CommandList);
+	LoadTexture(ETT_Bricks3, L"./Textures/bricks3.dds", Device, CommandList);
+	LoadTexture(ETT_Stone, L"./Textures/stone.dds", Device, CommandList);
+	LoadTexture(ETT_Tile, L"./Textures/tile.dds", Device, CommandList);
+	LoadTexture(ETT_Grass, L"./Textures/grass.dds", Device, CommandList);
+	LoadTexture(ETT_WireFence, L"./Textures/WireFence.dds", Device, CommandList);
+	LoadTexture(ETT_Water, L"./Textures/water1.dds", Device, CommandList);
+	LoadTexture(ETT_Foliage1, L"./Textures/Foliage1.dds", Device, CommandList);
+	LoadTexture(ETT_Foliage2, L"./Textures/Foliage2.dds", Device, CommandList);
+}
+
+void FTextureManager::LoadTexture(ETextureType Type, std::wstring Filename, ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
+{
+	std::unique_ptr<FTexture> Texture = std::make_unique<FTexture>();
+	Texture->Type = Type;
+	Texture->Filename = Filename;
+	THROW_IF_FAILED(
+		DirectX::CreateDDSTextureFromFile12(
+			Device,
+			CommandList, 
+			Texture->Filename.c_str(),
+			Texture->Resource, 
+			Texture->UploadHeap
+		)
+	);
+	mTextures[Type] = std::move(Texture);
+}
+
+void FTextureManager::BuildShaderResourceDescriptorHeap()
+{
+	FDXResourceManager* DRM = GetDXResourceManagerPtr();
+	ID3D12Device* Device = DRM->GetDevicePtr();
+	D3D12_DESCRIPTOR_HEAP_DESC SRVHeapDesc;
+	ZeroMemory(&SRVHeapDesc, sizeof(D3D12_DESCRIPTOR_HEAP_DESC));
+	SRVHeapDesc.NumDescriptors = ETT_None;
+	SRVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	SRVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	THROW_IF_FAILED(
+		Device->CreateDescriptorHeap(
+			&SRVHeapDesc,
+			IID_PPV_ARGS(mSRVHeap.GetAddressOf())
+		)
+	);
+}
+
+void FTextureManager::BuildShaderResource()
+{
+
+	for (int i = 0; i < mTextures.size(); ++i)
+	{
+		FTexture* Texture = mTextures[i].get();
+		auto TextureBuffer = Texture->Resource;
+		CD3DX12_CPU_DESCRIPTOR_HANDLE SRVHandle(mSRVHeap->GetCPUDescriptorHandleForHeapStart());
+		SRVHandle.Offset(Texture->Type, FDXResourceManager::GetInstance()->GetCBVSRVUAVDescriptorSize());
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srvDesc.Format = TextureBuffer->GetDesc().Format;
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MostDetailedMip = 0;
+		srvDesc.Texture2D.MipLevels = TextureBuffer->GetDesc().MipLevels;
+		srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+		GetDXResourceManagerPtr()->GetDevicePtr()->CreateShaderResourceView(TextureBuffer.Get(), &srvDesc, SRVHandle);
+	}
+}
+

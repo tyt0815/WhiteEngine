@@ -23,8 +23,6 @@ FRenderer::FRenderer()
 
 bool FRenderer::Initialize()
 {
-	BuildDescriptorHeaps();
-	BuildShaderResources();
 	BuildRootSignature();
 	BuildShaderAndInputLayout();
 	BuildPipelineStateObject();
@@ -68,7 +66,7 @@ void FRenderer::Render(const FRenderData& RenderData)
 	// Render
 
 	// Pass Constantbuffer
-	ID3D12DescriptorHeap* descriptorHeaps[] = { SRVHeap.Get() };
+	ID3D12DescriptorHeap* descriptorHeaps[] = { GetTextureManager()->GetSRVHeapPtr() };
 	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 	CommandList->SetGraphicsRootSignature(RootSignature.Get());
 
@@ -137,42 +135,6 @@ void FRenderer::Render(const FRenderData& RenderData)
 
 	ID3D12CommandList* CommandLists[] = { CommandList };
 	CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
-}
-
-void FRenderer::BuildDescriptorHeaps()
-{
-	// Build SRVHeap
-	D3D12_DESCRIPTOR_HEAP_DESC SRVHeapDesc;
-	ZeroMemory(&SRVHeapDesc, sizeof(D3D12_DESCRIPTOR_HEAP_DESC));
-	SRVHeapDesc.NumDescriptors = (UINT)FTexture::Textures.size();
-	SRVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	SRVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	THROW_IF_FAILED(Device->CreateDescriptorHeap(&SRVHeapDesc, IID_PPV_ARGS(SRVHeap.GetAddressOf())));
-}
-
-void FRenderer::BuildShaderResources()
-{
-	//
-	// Fill out the heap with actual descriptors.
-	//
-
-	for (auto& Item : FTexture::Textures)
-	{
-		auto TextureBuffer = Item.second->Resource;
-
-		CD3DX12_CPU_DESCRIPTOR_HANDLE SRVHandle(SRVHeap->GetCPUDescriptorHandleForHeapStart());
-		SRVHandle.Offset(Item.first, FDXResourceManager::GetInstance()->GetCBVSRVUAVDescriptorSize());
-
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srvDesc.Format = TextureBuffer->GetDesc().Format;
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-		srvDesc.Texture2D.MostDetailedMip = 0;
-		srvDesc.Texture2D.MipLevels = TextureBuffer->GetDesc().MipLevels;
-		srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
-
-		Device->CreateShaderResourceView(TextureBuffer.Get(), &srvDesc, SRVHandle);
-	}
 }
 
 void FRenderer::BuildRootSignature()
@@ -417,6 +379,7 @@ void FRenderer::BuildPipelineStateObject()
 void FRenderer::DrawActors(const std::vector<AActor*>& DrawTargets, FFrameResource* TargetFrameResource)
 {
 	int ActorCount = (int)DrawTargets.size();
+	ID3D12DescriptorHeap* SRVHeap = GetTextureManager()->GetSRVHeapPtr();
 
 	ID3D12Resource* ObjectConstantBuffer = TargetFrameResource->ObjectConstantBuffer->Resource();
 	ID3D12Resource* MaterialConstantBuffer = TargetFrameResource->MaterialConstantBuffer->Resource();

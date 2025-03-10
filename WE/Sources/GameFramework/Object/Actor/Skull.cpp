@@ -4,11 +4,10 @@
 
 ASkull::ASkull()
 {
-	FMeshGeometry::MeshGeometryMap& Geometries = FMeshGeometry::MeshGeometries;
 	Material = GetMaterialManager()->GetMaterial(EMT_Skull);
-	Geometry = Geometries["Skull"].get();
 	TextureTransform = FTransform::Default;
-	IndexCount = Geometry->DrawArgs["Skull"].IndexCount;
-	StartIndexLocation = Geometry->DrawArgs["Skull"].StartIndexLocation;
-	BaseVertexLocation = Geometry->DrawArgs["Skull"].BaseVertexLocation;
+	Geometry = GetMeshGeometryManager()->GetMeshGeometry(EMGT_Skull);
+	IndexCount = Geometry->DrawArgs[0].IndexCount;
+	StartIndexLocation = Geometry->DrawArgs[0].StartIndexLocation;
+	BaseVertexLocation = Geometry->DrawArgs[0].BaseVertexLocation;
 }

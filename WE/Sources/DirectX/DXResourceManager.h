@@ -3,8 +3,9 @@
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include <wrl.h>
-
-#include "DirectX/DXUtility.h"
+#include <functional>
+#include "DXException.h"
+#include "DXUtility.h"
 #include "Utility/Class.h"
 
 constexpr int SWAPCHAIN_BUFFERS_NUM = 3;
@@ -16,7 +17,9 @@ class FDXResourceManager
 	SINGLETON(FDXResourceManager);
 public:
 	void Resize(UINT Width, UINT Height);
-	//void 
+	void FlushAndExecuteCommand(void(*CommandFunction)(ID3D12Device*, ID3D12GraphicsCommandList*));
+	template<typename T>
+	void FlushAndExecuteCommand(void(T::*CommandFunction)(ID3D12Device*, ID3D12GraphicsCommandList*), T* ObjectPtr);
 	void FlushCommandQueue();
 
 	// TODO
@@ -141,4 +144,18 @@ public:
 inline FDXResourceManager* GetDXResourceManagerPtr()
 {
 	return FDXResourceManager::GetInstance();
+}
+
+template<typename T>
+inline void FDXResourceManager::FlushAndExecuteCommand(void(T::* CommandFunction)(ID3D12Device*, ID3D12GraphicsCommandList*), T* ObjectPtr)
+{
+	std::function<void(ID3D12Device*, ID3D12GraphicsCommandList*)> BoundFunction =
+		std::bind(CommandFunction, ObjectPtr, std::placeholders::_1, std::placeholders::_2);
+
+	FlushCommandQueue();
+	THROW_IF_FAILED(CommandList->Reset(CommandAllocator.Get(), nullptr));
+	BoundFunction(Device.Get(), CommandList.Get());
+	THROW_IF_FAILED(CommandList->Close());
+	ID3D12CommandList* CmdLists[] = { CommandList.Get() };
+	CommandQueue->ExecuteCommandLists(_countof(CmdLists), CmdLists);
 }

@@ -4,11 +4,10 @@
 
 AGrid::AGrid()
 {
-	FMeshGeometry::MeshGeometryMap& Geometries = FMeshGeometry::MeshGeometries;
 	Material = GetMaterialManager()->GetMaterial(EMT_Grass);
-	Geometry = Geometries["Shape"].get();
 	TextureTransform.Scale = { 1.0f, 1.0f, 1.0f };
-	IndexCount = Geometry->DrawArgs["Grid"].IndexCount;
-	StartIndexLocation = Geometry->DrawArgs["Grid"].StartIndexLocation;
-	BaseVertexLocation = Geometry->DrawArgs["Grid"].BaseVertexLocation;
+	Geometry = GetMeshGeometryManager()->GetMeshGeometry(EMGT_Grid);
+	IndexCount = Geometry->DrawArgs[0].IndexCount;
+	StartIndexLocation = Geometry->DrawArgs[0].StartIndexLocation;
+	BaseVertexLocation = Geometry->DrawArgs[0].BaseVertexLocation;
 }

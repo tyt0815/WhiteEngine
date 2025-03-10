@@ -4,13 +4,12 @@
 
 AFoliage::AFoliage()
 {
-	FMeshGeometry::MeshGeometryMap& Geometries = FMeshGeometry::MeshGeometries;
 	Material = GetMaterialManager()->GetMaterial(EMT_Foliage1);
-	Geometry = Geometries["Points"].get();
 	TextureTransform.Scale = { 1.0f, 1.0f, 1.0f };
-	IndexCount = Geometry->DrawArgs["Points"].IndexCount;
-	StartIndexLocation = Geometry->DrawArgs["Points"].StartIndexLocation;
-	BaseVertexLocation = Geometry->DrawArgs["Points"].BaseVertexLocation;
+	Geometry = GetMeshGeometryManager()->GetMeshGeometry(EMGT_BillboardPoint);
+	IndexCount = Geometry->DrawArgs[0].IndexCount;
+	StartIndexLocation = Geometry->DrawArgs[0].StartIndexLocation;
+	BaseVertexLocation = Geometry->DrawArgs[0].BaseVertexLocation;
 }
 
 void AFoliage::Tick(float Delta)

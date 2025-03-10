@@ -4,11 +4,10 @@
 
 ACylinder::ACylinder()
 {
-	FMeshGeometry::MeshGeometryMap& Geometries = FMeshGeometry::MeshGeometries;
 	Material = GetMaterialManager()->GetMaterial(EMT_Brick0);
-	Geometry = Geometries["Shape"].get();
 	TextureTransform.Scale = { 1.0f, 1.0f, 1.0f };
-	IndexCount = Geometry->DrawArgs["Cylinder"].IndexCount;
-	StartIndexLocation = Geometry->DrawArgs["Cylinder"].StartIndexLocation;
-	BaseVertexLocation = Geometry->DrawArgs["Cylinder"].BaseVertexLocation;
+	Geometry = GetMeshGeometryManager()->GetMeshGeometry(EMGT_Cylinder);
+	IndexCount = Geometry->DrawArgs[0].IndexCount;
+	StartIndexLocation = Geometry->DrawArgs[0].StartIndexLocation;
+	BaseVertexLocation = Geometry->DrawArgs[0].BaseVertexLocation;
 }

@@ -1,9 +1,8 @@
 #include "DXResourceManager.h"
-
-#include "DXException.h"
-#include "DXUtility.h"
 #include "Window/Window.h"
 #include "GameFramework/Object/Actor/ViewCamera.h"
+
+//FDXResourceManager* gDXManager = GetDXResourceManagerPtr();
 
 FDXResourceManager::FDXResourceManager()
 {
@@ -192,6 +191,16 @@ void FDXResourceManager::Resize(UINT Width, UINT Height)
 	{
 		Camera->UpdateProjMatrix(0.25f * XM_PI, GetAspectRatio(), 1.0f, 1000.0f);
 	}
+}
+
+void FDXResourceManager::FlushAndExecuteCommand(void(*CommandFunction)(ID3D12Device*, ID3D12GraphicsCommandList*))
+{
+	FlushCommandQueue();
+	THROW_IF_FAILED(CommandList->Reset(CommandAllocator.Get(), nullptr));
+	CommandFunction(Device.Get(), CommandList.Get());
+	THROW_IF_FAILED(CommandList->Close())
+	ID3D12CommandList* CmdLists[] = { CommandList.Get() };
+	CommandQueue->ExecuteCommandLists(_countof(CmdLists), CmdLists);
 }
 
 void FDXResourceManager::FlushCommandQueue()

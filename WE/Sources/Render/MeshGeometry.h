@@ -1,14 +1,24 @@
 #pragma once
-
-//#include "DirectX/DXUtility.h"
 #include <d3d12.h>
 #include <DirectXCollision.h>
 #include <string>
-#include <unordered_map>
+#include <vector>
 #include <memory>
 #include <wrl.h>
+#include "GeometryGenerator.h"
 #include "DirectX/DXMath.h"
 #include "Utility/Class.h"
+
+enum EMeshGeometryType
+{
+	EMGT_Box,
+	EMGT_Grid,
+	EMGT_Sphere,
+	EMGT_Cylinder,
+	EMGT_Skull,
+	EMGT_BillboardPoint,
+	EMGT_None
+};
 
 struct FVertex
 {
@@ -31,12 +41,7 @@ struct FSubmeshGeometry
 class FMeshGeometry
 {
 public:
-	using MeshGeometryMap = std::unordered_map<std::string, std::unique_ptr<FMeshGeometry>>;
-	static MeshGeometryMap MeshGeometries;
-	static void BuildMeshGeometries(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
-		
-	// Give it a name so we can look it up by name.
-	std::string Name;
+	EMeshGeometryType Type;
 
 	// System memory copies.  Use Blobs because the vertex/index format can be generic.
 	// It is up to the client to cast appropriately.  
@@ -58,7 +63,7 @@ public:
 	// A MeshGeometry may store multiple geometries in one vertex/index buffer.
 	// Use this container to define the Submesh geometries so we can draw
 	// the Submeshes individually.
-	std::unordered_map<std::string, FSubmeshGeometry> DrawArgs;
+	std::vector<FSubmeshGeometry> DrawArgs;
 
 	D3D12_VERTEX_BUFFER_VIEW VertexBufferView()const
 	{
@@ -86,11 +91,6 @@ public:
 		VertexBufferUploader = nullptr;
 		IndexBufferUploader = nullptr;
 	}
-
-private:
-	static void BuildShapeMeshGeometry(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
-	static void BuildSkullMeshGeometry(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
-	static void BuildBillboardPoints(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 };
 
 class FMeshGeometryManager
@@ -98,7 +98,33 @@ class FMeshGeometryManager
 	SINGLETON(FMeshGeometryManager);
 public:
 
-
 private:
-	void BuildMeshGeometries();
+	void BuildMeshGeometries(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
+	void BuildMeshGeometry(
+		EMeshGeometryType Type,
+		const std::vector<FVertex>& Vertices,
+		const std::vector<std::uint32_t>& Indices,
+		const std::vector<FSubmeshGeometry>& Submesh,
+		ID3D12Device* Device,
+		ID3D12GraphicsCommandList* CommandList
+	);
+	void BuildMeshGeometryFromMeshData(
+		EMeshGeometryType Type,
+		const UGeometryGenerator::MeshData& MeshData,
+		ID3D12Device* Device,
+		ID3D12GraphicsCommandList* CommandList
+	);
+	void BuildSkullMeshGeometry(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
+	void BuildBillboardPoints(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
+	std::vector<std::unique_ptr<FMeshGeometry>> mMeshGeometries;
+public:
+	inline FMeshGeometry* GetMeshGeometry(std::uint64_t i)
+	{
+		return mMeshGeometries[i].get();
+	}
 };
+
+inline FMeshGeometryManager* GetMeshGeometryManager()
+{
+	return FMeshGeometryManager::GetInstance();
+}
