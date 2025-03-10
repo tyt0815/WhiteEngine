@@ -1,10 +1,9 @@
 #pragma once
 
 #include "DirectX/DXUtility.h"
-#include "Runtime/Object/Actor.h"
+#include "GameFramework/Object/Actor/ViewCamera.h"
 #include "Render/MeshGeometry.h"
 #include "Render/Material.h"
-#include "Runtime/Object/ViewCamera.h"
 
 class WWorld
 {

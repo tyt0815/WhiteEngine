@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Object.h"
+#include "GameFramework/Object/Actor/Actor.h"
 
-class WViewCamera : public WObject
+class WViewCamera : public AActor
 {
 	using Super = WObject;
 public:

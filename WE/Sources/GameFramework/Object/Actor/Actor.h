@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Object.h"
+#include "GameFramework/Object/Object.h"
 #include <d3d12.h>
 
 extern const int FrameResourcesNum;

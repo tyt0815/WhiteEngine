@@ -3,7 +3,7 @@
 #include "DXException.h"
 #include "DXUtility.h"
 #include "Window/Window.h"
-#include "Runtime/Object/ViewCamera.h"
+#include "GameFramework/Object/Actor/ViewCamera.h"
 
 FDXResourceManager::FDXResourceManager()
 {

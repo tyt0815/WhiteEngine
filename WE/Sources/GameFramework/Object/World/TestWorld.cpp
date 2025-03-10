@@ -1,6 +1,6 @@
 #include "TestWorld.h"
 #include "Render/MeshGeometry.h"
-#include "Runtime/Object/ShapeActorsHeader.h"
+#include "GameFramework/Object/Actor/ShapeActorsHeader.h"
 
 WTestWorld::WTestWorld():
 	Super()

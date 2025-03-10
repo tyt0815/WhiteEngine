@@ -3,7 +3,7 @@
 #include "Material.h"
 #include "DirectX/DXDeviceManager.h"
 #include "DirectX/DXException.h"
-#include "Runtime/World/World.h"
+#include "GameFramework/Object/World/World.h"
 #include "Utility/Timer.h"
 
 const int FrameResourcesNum = FRAME_RESOURCES_NUM;

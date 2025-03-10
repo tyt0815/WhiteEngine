@@ -18,15 +18,6 @@
     <Filter Include="Sources\Utility">
       <UniqueIdentifier>{77a9ce16-7395-43f1-8db2-ea618479df90}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Runtime">
-      <UniqueIdentifier>{74f99875-9b98-472a-83c8-973e30810742}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Runtime\Object">
-      <UniqueIdentifier>{2a53950a-9992-4511-a985-4cdcea1079f6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Runtime\World">
-      <UniqueIdentifier>{e96a9205-a40d-4b4a-95c8-aaf25e2fd33b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Window">
       <UniqueIdentifier>{baf37ac4-fb03-47c8-a601-acdfb8ba692b}</UniqueIdentifier>
     </Filter>
@@ -48,25 +39,25 @@
     <Filter Include="Sources\DirectX">
       <UniqueIdentifier>{e4308e49-5def-4916-b735-50981051df2b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\GameFramework\Object\Actor">
+      <UniqueIdentifier>{79f247e0-cbd6-4f50-9a95-3a64a30c8881}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\GameFramework\Object\World">
+      <UniqueIdentifier>{69f2f615-12f0-4b37-80cb-96c6dcbedcc0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\GameFramework\Object\Pawn">
+      <UniqueIdentifier>{d0d9fd20-00a6-4c55-b9b2-c13e846950f9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Utility\Timer.cpp">
       <Filter>Sources\Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Runtime\World\World.cpp">
-      <Filter>Sources\Runtime\World</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Runtime\Object\Object.cpp">
-      <Filter>Sources\Runtime\Object</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Render\DDSTextureLoader.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Render\GeometryGenerator.cpp">
       <Filter>Sources\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Runtime\World\TestWorld.cpp">
-      <Filter>Sources\Runtime\World</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Render\FrameResource.cpp">
       <Filter>Sources\Render</Filter>
@@ -77,47 +68,11 @@
     <ClCompile Include="Sources\Render\MeshGeometry.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Runtime\Object\Actor.cpp">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Runtime\World\BoxWorld.cpp">
-      <Filter>Sources\Runtime\World</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Runtime\Object\Box.cpp">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Runtime\Object\Skull.cpp">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Runtime\Object\Cylinder.cpp">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Runtime\Object\Grid.cpp">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Runtime\Object\Sphere.cpp">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\Render\Texture.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Main.cpp">
       <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Runtime\Object\WireFence.cpp">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Runtime\Object\WaterBall.cpp">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Runtime\Object\Billboard.cpp">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Runtime\Object\Foliage.cpp">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Runtime\Object\ViewCamera.cpp">
-      <Filter>Sources\Runtime\Object</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Window\Window.cpp">
       <Filter>Sources\Window</Filter>
@@ -146,6 +101,51 @@
     <ClCompile Include="Sources\GameFramework\InputSystem\InputSystem.cpp">
       <Filter>Sources\GameFramework\InputSystem</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Actor\Actor.cpp">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Actor\Billboard.cpp">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Actor\Box.cpp">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Actor\Cylinder.cpp">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Actor\Foliage.cpp">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Actor\Grid.cpp">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Actor\Skull.cpp">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Actor\Sphere.cpp">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Actor\ViewCamera.cpp">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Actor\WaterBall.cpp">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Actor\WireFence.cpp">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\World\BoxWorld.cpp">
+      <Filter>Sources\GameFramework\Object\World</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\World\TestWorld.cpp">
+      <Filter>Sources\GameFramework\Object\World</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\World\World.cpp">
+      <Filter>Sources\GameFramework\Object\World</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Object.cpp">
+      <Filter>Sources\GameFramework\Object</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -153,15 +153,6 @@
     </ClInclude>
     <ClInclude Include="Sources\Utility\Timer.h">
       <Filter>Sources\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Runtime\World\World.h">
-      <Filter>Sources\Runtime\World</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Runtime\Object\Object.h">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Runtime\Object\Actor.h">
-      <Filter>Sources\Runtime\Object</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Render\FrameResource.h">
       <Filter>Sources\Render</Filter>
@@ -178,50 +169,11 @@
     <ClInclude Include="Sources\Render\UploadBuffer.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Runtime\World\TestWorld.h">
-      <Filter>Sources\Runtime\World</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\Render\Material.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Runtime\World\BoxWorld.h">
-      <Filter>Sources\Runtime\World</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Runtime\Object\Box.h">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Runtime\Object\Cylinder.h">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Runtime\Object\Grid.h">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Runtime\Object\Skull.h">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Runtime\Object\Sphere.h">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Runtime\Object\ShapeActorsHeader.h">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\Render\Texture.h">
       <Filter>Sources\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Runtime\Object\WireFence.h">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Runtime\Object\WaterBall.h">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Runtime\Object\Billboard.h">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Runtime\Object\Foliage.h">
-      <Filter>Sources\Runtime\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Runtime\Object\ViewCamera.h">
-      <Filter>Sources\Runtime\Object</Filter>
     </ClInclude>
     <ClInclude Include="Sources\DirectX\DXDeviceManager.h">
       <Filter>Sources\DirectX</Filter>
@@ -264,6 +216,54 @@
     </ClInclude>
     <ClInclude Include="Sources\Utility\FileIO.h">
       <Filter>Sources\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Actor\Actor.h">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Actor\Billboard.h">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Actor\Box.h">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Actor\Cylinder.h">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Actor\Foliage.h">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Actor\Grid.h">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Actor\ShapeActorsHeader.h">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Actor\Skull.h">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Actor\Sphere.h">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Actor\ViewCamera.h">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Actor\WaterBall.h">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Actor\WireFence.h">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\World\BoxWorld.h">
+      <Filter>Sources\GameFramework\Object\World</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\World\TestWorld.h">
+      <Filter>Sources\GameFramework\Object\World</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\World\World.h">
+      <Filter>Sources\GameFramework\Object\World</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Object.h">
+      <Filter>Sources\GameFramework\Object</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

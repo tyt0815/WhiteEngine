@@ -9,7 +9,7 @@
 #include "DirectX/DXException.h"
 #include "DirectX/DXUtility.h"
 #include "Utility/Timer.h"
-#include "Runtime/World/World.h"
+#include "GameFramework/Object/World/World.h"
 
 FRenderer::FRenderer()
 {

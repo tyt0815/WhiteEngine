@@ -1,5 +1,5 @@
 #include "BoxWorld.h"
-#include "Runtime/Object/Box.h"
+#include "GameFramework/Object/Actor/Box.h"
 
 WBoxWorld::WBoxWorld()
 {
