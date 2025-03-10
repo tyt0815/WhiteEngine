@@ -1,7 +1,7 @@
 #include "Material.h"
 #include <DirectXColors.h>
 #include "Texture.h"
-#include "DirectX/DXDeviceManager.h"
+#include "DirectX/DXResourceManager.h"
 
 extern const int FrameResourcesNum;
 

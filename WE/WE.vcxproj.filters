@@ -77,7 +77,7 @@
     <ClCompile Include="Sources\Window\Window.cpp">
       <Filter>Sources\Window</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\DirectX\DXDeviceManager.cpp">
+    <ClCompile Include="Sources\DirectX\DXResourceManager.cpp">
       <Filter>Sources\DirectX</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Application\TestApplication.cpp">
@@ -175,7 +175,7 @@
     <ClInclude Include="Sources\Render\Texture.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\DirectX\DXDeviceManager.h">
+    <ClInclude Include="Sources\DirectX\DXResourceManager.h">
       <Filter>Sources\DirectX</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Window\Window.h">

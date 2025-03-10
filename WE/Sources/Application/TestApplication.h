@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "DirectX/DXDeviceManager.h"
+#include "DirectX/DXResourceManager.h"
 #include "Render/Renderer.h"
 #include "Render/Texture.h"
 #include "GameFramework/Object/World/TestWorld.h"

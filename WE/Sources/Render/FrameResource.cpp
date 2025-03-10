@@ -1,7 +1,7 @@
 #include "FrameResource.h"
 #include <DirectXColors.h>
 #include "Material.h"
-#include "DirectX/DXDeviceManager.h"
+#include "DirectX/DXResourceManager.h"
 #include "DirectX/DXException.h"
 #include "GameFramework/Object/World/World.h"
 #include "Utility/Timer.h"

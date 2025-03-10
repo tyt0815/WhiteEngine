@@ -5,7 +5,7 @@
 #include "MeshGeometry.h"
 #include "Texture.h"
 #include "Material.h"
-#include "DirectX/DXDeviceManager.h"
+#include "DirectX/DXResourceManager.h"
 #include "DirectX/DXException.h"
 #include "DirectX/DXUtility.h"
 #include "Utility/Timer.h"

@@ -12,7 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Application\TestApplication.cpp" />
-    <ClCompile Include="Sources\DirectX\DXDeviceManager.cpp" />
+    <ClCompile Include="Sources\DirectX\DXResourceManager.cpp" />
     <ClCompile Include="Sources\DirectX\DXException.cpp" />
     <ClCompile Include="Sources\DirectX\DXMath.cpp" />
     <ClCompile Include="Sources\DirectX\DXUtility.cpp" />
@@ -49,7 +49,7 @@
   <ItemGroup>
     <ClInclude Include="Sources\Application\TestApplication.h" />
     <ClInclude Include="Sources\DirectX\d3dx12.h" />
-    <ClInclude Include="Sources\DirectX\DXDeviceManager.h" />
+    <ClInclude Include="Sources\DirectX\DXResourceManager.h" />
     <ClInclude Include="Sources\DirectX\DXException.h" />
     <ClInclude Include="Sources\DirectX\DXMath.h" />
     <ClInclude Include="Sources\DirectX\DXUtility.h" />

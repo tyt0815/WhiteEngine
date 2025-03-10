@@ -1,4 +1,4 @@
-#include "DXDeviceManager.h"
+#include "DXResourceManager.h"
 
 #include "DXException.h"
 #include "DXUtility.h"
