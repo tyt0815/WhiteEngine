@@ -16,18 +16,14 @@ FTestApplication::~FTestApplication()
 
 bool FTestApplication::Initialize()
 {
-    mWindow = std::make_unique<FWindow>();
 	mTimer = std::make_unique<UTimer>();
 	mWorld = std::make_unique<WTestWorld>();
 
-	return mWindow->Initialize(L"WEClass", L"WE", 800u, 600u)
-		&& FDXDeviceManager::GetInstance()->Initialize(mWindow.get());
+	return true;
 }
 
 int FTestApplication::Run()
 {
-
-
 	MSG msg = { 0 };
 	mTimer->Reset();
 	FDXDeviceManager* DeviceManager = FDXDeviceManager::GetInstance();
@@ -64,7 +60,7 @@ int FTestApplication::Run()
 		{
 			mTimer->Tick();
 
-			if (!mWindow->IsPaused())
+			if (!GetMainWindowPtr()->IsPaused())
 			{
 				mTimer->Start();
 				CalculateFrameStats();
@@ -105,13 +101,13 @@ void FTestApplication::CalculateFrameStats()
 		std::wstring fpsStr = std::to_wstring(fps);
 		std::wstring mspfStr = std::to_wstring(mspf);
 
-		std::wstring windowText = mWindow->GetWindowName() +
+		std::wstring windowText = GetMainWindowPtr()->GetWindowName() +
 			L"    fps: " + fpsStr +
 			L"   mspf: " + mspfStr +
 			L"TotalTime: " + std::to_wstring(mTimer->GetTotalTime()) +
 			L"ElapsedTime:" + std::to_wstring(timeElapsed);
 
-		SetWindowText(mWindow->GetWindowHandle(), windowText.c_str());
+		SetWindowText(GetMainWindowPtr()->GetWindowHandle(), windowText.c_str());
 
 		// Reset for next average.
 		frameCnt = 0;

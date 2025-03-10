@@ -2,7 +2,7 @@
 
 #include <comdef.h>
 
-enum class EInputType
+enum EInputType
 {
 	EIT_MouseDown,
 	EIT_MouseUp,

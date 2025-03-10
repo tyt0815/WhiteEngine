@@ -15,7 +15,6 @@ class FDXDeviceManager
 {
 	SINGLETON(FDXDeviceManager);
 public:
-	bool Initialize(FWindow* Window);
 	void Resize(UINT Width, UINT Height);
 	void FlushCommandQueue();
 

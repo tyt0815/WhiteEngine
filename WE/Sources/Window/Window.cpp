@@ -2,6 +2,8 @@
 
 #include <windowsx.h>
 
+FWindow gMainWindow = FWindow(L"MainWindow", L"WE", 1600u, 800u);
+
 LRESULT CALLBACK WindowProcedure(HWND WindowHandle, UINT Message, WPARAM WParam, LPARAM LParam)
 {
 	FWindow* Window = (FWindow*)GetWindowLongPtr(WindowHandle, GWLP_USERDATA);
@@ -23,7 +25,7 @@ LRESULT CALLBACK InitialWindowProcedure(HWND WindowHandle, UINT Message, WPARAM 
 	return DefWindowProc(WindowHandle, Message, WParam, LParam);
 }
 
-bool FWindow::Initialize(const std::wstring ClassName, const std::wstring WindowName, UINT Width, UINT Height)
+FWindow::FWindow(const std::wstring ClassName, const std::wstring WindowName, UINT Width, UINT Height)
 {
 	mClassName = ClassName;
 	mWindowName = WindowName;
@@ -41,8 +43,7 @@ bool FWindow::Initialize(const std::wstring ClassName, const std::wstring Window
 
 	if (!RegisterClass(&WndClass))
 	{
-		MessageBox(0, L"RegisterClass Failed.", 0, 0);
-		return false;
+		throw L"RegisterClass Failed.";
 	}
 
 	// Compute window rectangle dimensions based on requested client area dimensions.
@@ -61,16 +62,13 @@ bool FWindow::Initialize(const std::wstring ClassName, const std::wstring Window
 	);
 	if (!mWindowHandle)
 	{
-		MessageBox(0, L"CreateWindow Failed.", 0, 0);
-		return false;
+		throw "CreateWindow Failed.";
 	}
 
 	ShowWindow(mWindowHandle, SW_SHOW);
 	UpdateWindow(mWindowHandle);
 
-	mInputActionFunctions.resize((size_t)EInputType::EIT_None);
-
-	return true;
+	mInputActionFunctions.resize(EInputType::EIT_None);
 }
 
 LRESULT FWindow::WindowProcedure(HWND WindowHandle, UINT Message, WPARAM WParam, LPARAM LParam)
@@ -224,7 +222,7 @@ void FWindow::OnMouseDown(WPARAM WParam, int X, int Y)
 {
 	mLastX = X;
 	mLastY = Y;
-	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[(int)EInputType::EIT_MouseDown])
+	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[EInputType::EIT_MouseDown])
 	{
 		mMouseInputParameter.SetParameters(X, Y, mLastX, mLastY);
 		Function(WParam, mMouseInputParameter);
@@ -242,7 +240,7 @@ void FWindow::OnMouseDown(WPARAM WParam, int X, int Y)
 
 void FWindow::OnMouseUp(WPARAM WParam, int X, int Y)
 {
-	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[(int)EInputType::EIT_MouseUp])
+	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[EInputType::EIT_MouseUp])
 	{
 		mMouseInputParameter.SetParameters(X, Y, mLastX, mLastY);
 		Function(WParam, mMouseInputParameter);
@@ -259,7 +257,7 @@ void FWindow::OnMouseUp(WPARAM WParam, int X, int Y)
 
 void FWindow::OnMouseMove(WPARAM WParam, int X, int Y)
 {
-	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[(int)EInputType::EIT_MouseMove])
+	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[EInputType::EIT_MouseMove])
 	{
 		mMouseInputParameter.SetParameters(X, Y, mLastX, mLastY);
 		Function(WParam, mMouseInputParameter);
@@ -282,7 +280,7 @@ void FWindow::OnMouseMove(WPARAM WParam, int X, int Y)
 
 void FWindow::OnMouseWheel(WPARAM WParam)
 {
-	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[(int)EInputType::EIT_MouseWheel])
+	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[EInputType::EIT_MouseWheel])
 	{
 		Function(WParam, mMouseInputParameter);
 	}
@@ -290,7 +288,7 @@ void FWindow::OnMouseWheel(WPARAM WParam)
 
 void FWindow::OnKeyDown(WPARAM WParam)
 {
-	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[(int)EInputType::EIT_KeyDown])
+	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[EInputType::EIT_KeyDown])
 	{
 		Function(WParam, mMouseInputParameter);
 	}
@@ -298,7 +296,7 @@ void FWindow::OnKeyDown(WPARAM WParam)
 
 void FWindow::OnKeyUp(WPARAM WParam)
 {
-	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[(int)EInputType::EIT_KeyUp])
+	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[EInputType::EIT_KeyUp])
 	{
 		Function(WParam, mMouseInputParameter);
 	}
@@ -307,7 +305,7 @@ void FWindow::OnKeyUp(WPARAM WParam)
 void FWindow::SetInputAction(char Key, EInputType InputType, void (*Function)(FMouseInputParameter& MouseInputParameter))
 {
 	Key = tolower(Key);
-	if ((int)InputType < (int)EInputType::EIT_KeyDown)
+	if (InputType < EInputType::EIT_KeyDown)
 	{
 		if (Key == 'r')
 		{

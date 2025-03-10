@@ -14,8 +14,7 @@ extern HINSTANCE AppInstance;
 class FWindow : FNoncopyable
 {
 public:
-	FWindow() = default;
-	bool Initialize(const std::wstring ClassName, const std::wstring WindowName, UINT Width, UINT Height);
+	FWindow(const std::wstring ClassName, const std::wstring WindowName, UINT Width, UINT Height);
 	LRESULT WindowProcedure(HWND WindowHandle, UINT Message, WPARAM WParam, LPARAM LParam);
 
 private:
@@ -57,3 +56,10 @@ public:
 	void SetInputAction(char Key, EInputType InputType, void (*Function)(FMouseInputParameter& MouseInputParameter));
 	
 };
+
+extern FWindow gMainWindow;
+
+inline FWindow* GetMainWindowPtr()
+{
+	return &gMainWindow;
+}

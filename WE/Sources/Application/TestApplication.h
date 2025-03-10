@@ -16,7 +16,6 @@ public:
 
 private:
 	void CalculateFrameStats();
-	std::unique_ptr<FWindow> mWindow;
 	std::unique_ptr<UTimer> mTimer;
 	std::unique_ptr<WWorld> mWorld;
 	WViewCamera* Camera = nullptr;

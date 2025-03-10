@@ -7,16 +7,6 @@
 
 FDXDeviceManager::FDXDeviceManager()
 {
-
-}
-
-FDXDeviceManager::~FDXDeviceManager()
-{
-}
-
-bool FDXDeviceManager::Initialize(FWindow* Window)
-{
-	mWindow = Window;
 #if defined(DEBUG) || defined(_DEBUG) 
 	// Enable the D3D12 debug layer.
 	{
@@ -78,14 +68,18 @@ bool FDXDeviceManager::Initialize(FWindow* Window)
 	CreateCommandObjects();
 	CreateSwapChain();
 	CreateDescriptorHeaps();
-	Resize(mWindow->GetWidth(), mWindow->GetHeight());
+	FWindow* Window = GetMainWindowPtr();
+	Resize(Window->GetWidth(), Window->GetHeight());
 
-	mWindow->SetResizeCallbackFunction([&]()
+	Window->SetResizeCallbackFunction([&]()
 		{
-			Resize(mWindow->GetWidth(), mWindow->GetHeight());
+			Resize(Window->GetWidth(), Window->GetHeight());
 		}
 	);
-	return true;
+}
+
+FDXDeviceManager::~FDXDeviceManager()
+{
 }
 
 void FDXDeviceManager::Resize(UINT Width, UINT Height)
@@ -329,10 +323,10 @@ void FDXDeviceManager::CreateSwapChain()
 {
 	// Release the previous swapchain we will be recreating.
 	SwapChain.Reset();
-
+	FWindow* Window = GetMainWindowPtr();
 	DXGI_SWAP_CHAIN_DESC SwapChainDesc;
-	SwapChainDesc.BufferDesc.Width = mWindow->GetWidth();
-	SwapChainDesc.BufferDesc.Height = mWindow->GetHeight();
+	SwapChainDesc.BufferDesc.Width = Window->GetWidth();
+	SwapChainDesc.BufferDesc.Height = Window->GetHeight();
 	SwapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
 	SwapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
 	SwapChainDesc.BufferDesc.Format = BackBufferFormat;
@@ -342,7 +336,7 @@ void FDXDeviceManager::CreateSwapChain()
 	SwapChainDesc.SampleDesc.Quality = bMSAA ? (MSAAQuality_4x - 1) : 0;
 	SwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	SwapChainDesc.BufferCount = SWAPCHAIN_BUFFERS_NUM;
-	SwapChainDesc.OutputWindow = mWindow->GetWindowHandle();
+	SwapChainDesc.OutputWindow = Window->GetWindowHandle();
 	SwapChainDesc.Windowed = true;
 	SwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	SwapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
