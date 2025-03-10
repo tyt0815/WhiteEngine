@@ -136,3 +136,8 @@ public:
 		return CurrentFence;
 	}
 };
+
+inline FDXResourceManager* GetDXResourceManagerPtr()
+{
+	return FDXResourceManager::GetInstance();
+}

@@ -10,11 +10,6 @@
 
 class FDXResourceManager;
 class WWorld;
-//class IDXGIFactory4;
-//class IDXGISwapChain;
-//class ID3D12Fence;
-//class ID3D12DescriptorHeap;
-//class ID3D12Resource;
 
 constexpr int FRAME_RESOURCES_NUM = 3;
 

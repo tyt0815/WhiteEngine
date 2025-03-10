@@ -1,8 +1,8 @@
 #pragma once
-
+#include <memory>
 #include "UploadBuffer.h"
-#include "Material.h"
 #include "DirectX/DXUtility.h"
+#include "DirectX/DXMath.h"
 #include "Utility/Class.h"
 
 struct FLight
@@ -48,6 +48,17 @@ struct FPassConstants
     // indices [NUM_DIR_LIGHTS+NUM_POINT_LIGHTS, NUM_DIR_LIGHTS+NUM_POINT_LIGHT+NUM_SPOT_LIGHTS)
     // are spot lights for a maximum of MaxLights per object.
     FLight Lights[MaxLights];
+};
+
+// register(b2)
+struct FMaterialConstants
+{
+    DirectX::XMFLOAT4 DiffuseAlbedo = { 1.0f, 1.0f, 1.0f, 1.0f };
+    DirectX::XMFLOAT3 FresnelR0 = { 0.01f, 0.01f, 0.01f };
+    float Roughness = 0.25f;
+
+    // Used in texture mapping.
+    DirectX::XMFLOAT4X4 MatTransform = FDXMath::Identity4x4();
 };
 
 // register(b1)
