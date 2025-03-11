@@ -3,6 +3,7 @@
 #include <DirectXColors.h>
 
 #include "MeshGeometry.h"
+#include "Shader.h"
 #include "Texture.h"
 #include "Material.h"
 #include "DirectX/DXResourceManager.h"
@@ -19,14 +20,6 @@ FRenderer::FRenderer()
 	CommandAllocator = DeviceManager->GetCommandAllocatorPtr();
 	CommandList = DeviceManager->GetCommandListPtr();
 	Fence = DeviceManager->GetFencePtr();
-}
-
-bool FRenderer::Initialize()
-{
-	BuildShaderAndInputLayout();
-	BuildPipelineStateObject();
-
-	return true;
 }
 
 void FRenderer::Render(const FRenderData& RenderData)
@@ -76,11 +69,11 @@ void FRenderer::Render(const FRenderData& RenderData)
 	{
 		if (!bWireFrame)
 		{
-			CommandList->SetPipelineState(PipelineStateObjects[(int)EPipelineState::EPS_Opaque].Get());
+			CommandList->SetPipelineState(GetShaderManager()->GetPipelineStatePtr(ESM_DefaultLit, EBM_Opaque));
 		}
 		else
 		{
-			CommandList->SetPipelineState(PipelineStateObjects[(int)EPipelineState::EPS_WireFrame].Get());
+			CommandList->SetPipelineState(GetShaderManager()->GetWireFramePipelineStatePtr());
 		}
 		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Opaque], TargetFrameResource);
 	}
@@ -88,11 +81,11 @@ void FRenderer::Render(const FRenderData& RenderData)
 	{
 		if (!bWireFrame)
 		{
-			CommandList->SetPipelineState(PipelineStateObjects[(int)EPipelineState::EPS_AlphaTest].Get());
+			CommandList->SetPipelineState(GetShaderManager()->GetPipelineStatePtr(ESM_DefaultLit, EBM_AlphaTest));
 		}
 		else
 		{
-			CommandList->SetPipelineState(PipelineStateObjects[(int)EPipelineState::EPS_WireFrame].Get());
+			CommandList->SetPipelineState(GetShaderManager()->GetWireFramePipelineStatePtr());
 		}
 		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_AlphaTest], TargetFrameResource);
 	}
@@ -100,11 +93,11 @@ void FRenderer::Render(const FRenderData& RenderData)
 	{
 		if (!bWireFrame)
 		{
-			CommandList->SetPipelineState(PipelineStateObjects[(int)EPipelineState::EPS_Billboard].Get());
+			CommandList->SetPipelineState(GetShaderManager()->GetBillboardPipelineStatePtr());
 		}
 		else
 		{
-			CommandList->SetPipelineState(PipelineStateObjects[(int)EPipelineState::EPS_WireFrame].Get());
+			CommandList->SetPipelineState(GetShaderManager()->GetWireFramePipelineStatePtr());
 		}
 		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Billboard], TargetFrameResource);
 	}
@@ -112,11 +105,11 @@ void FRenderer::Render(const FRenderData& RenderData)
 	{
 		if (!bWireFrame)
 		{
-			CommandList->SetPipelineState(PipelineStateObjects[(int)EPipelineState::EPS_Transparency].Get());
+			CommandList->SetPipelineState(GetShaderManager()->GetPipelineStatePtr(ESM_DefaultLit, EBM_Transparency));
 		}
 		else
 		{
-			CommandList->SetPipelineState(PipelineStateObjects[(int)EPipelineState::EPS_WireFrame].Get());
+			CommandList->SetPipelineState(GetShaderManager()->GetWireFramePipelineStatePtr());
 		}
 		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Transparency], TargetFrameResource);
 	}
@@ -134,199 +127,6 @@ void FRenderer::Render(const FRenderData& RenderData)
 
 	ID3D12CommandList* CommandLists[] = { CommandList };
 	CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
-}
-
-void FRenderer::BuildShaderAndInputLayout()
-{
-	D3D_SHADER_MACRO Defines[] = {
-		{"FOG", "1"},
-		{NULL, NULL}
-	};
-
-	D3D_SHADER_MACRO AlphaTestDefine[] = {
-		{"FOG", "1"},
-		{"ALPHA_TEST", "1"},
-		{NULL, NULL}
-	};
-
-	Shaders["ForwardLitVertexShader"] = FDXUtility::CompileShader(
-		L"Shaders\\ForwardLitVertexShader.sf",
-		nullptr,
-		"MainVS",
-		"vs_5_1"
-	);
-	Shaders["ForwardLitPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\ForwardLitPixelShader.sf",
-		Defines,
-		"MainPS",
-		"ps_5_1"
-	);
-
-	Shaders["AlphTestPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\ForwardLitPixelShader.sf",
-		AlphaTestDefine,
-		"MainPS",
-		"ps_5_1"
-	);
-
-	Shaders["BillboardVertexShader"] = FDXUtility::CompileShader(
-		L"Shaders\\BillboardVertexShader.sf",
-		nullptr,
-		"MainVS",
-		"vs_5_1"
-	);
-
-	Shaders["BillboardGeometryShader"] = FDXUtility::CompileShader(
-		L"Shaders\\BillboardGeometryShader.sf",
-		nullptr,
-		"MainGS",
-		"gs_5_1"
-	);
-
-	Shaders["BillboardPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\BillboardPixelShader.sf",
-		AlphaTestDefine,
-		"MainPS",
-		"ps_5_1"
-	);
-
-	InputLayouts["Lit"] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-	};
-
-	InputLayouts["Billboard"] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "SIZE", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-	};
-}
-
-void FRenderer::BuildPipelineStateObject()
-{
-	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
-
-	PipelineStateObjects.resize((size_t)EPipelineState::EPS_None);
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC ForwardLitPipelineStateDesc;
-	//
-	// PSO for opaque objects.
-	//
-	ZeroMemory(&ForwardLitPipelineStateDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
-	ForwardLitPipelineStateDesc.InputLayout = { InputLayouts["Lit"].data(), (UINT)InputLayouts["Lit"].size() };
-	ForwardLitPipelineStateDesc.pRootSignature = GetFrameResourceManager()->GetRootSignaturePtr();
-	ForwardLitPipelineStateDesc.VS =
-	{
-		reinterpret_cast<BYTE*>(Shaders["ForwardLitVertexShader"]->GetBufferPointer()),
-		Shaders["ForwardLitVertexShader"]->GetBufferSize()
-	};
-	ForwardLitPipelineStateDesc.PS =
-	{
-		reinterpret_cast<BYTE*>(Shaders["ForwardLitPixelShader"]->GetBufferPointer()),
-		Shaders["ForwardLitPixelShader"]->GetBufferSize()
-	};
-	ForwardLitPipelineStateDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	ForwardLitPipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	ForwardLitPipelineStateDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-	ForwardLitPipelineStateDesc.SampleMask = UINT_MAX;
-	ForwardLitPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	ForwardLitPipelineStateDesc.NumRenderTargets = 1;
-	ForwardLitPipelineStateDesc.RTVFormats[0] = DeviceManager->GetBackbufferFormat();
-	ForwardLitPipelineStateDesc.SampleDesc.Count = DeviceManager->IsMSAAOn() ? 4 : 1;
-	ForwardLitPipelineStateDesc.SampleDesc.Quality = DeviceManager->IsMSAAOn() ? (DeviceManager->GetMSAAQuality_4x() - 1) : 0;
-	ForwardLitPipelineStateDesc.DSVFormat = DeviceManager->GetDepthStencilFormat();
-	THROW_IF_FAILED(
-		Device->CreateGraphicsPipelineState(
-			&ForwardLitPipelineStateDesc, IID_PPV_ARGS(&PipelineStateObjects[(int)EPipelineState::EPS_Opaque])
-		)
-	);
-
-
-	//
-	// PSO for opaque wireframe objects.
-	//
-
-	{
-		D3D12_GRAPHICS_PIPELINE_STATE_DESC WireFramePipelineStateDesc = ForwardLitPipelineStateDesc;
-		WireFramePipelineStateDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
-		THROW_IF_FAILED(
-			Device->CreateGraphicsPipelineState(
-				&WireFramePipelineStateDesc, IID_PPV_ARGS(&PipelineStateObjects[(int)EPipelineState::EPS_WireFrame])
-			)
-		);
-	}
-
-	{
-		D3D12_GRAPHICS_PIPELINE_STATE_DESC TransparencyPipelineStateDesc = ForwardLitPipelineStateDesc;
-
-		D3D12_RENDER_TARGET_BLEND_DESC BlendDesc;
-		BlendDesc.BlendEnable = true;
-		BlendDesc.LogicOpEnable = false;
-		BlendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
-		BlendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
-		BlendDesc.BlendOp = D3D12_BLEND_OP_ADD;
-		BlendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
-		BlendDesc.DestBlendAlpha = D3D12_BLEND_ZERO;
-		BlendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
-		BlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
-		BlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-
-		TransparencyPipelineStateDesc.BlendState.RenderTarget[0] = BlendDesc;
-		THROW_IF_FAILED(
-			Device->CreateGraphicsPipelineState(
-				&TransparencyPipelineStateDesc,
-				IID_PPV_ARGS(&PipelineStateObjects[(int)EPipelineState::EPS_Transparency])
-			)
-		);
-	}
-
-	{
-		D3D12_GRAPHICS_PIPELINE_STATE_DESC AlphaTestPipelineStateDesc = ForwardLitPipelineStateDesc;
-		AlphaTestPipelineStateDesc.PS =
-		{
-			reinterpret_cast<BYTE*>(Shaders["AlphTestPixelShader"]->GetBufferPointer()),
-			Shaders["AlphTestPixelShader"]->GetBufferSize()
-		};
-
-		AlphaTestPipelineStateDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-		THROW_IF_FAILED(
-			Device->CreateGraphicsPipelineState(
-				&AlphaTestPipelineStateDesc,
-				IID_PPV_ARGS(&PipelineStateObjects[(int)EPipelineState::EPS_AlphaTest])
-			)
-		);
-	}
-
-	// Billboard
-	{
-		D3D12_GRAPHICS_PIPELINE_STATE_DESC BillboardPipelineStateDesc = ForwardLitPipelineStateDesc;
-		BillboardPipelineStateDesc.VS =
-		{
-			reinterpret_cast<BYTE*>(Shaders["BillboardVertexShader"]->GetBufferPointer()),
-			Shaders["BillboardVertexShader"]->GetBufferSize()
-		};
-		BillboardPipelineStateDesc.GS =
-		{
-			reinterpret_cast<BYTE*>(Shaders["BillboardGeometryShader"]->GetBufferPointer()),
-			Shaders["BillboardGeometryShader"]->GetBufferSize()
-		};
-		BillboardPipelineStateDesc.PS =
-		{
-			reinterpret_cast<BYTE*>(Shaders["BillboardPixelShader"]->GetBufferPointer()),
-			Shaders["BillboardPixelShader"]->GetBufferSize()
-		};
-		BillboardPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
-		BillboardPipelineStateDesc.InputLayout = { InputLayouts["Billboard"].data(), (UINT)InputLayouts["Billboard"].size() };
-		BillboardPipelineStateDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-
-		THROW_IF_FAILED(
-			Device->CreateGraphicsPipelineState(
-				&BillboardPipelineStateDesc,
-				IID_PPV_ARGS(PipelineStateObjects[(int)EPipelineState::EPS_Billboard].GetAddressOf())
-			)
-		);
-	}
 }
 
 void FRenderer::DrawActors(const std::vector<AActor*>& DrawTargets, FFrameResource* TargetFrameResource)

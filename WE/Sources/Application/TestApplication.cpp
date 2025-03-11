@@ -21,26 +21,12 @@ int FTestApplication::Run()
 {
 	MSG msg = { 0 };
 	FDXResourceManager* DXManager = FDXResourceManager::GetInstance();
-	ID3D12Device* Device = DXManager->GetDevicePtr();
-	ID3D12GraphicsCommandList* CommandList = DXManager->GetCommandListPtr();
-	ID3D12CommandAllocator* CommandAllocator = DXManager->GetCommandAllocatorPtr();
-	ID3D12CommandQueue* CommandQueue = DXManager->GetCommandQueuePtr();
-	//THROW_IF_FAILED(CommandList->Reset(CommandAllocator, nullptr));
-	//FMeshGeometry::BuildMeshGeometries(Device, CommandList);
-	//FTexture::LoadTexture(Device, CommandList);
-	//THROW_IF_FAILED(CommandList->Close());
-	//ID3D12CommandList* CmdLists[] = { CommandList };
-	//CommandQueue->ExecuteCommandLists(_countof(CmdLists), CmdLists);
-	//DXManager->FlushCommandQueue();
-	//DXManager->FlushAndExecuteCommand(FMeshGeometry::BuildMeshGeometries);
-	//DXManager->FlushAndExecuteCommand(FTexture::LoadTexture);
 
 	mWorld->Initialize();
 	Camera = mWorld->GetCamera();
 	Camera->UpdateProjMatrix(0.25f * XM_PI, DXManager->GetAspectRatio(), 1.0f, 1000.0f);
 	FRenderer Renderer;
 	DXManager->Camera = Camera;
-	Renderer.Initialize();
 	while (msg.message != WM_QUIT)
 	{
 		// If there are Window messages then process them.

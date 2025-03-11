@@ -146,6 +146,9 @@
     <ClCompile Include="Sources\GameFramework\Object\Object.cpp">
       <Filter>Sources\GameFramework\Object</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Render\Shader.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -264,6 +267,9 @@
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\Object.h">
       <Filter>Sources\GameFramework\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\Shader.h">
+      <Filter>Sources\Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

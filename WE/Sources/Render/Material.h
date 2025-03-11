@@ -6,9 +6,23 @@
 #include "Utility/Class.h"
 #include "Utility/String.h"
 
+enum EShadingModel : std::uint16_t
+{
+	ESM_DefaultLit = 0,
+	ESM_None
+};
+
+enum EBlendMode : std::uint16_t
+{
+	EBM_Opaque = 0,
+	EBM_AlphaTest,
+	EBM_Transparency,
+	EBM_None
+};
+
 enum EMaterialType : UINT16
 {
-	EMT_Default,
+	EMT_Default = 0,
 	EMT_Tile0,
 	EMT_Brick0,
 	EMT_Stone0,

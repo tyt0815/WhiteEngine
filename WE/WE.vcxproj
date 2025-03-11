@@ -41,6 +41,7 @@
     <ClCompile Include="Sources\Render\Material.cpp" />
     <ClCompile Include="Sources\Render\MeshGeometry.cpp" />
     <ClCompile Include="Sources\Render\Renderer.cpp" />
+    <ClCompile Include="Sources\Render\Shader.cpp" />
     <ClCompile Include="Sources\Render\Texture.cpp" />
     <ClCompile Include="Sources\Utility\FileIO.cpp" />
     <ClCompile Include="Sources\Utility\Timer.cpp" />
@@ -81,6 +82,7 @@
     <ClInclude Include="Sources\Render\Material.h" />
     <ClInclude Include="Sources\Render\MeshGeometry.h" />
     <ClInclude Include="Sources\Render\Renderer.h" />
+    <ClInclude Include="Sources\Render\Shader.h" />
     <ClInclude Include="Sources\Render\Texture.h" />
     <ClInclude Include="Sources\Render\UploadBuffer.h" />
     <ClInclude Include="Sources\Utility\Class.h" />
