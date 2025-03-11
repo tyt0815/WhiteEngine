@@ -38,6 +38,8 @@ class FMaterial
 {
 public:
 	EMaterialType Type;
+	EShadingModel ShadingModel;
+	EBlendMode BlendMode;
 	int MatCBIndex = -1;
 	int DiffuseSrvHeapIndex = -1;
 	int NormalSrvHeapIndex = -1;
@@ -59,6 +61,8 @@ private:
 	void BuildMaterials();
 	void BuildMaterial(
 		EMaterialType Type,
+		EShadingModel ShadingModel,
+		EBlendMode BlendMode,
 		int DiffuseSrvHeapIndex,
 		int NormalSrvHeapIndex,
 		DirectX::XMFLOAT4 DiffuseAlbedo,

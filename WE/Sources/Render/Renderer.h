@@ -31,6 +31,7 @@ public:
 	virtual void Render(const FRenderData& RenderData);
 
 private:
+	void DrawActors(FFrameResource* FrameResource, ID3D12GraphicsCommandList* CommandList);
 	void DrawActors(
 		const std::vector<AActor*>& DrawTargets,
 		FFrameResource* TargetFrameResource,

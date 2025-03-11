@@ -4,7 +4,7 @@
 
 class WViewCamera : public AActor
 {
-	using Super = WObject;
+	using Super = AActor;
 public:
 	WViewCamera();
 

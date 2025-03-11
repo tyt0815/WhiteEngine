@@ -9,18 +9,22 @@ WTestWorld::WTestWorld():
 
 void WTestWorld::BuildWorldActors()
 {
+	AActor* Actor = nullptr;
 	FTransform Transform;
 	Transform.Scale = XMFLOAT3(2.0f, 2.0f, 2.0f);
 	Transform.Translation = XMFLOAT3(0.0f, 0.5f, 0.0f);
-	SpawnActor<AWireFence>(EActorType::EAT_AlphaTest, Transform);
+	Actor = SpawnActor<AWireFence>();
+	Actor->SetTransform(Transform);
 
 	Transform = FTransform::Default;
-	SpawnActor<AGrid>(EActorType::EAT_Opaque, Transform);
+	Actor = SpawnActor<AGrid>();
+	Actor->SetTransform(Transform);
 
 	Transform = FTransform::Default;
 	Transform.Scale = XMFLOAT3(0.5f, 0.5f, 0.5f);
 	Transform.Translation = XMFLOAT3(0.0f, 1.0f, 0.0f);
-	SpawnActor<ASkull>(EActorType::EAT_Opaque, Transform);
+	Actor = SpawnActor<ASkull>();
+	Actor->SetTransform(Transform);
 
 
 	for (int i = 0; i < 50; ++i)
@@ -28,39 +32,22 @@ void WTestWorld::BuildWorldActors()
 		// LeftCylinder
 		Transform = FTransform::Default;
 		Transform.Translation = XMFLOAT3(+5.0f, 1.5f, -10.0f + i * 5.0f);
-		SpawnActor<ACylinder>(EActorType::EAT_Opaque, Transform);
+		Actor = SpawnActor<ACylinder>();
+		Actor->SetTransform(Transform);
 		// RightCylinder
 		Transform = FTransform::Default;
 		Transform.Translation = XMFLOAT3(-5.0f, 1.5f, -10.0f + i * 5.0f);
-		SpawnActor<ACylinder>(EActorType::EAT_Opaque, Transform);
+		Actor = SpawnActor<ACylinder>();
+		Actor->SetTransform(Transform);
 		// LeftSphere
 		Transform = FTransform::Default;
 		Transform.Translation = XMFLOAT3(-5.0f, 3.5f, -10.0f + i * 5.0f);
-		SpawnActor<AWaterBall>(EActorType::EAT_Transparency, Transform);
+		Actor = SpawnActor<AWaterBall>();
+		Actor->SetTransform(Transform);
 		// RightSphere
 		Transform = FTransform::Default;
 		Transform.Translation = XMFLOAT3(+5.0f, 3.5f, -10.0f + i * 5.0f);
-		SpawnActor<AWaterBall>(EActorType::EAT_Transparency, Transform);
+		Actor = SpawnActor<AWaterBall>();
+		Actor->SetTransform(Transform);
 	}
-
-	/*for (int i = 0; i < 1000; ++i)
-	{
-		float Offset = 40;
-		Transform = FTransform::Default;
-		Transform.Translation.x = Offset * FDXMath::RandF();
-		Transform.Translation.z = Offset * FDXMath::RandF();
-		SpawnActor<AFoliage>(EActorType::EAT_Billboard, Transform);
-
-		Transform.Translation.x = -Offset * FDXMath::RandF();
-		Transform.Translation.z = Offset * FDXMath::RandF();
-		SpawnActor<AFoliage>(EActorType::EAT_Billboard, Transform);
-
-		Transform.Translation.x = Offset * FDXMath::RandF();
-		Transform.Translation.z = -Offset * FDXMath::RandF();
-		SpawnActor<AFoliage>(EActorType::EAT_Billboard, Transform);
-
-		Transform.Translation.x = -Offset * FDXMath::RandF();
-		Transform.Translation.z = -Offset * FDXMath::RandF();
-		SpawnActor<AFoliage>(EActorType::EAT_Billboard, Transform);
-	}*/
 }

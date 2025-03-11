@@ -22,6 +22,8 @@ void FMaterialManager::BuildMaterials()
 	mMaterials.resize(EMT_None);
 	BuildMaterial(
 		EMT_Default,
+		ESM_DefaultLit,
+		EBM_Opaque,
 		ETT_Default,
 		-1,
 		XMFLOAT4(Colors::White),
@@ -31,6 +33,8 @@ void FMaterialManager::BuildMaterials()
 	);
 	BuildMaterial(
 		EMT_Brick0,
+		ESM_DefaultLit,
+		EBM_Opaque,
 		ETT_Bricks3,
 		-1,
 		XMFLOAT4(Colors::White),
@@ -40,6 +44,8 @@ void FMaterialManager::BuildMaterials()
 	);
 	BuildMaterial(
 		EMT_Grass,
+		ESM_DefaultLit,
+		EBM_Opaque,
 		ETT_Grass,
 		-1,
 		XMFLOAT4(Colors::White),
@@ -49,6 +55,8 @@ void FMaterialManager::BuildMaterials()
 	);
 	BuildMaterial(
 		EMT_Stone0,
+		ESM_DefaultLit,
+		EBM_Opaque,
 		ETT_Stone,
 		-1,
 		XMFLOAT4(Colors::White),
@@ -58,6 +66,8 @@ void FMaterialManager::BuildMaterials()
 	);
 	BuildMaterial(
 		EMT_Tile0,
+		ESM_DefaultLit,
+		EBM_Opaque,
 		ETT_Tile,
 		-1,
 		XMFLOAT4(Colors::White),
@@ -67,6 +77,8 @@ void FMaterialManager::BuildMaterials()
 	);
 	BuildMaterial(
 		EMT_Skull,
+		ESM_DefaultLit,
+		EBM_Opaque,
 		ETT_White,
 		-1,
 		XMFLOAT4(Colors::DarkGray),
@@ -76,6 +88,8 @@ void FMaterialManager::BuildMaterials()
 	);
 	BuildMaterial(
 		EMT_WireFence,
+		ESM_DefaultLit,
+		EBM_AlphaTest,
 		ETT_WireFence,
 		-1,
 		XMFLOAT4(Colors::White),
@@ -85,6 +99,8 @@ void FMaterialManager::BuildMaterials()
 	);
 	BuildMaterial(
 		EMT_Water,
+		ESM_DefaultLit,
+		EBM_Transparency,
 		ETT_Water,
 		-1,
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 0.5f),
@@ -94,6 +110,8 @@ void FMaterialManager::BuildMaterials()
 	);
 	BuildMaterial(
 		EMT_Foliage1,
+		ESM_DefaultLit,
+		EBM_AlphaTest,
 		ETT_Foliage1,
 		-1,
 		XMFLOAT4(Colors::White),
@@ -105,6 +123,8 @@ void FMaterialManager::BuildMaterials()
 
 void FMaterialManager::BuildMaterial(
 	EMaterialType Type,
+	EShadingModel ShadingModel,
+	EBlendMode BlendMode,
 	int DiffuseSrvHeapIndex,
 	int NormalSrvHeapIndex,
 	DirectX::XMFLOAT4 DiffuseAlbedo,
@@ -115,6 +135,8 @@ void FMaterialManager::BuildMaterial(
 {
 	std::unique_ptr<FMaterial> Material = std::make_unique<FMaterial>();
 	Material->Type = Type;
+	Material->ShadingModel = ShadingModel;
+	Material->BlendMode = BlendMode;
 	Material->MatCBIndex = Type;
 	Material->DiffuseSrvHeapIndex = DiffuseSrvHeapIndex;
 	Material->NormalSrvHeapIndex = NormalSrvHeapIndex;

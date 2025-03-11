@@ -1,27 +1,42 @@
 #pragma once
-
+#include <memory>
 #include "DirectX/DXMath.h"
+#include "Utility/Class.h"
+#include "Utility/Pool.h"
 
 class WObject
 {
 public:
 	WObject() = default;
+	virtual ~WObject() = default;
 	virtual void Tick(float Delta) {};
-
-	inline XMMATRIX GetWorldMatrix() { return Transform.GetTransformMatrix(); }
-	inline FTransform GetTransform() const { return Transform; }
-	inline XMFLOAT3 GetScale() const { return Transform.Scale; }
-	inline XMFLOAT3 GetRotation() const { return Transform.Rotation; }
-	inline XMFLOAT3 GetTranslation() const { return Transform.Translation; }
-	inline void SetTransform(FTransform NewTransform) { Transform = NewTransform; }
-	inline virtual void SetTranslation(XMFLOAT3 Translation) { Transform.Translation = Translation; }
-	inline void SetRotation(XMFLOAT3 Rotation) { Transform.Rotation = Rotation; }
-	inline void SetScale(XMFLOAT3 Scale) { Transform.Scale = Scale; }
-
-	virtual void RotateX(float Angle) { Transform.Rotation.x += Angle; }
-	virtual void RotateY(float Angle) { Transform.Rotation.y += Angle; }
-	virtual void RotateZ(float Angle) { Transform.Rotation.z += Angle; }
-
-protected:
-	FTransform Transform = FTransform::Default;
 };
+
+class FWObjectManager
+{
+	SINGLETON(FWObjectManager);
+public:
+	template<typename T>
+	T* CreateWObject();
+
+private:
+	TPool<std::shared_ptr<WObject>> mPool;
+public:
+	const TPool<std::shared_ptr<WObject>>& GetAllWObject() const
+	{
+		return mPool;
+	}
+};
+
+template<typename T>
+inline T* FWObjectManager::CreateWObject()
+{
+	std::shared_ptr<T> Object = std::make_shared<T>();
+	mPool.Register(Object);
+	return Object.get();
+}
+
+inline FWObjectManager* GetWObjectManager()
+{
+	return FWObjectManager::GetInstance();
+}

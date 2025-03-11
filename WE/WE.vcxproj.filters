@@ -271,6 +271,9 @@
     <ClInclude Include="Sources\Render\Shader.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
+    <ClInclude Include="Sources\Utility\Pool.h">
+      <Filter>Sources\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ForwardLitCommon.sh">

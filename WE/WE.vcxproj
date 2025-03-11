@@ -87,6 +87,7 @@
     <ClInclude Include="Sources\Render\UploadBuffer.h" />
     <ClInclude Include="Sources\Utility\Class.h" />
     <ClInclude Include="Sources\Utility\FileIO.h" />
+    <ClInclude Include="Sources\Utility\Pool.h" />
     <ClInclude Include="Sources\Utility\String.h" />
     <ClInclude Include="Sources\Utility\Timer.h" />
     <ClInclude Include="Sources\Window\Window.h" />

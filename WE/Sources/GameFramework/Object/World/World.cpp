@@ -10,7 +10,6 @@ WWorld::WWorld()
 		throw L"이미 월드가 하나 생성되었습니다.";
 	}
 	gWorld = this;
-	Actors.resize((int)EActorType::EAT_None);
 }
 
 WWorld::~WWorld()
@@ -27,6 +26,5 @@ bool WWorld::Initialize()
 void WWorld::Tick(float Delta)
 {
 	// TODO
-
-	for (auto& Actor : AllActors) Actor->Tick(Delta);
+	for (auto& Actor : mAllActors) Actor->Tick(Delta);
 }

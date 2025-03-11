@@ -64,7 +64,16 @@ void FRenderer::Render(const FRenderData& RenderData)
 	auto PassConstantBufferAdress = PassConstantBuffer->GetGPUVirtualAddress();
 	CommandList->SetGraphicsRootConstantBufferView(0, PassConstantBufferAdress);
 
+	if (bWireFrame)
 	{
+		// TODO
+	}
+	else
+	{
+		DrawActors(TargetFrameResource, CommandList);
+	}
+
+	/*{
 		if (!bWireFrame)
 		{
 			CommandList->SetPipelineState(GetShaderManager()->GetPipelineStatePtr(ESM_DefaultLit, EBM_Opaque));
@@ -110,7 +119,7 @@ void FRenderer::Render(const FRenderData& RenderData)
 			CommandList->SetPipelineState(GetShaderManager()->GetWireFramePipelineStatePtr());
 		}
 		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Transparency], TargetFrameResource, CommandList);
-	}
+	}*/
 
 	////////////////////////////////////////////////////////////////////////////////
 
@@ -125,6 +134,55 @@ void FRenderer::Render(const FRenderData& RenderData)
 
 	ID3D12CommandList* CommandLists[] = { CommandList };
 	CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
+}
+
+void FRenderer::DrawActors(FFrameResource* TargetFrameResource, ID3D12GraphicsCommandList* CommandList)
+{
+	ID3D12DescriptorHeap* SRVHeap = GetTextureManager()->GetSRVHeapPtr();
+
+	ID3D12Resource* ObjectConstantBuffer = TargetFrameResource->ObjectConstantBuffer->Resource();
+	ID3D12Resource* MaterialConstantBuffer = TargetFrameResource->MaterialConstantBuffer->Resource();
+
+	UINT ObjectConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FObjectConstants));
+	UINT MaterialConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FMaterialConstants));
+	UINT CBVSRVUAVDescriptorSize = FDXResourceManager::GetInstance()->GetCBVSRVUAVDescriptorSize();
+
+	const std::vector<AActor*> AllActors = GetWorld()->GetAllActorsRef();
+
+	for (const AActor* Actor : AllActors)
+	{
+		FMaterial* Material = Actor->Material;
+		// TODO: 파이프라인 상태를 매번 바꾸는 것은 비효율적.
+		// SetPipelineState
+		CommandList->SetPipelineState(GetShaderManager()->GetPipelineStatePtr(Material->ShadingModel, Material->BlendMode));
+
+		// ObjectConstantBuffer
+		auto ObjectConstantBufferAddress = ObjectConstantBuffer->GetGPUVirtualAddress() + Actor->ObjectConstantBufferIndex * ObjectConstantBufferByteSize;
+		CommandList->SetGraphicsRootConstantBufferView(1, ObjectConstantBufferAddress);
+
+		// MaterialConstantBuffer
+		auto MaterialConstantBufferAddress = MaterialConstantBuffer->GetGPUVirtualAddress() + Material->MatCBIndex * MaterialConstantBufferByteSize;
+		CommandList->SetGraphicsRootConstantBufferView(2, MaterialConstantBufferAddress);
+
+		// Texture
+		CD3DX12_GPU_DESCRIPTOR_HANDLE SRVHandle(SRVHeap->GetGPUDescriptorHandleForHeapStart());
+		SRVHandle.Offset(Material->DiffuseSrvHeapIndex, CBVSRVUAVDescriptorSize);
+		CommandList->SetGraphicsRootDescriptorTable(3, SRVHandle);
+
+		D3D12_VERTEX_BUFFER_VIEW VertexBufferView = Actor->Geometry->VertexBufferView();
+		D3D12_INDEX_BUFFER_VIEW IndexBufferView = Actor->Geometry->IndexBufferView();
+		CommandList->IASetVertexBuffers(0, 1, &VertexBufferView);
+		CommandList->IASetIndexBuffer(&IndexBufferView);
+		CommandList->IASetPrimitiveTopology(Actor->PrimitiveType);
+
+		CommandList->DrawIndexedInstanced(
+			Actor->IndexCount,
+			1,
+			Actor->StartIndexLocation,
+			Actor->BaseVertexLocation,
+			0
+		);
+	}
 }
 
 void FRenderer::DrawActors(
