@@ -1,12 +1,14 @@
 #pragma once
 #include <memory>
 #include <vector>
+#include "Material.h"
 #include "UploadBuffer.h"
 #include "DirectX/DXUtility.h"
 #include "DirectX/DXMath.h"
 #include "Utility/Class.h"
 
 constexpr std::uint32_t FRAME_RESOURCES_NUM = 3;
+constexpr std::uint32_t PASS_COUNT = 1;
 
 struct FLight
 {
@@ -97,11 +99,13 @@ public:
 
 private:
     void SetTargetFrameResource();
+    void BuildRootSignature();
     void UpdatePassCB();
     void UpdateObjectCB();
     void UpdateMaterialCB();
-    std::vector<std::unique_ptr<FFrameResource>> mFrameResources;
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
     FFrameResource* mTargetFrameResource = nullptr;
+    std::vector<std::unique_ptr<FFrameResource>> mFrameResources;
     std::uint32_t mTargetFrameResourceIndex = 0;
 
 public:
@@ -121,7 +125,10 @@ public:
     {
         mTargetFrameResource->MaterialConstantBuffer->CopyData(i, MaterialCB);
     }
-    
+    inline ID3D12RootSignature* GetRootSignaturePtr() const
+    {
+        return mRootSignature.Get();
+    }
 };
 
 inline FFrameResourceManager* GetFrameResourceManager()

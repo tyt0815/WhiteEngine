@@ -23,7 +23,6 @@ FRenderer::FRenderer()
 
 bool FRenderer::Initialize()
 {
-	BuildRootSignature();
 	BuildShaderAndInputLayout();
 	BuildPipelineStateObject();
 
@@ -68,7 +67,7 @@ void FRenderer::Render(const FRenderData& RenderData)
 	// Pass Constantbuffer
 	ID3D12DescriptorHeap* descriptorHeaps[] = { GetTextureManager()->GetSRVHeapPtr() };
 	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
-	CommandList->SetGraphicsRootSignature(RootSignature.Get());
+	CommandList->SetGraphicsRootSignature(GetFrameResourceManager()->GetRootSignaturePtr());
 
 	auto PassConstantBuffer = TargetFrameResource->PassConstantBuffer->Resource();
 	auto PassConstantBufferAdress = PassConstantBuffer->GetGPUVirtualAddress();
@@ -135,52 +134,6 @@ void FRenderer::Render(const FRenderData& RenderData)
 
 	ID3D12CommandList* CommandLists[] = { CommandList };
 	CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
-}
-
-void FRenderer::BuildRootSignature()
-{
-	CD3DX12_DESCRIPTOR_RANGE TextureTable;
-	TextureTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
-
-	CD3DX12_ROOT_PARAMETER RootParameter[4];
-	RootParameter[0].InitAsConstantBufferView(0);
-	RootParameter[1].InitAsConstantBufferView(1);
-	RootParameter[2].InitAsConstantBufferView(2);
-	RootParameter[3].InitAsDescriptorTable(1, &TextureTable, D3D12_SHADER_VISIBILITY_PIXEL);
-
-	auto StaticSamplers = FTexture::GetStaticSamplers();
-
-	CD3DX12_ROOT_SIGNATURE_DESC RootSignatureDesc(
-		4,
-		RootParameter,
-		(UINT)StaticSamplers.size(),
-		StaticSamplers.data(),
-		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
-	);
-
-	Microsoft::WRL::ComPtr<ID3DBlob> SerializedRootSignature = nullptr;
-	Microsoft::WRL::ComPtr<ID3DBlob> ErrorBlob = nullptr;
-	HRESULT HResult = D3D12SerializeRootSignature(
-		&RootSignatureDesc,
-		D3D_ROOT_SIGNATURE_VERSION_1,
-		SerializedRootSignature.GetAddressOf(),
-		ErrorBlob.GetAddressOf()
-	);
-
-	if (ErrorBlob != nullptr)
-	{
-		::OutputDebugStringA((char*)ErrorBlob->GetBufferPointer());
-	}
-	THROW_IF_FAILED(HResult);
-
-	THROW_IF_FAILED(
-		Device->CreateRootSignature(
-			0,
-			SerializedRootSignature->GetBufferPointer(),
-			SerializedRootSignature->GetBufferSize(),
-			IID_PPV_ARGS(RootSignature.GetAddressOf())
-		)
-	)
 }
 
 void FRenderer::BuildShaderAndInputLayout()
@@ -262,7 +215,7 @@ void FRenderer::BuildPipelineStateObject()
 	//
 	ZeroMemory(&ForwardLitPipelineStateDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 	ForwardLitPipelineStateDesc.InputLayout = { InputLayouts["Lit"].data(), (UINT)InputLayouts["Lit"].size() };
-	ForwardLitPipelineStateDesc.pRootSignature = RootSignature.Get();
+	ForwardLitPipelineStateDesc.pRootSignature = GetFrameResourceManager()->GetRootSignaturePtr();
 	ForwardLitPipelineStateDesc.VS =
 	{
 		reinterpret_cast<BYTE*>(Shaders["ForwardLitVertexShader"]->GetBufferPointer()),

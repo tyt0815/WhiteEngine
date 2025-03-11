@@ -1,6 +1,6 @@
 #include "FrameResource.h"
 #include <DirectXColors.h>
-#include "Material.h"
+#include "Texture.h"
 #include "DirectX/DXResourceManager.h"
 #include "DirectX/DXException.h"
 #include "GameFramework/Object/World/World.h"
@@ -17,7 +17,7 @@ FFrameResource::FFrameResource()
 			IID_PPV_ARGS(CommandAllocator.GetAddressOf())
 		)
 	);
-	PassConstantBuffer = std::make_unique<TUploadBuffer<FPassConstants>>(Device, 1, true);
+	PassConstantBuffer = std::make_unique<TUploadBuffer<FPassConstants>>(Device, (UINT)PASS_COUNT, true);
 	ObjectConstantBuffer = std::make_unique<TUploadBuffer<FObjectConstants>>(Device, 1, true);
 	MaterialConstantBuffer = std::make_unique<TUploadBuffer<FMaterialConstants>>(Device, EMT_None, true);
 }
@@ -25,7 +25,7 @@ FFrameResource::FFrameResource()
 void FFrameResource::Update()
 {
 	ID3D12Device* Device = GetDXResourceManagerPtr()->GetDevicePtr();
-	if (PassConstantBuffer->GetElementCount() < 1)
+	if (PassConstantBuffer->GetElementCount() < PASS_COUNT)
 	{
 		PassConstantBuffer = std::make_unique<TUploadBuffer<FPassConstants>>(Device, 1, true);
 	}
@@ -46,6 +46,7 @@ FFrameResourceManager::FFrameResourceManager()
 		mFrameResources.push_back(std::make_unique<FFrameResource>());
 	}
 	mTargetFrameResource = mFrameResources[mTargetFrameResourceIndex].get();
+	BuildRootSignature();
 }
 
 FFrameResourceManager::~FFrameResourceManager()
@@ -81,6 +82,53 @@ void FFrameResourceManager::SetTargetFrameResource()
 		WaitForSingleObject(eventHandle, INFINITE);
 		CloseHandle(eventHandle);
 	}
+}
+
+void FFrameResourceManager::BuildRootSignature()
+{
+	CD3DX12_DESCRIPTOR_RANGE TextureTable;
+	TextureTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+
+	CD3DX12_ROOT_PARAMETER RootParameter[4];
+	RootParameter[0].InitAsConstantBufferView(0);
+	RootParameter[1].InitAsConstantBufferView(1);
+	RootParameter[2].InitAsConstantBufferView(2);
+	RootParameter[3].InitAsDescriptorTable(1, &TextureTable, D3D12_SHADER_VISIBILITY_PIXEL);
+
+	auto StaticSamplers = FTexture::GetStaticSamplers();
+
+	CD3DX12_ROOT_SIGNATURE_DESC RootSignatureDesc(
+		4,
+		RootParameter,
+		(UINT)StaticSamplers.size(),
+		StaticSamplers.data(),
+		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
+	);
+
+	Microsoft::WRL::ComPtr<ID3DBlob> SerializedRootSignature = nullptr;
+	Microsoft::WRL::ComPtr<ID3DBlob> ErrorBlob = nullptr;
+	HRESULT HResult = D3D12SerializeRootSignature(
+		&RootSignatureDesc,
+		D3D_ROOT_SIGNATURE_VERSION_1,
+		SerializedRootSignature.GetAddressOf(),
+		ErrorBlob.GetAddressOf()
+	);
+
+	if (ErrorBlob != nullptr)
+	{
+		::OutputDebugStringA((char*)ErrorBlob->GetBufferPointer());
+	}
+	THROW_IF_FAILED(HResult);
+
+	ID3D12Device* Device = GetDXResourceManagerPtr()->GetDevicePtr();
+	THROW_IF_FAILED(
+		Device->CreateRootSignature(
+			0,
+			SerializedRootSignature->GetBufferPointer(),
+			SerializedRootSignature->GetBufferSize(),
+			IID_PPV_ARGS(mRootSignature.GetAddressOf())
+		)
+	)
 }
 
 void FFrameResourceManager::UpdatePassCB()
