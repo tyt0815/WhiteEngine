@@ -31,15 +31,10 @@ public:
 	virtual void Render(const FRenderData& RenderData);
 
 private:
-	void DrawActors(const std::vector<AActor*>& DrawTargets, FFrameResource* TargetFrameResource);
-	ID3D12Fence* Fence = nullptr;
-	ID3D12Device* Device = nullptr;
-	ID3D12CommandQueue* CommandQueue = nullptr;
-	ID3D12CommandAllocator* CommandAllocator = nullptr;
-	ID3D12GraphicsCommandList* CommandList = nullptr;
-	std::vector<std::unique_ptr<FFrameResource>> FrameResources;
-
-	int TargetFrameResourceIndex = 0;
-
+	void DrawActors(
+		const std::vector<AActor*>& DrawTargets,
+		FFrameResource* TargetFrameResource,
+		ID3D12GraphicsCommandList* CommandList
+	);
 	bool bWireFrame = false;
 };

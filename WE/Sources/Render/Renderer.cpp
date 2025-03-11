@@ -15,20 +15,18 @@
 FRenderer::FRenderer()
 {
 	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
-	Device = DeviceManager->GetDevicePtr();
-	CommandQueue = DeviceManager->GetCommandQueuePtr();
-	CommandAllocator = DeviceManager->GetCommandAllocatorPtr();
-	CommandList = DeviceManager->GetCommandListPtr();
-	Fence = DeviceManager->GetFencePtr();
 }
 
 void FRenderer::Render(const FRenderData& RenderData)
 {
+	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
+	ID3D12Device* Device = DeviceManager->GetDevicePtr();
+	ID3D12GraphicsCommandList* CommandList = DeviceManager->GetCommandListPtr();
+	ID3D12CommandQueue* CommandQueue = DeviceManager->GetCommandQueuePtr();
 	FFrameResource* TargetFrameResource = RenderData.FrameResource;
 	ID3D12CommandAllocator* TargetCommandAllocator = RenderData.FrameResource->CommandAllocator.Get();
 	WWorld* World = GetWorld();
 
-	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
 	ID3D12Resource* RenderTarget = DeviceManager->GetCurrentBackBufferPtr();
 
 	THROW_IF_FAILED(TargetCommandAllocator->Reset());
@@ -75,7 +73,7 @@ void FRenderer::Render(const FRenderData& RenderData)
 		{
 			CommandList->SetPipelineState(GetShaderManager()->GetWireFramePipelineStatePtr());
 		}
-		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Opaque], TargetFrameResource);
+		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Opaque], TargetFrameResource, CommandList);
 	}
 
 	{
@@ -87,7 +85,7 @@ void FRenderer::Render(const FRenderData& RenderData)
 		{
 			CommandList->SetPipelineState(GetShaderManager()->GetWireFramePipelineStatePtr());
 		}
-		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_AlphaTest], TargetFrameResource);
+		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_AlphaTest], TargetFrameResource, CommandList);
 	}
 
 	{
@@ -99,7 +97,7 @@ void FRenderer::Render(const FRenderData& RenderData)
 		{
 			CommandList->SetPipelineState(GetShaderManager()->GetWireFramePipelineStatePtr());
 		}
-		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Billboard], TargetFrameResource);
+		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Billboard], TargetFrameResource, CommandList);
 	}
 
 	{
@@ -111,7 +109,7 @@ void FRenderer::Render(const FRenderData& RenderData)
 		{
 			CommandList->SetPipelineState(GetShaderManager()->GetWireFramePipelineStatePtr());
 		}
-		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Transparency], TargetFrameResource);
+		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Transparency], TargetFrameResource, CommandList);
 	}
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -129,7 +127,11 @@ void FRenderer::Render(const FRenderData& RenderData)
 	CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
 }
 
-void FRenderer::DrawActors(const std::vector<AActor*>& DrawTargets, FFrameResource* TargetFrameResource)
+void FRenderer::DrawActors(
+	const std::vector<AActor*>& DrawTargets,
+	FFrameResource* TargetFrameResource,
+	ID3D12GraphicsCommandList* CommandList
+)
 {
 	int ActorCount = (int)DrawTargets.size();
 	ID3D12DescriptorHeap* SRVHeap = GetTextureManager()->GetSRVHeapPtr();
