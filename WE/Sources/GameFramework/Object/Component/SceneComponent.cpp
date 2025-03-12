@@ -16,6 +16,15 @@ void WSceneComponent::UpdateRecursive()
 	}
 }
 
+void WSceneComponent::SetRotation(DirectX::XMFLOAT3 Rotation)
+{
+	mTransform.Rotation = Rotation;
+	mTransform.Rotation.x = fmodf(mTransform.Rotation.x, 360.0f);
+	mTransform.Rotation.y = fmodf(mTransform.Rotation.y, 360.0f);	
+	mTransform.Rotation.z = fmodf(mTransform.Rotation.z, 360.0f);
+	mbDirty = true;
+}
+
 void WSceneComponent::Update()
 {
 	UpdateWorldMatrix();

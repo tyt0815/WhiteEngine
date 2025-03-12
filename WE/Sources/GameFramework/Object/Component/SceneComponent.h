@@ -9,6 +9,8 @@ class WSceneComponent : public WActorComponent
 public:
 	void SetupAttachment(WSceneComponent* Parent);
 	void UpdateRecursive();
+	virtual void SetRotation(DirectX::XMFLOAT3 Rotation);
+	
 
 protected:
 	virtual void Update();
@@ -47,11 +49,6 @@ public:
 	inline DirectX::XMFLOAT3 GetRotation() const
 	{
 		return mTransform.Rotation;
-	}
-	inline void SetRotation(DirectX::XMFLOAT3 Rotation)
-	{
-		mTransform.Rotation = Rotation;
-		mbDirty = true;
 	}
 	inline DirectX::XMFLOAT3 GetScale() const
 	{

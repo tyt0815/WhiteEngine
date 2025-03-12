@@ -21,17 +21,12 @@ private:
 	void UpdateWindowSize();
 	void Resize();
 	void OnMouseDown(WPARAM WParam, int X, int Y);
-	void OnMouseUp(WPARAM WParam, int X, int Y);
-	void OnMouseMove(WPARAM WParam, int X, int Y);
-	void OnMouseWheel(WPARAM WParam);
 	void OnKeyDown(WPARAM WParam);
-	void OnKeyUp(WPARAM WParam);
 	HWND mWindowHandle = nullptr;
 	std::wstring mClassName;
 	std::wstring mWindowName;
 	std::vector<std::function<void()>> mResizeCallbackFunctions;
-	std::vector<std::vector<std::function<void(WPARAM, FMouseInputParameter&)>>> mInputActionFunctions;
-	FMouseInputParameter mMouseInputParameter;
+	
 
 	UINT mWidth = 0;
 	UINT mHeight = 0;
@@ -42,7 +37,7 @@ private:
 	bool bResized = false;
 	bool bMinimized = false;
 	bool bMaximized = false;
-	bool bFocused = false;
+	bool bCaptured = false;
 
 public:
 	inline HWND	GetWindowHandle() const { return mWindowHandle; }
@@ -54,8 +49,10 @@ public:
 	{
 		mResizeCallbackFunctions.push_back(Function);
 	}
-	void SetInputAction(char Key, EInputType InputType, void (*Function)(FMouseInputParameter& MouseInputParameter));
-	
+	inline bool IsCaptured() const 
+	{ 
+		return bCaptured; 
+	}
 };
 
 extern FWindow gMainWindow;

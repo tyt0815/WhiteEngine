@@ -1,9 +1,5 @@
 #include "Pawn.h"
-
-void APawn::SetupPlayerInput()
-{
-	// TODO
-}
+#include "Utility/Timer.h"
 
 void APawn::Tick(float Delta)
 {
@@ -11,7 +7,7 @@ void APawn::Tick(float Delta)
 
 void APawn::AddMovementInput(const XMFLOAT3& WorldDirection, float ScaleValue)
 {
-	// TODO
+	ScaleValue *= GetAppTimer()->GetDeltaTime() * mMoveSpeed;
 	XMFLOAT3 WorldLocation = GetTransform().Translation;
 	XMVECTOR DirectionVector = XMLoadFloat3(&WorldDirection);
 	DirectionVector = DirectX::XMVectorScale(DirectionVector, ScaleValue);
@@ -23,6 +19,7 @@ void APawn::AddMovementInput(const XMFLOAT3& WorldDirection, float ScaleValue)
 
 void APawn::AddYawInput(float Value)
 {
+	Value *= GetAppTimer()->GetDeltaTime() * mCameraSpeed;
 	XMFLOAT3 Rotation = GetTransform().Rotation;
 	Rotation.y += Value;
 	SetRotation(Rotation);
@@ -30,6 +27,7 @@ void APawn::AddYawInput(float Value)
 
 void APawn::AddPitchInput(float Value)
 {
+	Value *= GetAppTimer()->GetDeltaTime() * mCameraSpeed;
 	XMFLOAT3 Rotation = GetTransform().Rotation;
 	Rotation.x += Value;
 	SetRotation(Rotation);
@@ -37,6 +35,7 @@ void APawn::AddPitchInput(float Value)
 
 void APawn::AddRollInput(float Value)
 {
+	Value *= GetAppTimer()->GetDeltaTime() * mCameraSpeed;
 	XMFLOAT3 Rotation = GetTransform().Rotation;
 	Rotation.z += Value;
 	SetRotation(Rotation);

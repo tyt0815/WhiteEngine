@@ -13,6 +13,12 @@ void WCameraComponent::SetOwner(AActor* Owner)
 	Owner->SetCameraComponent(this);
 }
 
+void WCameraComponent::SetRotation(XMFLOAT3 Rotation)
+{
+	Rotation.x = FDXMath::Clamp(Rotation.x, -89.0f, 89.0f);
+	Super::SetRotation(Rotation);
+}
+
 void WCameraComponent::Update()
 {
 	Super::Update();

@@ -65,14 +65,91 @@ FWindow::FWindow(const std::wstring ClassName, const std::wstring WindowName, UI
 		throw "CreateWindow Failed.";
 	}
 
+	// 마우스 이동량을 알기 위해 rawinputdevice 등록
+	RAWINPUTDEVICE Rid;
+	Rid.usUsagePage = 0x01; // Generic Desktop Controls
+	Rid.usUsage = 0x02;     // Mouse
+	Rid.dwFlags = RIDEV_INPUTSINK; // 백그라운드에서도 입력 받기
+	Rid.hwndTarget = mWindowHandle; // 메시지를 받을 윈도우 핸들
+
+	if (!RegisterRawInputDevices(&Rid, 1, sizeof(RAWINPUTDEVICE)))
+	{
+		MessageBox(0, L"Failed to register raw input", L"Error", MB_OK);
+	}
+
 	ShowWindow(mWindowHandle, SW_SHOW);
 	UpdateWindow(mWindowHandle);
-
-	mInputActionFunctions.resize(EInputType::EIT_None);
 }
 
 LRESULT FWindow::WindowProcedure(HWND WindowHandle, UINT Message, WPARAM WParam, LPARAM LParam)
 {
+	// 화면 중앙 좌표
+	RECT R;
+	::GetClientRect(WindowHandle, &R);
+	POINT CenterPos;
+	CenterPos.x = (R.left + R.right) / 2;
+	CenterPos.y = (R.top + R.bottom) / 2;
+
+	// Input 처리
+	if (bCaptured)
+	{
+		switch (Message)
+		{
+		case WM_LBUTTONDOWN:
+			GetInputSystemManager()->ProcessMouseInput(EMIT_LDown, GET_X_LPARAM(LParam), GET_Y_LPARAM(LParam));
+			break;
+		case WM_MBUTTONDOWN:
+			GetInputSystemManager()->ProcessMouseInput(EMIT_MDown, GET_X_LPARAM(LParam), GET_Y_LPARAM(LParam));
+			break;
+		case WM_RBUTTONDOWN:
+			GetInputSystemManager()->ProcessMouseInput(EMIT_RDown, GET_X_LPARAM(LParam), GET_Y_LPARAM(LParam));
+			break;
+		case WM_LBUTTONUP:
+			GetInputSystemManager()->ProcessMouseInput(EMIT_LUp, GET_X_LPARAM(LParam), GET_Y_LPARAM(LParam));
+			break;
+		case WM_MBUTTONUP:
+			GetInputSystemManager()->ProcessMouseInput(EMIT_MUp, GET_X_LPARAM(LParam), GET_Y_LPARAM(LParam));
+			break;
+		case WM_RBUTTONUP:
+			GetInputSystemManager()->ProcessMouseInput(EMIT_RUp, GET_X_LPARAM(LParam), GET_Y_LPARAM(LParam));
+			break;
+		case WM_INPUT:
+		{
+			UINT dwSize = 0;
+			GetRawInputData((HRAWINPUT)LParam, RID_INPUT, nullptr, &dwSize, sizeof(RAWINPUTHEADER));
+
+			BYTE* lpb = new BYTE[dwSize];
+			if (GetRawInputData((HRAWINPUT)LParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER)) == dwSize)
+			{
+				RAWINPUT* raw = (RAWINPUT*)lpb;
+				if (raw->header.dwType == RIM_TYPEMOUSE)
+				{
+					int dX = raw->data.mouse.lLastX;
+					int dY = raw->data.mouse.lLastY;
+
+					GetInputSystemManager()->ProcessMouseInput(EMIT_Move, dX, dY);
+				}
+			}
+			delete[] lpb;
+
+
+			//static int LastX = GET_X_LPARAM(LParam);
+			//static int LastY = GET_Y_LPARAM(LParam);
+			//int dX = GET_X_LPARAM(LParam) - LastX;
+			//int dY = GET_Y_LPARAM(LParam) - LastY;
+			//GetInputSystemManager()->ProcessMouseInput(EMIT_Move, dX, dY);
+			//LastX = GET_X_LPARAM(LParam);
+			//LastY = GET_Y_LPARAM(LParam);
+			break;
+		}
+
+		case WM_MOUSEWHEEL:
+			GetInputSystemManager()->ProcessMouseInput(EMIT_Wheel, GET_X_LPARAM(LParam), GET_Y_LPARAM(LParam));
+			break;
+		}
+	}
+
+
 	switch (Message)
 	{
 		// WM_ACTIVATE is sent when the window is activated or deactivated.  
@@ -177,34 +254,29 @@ LRESULT FWindow::WindowProcedure(HWND WindowHandle, UINT Message, WPARAM WParam,
 	case WM_LBUTTONDOWN:
 	case WM_MBUTTONDOWN:
 	case WM_RBUTTONDOWN:
-		if (!bFocused)
-		{
-			bFocused = true; 
-			SetCapture(mWindowHandle);
-			ShowCursor(false);
-		}
-		
 		OnMouseDown(WParam, GET_X_LPARAM(LParam), GET_Y_LPARAM(LParam));
 		return 0;
 	case WM_LBUTTONUP:
 	case WM_MBUTTONUP:
 	case WM_RBUTTONUP:
-		OnMouseUp(WParam, GET_X_LPARAM(LParam), GET_Y_LPARAM(LParam));
 		return 0;
 	case WM_MOUSEMOVE:
-		OnMouseMove(WParam, GET_X_LPARAM(LParam), GET_Y_LPARAM(LParam));
 		return 0;
 	case WM_KEYDOWN:
 		OnKeyDown(WParam);
 		return 0;
 	case WM_KEYUP:
-		OnKeyUp(WParam);
 		return 0;
 	case WM_MOUSEWHEEL:
-		OnMouseWheel(WParam);
 		return 0;
-	}
+	}	
 
+	// 마우스를 화면 중앙에 고정
+	if (bCaptured)
+	{
+		::ClientToScreen(WindowHandle, &CenterPos);
+		::SetCursorPos(CenterPos.x, CenterPos.y);
+	}
 
 	return DefWindowProc(WindowHandle, Message, WParam, LParam);
 }
@@ -227,123 +299,20 @@ void FWindow::Resize()
 
 void FWindow::OnMouseDown(WPARAM WParam, int X, int Y)
 {
-	mLastX = X;
-	mLastY = Y;
-	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[EInputType::EIT_MouseDown])
+	if (!bCaptured)
 	{
-		mMouseInputParameter.SetParameters(X, Y, mLastX, mLastY);
-		Function(WParam, mMouseInputParameter);
-	}
-
-
-	/*LastMousePos.x = X;
-	LastMousePos.y = Y;*/
-	/*if (WParam == MK_RBUTTON)
-	{
+		bCaptured = true;
 		SetCapture(mWindowHandle);
 		ShowCursor(false);
-	}*/
-}
-
-void FWindow::OnMouseUp(WPARAM WParam, int X, int Y)
-{
-	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[EInputType::EIT_MouseUp])
-	{
-		mMouseInputParameter.SetParameters(X, Y, mLastX, mLastY);
-		Function(WParam, mMouseInputParameter);
-	}
-
-	//WParam
-	/*ReleaseCapture();
-	ShowCursor(true);
-	if (WParam == MK_RBUTTON)
-	{
-		ReleaseCapture();
-		ShowCursor(true);
-	}*/
-}
-
-void FWindow::OnMouseMove(WPARAM WParam, int X, int Y)
-{
-	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[EInputType::EIT_MouseMove])
-	{
-		mMouseInputParameter.SetParameters(X, Y, mLastX, mLastY);
-		Function(WParam, mMouseInputParameter);
-	}
-
-	//if (WParam == MK_RBUTTON)
-	//{
-	//	static float Speed = 50.0f;
-	//	// Make each pixel correspond to a quarter of a degree.
-	//	float dx = XMConvertToRadians(0.25f * static_cast<float>(X - LastMousePos.x));
-	//	float dy = XMConvertToRadians(0.25f * static_cast<float>(Y - LastMousePos.y));
-
-	//	XMFLOAT3 Rotation = Camera->GetRotation();
-	//	Camera->RotateY(dx * Speed);
-	//	Camera->RotateX(dy * Speed);
-	//}
-	//LastMousePos.x = X;
-	//LastMousePos.y = Y;
-}
-
-void FWindow::OnMouseWheel(WPARAM WParam)
-{
-	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[EInputType::EIT_MouseWheel])
-	{
-		Function(WParam, mMouseInputParameter);
 	}
 }
 
 void FWindow::OnKeyDown(WPARAM WParam)
 {
-	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[EInputType::EIT_KeyDown])
+	if (WParam == VK_ESCAPE && bCaptured)
 	{
-		Function(WParam, mMouseInputParameter);
-	}
-	if (WParam == VK_ESCAPE && bFocused)
-	{
-		bFocused = false;
+		bCaptured = false;
 		ReleaseCapture();
 		ShowCursor(true);
 	}
-}
-
-void FWindow::OnKeyUp(WPARAM WParam)
-{
-	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[EInputType::EIT_KeyUp])
-	{
-		Function(WParam, mMouseInputParameter);
-	}
-}
-
-void FWindow::SetInputAction(char Key, EInputType InputType, void (*Function)(FMouseInputParameter& MouseInputParameter))
-{
-	Key = tolower(Key);
-	if (InputType < EInputType::EIT_KeyDown)
-	{
-		if (Key == 'r')
-		{
-			Key = tolower((char)MK_RBUTTON);
-		}
-		else if (Key == 'l')
-		{
-			Key = tolower((char)MK_LBUTTON);
-		}
-		else if (Key == 'm')
-		{
-			Key = tolower((char)MK_MBUTTON);
-		}
-		else
-		{
-			throw "Undefined MouseAction";
-		}
-	}
-	mInputActionFunctions[(size_t)InputType].push_back([=](WPARAM WParam, FMouseInputParameter& MouseInputParameter)
-		{
-			if (tolower((char)WParam) == Key)
-			{
-				Function(MouseInputParameter);
-			}
-		}
-	);
 }

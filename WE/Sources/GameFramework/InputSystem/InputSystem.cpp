@@ -1,8 +1,9 @@
 #include "InputSystem.h"
+#include "Window/Window.h"
 
-FInputSystemManager::FInputSystemManager()
+FInputSystemManager::FInputSystemManager():
+	mMouseActions(EMIT_None)
 {
-	BindKeyboardAction('i', this, &FInputSystemManager::Test);
 }
 
 FInputSystemManager::~FInputSystemManager()
@@ -12,8 +13,21 @@ FInputSystemManager::~FInputSystemManager()
 
 void FInputSystemManager::Tick()
 {
-	
-	ProcessKeyboardActions();
+	if (GetMainWindowPtr()->IsCaptured())
+	{
+		ProcessKeyboardActions();
+	}
+}
+
+void FInputSystemManager::ProcessMouseInput(EMouseInputType Type, int X, int Y)
+{
+	static FMouseInputParameter Parameter;
+	for (const std::function<void(FMouseInputParameter)>& ActionFunction : mMouseActions[Type])
+	{
+		Parameter.X = X;
+		Parameter.Y = Y;
+		ActionFunction(Parameter);
+	}
 }
 
 void FInputSystemManager::ProcessKeyboardActions()
@@ -22,9 +36,4 @@ void FInputSystemManager::ProcessKeyboardActions()
 	{
 		ActionFunction();
 	}
-}
-
-void FInputSystemManager::Test()
-{
-	int a = 1;
 }

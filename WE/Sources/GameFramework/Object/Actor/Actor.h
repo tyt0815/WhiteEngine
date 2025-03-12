@@ -19,6 +19,9 @@ public:
 	template<typename T>
 	T* CreateNoneSceneComponent();
 	void SetRootComponent(WSceneComponent* Component);
+	XMFLOAT3 GetFowardVector() const;
+	XMFLOAT3 GetRightVector() const;
+	XMFLOAT3 GetUpVector() const;
 
 protected:
 
