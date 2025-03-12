@@ -26,7 +26,7 @@ public:
 	{}
 	FTransform(XMFLOAT3 Scale, XMFLOAT3 Rotation, XMFLOAT3 Translation);
 	~FTransform() = default;
-	XMMATRIX GetTransformMatrix();
+	XMFLOAT4X4 GetTransformMatrix();
 
 	XMFLOAT3 Scale;
 	XMFLOAT3 Rotation;

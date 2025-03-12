@@ -3,7 +3,8 @@
 #include <memory>
 
 #include "DirectX/DXResourceManager.h"
-#include "TestApplication/World/TestWorld.h"
+#include "GameFramework/InputSystem/InputSystem.h"
+#include "World/TestWorld.h"
 #include "Render/Renderer.h"
 #include "Render/RenderItemManager.h"
 #include "Render/Texture.h"

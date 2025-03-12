@@ -42,6 +42,7 @@ private:
 	bool bResized = false;
 	bool bMinimized = false;
 	bool bMaximized = false;
+	bool bFocused = false;
 
 public:
 	inline HWND	GetWindowHandle() const { return mWindowHandle; }

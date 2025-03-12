@@ -30,15 +30,18 @@ FTransform::FTransform(XMFLOAT3 InScale, XMFLOAT3 InRotation, XMFLOAT3 InTransla
 {
 }
 
-XMMATRIX FTransform::GetTransformMatrix()
+XMFLOAT4X4 FTransform::GetTransformMatrix()
 {
 	XMMATRIX S = XMMatrixScalingFromVector(GetScaleXMVECTOR());
-	XMMATRIX R =
-		XMMatrixRotationX(XMConvertToRadians(Rotation.x)) *
-		XMMatrixRotationY(XMConvertToRadians(Rotation.y)) *
-		XMMatrixRotationZ(XMConvertToRadians(Rotation.z));
+	XMMATRIX R = XMMatrixRotationRollPitchYaw(
+		XMConvertToRadians(Rotation.x),
+		XMConvertToRadians(Rotation.y),
+		XMConvertToRadians(Rotation.z)
+	);
 	XMMATRIX T = XMMatrixTranslationFromVector(GetTranslationXMVECTOR());
-	return S * R * T;
+	XMFLOAT4X4 Matrix;
+	XMStoreFloat4x4(&Matrix, T * R * S);
+	return Matrix;
 }
 
 float FDXMath::AngleFromXY(float x, float y)

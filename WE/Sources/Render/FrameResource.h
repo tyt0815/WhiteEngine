@@ -104,6 +104,7 @@ class FFrameResourceManager
     SINGLETON(FFrameResourceManager)
 public:
     void Tick();
+	void FlushCommandQueues();
 
 private:
     void SetTargetFrameResource();

@@ -177,6 +177,13 @@ LRESULT FWindow::WindowProcedure(HWND WindowHandle, UINT Message, WPARAM WParam,
 	case WM_LBUTTONDOWN:
 	case WM_MBUTTONDOWN:
 	case WM_RBUTTONDOWN:
+		if (!bFocused)
+		{
+			bFocused = true; 
+			SetCapture(mWindowHandle);
+			ShowCursor(false);
+		}
+		
 		OnMouseDown(WParam, GET_X_LPARAM(LParam), GET_Y_LPARAM(LParam));
 		return 0;
 	case WM_LBUTTONUP:
@@ -231,11 +238,11 @@ void FWindow::OnMouseDown(WPARAM WParam, int X, int Y)
 
 	/*LastMousePos.x = X;
 	LastMousePos.y = Y;*/
-	if (WParam == MK_RBUTTON)
+	/*if (WParam == MK_RBUTTON)
 	{
 		SetCapture(mWindowHandle);
 		ShowCursor(false);
-	}
+	}*/
 }
 
 void FWindow::OnMouseUp(WPARAM WParam, int X, int Y)
@@ -247,12 +254,13 @@ void FWindow::OnMouseUp(WPARAM WParam, int X, int Y)
 	}
 
 	//WParam
-	ReleaseCapture();
+	/*ReleaseCapture();
+	ShowCursor(true);
 	if (WParam == MK_RBUTTON)
 	{
 		ReleaseCapture();
 		ShowCursor(true);
-	}
+	}*/
 }
 
 void FWindow::OnMouseMove(WPARAM WParam, int X, int Y)
@@ -291,6 +299,12 @@ void FWindow::OnKeyDown(WPARAM WParam)
 	for (std::function<void(WPARAM, FMouseInputParameter&)>& Function : mInputActionFunctions[EInputType::EIT_KeyDown])
 	{
 		Function(WParam, mMouseInputParameter);
+	}
+	if (WParam == VK_ESCAPE && bFocused)
+	{
+		bFocused = false;
+		ReleaseCapture();
+		ShowCursor(true);
 	}
 }
 

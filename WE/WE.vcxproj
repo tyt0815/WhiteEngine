@@ -11,7 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Sources\Application\TestApplication.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\Actor\Box.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\Actor\Cylinder.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\Actor\Grid.cpp" />
@@ -20,6 +19,7 @@
     <ClCompile Include="Sources\Application\TestApplication\Actor\WaterBall.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\Actor\WireFence.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\Pawn\GhostCameraPawn.cpp" />
+    <ClCompile Include="Sources\Application\TestApplication\TestApplication.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\World\BoxWorld.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\World\TestWorld.cpp" />
     <ClCompile Include="Sources\DirectX\DXResourceManager.cpp" />
@@ -52,7 +52,6 @@
     <ClCompile Include="Sources\Window\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Sources\Application\TestApplication.h" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\Box.h" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\Cylinder.h" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\Grid.h" />
@@ -62,6 +61,7 @@
     <ClInclude Include="Sources\Application\TestApplication\Actor\WaterBall.h" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\WireFence.h" />
     <ClInclude Include="Sources\Application\TestApplication\Pawn\GhostCameraPawn.h" />
+    <ClInclude Include="Sources\Application\TestApplication\TestApplication.h" />
     <ClInclude Include="Sources\Application\TestApplication\World\BoxWorld.h" />
     <ClInclude Include="Sources\Application\TestApplication\World\TestWorld.h" />
     <ClInclude Include="Sources\DirectX\d3dx12.h" />

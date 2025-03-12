@@ -76,7 +76,7 @@ void WCameraComponent::UpdateProjMatrix()
 	if (mbProjDirty || gAspectRatio != mAspectRatio)
 	{
 		mAspectRatio = gAspectRatio;
-		XMMATRIX P = XMMatrixPerspectiveFovLH(0.785398185, mAspectRatio, mNearZ, mFarZ);
+		XMMATRIX P = XMMatrixPerspectiveFovLH(mFov * FDXMath::Pi / 180, mAspectRatio, mNearZ, mFarZ);
 		XMStoreFloat4x4(&mProj, P);
 		mbProjDirty = false;
 	}

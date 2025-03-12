@@ -17,17 +17,17 @@ private:
 	void BuildPipelineStateObject();
 	std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3DBlob>> mShaders;
 	std::unordered_map<std::string, std::vector<D3D12_INPUT_ELEMENT_DESC>> mInputLayouts;
-	std::vector<std::vector<Microsoft::WRL::ComPtr<ID3D12PipelineState>>> mPiplineStates;
+	std::vector<std::vector<Microsoft::WRL::ComPtr<ID3D12PipelineState>>> mPipelineStates;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> mWireFramePipelineState;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> mBillboardPipelineState;
 public:
 	inline ID3D12PipelineState* GetPipelineStatePtr(EShadingModel ShadingModel, EBlendMode BlendMode) const
 	{
-		return mPiplineStates[ShadingModel][BlendMode].Get();
+		return mPipelineStates[ShadingModel][BlendMode].Get();
 	}
 	inline ID3D12PipelineState* GetPipelineStatePtr(std::uint32_t ShadingModel, std::uint32_t BlendMode) const
 	{
-		return mPiplineStates[ShadingModel][BlendMode].Get();
+		return mPipelineStates[ShadingModel][BlendMode].Get();
 	}
 	inline ID3D12PipelineState* GetWireFramePipelineStatePtr() const
 	{

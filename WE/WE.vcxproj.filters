@@ -92,9 +92,6 @@
     <ClCompile Include="Sources\DirectX\DXResourceManager.cpp">
       <Filter>Sources\DirectX</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Application\TestApplication.cpp">
-      <Filter>Sources\Application</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\Render\Renderer.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
@@ -173,6 +170,9 @@
     <ClCompile Include="Sources\Application\TestApplication\World\TestWorld.cpp">
       <Filter>Sources\Application\TestApplication\World</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Application\TestApplication\TestApplication.cpp">
+      <Filter>Sources\Application\TestApplication</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -207,9 +207,6 @@
     </ClInclude>
     <ClInclude Include="Sources\Window\Window.h">
       <Filter>Sources\Window</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Application\TestApplication.h">
-      <Filter>Sources\Application</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Render\Renderer.h">
       <Filter>Sources\Render</Filter>
@@ -306,6 +303,9 @@
     </ClInclude>
     <ClInclude Include="Sources\Application\TestApplication\World\TestWorld.h">
       <Filter>Sources\Application\TestApplication\World</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Application\TestApplication\TestApplication.h">
+      <Filter>Sources\Application\TestApplication</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

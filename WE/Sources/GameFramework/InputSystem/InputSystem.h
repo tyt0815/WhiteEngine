@@ -1,6 +1,31 @@
 #pragma once
-
 #include <comdef.h>
+#include <functional>
+#include <vector>
+#include "Utility/Class.h"
+
+enum EMouseInputType
+{
+	EMIT_LDown,
+	EMIT_RDown,
+	EMIT_MDown,
+	EMIT_LUp,
+	EMIT_RUp,
+	EMIT_MUp,
+	EMIT_LMove,
+	EMIT_RMove,
+	EMIT_MMove,
+	EMIT_Move,
+	EMIT_Wheel,
+	EMIT_None
+};
+
+enum EKeyboardInputType
+{
+	EKIT_Down,
+	EKIT_Up,
+	EKIT_None,
+};
 
 enum EInputType
 {
@@ -12,11 +37,6 @@ enum EInputType
 	EIT_KeyUp,
 	EIT_None
 };
-
-inline bool IsKeyDown(int vkeyCode)
-{
-	return (GetAsyncKeyState(vkeyCode) & 0x8000) != 0;
-}
 
 class FMouseInputParameter
 {
@@ -90,3 +110,50 @@ public:
 		SetLastY(LastY);
 	}
 };
+
+class FInputSystemManager
+{
+	SINGLETON(FInputSystemManager);
+public:
+	void Tick();
+	template<typename T>
+	void BindMouseAction(EMouseInputType Type, T* ObjectPtr, void(T::*ActionFunction)(FMouseInputParameter));
+	template<typename T>
+	void BindKeyboardAction(char Key, T* ObjectPtr, void(T::* ActionFunction)());
+private:
+	void ProcessKeyboardActions();
+	void Test();
+	std::vector<std::vector<std::function<void(FMouseInputParameter)>>> mMouseActions;
+	std::vector<std::function<void()>> mKeyboardActions;
+
+public:
+	inline bool IsKeyDown(int VKeyCode)
+	{
+		return (GetAsyncKeyState(VKeyCode) & 0x8000) != 0;
+	}
+};
+
+inline FInputSystemManager* GetInputSystemManager()
+{
+	return FInputSystemManager::GetInstance();
+}
+
+template<typename T>
+inline void FInputSystemManager::BindMouseAction(EMouseInputType Type, T* ObjectPtr, void(T::* ActionFunction)(FMouseInputParameter))
+{
+}
+
+template<typename T>
+inline void FInputSystemManager::BindKeyboardAction(char Key, T* ObjectPtr, void(T::* ActionFunction)())
+{
+	Key = toupper(Key);
+	std::function<void()> BoundFunction = std::bind(ActionFunction, ObjectPtr);
+	mKeyboardActions.push_back([=]()
+		{
+			if (IsKeyDown(Key))
+			{
+				BoundFunction();
+			}
+		}
+	);
+}

@@ -77,6 +77,7 @@ FDXResourceManager::FDXResourceManager()
 
 FDXResourceManager::~FDXResourceManager()
 {
+	FlushCommandQueue();
 }
 
 void FDXResourceManager::Resize(UINT Width, UINT Height)

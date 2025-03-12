@@ -4,10 +4,12 @@
 
 FShaderManager::FShaderManager()
 {
-	mPiplineStates.resize(ESM_None);
-	for (int i = 0; i < mPiplineStates.size(); ++i)
+	mPipelineStates.resize(ESM_None);
+	//mPipelineStates = 
+	for (int i = 0; i < mPipelineStates.size(); ++i)
 	{
-		mPiplineStates[i].resize(EBM_None);
+		//mPipelineStates[i].resize(EBM_None);
+		mPipelineStates[i].assign(EBM_None, nullptr);
 	}
 	BuildShaderAndInputLayout();
 	BuildPipelineStateObject();
@@ -15,7 +17,6 @@ FShaderManager::FShaderManager()
 
 FShaderManager::~FShaderManager()
 {
-
 }
 
 void FShaderManager::BuildShaderAndInputLayout()
@@ -120,7 +121,7 @@ void FShaderManager::BuildPipelineStateObject()
 	THROW_IF_FAILED(
 		Device->CreateGraphicsPipelineState(
 			&ForwardLitPipelineStateDesc,
-			IID_PPV_ARGS(mPiplineStates[ESM_DefaultLit][EBM_Opaque].GetAddressOf())
+			IID_PPV_ARGS(mPipelineStates[ESM_DefaultLit][EBM_Opaque].GetAddressOf())
 		)
 	);
 
@@ -158,7 +159,7 @@ void FShaderManager::BuildPipelineStateObject()
 		THROW_IF_FAILED(
 			Device->CreateGraphicsPipelineState(
 				&TransparencyPipelineStateDesc,
-				IID_PPV_ARGS(mPiplineStates[ESM_DefaultLit][EBM_Transparency].GetAddressOf())
+				IID_PPV_ARGS(mPipelineStates[ESM_DefaultLit][EBM_Transparency].GetAddressOf())
 			)
 		);
 	}
@@ -175,7 +176,7 @@ void FShaderManager::BuildPipelineStateObject()
 		THROW_IF_FAILED(
 			Device->CreateGraphicsPipelineState(
 				&AlphaTestPipelineStateDesc,
-				IID_PPV_ARGS(mPiplineStates[ESM_DefaultLit][EBM_AlphaTest].GetAddressOf())
+				IID_PPV_ARGS(mPipelineStates[ESM_DefaultLit][EBM_AlphaTest].GetAddressOf())
 			)
 		);
 	}

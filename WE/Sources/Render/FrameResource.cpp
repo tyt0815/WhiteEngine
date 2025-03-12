@@ -42,7 +42,7 @@ FFrameResourceManager::FFrameResourceManager()
 
 FFrameResourceManager::~FFrameResourceManager()
 {
-
+	
 }
 
 void FFrameResourceManager::Tick()
@@ -52,6 +52,13 @@ void FFrameResourceManager::Tick()
 	UpdatePassCB();
 	UpdateObjectCB();
 	UpdateMaterialCB();
+}
+
+void FFrameResourceManager::FlushCommandQueues()
+{
+	SetTargetFrameResource();
+	SetTargetFrameResource();
+	SetTargetFrameResource();
 }
 
 void FFrameResourceManager::SetTargetFrameResource()

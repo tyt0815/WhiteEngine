@@ -41,6 +41,7 @@ int FTestApplication::Run()
 				CalculateFrameStats();
 				// TODO
 				//ProcessInput();
+				GetInputSystemManager()->Tick();
 				GetWObjectManager()->Tick(GetAppTimer()->GetDeltaTime());
 				GetFrameResourceManager()->Tick();
 				FRenderData RenderData;
@@ -56,6 +57,8 @@ int FTestApplication::Run()
 		}
 	}
 
+	// GPU 의 명령이 끝나고 Com객체들을 해제해야 정상적인 해제 가능
+	GetFrameResourceManager()->FlushCommandQueues();
 	return (int)msg.wParam;
 }
 
