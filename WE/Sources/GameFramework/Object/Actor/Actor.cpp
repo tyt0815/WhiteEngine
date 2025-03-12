@@ -21,6 +21,11 @@ void AActor::SetRootComponent(WSceneComponent* Component)
 	mRootComponentPoolId = GetWObjectManager()->RegisterRootComponent(mRootComponent);
 }
 
+void AActor::SetupComponent(WActorComponent* Component)
+{
+	Component->SetOwner(this);
+}
+
 void AActor::SetupSceneComponent(WSceneComponent* Component)
 {
 	if (mRootComponent)

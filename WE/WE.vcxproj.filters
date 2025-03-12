@@ -173,6 +173,12 @@
     <ClCompile Include="Sources\Application\TestApplication\TestApplication.cpp">
       <Filter>Sources\Application\TestApplication</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Pawn\Pawn.cpp">
+      <Filter>Sources\GameFramework\Object\Pawn</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Component\ActorComponent.cpp">
+      <Filter>Sources\GameFramework\Object\Component</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">

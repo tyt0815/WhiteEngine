@@ -1,12 +1,16 @@
 #include "CameraComponent.h"
+#include "GameFramework/Object/Actor/Actor.h"
 
 extern float gAspectRatio;
-// TODO: 전역 변수가 아니라 좀더 쌈뽕하게 바꿔야함.
-WCameraComponent* gCamera = nullptr;
 
 WCameraComponent::WCameraComponent()
 {
-	gCamera = this;
+}
+
+void WCameraComponent::SetOwner(AActor* Owner)
+{
+	Super::SetOwner(Owner);
+	Owner->SetCameraComponent(this);
 }
 
 void WCameraComponent::Update()

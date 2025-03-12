@@ -3,11 +3,6 @@
 
 WBoxWorld::WBoxWorld()
 {
-
-}
-
-void WBoxWorld::BuildWorldActors()
-{
 	AActor* Actor;
 	FTransform Transform;
 	Transform.Translation.x = 1.0f;

@@ -5,17 +5,14 @@
 
 WTestWorld::WTestWorld()
 {
-	BuildWorldActors();
-}
-
-void WTestWorld::BuildWorldActors()
-{
-	AActor* Actor = nullptr;
+	APawn* Player = SpawnActor<AGhostCameraPawn>();
+	SetPlayer(Player);
 	FTransform Transform;
-	Actor = SpawnActor<AGhostCameraPawn>();
-	Transform.Translation = XMFLOAT3(0.0f, 10.0f, 10.0f);
-	Actor->SetTransform(Transform);
+	Transform.Translation = XMFLOAT3(0.0f, 5.0f, 0.0f);
+	Player->SetTransform(Transform);
+	
 
+	AActor* Actor = nullptr;
 	Transform.Scale = XMFLOAT3(2.0f, 2.0f, 2.0f);
 	Transform.Translation = XMFLOAT3(0.0f, 0.5f, 10.0f);
 	Actor = SpawnActor<AWireFence>();

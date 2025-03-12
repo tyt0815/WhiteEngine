@@ -12,10 +12,7 @@ FInputSystemManager::~FInputSystemManager()
 
 void FInputSystemManager::Tick()
 {
-	/*if (IsKeyDown('I'))
-	{
-		Test();
-	}*/
+	
 	ProcessKeyboardActions();
 }
 

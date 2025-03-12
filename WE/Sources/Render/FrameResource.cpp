@@ -9,7 +9,6 @@
 #include "GameFramework/Object/Component/PrimitiveComponent.h"
 #include "Utility/Timer.h"
 
-extern WCameraComponent* gCamera;
 const int FrameResourcesNum = FRAME_RESOURCES_NUM;
 
 FFrameResource::FFrameResource()
@@ -138,8 +137,10 @@ void FFrameResourceManager::UpdatePassCB()
 	XMVECTOR target = XMVectorZero();
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
-	XMFLOAT4X4 ViewMatrix = gCamera->GetViewMatrix();
-	XMFLOAT4X4 ProjMatrix = gCamera->GetProjMatrix();
+	WCameraComponent* Camera = GetWorld()->GetPlayerCamera();
+
+	XMFLOAT4X4 ViewMatrix = Camera->GetViewMatrix();
+	XMFLOAT4X4 ProjMatrix = Camera->GetProjMatrix();
 	XMMATRIX view = XMLoadFloat4x4(&ViewMatrix);
 	XMMATRIX InvView = FDXMath::GetInverseMatrix(view);
 	XMMATRIX proj =  XMLoadFloat4x4(&ProjMatrix);
@@ -154,14 +155,14 @@ void FFrameResourceManager::UpdatePassCB()
 	XMStoreFloat4x4(&PassConstants.InvProj, XMMatrixTranspose(InvProj));
 	XMStoreFloat4x4(&PassConstants.ViewProj, XMMatrixTranspose(ViewProj));
 	XMStoreFloat4x4(&PassConstants.InvViewProj, XMMatrixTranspose(InvViewProj));
-	PassConstants.EyePosW = gCamera->GetLocation();
+	PassConstants.EyePosW = Camera->GetLocation();
 	D3D12_VIEWPORT Viewport = DeviceManager->GetScreenViewport();
 	float Width = static_cast<float>(Viewport.Width);
 	float Height = static_cast<float>(Viewport.Height);
 	PassConstants.RenderTargetSize = XMFLOAT2(Width, Height);
 	PassConstants.InvRenderTargetSize = XMFLOAT2(1.0f / Width, 1.0f / Height);
-	PassConstants.NearZ = gCamera->GetNearZ();
-	PassConstants.FarZ = gCamera->GetFarZ();
+	PassConstants.NearZ = Camera->GetNearZ();
+	PassConstants.FarZ = Camera->GetFarZ();
 	PassConstants.TotalTime = Timer->GetTotalTime();
 	PassConstants.DeltaTime = Timer->GetDeltaTime();
 

@@ -3,27 +3,36 @@
 #include "DirectX/DXUtility.h"
 #include "Render/MeshGeometry.h"
 #include "Render/Material.h"
-#include "GameFramework/Object/Object.h"
+#include "GameFramework/Object/Pawn/Pawn.h"
 
 class WWorld : public WObject
 {
 public:
 	WWorld();
 	virtual ~WWorld() override;
-	virtual bool Initialize();
 	virtual void Tick(float Delta);
+	void SetPlayer(APawn* Player);
 
 protected:
-	virtual void BuildWorldActors() = 0;
 	template<typename T>
 	T* SpawnActor();
 
 private:
 	TPool<AActor*> mAllActors;
+	APawn* mPlayer = nullptr;
+
 public:
 	inline const TPool<AActor*>& GetAllActorsRef()
 	{
 		return mAllActors;
+	}
+	inline APawn* GetPlayer() const
+	{
+		return mPlayer;
+	}
+	inline WCameraComponent* GetPlayerCamera() const
+	{
+		return mPlayer->GetCameraComponent();
 	}
 };
 

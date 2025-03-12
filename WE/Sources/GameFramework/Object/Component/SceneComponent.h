@@ -2,6 +2,8 @@
 #include "ActorComponent.h"
 #include "DirectX/DXMath.h"
 
+class AActor;
+
 class WSceneComponent : public WActorComponent
 {
 public:

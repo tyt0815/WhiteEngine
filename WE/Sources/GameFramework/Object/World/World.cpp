@@ -1,5 +1,6 @@
 #include "World.h"
 #include "Render/GeometryGenerator.h"
+#include "GameFramework/Object/Pawn/Pawn.h"
 
 WWorld* gWorld = nullptr;
 
@@ -17,13 +18,13 @@ WWorld::~WWorld()
 	gWorld = nullptr;
 }
 
-bool WWorld::Initialize()
-{
-	BuildWorldActors();
-	return true;
-}
-
 void WWorld::Tick(float Delta)
 {
 
+}
+
+void WWorld::SetPlayer(APawn* Player)
+{
+	mPlayer = Player;
+	mPlayer->SetupPlayerInput();
 }
