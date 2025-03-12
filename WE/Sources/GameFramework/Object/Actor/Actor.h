@@ -42,6 +42,30 @@ public:
 	{
 		mRootComponent->SetTransform(Transform);
 	}
+	inline XMFLOAT3 GetLocation() const
+	{
+		return mRootComponent->GetLocation();
+	}
+	inline void SetLocation(XMFLOAT3 Location)
+	{
+		mRootComponent->SetLocation(Location);
+	}
+	inline XMFLOAT3 GetRotation() const
+	{
+		return mRootComponent->GetRotation();
+	}
+	inline void SetRotation(XMFLOAT3 Rotation)
+	{
+		mRootComponent->SetRotation(Rotation);
+	}
+	inline XMFLOAT3 GetScale() const
+	{
+		return mRootComponent->GetScale();
+	}
+	inline void SetScale(XMFLOAT3 Scale)
+	{
+		mRootComponent->SetScale(Scale);
+	}
 	inline WCameraComponent* GetCameraComponent() const
 	{
 		return mCameraComponent;

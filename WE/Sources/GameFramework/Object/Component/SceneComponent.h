@@ -44,6 +44,24 @@ public:
 		mTransform.Translation = Location;
 		mbDirty = true;
 	}
+	inline DirectX::XMFLOAT3 GetRotation() const
+	{
+		return mTransform.Rotation;
+	}
+	inline void SetRotation(DirectX::XMFLOAT3 Rotation)
+	{
+		mTransform.Rotation = Rotation;
+		mbDirty = true;
+	}
+	inline DirectX::XMFLOAT3 GetScale() const
+	{
+		return mTransform.Scale;
+	}
+	inline void SetScale(DirectX::XMFLOAT3 Scale)
+	{
+		mTransform.Scale = Scale;
+		mbDirty = true;
+	}
 	inline bool IsDirty() const
 	{
 		return mbDirty;

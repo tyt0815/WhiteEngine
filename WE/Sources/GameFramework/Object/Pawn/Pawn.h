@@ -5,6 +5,7 @@ class APawn : public AActor
 {
 public:
 	virtual void SetupPlayerInput();
+	virtual void Tick(float Delta) override;
 
 protected:
 	void AddMovementInput(const XMFLOAT3& WorldDirection, float ScaleValue);
