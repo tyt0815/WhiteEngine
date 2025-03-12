@@ -64,6 +64,7 @@ public:
 	// Use this container to define the Submesh geometries so we can draw
 	// the Submeshes individually.
 	std::vector<FSubmeshGeometry> DrawArgs;
+	D3D_PRIMITIVE_TOPOLOGY PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	D3D12_VERTEX_BUFFER_VIEW VertexBufferView()const
 	{
@@ -105,6 +106,7 @@ private:
 		const std::vector<FVertex>& Vertices,
 		const std::vector<std::uint32_t>& Indices,
 		const std::vector<FSubmeshGeometry>& Submesh,
+		D3D_PRIMITIVE_TOPOLOGY PrimitiveType,
 		ID3D12Device* Device,
 		ID3D12GraphicsCommandList* CommandList
 	);

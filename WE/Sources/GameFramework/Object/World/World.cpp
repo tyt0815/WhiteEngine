@@ -25,6 +25,5 @@ bool WWorld::Initialize()
 
 void WWorld::Tick(float Delta)
 {
-	// TODO
-	for (auto& Actor : mAllActors) Actor->Tick(Delta);
+
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Actor.h"
+#include "GameFramework/Object/Actor/Actor.h"
 
 class ASkull : public AActor
 {

@@ -1,19 +1,17 @@
 #pragma once
 
 #include "DirectX/DXUtility.h"
-#include "GameFramework/Object/Actor/ViewCamera.h"
 #include "Render/MeshGeometry.h"
 #include "Render/Material.h"
 #include "GameFramework/Object/Object.h"
 
-class WWorld
+class WWorld : public WObject
 {
 public:
 	WWorld();
-	~WWorld();
+	virtual ~WWorld() override;
 	virtual bool Initialize();
 	virtual void Tick(float Delta);
-	inline WViewCamera* GetCamera() { return &Camera; }
 
 protected:
 	virtual void BuildWorldActors() = 0;
@@ -21,10 +19,9 @@ protected:
 	T* SpawnActor();
 
 private:
-	std::vector<AActor*> mAllActors;
-	WViewCamera Camera;
+	TPool<AActor*> mAllActors;
 public:
-	inline const std::vector<AActor*>& GetAllActorsRef()
+	inline const TPool<AActor*>& GetAllActorsRef()
 	{
 		return mAllActors;
 	}
@@ -41,7 +38,6 @@ template<typename T>
 inline T* WWorld::SpawnActor()
 {
 	T* Actor = GetWObjectManager()->CreateWObject<T>();
-	static_cast<AActor*>(Actor)->ObjectConstantBufferIndex = (UINT)mAllActors.size();
-	mAllActors.push_back(Actor);
+	mAllActors.Register(Actor);
 	return Actor;
 }

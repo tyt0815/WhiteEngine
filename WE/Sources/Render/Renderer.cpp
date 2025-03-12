@@ -11,6 +11,7 @@
 #include "DirectX/DXUtility.h"
 #include "Utility/Timer.h"
 #include "GameFramework/Object/World/World.h"
+#include "RenderItemManager.h"
 
 FRenderer::FRenderer()
 {
@@ -147,89 +148,44 @@ void FRenderer::DrawActors(FFrameResource* TargetFrameResource, ID3D12GraphicsCo
 	UINT MaterialConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FMaterialConstants));
 	UINT CBVSRVUAVDescriptorSize = FDXResourceManager::GetInstance()->GetCBVSRVUAVDescriptorSize();
 
-	const std::vector<AActor*> AllActors = GetWorld()->GetAllActorsRef();
-
-	for (const AActor* Actor : AllActors)
+	const TPool<FPrimitiveDrawArguments>& DrawArgList = GetRenderItemManager()->GetDrawArgsList();
+	for (int i = 0; i < DrawArgList.GetPoolSize(); ++i)
 	{
-		FMaterial* Material = Actor->Material;
-		// TODO: 파이프라인 상태를 매번 바꾸는 것은 비효율적.
-		// SetPipelineState
-		CommandList->SetPipelineState(GetShaderManager()->GetPipelineStatePtr(Material->ShadingModel, Material->BlendMode));
+		if (DrawArgList.IsUsed(i))
+		{
+			const FPrimitiveDrawArguments& DrawArgs = DrawArgList.GetItem(i);
+			FMaterial* Material = DrawArgs.Material;
+			// TODO: 파이프라인 상태를 매번 바꾸는 것은 비효율적.
+			// SetPipelineState
+			CommandList->SetPipelineState(GetShaderManager()->GetPipelineStatePtr(Material->ShadingModel, Material->BlendMode));
 
-		// ObjectConstantBuffer
-		auto ObjectConstantBufferAddress = ObjectConstantBuffer->GetGPUVirtualAddress() + Actor->ObjectConstantBufferIndex * ObjectConstantBufferByteSize;
-		CommandList->SetGraphicsRootConstantBufferView(1, ObjectConstantBufferAddress);
+			// ObjectConstantBuffer
 
-		// MaterialConstantBuffer
-		auto MaterialConstantBufferAddress = MaterialConstantBuffer->GetGPUVirtualAddress() + Material->MatCBIndex * MaterialConstantBufferByteSize;
-		CommandList->SetGraphicsRootConstantBufferView(2, MaterialConstantBufferAddress);
+			auto ObjectConstantBufferAddress = ObjectConstantBuffer->GetGPUVirtualAddress() + DrawArgs.PrimitiveCBIndex * ObjectConstantBufferByteSize;
+			CommandList->SetGraphicsRootConstantBufferView(1, ObjectConstantBufferAddress);
 
-		// Texture
-		CD3DX12_GPU_DESCRIPTOR_HANDLE SRVHandle(SRVHeap->GetGPUDescriptorHandleForHeapStart());
-		SRVHandle.Offset(Material->DiffuseSrvHeapIndex, CBVSRVUAVDescriptorSize);
-		CommandList->SetGraphicsRootDescriptorTable(3, SRVHandle);
+			// MaterialConstantBuffer
+			auto MaterialConstantBufferAddress = MaterialConstantBuffer->GetGPUVirtualAddress() + Material->MatCBIndex * MaterialConstantBufferByteSize;
+			CommandList->SetGraphicsRootConstantBufferView(2, MaterialConstantBufferAddress);
 
-		D3D12_VERTEX_BUFFER_VIEW VertexBufferView = Actor->Geometry->VertexBufferView();
-		D3D12_INDEX_BUFFER_VIEW IndexBufferView = Actor->Geometry->IndexBufferView();
-		CommandList->IASetVertexBuffers(0, 1, &VertexBufferView);
-		CommandList->IASetIndexBuffer(&IndexBufferView);
-		CommandList->IASetPrimitiveTopology(Actor->PrimitiveType);
+			// Texture
+			CD3DX12_GPU_DESCRIPTOR_HANDLE SRVHandle(SRVHeap->GetGPUDescriptorHandleForHeapStart());
+			SRVHandle.Offset(Material->DiffuseSrvHeapIndex, CBVSRVUAVDescriptorSize);
+			CommandList->SetGraphicsRootDescriptorTable(3, SRVHandle);
 
-		CommandList->DrawIndexedInstanced(
-			Actor->IndexCount,
-			1,
-			Actor->StartIndexLocation,
-			Actor->BaseVertexLocation,
-			0
-		);
-	}
-}
+			D3D12_VERTEX_BUFFER_VIEW VertexBufferView = DrawArgs.MeshGeometry->VertexBufferView();
+			D3D12_INDEX_BUFFER_VIEW IndexBufferView = DrawArgs.MeshGeometry->IndexBufferView();
+			CommandList->IASetVertexBuffers(0, 1, &VertexBufferView);
+			CommandList->IASetIndexBuffer(&IndexBufferView);
+			CommandList->IASetPrimitiveTopology(DrawArgs.MeshGeometry->PrimitiveType);
 
-void FRenderer::DrawActors(
-	const std::vector<AActor*>& DrawTargets,
-	FFrameResource* TargetFrameResource,
-	ID3D12GraphicsCommandList* CommandList
-)
-{
-	int ActorCount = (int)DrawTargets.size();
-	ID3D12DescriptorHeap* SRVHeap = GetTextureManager()->GetSRVHeapPtr();
-
-	ID3D12Resource* ObjectConstantBuffer = TargetFrameResource->ObjectConstantBuffer->Resource();
-	ID3D12Resource* MaterialConstantBuffer = TargetFrameResource->MaterialConstantBuffer->Resource();
-
-	UINT ObjectConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FObjectConstants));
-	UINT MaterialConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FMaterialConstants));
-	UINT CBVSRVUAVDescriptorSize = FDXResourceManager::GetInstance()->GetCBVSRVUAVDescriptorSize();
-
-	for (int i = 0; i < DrawTargets.size(); ++i)
-	{
-		AActor* Actor = DrawTargets[i];
-
-		// ObjectConstantBuffer
-		auto ObjectConstantBufferAddress = ObjectConstantBuffer->GetGPUVirtualAddress() + Actor->ObjectConstantBufferIndex * ObjectConstantBufferByteSize;
-		CommandList->SetGraphicsRootConstantBufferView(1, ObjectConstantBufferAddress);
-
-		// MaterialConstantBuffer
-		auto MaterialConstantBufferAddress = MaterialConstantBuffer->GetGPUVirtualAddress() + Actor->Material->MatCBIndex * MaterialConstantBufferByteSize;
-		CommandList->SetGraphicsRootConstantBufferView(2, MaterialConstantBufferAddress);
-
-		// Texture
-		CD3DX12_GPU_DESCRIPTOR_HANDLE SRVHandle(SRVHeap->GetGPUDescriptorHandleForHeapStart());
-		SRVHandle.Offset(Actor->Material->DiffuseSrvHeapIndex, CBVSRVUAVDescriptorSize);
-		CommandList->SetGraphicsRootDescriptorTable(3, SRVHandle);
-
-		D3D12_VERTEX_BUFFER_VIEW VertexBufferView = Actor->Geometry->VertexBufferView();
-		D3D12_INDEX_BUFFER_VIEW IndexBufferView = Actor->Geometry->IndexBufferView();
-		CommandList->IASetVertexBuffers(0, 1, &VertexBufferView);
-		CommandList->IASetIndexBuffer(&IndexBufferView);
-		CommandList->IASetPrimitiveTopology(Actor->PrimitiveType);
-
-		CommandList->DrawIndexedInstanced(
-			Actor->IndexCount,
-			1,
-			Actor->StartIndexLocation,
-			Actor->BaseVertexLocation,
-			0
-		);
+			CommandList->DrawIndexedInstanced(
+				DrawArgs.IndexCount,
+				1,
+				DrawArgs.StartIndexLocation,
+				DrawArgs.BaseVertexLocation,
+				0
+			);
+		}
 	}
 }

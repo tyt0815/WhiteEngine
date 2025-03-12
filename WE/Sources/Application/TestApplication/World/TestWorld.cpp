@@ -1,18 +1,23 @@
 #include "TestWorld.h"
 #include "Render/MeshGeometry.h"
-#include "GameFramework/Object/Actor/ShapeActorsHeader.h"
+#include "Application/TestApplication/Actor/ShapeActorsHeader.h"
+#include "Application/TestApplication/Pawn/GhostCameraPawn.h"
 
-WTestWorld::WTestWorld():
-	Super()
+WTestWorld::WTestWorld()
 {
+	BuildWorldActors();
 }
 
 void WTestWorld::BuildWorldActors()
 {
 	AActor* Actor = nullptr;
 	FTransform Transform;
+	Actor = SpawnActor<AGhostCameraPawn>();
+	Transform.Translation = XMFLOAT3(0.0f, 10.0f, 10.0f);
+	Actor->SetTransform(Transform);
+
 	Transform.Scale = XMFLOAT3(2.0f, 2.0f, 2.0f);
-	Transform.Translation = XMFLOAT3(0.0f, 0.5f, 0.0f);
+	Transform.Translation = XMFLOAT3(0.0f, 0.5f, 10.0f);
 	Actor = SpawnActor<AWireFence>();
 	Actor->SetTransform(Transform);
 

@@ -1,6 +1,7 @@
 #pragma once
+#include "GameFramework/Object/Object.h"
 
-class WActorComponent
+class WActorComponent : public WObject
 {
 
 };

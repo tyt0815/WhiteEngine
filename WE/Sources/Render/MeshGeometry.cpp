@@ -35,6 +35,7 @@ void FMeshGeometryManager::BuildMeshGeometry(
 	const std::vector<FVertex>& Vertices,
 	const std::vector<std::uint32_t>& Indices,
 	const std::vector<FSubmeshGeometry>& Submesh,
+	D3D_PRIMITIVE_TOPOLOGY PrimitiveType,
 	ID3D12Device* Device,
 	ID3D12GraphicsCommandList* CommandList
 )
@@ -44,7 +45,7 @@ void FMeshGeometryManager::BuildMeshGeometry(
 
 	std::unique_ptr<FMeshGeometry> Geometry = std::make_unique<FMeshGeometry>();
 	Geometry->Type = Type;
-
+	Geometry->PrimitiveType = PrimitiveType;
 	THROW_IF_FAILED(D3DCreateBlob(VBByteSize, &Geometry->VertexBufferCPU));
 	CopyMemory(Geometry->VertexBufferCPU->GetBufferPointer(), Vertices.data(), VBByteSize);
 
@@ -89,7 +90,7 @@ void FMeshGeometryManager::BuildMeshGeometryFromMeshData(
 	}
 	std::vector<std::uint32_t> Indices;
 	Indices.insert(Indices.end(), std::begin(MeshData.Indices32), std::end(MeshData.Indices32));
-	BuildMeshGeometry(Type, Vertices, Indices, std::vector<FSubmeshGeometry>(1, Submesh), Device, CommandList);
+	BuildMeshGeometry(Type, Vertices, Indices, std::vector<FSubmeshGeometry>(1, Submesh), D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, Device, CommandList);
 }
 
 void FMeshGeometryManager::BuildSkullMeshGeometry(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
@@ -131,7 +132,7 @@ void FMeshGeometryManager::BuildSkullMeshGeometry(ID3D12Device* Device, ID3D12Gr
 	submesh.IndexCount = (UINT)indices.size();
 	submesh.StartIndexLocation = 0;
 	submesh.BaseVertexLocation = 0;
-	BuildMeshGeometry(EMGT_Skull, vertices, indices, std::vector<FSubmeshGeometry>(1, submesh), Device, CommandList);
+	BuildMeshGeometry(EMGT_Skull, vertices, indices, std::vector<FSubmeshGeometry>(1, submesh), D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, Device, CommandList);
 }
 
 void FMeshGeometryManager::BuildBillboardPoints(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
@@ -186,6 +187,7 @@ void FMeshGeometryManager::BuildBillboardPoints(ID3D12Device* Device, ID3D12Grap
 	geo->VertexBufferByteSize = vbByteSize;
 	geo->IndexFormat = DXGI_FORMAT_R16_UINT;
 	geo->IndexBufferByteSize = ibByteSize;
+	geo->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
 
 	FSubmeshGeometry submesh;
 	submesh.IndexCount = (UINT)indices.size();

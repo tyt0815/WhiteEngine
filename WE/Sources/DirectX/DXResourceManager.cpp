@@ -1,8 +1,7 @@
 #include "DXResourceManager.h"
 #include "Window/Window.h"
-#include "GameFramework/Object/Actor/ViewCamera.h"
 
-//FDXResourceManager* gDXManager = GetDXResourceManagerPtr();
+float gAspectRatio = 1;
 
 FDXResourceManager::FDXResourceManager()
 {
@@ -186,11 +185,7 @@ void FDXResourceManager::Resize(UINT Width, UINT Height)
 	ScreenViewport.MaxDepth = 1.0f;
 
 	ScissorRect = { 0, 0, static_cast<LONG>(Width), static_cast<LONG>(Height) };
-
-	if (Camera)
-	{
-		Camera->UpdateProjMatrix(0.25f * XM_PI, GetAspectRatio(), 1.0f, 1000.0f);
-	}
+	gAspectRatio = GetAspectRatio();
 }
 
 void FDXResourceManager::FlushAndExecuteCommand(void(*CommandFunction)(ID3D12Device*, ID3D12GraphicsCommandList*))

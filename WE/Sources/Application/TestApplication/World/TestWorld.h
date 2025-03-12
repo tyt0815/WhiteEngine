@@ -1,6 +1,6 @@
 #pragma once
 
-#include "World.h"
+#include "GameFramework/Object/World/World.h"
 
 class WTestWorld : public WWorld
 {

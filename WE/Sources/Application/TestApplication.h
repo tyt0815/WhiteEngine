@@ -3,9 +3,10 @@
 #include <memory>
 
 #include "DirectX/DXResourceManager.h"
+#include "TestApplication/World/TestWorld.h"
 #include "Render/Renderer.h"
+#include "Render/RenderItemManager.h"
 #include "Render/Texture.h"
-#include "GameFramework/Object/World/TestWorld.h"
 #include "Utility/Class.h"
 #include "Utility/Timer.h"
 #include "Window/Window.h"
@@ -20,8 +21,8 @@ public:
 private:
 	void CalculateFrameStats();
 	void CreateRenderData(FRenderData& RenderData);
-	std::unique_ptr<WWorld> mWorld;
-	WViewCamera* Camera = nullptr;
+
+	WWorld* mWorld;
 
 	bool bAppPaused = false;
 };

@@ -3,9 +3,13 @@
 #include "Texture.h"
 #include "DirectX/DXResourceManager.h"
 #include "DirectX/DXException.h"
+#include "GameFramework/Object/Object.h"
 #include "GameFramework/Object/World/World.h"
+#include "GameFramework/Object/Component/CameraComponent.h"
+#include "GameFramework/Object/Component/PrimitiveComponent.h"
 #include "Utility/Timer.h"
 
+extern WCameraComponent* gCamera;
 const int FrameResourcesNum = FRAME_RESOURCES_NUM;
 
 FFrameResource::FFrameResource()
@@ -24,19 +28,6 @@ FFrameResource::FFrameResource()
 
 void FFrameResource::Update()
 {
-	ID3D12Device* Device = GetDXResourceManagerPtr()->GetDevicePtr();
-	if (PassConstantBuffer->GetElementCount() < PASS_COUNT)
-	{
-		PassConstantBuffer = std::make_unique<TUploadBuffer<FPassConstants>>(Device, 1, true);
-	}
-	if (ObjectConstantBuffer->GetElementCount() < GetWorld()->GetAllActorsRef().size())
-	{
-		ObjectConstantBuffer = std::make_unique<TUploadBuffer<FObjectConstants>>(Device, (UINT)GetWorld()->GetAllActorsRef().size(), true);
-	}
-	if (MaterialConstantBuffer->GetElementCount() < EMT_None)
-	{
-		MaterialConstantBuffer = std::make_unique<TUploadBuffer<FMaterialConstants>>(Device, EMT_None, true);
-	}
 }
 
 FFrameResourceManager::FFrameResourceManager()
@@ -134,17 +125,17 @@ void FFrameResourceManager::BuildRootSignature()
 void FFrameResourceManager::UpdatePassCB()
 {
 	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
-	WViewCamera* Camera = GetWorld()->GetCamera();
 	UTimer* Timer = GetAppTimer();
 
-	Camera->UpdateViewMatrix();
 	// Build the view matrix.
 	XMVECTOR target = XMVectorZero();
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
-	XMMATRIX view = Camera->GetViewMatrix();
+	XMFLOAT4X4 ViewMatrix = gCamera->GetViewMatrix();
+	XMFLOAT4X4 ProjMatrix = gCamera->GetProjMatrix();
+	XMMATRIX view = XMLoadFloat4x4(&ViewMatrix);
 	XMMATRIX InvView = FDXMath::GetInverseMatrix(view);
-	XMMATRIX proj = Camera->GetProjMatrix();
+	XMMATRIX proj =  XMLoadFloat4x4(&ProjMatrix);
 	XMMATRIX InvProj = FDXMath::GetInverseMatrix(proj);
 	XMMATRIX ViewProj = view * proj;
 	XMMATRIX InvViewProj = FDXMath::GetInverseMatrix(ViewProj);
@@ -156,14 +147,14 @@ void FFrameResourceManager::UpdatePassCB()
 	XMStoreFloat4x4(&PassConstants.InvProj, XMMatrixTranspose(InvProj));
 	XMStoreFloat4x4(&PassConstants.ViewProj, XMMatrixTranspose(ViewProj));
 	XMStoreFloat4x4(&PassConstants.InvViewProj, XMMatrixTranspose(InvViewProj));
-	PassConstants.EyePosW = Camera->GetTranslation();
+	PassConstants.EyePosW = gCamera->GetLocation();
 	D3D12_VIEWPORT Viewport = DeviceManager->GetScreenViewport();
 	float Width = static_cast<float>(Viewport.Width);
 	float Height = static_cast<float>(Viewport.Height);
 	PassConstants.RenderTargetSize = XMFLOAT2(Width, Height);
 	PassConstants.InvRenderTargetSize = XMFLOAT2(1.0f / Width, 1.0f / Height);
-	PassConstants.NearZ = 1.0f;
-	PassConstants.FarZ = 1000.0f;
+	PassConstants.NearZ = gCamera->GetNearZ();
+	PassConstants.FarZ = gCamera->GetFarZ();
 	PassConstants.TotalTime = Timer->GetTotalTime();
 	PassConstants.DeltaTime = Timer->GetDeltaTime();
 
@@ -185,16 +176,23 @@ void FFrameResourceManager::UpdatePassCB()
 
 void FFrameResourceManager::UpdateObjectCB()
 {
-	const auto& Actors = GetWorld()->GetAllActorsRef();
-	for (auto& Actor : Actors)
+	bool bCBResized = false;
+	if (mTargetFrameResource->ObjectConstantBuffer->GetElementCount() < mObjectCBInfoPool.GetPoolSize())
 	{
-		if (Actor->DirtyFrameCount > 0)
+		mTargetFrameResource->ObjectConstantBuffer = std::make_unique<TUploadBuffer<FObjectConstants>>(
+			GetDXResourceManagerPtr()->GetDevicePtr(),
+			(UINT)mObjectCBInfoPool.GetPoolSize(),
+			true);
+		bCBResized = true;
+	}
+
+	for (size_t i = 0; i < mObjectCBInfoPool.GetPoolSize(); ++i)
+	{
+		if (mObjectCBInfoPool.IsUsed(i) && (mObjectCBInfoPool.GetItemRef(i).DirtyFrameCount > 0 || bCBResized))
 		{
-			FObjectConstants Constants;
-			XMStoreFloat4x4(&Constants.World, XMMatrixTranspose(Actor->GetWorldMatrix()));
-			XMStoreFloat4x4(&Constants.TexTransform, XMMatrixTranspose(Actor->GetTextureTransformMatrix()));
-			mTargetFrameResource->ObjectConstantBuffer->CopyData(Actor->ObjectConstantBufferIndex, Constants);
-			--Actor->DirtyFrameCount;
+			FObjectCBInfo& ObjectCBInfo = mObjectCBInfoPool.GetItemRef(i);
+			mTargetFrameResource->ObjectConstantBuffer->CopyData((UINT)i, ObjectCBInfo.ObjectConstants);
+			ObjectCBInfo.DirtyFrameCount = bCBResized ? FrameResourcesNum - 1 : ObjectCBInfo.DirtyFrameCount - 1;
 		}
 	}
 }

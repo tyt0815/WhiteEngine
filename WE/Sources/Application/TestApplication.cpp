@@ -12,7 +12,7 @@ FTestApplication::~FTestApplication()
 
 bool FTestApplication::Initialize()
 {
-	mWorld = std::make_unique<WTestWorld>();
+	mWorld = GetWObjectManager()->CreateWObject<WTestWorld>();
 
 	return true;
 }
@@ -22,11 +22,7 @@ int FTestApplication::Run()
 	MSG msg = { 0 };
 	FDXResourceManager* DXManager = FDXResourceManager::GetInstance();
 
-	mWorld->Initialize();
-	Camera = mWorld->GetCamera();
-	Camera->UpdateProjMatrix(0.25f * XM_PI, DXManager->GetAspectRatio(), 1.0f, 1000.0f);
 	FRenderer Renderer;
-	DXManager->Camera = Camera;
 	while (msg.message != WM_QUIT)
 	{
 		// If there are Window messages then process them.
@@ -45,7 +41,7 @@ int FTestApplication::Run()
 				CalculateFrameStats();
 				// TODO
 				//ProcessInput();
-				mWorld->Tick(GetAppTimer()->GetDeltaTime());
+				GetWObjectManager()->Tick(GetAppTimer()->GetDeltaTime());
 				GetFrameResourceManager()->Tick();
 				FRenderData RenderData;
 				CreateRenderData(RenderData);

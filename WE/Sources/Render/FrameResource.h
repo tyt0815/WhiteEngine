@@ -6,6 +6,7 @@
 #include "DirectX/DXUtility.h"
 #include "DirectX/DXMath.h"
 #include "Utility/Class.h"
+#include "Utility/Pool.h"
 
 constexpr std::uint32_t FRAME_RESOURCES_NUM = 3;
 constexpr std::uint32_t PASS_COUNT = 1;
@@ -55,6 +56,20 @@ struct FPassConstants
     FLight Lights[MaxLights];
 };
 
+// register(b1)
+struct FObjectConstants
+{
+    DirectX::XMFLOAT4X4 World = FDXMath::Identity4x4();
+    // TODO: TexTransform¿∫ ªË¡¶
+    DirectX::XMFLOAT4X4 TexTransform = FDXMath::Identity4x4();
+};
+
+struct FObjectCBInfo
+{
+    FObjectConstants ObjectConstants;
+    std::uint64_t DirtyFrameCount;
+};
+
 // register(b2)
 struct FMaterialConstants
 {
@@ -64,13 +79,6 @@ struct FMaterialConstants
 
     // Used in texture mapping.
     DirectX::XMFLOAT4X4 MatTransform = FDXMath::Identity4x4();
-};
-
-// register(b1)
-struct FObjectConstants
-{
-	DirectX::XMFLOAT4X4 World = FDXMath::Identity4x4();
-	DirectX::XMFLOAT4X4 TexTransform = FDXMath::Identity4x4();
 };
 
 struct FFrameResource : FNoncopyable
@@ -107,6 +115,7 @@ private:
     FFrameResource* mTargetFrameResource = nullptr;
     std::vector<std::unique_ptr<FFrameResource>> mFrameResources;
     std::uint32_t mTargetFrameResourceIndex = 0;
+    TPool<FObjectCBInfo> mObjectCBInfoPool;
 
 public:
     inline FFrameResource* GetTargetFrameResource() const
@@ -128,6 +137,18 @@ public:
     inline ID3D12RootSignature* GetRootSignaturePtr() const
     {
         return mRootSignature.Get();
+    }
+    inline std::uint64_t RegisterObjectCBInfo(const FObjectCBInfo& ObjectCBInfo)
+    {
+        return mObjectCBInfoPool.Register(ObjectCBInfo);
+    }
+    inline void RemoveObjectCBInfo(std::uint64_t Id)
+    {
+        mObjectCBInfoPool.Remove(Id);
+    }
+    inline void SetObjectCBInfo(std::uint64_t Id, const FObjectCBInfo& ObjectCBInfo)
+    {
+        mObjectCBInfoPool.SetItem(Id, ObjectCBInfo);
     }
 };
 
