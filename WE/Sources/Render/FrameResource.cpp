@@ -20,9 +20,9 @@ FFrameResource::FFrameResource()
 			IID_PPV_ARGS(CommandAllocator.GetAddressOf())
 		)
 	);
-	PassConstantBuffer = std::make_unique<TUploadBuffer<FPassConstants>>(Device, (UINT)PASS_COUNT, true);
-	ObjectConstantBuffer = std::make_unique<TUploadBuffer<FObjectConstants>>(Device, 1, true);
-	MaterialConstantBuffer = std::make_unique<TUploadBuffer<FMaterialConstants>>(Device, EMT_None, true);
+	PassConstantBuffer = std::make_unique<TUploadBuffer<FPassConstantBuffer>>(Device, (UINT)PASS_COUNT, true);
+	ObjectConstantBuffer = std::make_unique<TUploadBuffer<FObjectConstantBuffer>>(Device, 1, true);
+	MaterialConstantBuffer = std::make_unique<TUploadBuffer<FMaterialConstantBuffer>>(Device, EMT_None, true);
 }
 
 void FFrameResource::Update()
@@ -151,7 +151,7 @@ void FFrameResourceManager::UpdatePassCB()
 	XMMATRIX ViewProj = view * proj;
 	XMMATRIX InvViewProj = FDXMath::GetInverseMatrix(ViewProj);
 
-	FPassConstants PassConstants;
+	FPassConstantBuffer PassConstants;
 	XMStoreFloat4x4(&PassConstants.View, XMMatrixTranspose(view));
 	XMStoreFloat4x4(&PassConstants.InvView, XMMatrixTranspose(InvView));
 	XMStoreFloat4x4(&PassConstants.Proj, XMMatrixTranspose(proj));
@@ -190,7 +190,7 @@ void FFrameResourceManager::UpdateObjectCB()
 	bool bCBResized = false;
 	if (mTargetFrameResource->ObjectConstantBuffer->GetElementCount() < mObjectCBInfoPool.GetPoolSize())
 	{
-		mTargetFrameResource->ObjectConstantBuffer = std::make_unique<TUploadBuffer<FObjectConstants>>(
+		mTargetFrameResource->ObjectConstantBuffer = std::make_unique<TUploadBuffer<FObjectConstantBuffer>>(
 			GetDXResourceManagerPtr()->GetDevicePtr(),
 			(UINT)mObjectCBInfoPool.GetPoolSize(),
 			true);
@@ -216,7 +216,7 @@ void FFrameResourceManager::UpdateMaterialCB()
 		if (Material->DirtyFrameCount > 0)
 		{
 			XMMATRIX MaterialTransform = XMLoadFloat4x4(&Material->MatTransform);
-			FMaterialConstants MaterialConstants;
+			FMaterialConstantBuffer MaterialConstants;
 			MaterialConstants.DiffuseAlbedo = Material->DiffuseAlbedo;
 			MaterialConstants.FresnelR0 = Material->FresnelR0;
 			XMStoreFloat4x4(&MaterialConstants.MatTransform, XMMatrixTranspose(MaterialTransform));

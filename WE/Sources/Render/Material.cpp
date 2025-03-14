@@ -1,4 +1,5 @@
 #include "Material.h"
+#include "ShaderStructures.h"
 #include <DirectXColors.h>
 #include "Texture.h"
 #include "DirectX/DXResourceManager.h"

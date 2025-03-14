@@ -3,6 +3,15 @@
 
 #include "LitUtility.sh"
 
+struct FMaterial
+{
+    float4 gDiffuseAlbedo;
+    float3 gFresnelR0;
+    float gRoughness;
+    float4x4 gMatTransform;
+};
+
+
 Texture2D gTexture : register(t0);
 SamplerState gsamPointWrap : register(s0);
 SamplerState gsamPointClamp : register(s1);

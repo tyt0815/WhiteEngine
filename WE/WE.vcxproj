@@ -91,6 +91,7 @@
     <ClInclude Include="Sources\Render\Renderer.h" />
     <ClInclude Include="Sources\Render\RenderItemManager.h" />
     <ClInclude Include="Sources\Render\Shader.h" />
+    <ClInclude Include="Sources\Render\ShaderStructures.h" />
     <ClInclude Include="Sources\Render\StaticMesh.h" />
     <ClInclude Include="Sources\Render\Texture.h" />
     <ClInclude Include="Sources\Render\UploadBuffer.h" />

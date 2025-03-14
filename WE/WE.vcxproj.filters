@@ -313,6 +313,9 @@
     <ClInclude Include="Sources\Application\TestApplication\TestApplication.h">
       <Filter>Sources\Application\TestApplication</Filter>
     </ClInclude>
+    <ClInclude Include="Sources\Render\ShaderStructures.h">
+      <Filter>Sources\Render</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ForwardLitCommon.sh">

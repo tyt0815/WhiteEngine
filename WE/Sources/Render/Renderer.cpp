@@ -144,8 +144,8 @@ void FRenderer::DrawActors(FFrameResource* TargetFrameResource, ID3D12GraphicsCo
 	ID3D12Resource* ObjectConstantBuffer = TargetFrameResource->ObjectConstantBuffer->Resource();
 	ID3D12Resource* MaterialConstantBuffer = TargetFrameResource->MaterialConstantBuffer->Resource();
 
-	UINT ObjectConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FObjectConstants));
-	UINT MaterialConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FMaterialConstants));
+	UINT ObjectConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FObjectConstantBuffer));
+	UINT MaterialConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FMaterialConstantBuffer));
 	UINT CBVSRVUAVDescriptorSize = FDXResourceManager::GetInstance()->GetCBVSRVUAVDescriptorSize();
 
 	const TPool<FPrimitiveDrawArguments>& DrawArgList = GetRenderItemManager()->GetDrawArgsList();

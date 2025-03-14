@@ -1,7 +1,9 @@
 #pragma once
 
-#include <unordered_map>
+#include <d3d12.h>
 #include <memory>
+#include <unordered_map>
+#include <wrl.h>
 #include "DirectX/DXMath.h"
 #include "Utility/Class.h"
 #include "Utility/String.h"
