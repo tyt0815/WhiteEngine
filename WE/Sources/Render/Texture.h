@@ -21,6 +21,7 @@ enum ETextureType : UINT16
 	ETT_Water,
 	ETT_Foliage1,
 	ETT_Foliage2,
+	ETT_RustedIron2_Albedo,
 	ETT_None
 };
 

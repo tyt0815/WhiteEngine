@@ -16,6 +16,7 @@ enum EStaticMeshType : std::uint16_t
 	ESMT_Sphere,
 	ESMT_WaterBall,
 	ESMT_WireFence,
+	ESMT_RustedIron2,
 	ESMT_None
 };
 
@@ -37,6 +38,10 @@ public:
 	inline FStaticMesh GetStaticMesh(size_t i)
 	{
 		return mStaticMeshs[i];
+	}
+	inline FStaticMesh GetStaticMesh(EStaticMeshType Type)
+	{
+		return mStaticMeshs[Type];
 	}
 };
 

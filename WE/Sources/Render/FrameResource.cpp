@@ -76,8 +76,11 @@ void FFrameResourceManager::SetTargetFrameResource()
 	{
 		HANDLE eventHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
 		THROW_IF_FAILED(Fence->SetEventOnCompletion(mTargetFrameResource->Fence, eventHandle));
-		WaitForSingleObject(eventHandle, INFINITE);
-		CloseHandle(eventHandle);
+		if (eventHandle)
+		{
+			WaitForSingleObject(eventHandle, INFINITE);
+			CloseHandle(eventHandle);
+		}
 	}
 }
 

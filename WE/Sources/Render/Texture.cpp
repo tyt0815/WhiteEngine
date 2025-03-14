@@ -86,6 +86,7 @@ void FTextureManager::LoadTextures(ID3D12Device* Device, ID3D12GraphicsCommandLi
 	LoadTexture(ETT_Water, L"./Textures/water1.dds", Device, CommandList);
 	LoadTexture(ETT_Foliage1, L"./Textures/Foliage1.dds", Device, CommandList);
 	LoadTexture(ETT_Foliage2, L"./Textures/Foliage2.dds", Device, CommandList);
+	LoadTexture(ETT_RustedIron2_Albedo, L"./Textures/RustedIron2_Albedo.dds", Device, CommandList);
 }
 
 void FTextureManager::LoadTexture(ETextureType Type, std::wstring Filename, ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)

@@ -160,7 +160,6 @@ void FRenderer::DrawActors(FFrameResource* TargetFrameResource, ID3D12GraphicsCo
 			CommandList->SetPipelineState(GetShaderManager()->GetPipelineStatePtr(Material->ShadingModel, Material->BlendMode));
 
 			// ObjectConstantBuffer
-
 			auto ObjectConstantBufferAddress = ObjectConstantBuffer->GetGPUVirtualAddress() + DrawArgs.PrimitiveCBIndex * ObjectConstantBufferByteSize;
 			CommandList->SetGraphicsRootConstantBufferView(1, ObjectConstantBufferAddress);
 
