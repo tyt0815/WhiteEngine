@@ -64,63 +64,25 @@ void FRenderer::Render(const FRenderData& RenderData)
 	auto PassConstantBuffer = TargetFrameResource->PassConstantBuffer->Resource();
 	auto PassConstantBufferAdress = PassConstantBuffer->GetGPUVirtualAddress();
 	CommandList->SetGraphicsRootConstantBufferView(0, PassConstantBufferAdress);
-
+	auto MaterialConstantBuffer = TargetFrameResource->MaterialConstantBuffer->Resource();
+	CommandList->SetGraphicsRootShaderResourceView(3, MaterialConstantBuffer->GetGPUVirtualAddress());
 	if (bWireFrame)
 	{
 		// TODO
 	}
 	else
 	{
-		DrawActors(TargetFrameResource, CommandList);
+		for (size_t i = 0; i < ESM_None; ++i)
+		{
+			EShadingModel ShadingModel = static_cast<EShadingModel>(i);
+			for (size_t j = 0; j < EBM_None; ++j)
+			{
+				EBlendMode BlendMode = static_cast<EBlendMode>(j);
+				CommandList->SetPipelineState(GetShaderManager()->GetPipelineStatePtr(ShadingModel, BlendMode));
+				DrawRenderItems(TargetFrameResource, CommandList, GetRenderItemManager()->GetRenderItems(ShadingModel, BlendMode));
+			}
+		}
 	}
-
-	/*{
-		if (!bWireFrame)
-		{
-			CommandList->SetPipelineState(GetShaderManager()->GetPipelineStatePtr(ESM_DefaultLit, EBM_Opaque));
-		}
-		else
-		{
-			CommandList->SetPipelineState(GetShaderManager()->GetWireFramePipelineStatePtr());
-		}
-		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Opaque], TargetFrameResource, CommandList);
-	}
-
-	{
-		if (!bWireFrame)
-		{
-			CommandList->SetPipelineState(GetShaderManager()->GetPipelineStatePtr(ESM_DefaultLit, EBM_AlphaTest));
-		}
-		else
-		{
-			CommandList->SetPipelineState(GetShaderManager()->GetWireFramePipelineStatePtr());
-		}
-		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_AlphaTest], TargetFrameResource, CommandList);
-	}
-
-	{
-		if (!bWireFrame)
-		{
-			CommandList->SetPipelineState(GetShaderManager()->GetBillboardPipelineStatePtr());
-		}
-		else
-		{
-			CommandList->SetPipelineState(GetShaderManager()->GetWireFramePipelineStatePtr());
-		}
-		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Billboard], TargetFrameResource, CommandList);
-	}
-
-	{
-		if (!bWireFrame)
-		{
-			CommandList->SetPipelineState(GetShaderManager()->GetPipelineStatePtr(ESM_DefaultLit, EBM_Transparency));
-		}
-		else
-		{
-			CommandList->SetPipelineState(GetShaderManager()->GetWireFramePipelineStatePtr());
-		}
-		DrawActors(World->GetActorsRef()[(int)EActorType::EAT_Transparency], TargetFrameResource, CommandList);
-	}*/
 
 	////////////////////////////////////////////////////////////////////////////////
 
@@ -137,40 +99,36 @@ void FRenderer::Render(const FRenderData& RenderData)
 	CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
 }
 
-void FRenderer::DrawActors(FFrameResource* TargetFrameResource, ID3D12GraphicsCommandList* CommandList)
+void FRenderer::DrawRenderItems(FFrameResource* FrameResource, ID3D12GraphicsCommandList* CommandList, const TPool<FRenderItemInfo>& RenderItems)
 {
 	ID3D12DescriptorHeap* SRVHeap = GetTextureManager()->GetSRVHeapPtr();
 
-	ID3D12Resource* ObjectConstantBuffer = TargetFrameResource->ObjectConstantBuffer->Resource();
-	ID3D12Resource* MaterialConstantBuffer = TargetFrameResource->MaterialConstantBuffer->Resource();
+	ID3D12Resource* MeshConstantBuffer = FrameResource->MeshConstantBuffer->Resource();
+	ID3D12Resource* SubmeshConstantBuffer = FrameResource->SubmeshConstantBuffer->Resource();
 
-	UINT ObjectConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FObjectConstantBuffer));
-	UINT MaterialConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FMaterialConstantBuffer));
+	UINT ObjectConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FMeshConstantBuffer));
+	UINT SubmeshConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FSubmeshConstantBuffer));
 	UINT CBVSRVUAVDescriptorSize = FDXResourceManager::GetInstance()->GetCBVSRVUAVDescriptorSize();
 
-	const TPool<FPrimitiveDrawArguments>& DrawArgList = GetRenderItemManager()->GetDrawArgsList();
-	for (int i = 0; i < DrawArgList.GetPoolSize(); ++i)
+	for (int i = 0; i < RenderItems.GetPoolSize(); ++i)
 	{
-		if (DrawArgList.IsUsed(i))
+		if (RenderItems.IsUsed(i))
 		{
-			const FPrimitiveDrawArguments& DrawArgs = DrawArgList.GetItem(i);
+			const FRenderItemInfo& DrawArgs = RenderItems.GetItem(i);
 			FMaterial* Material = DrawArgs.Material;
-			// TODO: 파이프라인 상태를 매번 바꾸는 것은 비효율적.
-			// SetPipelineState
-			CommandList->SetPipelineState(GetShaderManager()->GetPipelineStatePtr(Material->ShadingModel, Material->BlendMode));
 
-			// ObjectConstantBuffer
-			auto ObjectConstantBufferAddress = ObjectConstantBuffer->GetGPUVirtualAddress() + DrawArgs.PrimitiveCBIndex * ObjectConstantBufferByteSize;
+			// MeshConstantBuffer
+			auto ObjectConstantBufferAddress = MeshConstantBuffer->GetGPUVirtualAddress() + DrawArgs.MeshCBIndex * ObjectConstantBufferByteSize;
 			CommandList->SetGraphicsRootConstantBufferView(1, ObjectConstantBufferAddress);
 
-			// MaterialConstantBuffer
-			auto MaterialConstantBufferAddress = MaterialConstantBuffer->GetGPUVirtualAddress() + Material->MatCBIndex * MaterialConstantBufferByteSize;
-			CommandList->SetGraphicsRootConstantBufferView(2, MaterialConstantBufferAddress);
+			// SubmeshConstantBuffer
+			auto SubmeshConstantBufferAddress = SubmeshConstantBuffer->GetGPUVirtualAddress() + DrawArgs.SubmeshCBIndex * SubmeshConstantBufferByteSize;
+			CommandList->SetGraphicsRootConstantBufferView(2, SubmeshConstantBufferAddress);
 
 			// Texture
 			CD3DX12_GPU_DESCRIPTOR_HANDLE SRVHandle(SRVHeap->GetGPUDescriptorHandleForHeapStart());
 			SRVHandle.Offset(Material->DiffuseSrvHeapIndex, CBVSRVUAVDescriptorSize);
-			CommandList->SetGraphicsRootDescriptorTable(3, SRVHandle);
+			CommandList->SetGraphicsRootDescriptorTable(4, SRVHandle);
 
 			D3D12_VERTEX_BUFFER_VIEW VertexBufferView = DrawArgs.MeshGeometry->VertexBufferView();
 			D3D12_INDEX_BUFFER_VIEW IndexBufferView = DrawArgs.MeshGeometry->IndexBufferView();

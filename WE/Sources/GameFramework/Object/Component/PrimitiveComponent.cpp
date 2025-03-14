@@ -2,7 +2,7 @@
 #include "Render/FrameResource.h"
 
 WPrimitiveComponent::WPrimitiveComponent() :
-	mPrimitiveCBIndex(GetFrameResourceManager()->RegisterObjectCBInfo({}))
+	mPrimitiveCBIndex(GetFrameResourceManager()->RegisterMeshCBInfo({}))
 {
 
 }
@@ -14,11 +14,11 @@ void WPrimitiveComponent::Update()
 	// 직접적으로 업로드될 데이터를 FrameResourceManager에 저장
 	if (mbDirty)
 	{
-		FObjectCBInfo ObjectCBInfo;
-		ObjectCBInfo.DirtyFrameCount = FrameResourcesNum;
+		FMeshCBInfo MeshCBInfo;
+		MeshCBInfo.DirtyFrameCount = FrameResourcesNum;
 		XMFLOAT4X4 World = GetWorldMatrix();
 		XMMATRIX WorldMat = XMLoadFloat4x4(&World);
-		XMStoreFloat4x4(&ObjectCBInfo.ObjectConstants.World, XMMatrixTranspose(WorldMat));
-		GetFrameResourceManager()->SetObjectCBInfo(mPrimitiveCBIndex, ObjectCBInfo);
+		XMStoreFloat4x4(&MeshCBInfo.MeshCB.World, XMMatrixTranspose(WorldMat));
+		GetFrameResourceManager()->SetMeshCBInfo(mPrimitiveCBIndex, MeshCBInfo);
 	}
 }

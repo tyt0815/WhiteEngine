@@ -21,12 +21,9 @@ FFrameResource::FFrameResource()
 		)
 	);
 	PassConstantBuffer = std::make_unique<TUploadBuffer<FPassConstantBuffer>>(Device, (UINT)PASS_COUNT, true);
-	ObjectConstantBuffer = std::make_unique<TUploadBuffer<FObjectConstantBuffer>>(Device, 1, true);
-	MaterialConstantBuffer = std::make_unique<TUploadBuffer<FMaterialConstantBuffer>>(Device, EMT_None, true);
-}
-
-void FFrameResource::Update()
-{
+	MeshConstantBuffer = std::make_unique<TUploadBuffer<FMeshConstantBuffer>>(Device, 1, true);
+	SubmeshConstantBuffer = std::make_unique<TUploadBuffer<FSubmeshConstantBuffer>>(Device, 1, true);
+	MaterialConstantBuffer = std::make_unique<TUploadBuffer<FMaterialConstantBuffer>>(Device, EMT_None, false);
 }
 
 FFrameResourceManager::FFrameResourceManager()
@@ -47,9 +44,9 @@ FFrameResourceManager::~FFrameResourceManager()
 void FFrameResourceManager::Tick()
 {
     SetTargetFrameResource();
-	mTargetFrameResource->Update();
 	UpdatePassCB();
-	UpdateObjectCB();
+	UpdateMeshCB();
+	UpdateSubmeshCB();
 	UpdateMaterialCB();
 }
 
@@ -89,16 +86,18 @@ void FFrameResourceManager::BuildRootSignature()
 	CD3DX12_DESCRIPTOR_RANGE TextureTable;
 	TextureTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
 
-	CD3DX12_ROOT_PARAMETER RootParameter[4];
+	constexpr UINT ROOT_PARAMETERs_NUM = 5;
+	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERs_NUM];
 	RootParameter[0].InitAsConstantBufferView(0);
 	RootParameter[1].InitAsConstantBufferView(1);
 	RootParameter[2].InitAsConstantBufferView(2);
-	RootParameter[3].InitAsDescriptorTable(1, &TextureTable, D3D12_SHADER_VISIBILITY_PIXEL);
+	RootParameter[3].InitAsShaderResourceView(0, 1);
+	RootParameter[4].InitAsDescriptorTable(1, &TextureTable, D3D12_SHADER_VISIBILITY_PIXEL);
 
 	auto StaticSamplers = FTexture::GetStaticSamplers();
 
 	CD3DX12_ROOT_SIGNATURE_DESC RootSignatureDesc(
-		4,
+		ROOT_PARAMETERs_NUM,
 		RootParameter,
 		(UINT)StaticSamplers.size(),
 		StaticSamplers.data(),
@@ -185,25 +184,48 @@ void FFrameResourceManager::UpdatePassCB()
 	mTargetFrameResource->PassConstantBuffer->CopyData(0, PassConstants);
 }
 
-void FFrameResourceManager::UpdateObjectCB()
+void FFrameResourceManager::UpdateMeshCB()
 {
 	bool bCBResized = false;
-	if (mTargetFrameResource->ObjectConstantBuffer->GetElementCount() < mObjectCBInfoPool.GetPoolSize())
+	if (mTargetFrameResource->MeshConstantBuffer->GetElementCount() < mMeshCBInfoPool.GetPoolSize())
 	{
-		mTargetFrameResource->ObjectConstantBuffer = std::make_unique<TUploadBuffer<FObjectConstantBuffer>>(
+		mTargetFrameResource->MeshConstantBuffer = std::make_unique<TUploadBuffer<FMeshConstantBuffer>>(
 			GetDXResourceManagerPtr()->GetDevicePtr(),
-			(UINT)mObjectCBInfoPool.GetPoolSize(),
+			(UINT)mMeshCBInfoPool.GetPoolSize(),
 			true);
 		bCBResized = true;
 	}
 
-	for (size_t i = 0; i < mObjectCBInfoPool.GetPoolSize(); ++i)
+	for (size_t i = 0; i < mMeshCBInfoPool.GetPoolSize(); ++i)
 	{
-		if (mObjectCBInfoPool.IsUsed(i) && (mObjectCBInfoPool.GetItemRef(i).DirtyFrameCount > 0 || bCBResized))
+		if (mMeshCBInfoPool.IsUsed(i) && (mMeshCBInfoPool.GetItemRef(i).DirtyFrameCount > 0 || bCBResized))
 		{
-			FObjectCBInfo& ObjectCBInfo = mObjectCBInfoPool.GetItemRef(i);
-			mTargetFrameResource->ObjectConstantBuffer->CopyData((UINT)i, ObjectCBInfo.ObjectConstants);
+			FMeshCBInfo& ObjectCBInfo = mMeshCBInfoPool.GetItemRef(i);
+			mTargetFrameResource->MeshConstantBuffer->CopyData((UINT)i, ObjectCBInfo.MeshCB);
 			ObjectCBInfo.DirtyFrameCount = bCBResized ? FrameResourcesNum - 1 : ObjectCBInfo.DirtyFrameCount - 1;
+		}
+	}
+}
+
+void FFrameResourceManager::UpdateSubmeshCB()
+{
+	bool bCBResized = false;
+	if (mTargetFrameResource->SubmeshConstantBuffer->GetElementCount() < mSubmeshCBInfoPool.GetPoolSize())
+	{
+		mTargetFrameResource->SubmeshConstantBuffer = std::make_unique<TUploadBuffer<FSubmeshConstantBuffer>>(
+			GetDXResourceManagerPtr()->GetDevicePtr(),
+			(UINT)mSubmeshCBInfoPool.GetPoolSize(),
+			true);
+		bCBResized = true;
+	}
+
+	for (size_t i = 0; i < mSubmeshCBInfoPool.GetPoolSize(); ++i)
+	{
+		if (mSubmeshCBInfoPool.IsUsed(i) && (mSubmeshCBInfoPool.GetItemRef(i).DirtyFrameCount > 0 || bCBResized))
+		{
+			FSubmeshCBInfo& SubmeshCBInfo = mSubmeshCBInfoPool.GetItemRef(i);
+			mTargetFrameResource->SubmeshConstantBuffer->CopyData((UINT)i, SubmeshCBInfo.SubmeshCB);
+			SubmeshCBInfo.DirtyFrameCount = bCBResized ? FrameResourcesNum - 1 : SubmeshCBInfo.DirtyFrameCount - 1;
 		}
 	}
 }
@@ -222,7 +244,7 @@ void FFrameResourceManager::UpdateMaterialCB()
 			XMStoreFloat4x4(&MaterialConstants.MatTransform, XMMatrixTranspose(MaterialTransform));
 			MaterialConstants.Roughness = Material->Roughness;
 
-			mTargetFrameResource->MaterialConstantBuffer->CopyData(Material->MatCBIndex, MaterialConstants);
+			mTargetFrameResource->MaterialConstantBuffer->CopyData(Material->Type, MaterialConstants);
 			--Material->DirtyFrameCount;
 		}
 	}

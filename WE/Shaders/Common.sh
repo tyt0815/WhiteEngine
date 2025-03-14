@@ -3,16 +3,17 @@
 
 #include "LitUtility.sh"
 
-struct FMaterial
+struct FMaterialData
 {
-    float4 gDiffuseAlbedo;
-    float3 gFresnelR0;
-    float gRoughness;
-    float4x4 gMatTransform;
+    float4 DiffuseAlbedo;
+    float3 FresnelR0;
+    float Roughness;
+    float4x4 MatTransform;
 };
 
 
 Texture2D gTexture : register(t0);
+StructuredBuffer<FMaterialData> gMaterialData : register(t0, space1);
 SamplerState gsamPointWrap : register(s0);
 SamplerState gsamPointClamp : register(s1);
 SamplerState gsamLinearWrap : register(s2);
@@ -57,12 +58,9 @@ cbuffer ConstantBufferPerObject : register(b1)
     float4x4 gWorld;
 };
 
-cbuffer ConstantBufferMaterial : register(b2)
+cbuffer SubmeshCB : register(b2)
 {
-    float4 gDiffuseAlbedo;
-    float3 gFresnelR0;
-    float gRoughness;
-    float4x4 gMatTransform;
+    uint gMaterialIndex;
 };
 
 #endif

@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <d3d12.h>
 #include "Material.h"
 #include "DirectX/DXMath.h"
@@ -7,11 +8,12 @@
 
 class FMeshGeometry;
 
-struct FPrimitiveDrawArguments
+struct FRenderItemInfo
 {
 	FMeshGeometry* MeshGeometry;
 	FMaterial* Material;
-	std::uint32_t PrimitiveCBIndex;
+	std::uint64_t MeshCBIndex;
+	std::uint64_t SubmeshCBIndex;
 	UINT IndexCount = 0;
 	UINT StartIndexLocation = 0;
 	int BaseVertexLocation = 0;
@@ -23,24 +25,20 @@ class FRenderItemManager
 public:
 
 private:
-	TPool<FPrimitiveDrawArguments> mDrawArgsList;
+	std::array<std::array<TPool<FRenderItemInfo>, EBM_None>, ESM_None> mRenderItems;
 
 public:
-	inline size_t RegisterDrawArgs(const FPrimitiveDrawArguments& DrawArgs)
+	inline size_t RegisterRenderItem(EShadingModel ShadingModel, EBlendMode BlendMode, const FRenderItemInfo& Info)
 	{
-		return mDrawArgsList.Register(DrawArgs);
+		return mRenderItems[ShadingModel][BlendMode].Register(Info);
 	}
-	inline void RemoveDrawArgs(size_t i)
+	inline void RemoveRenderItem(EShadingModel ShadingModel, EBlendMode BlendMode, size_t i)
 	{
-		mDrawArgsList.Remove(i);
+		mRenderItems[ShadingModel][BlendMode].Remove(i);
 	}
-	inline const TPool<FPrimitiveDrawArguments>& GetDrawArgsList() const
+	inline const TPool<FRenderItemInfo>& GetRenderItems(EShadingModel ShadingModel, EBlendMode BlendMode) const
 	{
-		return mDrawArgsList;
-	}
-	inline void SetDrawArgs(size_t i, const FPrimitiveDrawArguments& DrawArgs)
-	{
-		mDrawArgsList.SetItem(i, DrawArgs);
+		return mRenderItems[ShadingModel][BlendMode];
 	}
 };
 

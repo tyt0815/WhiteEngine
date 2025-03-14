@@ -149,7 +149,6 @@ void FMaterialManager::BuildMaterial(
 	Material->Type = Type;
 	Material->ShadingModel = ShadingModel;
 	Material->BlendMode = BlendMode;
-	Material->MatCBIndex = Type;
 	Material->DiffuseSrvHeapIndex = DiffuseSrvHeapIndex;
 	Material->NormalSrvHeapIndex = NormalSrvHeapIndex;
 	Material->DiffuseAlbedo = DiffuseAlbedo;

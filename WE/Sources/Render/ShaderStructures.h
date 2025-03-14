@@ -47,12 +47,18 @@ struct FPassConstantBuffer
 };
 
 // register(b1)
-struct FObjectConstantBuffer
+struct FMeshConstantBuffer
 {
     DirectX::XMFLOAT4X4 World = FDXMath::Identity4x4();
 };
 
 // register(b2)
+struct FSubmeshConstantBuffer
+{
+	UINT MaterialIndex;
+};
+
+// register(b3)
 struct FMaterialConstantBuffer
 {
     DirectX::XMFLOAT4 DiffuseAlbedo = { 1.0f, 1.0f, 1.0f, 1.0f };

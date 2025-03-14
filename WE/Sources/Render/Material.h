@@ -43,7 +43,6 @@ public:
 	EMaterialType Type;
 	EShadingModel ShadingModel;
 	EBlendMode BlendMode;
-	int MatCBIndex = -1;
 	int DiffuseSrvHeapIndex = -1;
 	int NormalSrvHeapIndex = -1;
 	int DirtyFrameCount = -1;

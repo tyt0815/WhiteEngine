@@ -5,10 +5,8 @@
 FShaderManager::FShaderManager()
 {
 	mPipelineStates.resize(ESM_None);
-	//mPipelineStates = 
 	for (int i = 0; i < mPipelineStates.size(); ++i)
 	{
-		//mPipelineStates[i].resize(EBM_None);
 		mPipelineStates[i].assign(EBM_None, nullptr);
 	}
 	BuildShaderAndInputLayout();

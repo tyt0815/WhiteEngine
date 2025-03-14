@@ -1,6 +1,8 @@
 #pragma once
 #include "PrimitiveComponent.h"
+#include <array>
 #include "Render/StaticMesh.h"
+#include "Render/Material.h"
 
 class FMeshGeometry;
 class FMaterial;
@@ -15,5 +17,6 @@ public:
 
 private:
 	FStaticMesh mStaticMesh;
-	std::vector<std::uint64_t> mDrawArgsPoolIds;
+	std::array<std::array<std::vector<size_t>, EBM_None>, ESM_None> mRenderItemInfoPoolIds;
+	std::vector<size_t> mSubmeshCBInfoPoolIds;
 };

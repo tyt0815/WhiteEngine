@@ -7,6 +7,7 @@
 #include "GameFramework/Object/Actor/Actor.h"
 #include "Utility/Class.h"
 #include "FrameResource.h"
+#include "RenderItemManager.h"
 
 class WWorld;
 
@@ -31,11 +32,6 @@ public:
 	virtual void Render(const FRenderData& RenderData);
 
 private:
-	void DrawActors(FFrameResource* FrameResource, ID3D12GraphicsCommandList* CommandList);
-	void DrawActors(
-		const std::vector<AActor*>& DrawTargets,
-		FFrameResource* TargetFrameResource,
-		ID3D12GraphicsCommandList* CommandList
-	);
+	void DrawRenderItems(FFrameResource* FrameResource, ID3D12GraphicsCommandList* CommandList, const TPool<FRenderItemInfo>& RenderItems);
 	bool bWireFrame = false;
 };

@@ -2,7 +2,9 @@
 
 float4 MainPS(FVSOutput PIn) : SV_Target
 {
-    float4 Albedo = gTexture.Sample(gsamLinearWrap, PIn.TexC) * gDiffuseAlbedo;
+    FMaterialData MaterialData = gMaterialData[gMaterialIndex];
+    
+    float4 Albedo = gTexture.Sample(gsamLinearWrap, PIn.TexC) * MaterialData.DiffuseAlbedo;
     
 #ifdef ALPHA_TEST
     clip(Albedo.a - 0.1f);
@@ -17,8 +19,8 @@ float4 MainPS(FVSOutput PIn) : SV_Target
     
     float4 Ambient = gAmbientLight * Albedo;
     
-    const float Shiniess = 1.0f - gRoughness;
-    Material Mat = { Albedo, gFresnelR0, Shiniess };
+    const float Shiniess = 1.0f - MaterialData.Roughness;
+    Material Mat = { Albedo, MaterialData.FresnelR0, Shiniess };
     float3 ShadowFactor = 1.0f;
     float4 DirectLight = ComputeLighting(gLights, Mat, PIn.PosW,
         PIn.NormalW, ToEyeW, ShadowFactor
