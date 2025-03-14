@@ -66,6 +66,8 @@ void FRenderer::Render(const FRenderData& RenderData)
 	CommandList->SetGraphicsRootConstantBufferView(0, PassConstantBufferAdress);
 	auto MaterialConstantBuffer = TargetFrameResource->MaterialConstantBuffer->Resource();
 	CommandList->SetGraphicsRootShaderResourceView(3, MaterialConstantBuffer->GetGPUVirtualAddress());
+	auto TextureDescriptorHeap = GetTextureManager()->GetSRVHeapPtr();
+	CommandList->SetGraphicsRootDescriptorTable(4, TextureDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 	if (bWireFrame)
 	{
 		// TODO
@@ -101,8 +103,6 @@ void FRenderer::Render(const FRenderData& RenderData)
 
 void FRenderer::DrawRenderItems(FFrameResource* FrameResource, ID3D12GraphicsCommandList* CommandList, const TPool<FRenderItemInfo>& RenderItems)
 {
-	ID3D12DescriptorHeap* SRVHeap = GetTextureManager()->GetSRVHeapPtr();
-
 	ID3D12Resource* MeshConstantBuffer = FrameResource->MeshConstantBuffer->Resource();
 	ID3D12Resource* SubmeshConstantBuffer = FrameResource->SubmeshConstantBuffer->Resource();
 
@@ -124,11 +124,6 @@ void FRenderer::DrawRenderItems(FFrameResource* FrameResource, ID3D12GraphicsCom
 			// SubmeshConstantBuffer
 			auto SubmeshConstantBufferAddress = SubmeshConstantBuffer->GetGPUVirtualAddress() + DrawArgs.SubmeshCBIndex * SubmeshConstantBufferByteSize;
 			CommandList->SetGraphicsRootConstantBufferView(2, SubmeshConstantBufferAddress);
-
-			// Texture
-			CD3DX12_GPU_DESCRIPTOR_HANDLE SRVHandle(SRVHeap->GetGPUDescriptorHandleForHeapStart());
-			SRVHandle.Offset(Material->DiffuseSrvHeapIndex, CBVSRVUAVDescriptorSize);
-			CommandList->SetGraphicsRootDescriptorTable(4, SRVHandle);
 
 			D3D12_VERTEX_BUFFER_VIEW VertexBufferView = DrawArgs.MeshGeometry->VertexBufferView();
 			D3D12_INDEX_BUFFER_VIEW IndexBufferView = DrawArgs.MeshGeometry->IndexBufferView();

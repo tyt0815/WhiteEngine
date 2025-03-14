@@ -112,7 +112,7 @@ void FTextureManager::BuildShaderResourceDescriptorHeap()
 	ID3D12Device* Device = DRM->GetDevicePtr();
 	D3D12_DESCRIPTOR_HEAP_DESC SRVHeapDesc;
 	ZeroMemory(&SRVHeapDesc, sizeof(D3D12_DESCRIPTOR_HEAP_DESC));
-	SRVHeapDesc.NumDescriptors = ETT_None;
+	SRVHeapDesc.NumDescriptors = 1024;
 	SRVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	SRVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	THROW_IF_FAILED(
@@ -125,21 +125,21 @@ void FTextureManager::BuildShaderResourceDescriptorHeap()
 
 void FTextureManager::BuildShaderResource()
 {
-
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
 	for (int i = 0; i < mTextures.size(); ++i)
 	{
 		FTexture* Texture = mTextures[i].get();
-		auto TextureBuffer = Texture->Resource;
+		ID3D12Resource* TextureBuffer = Texture->Resource.Get();
 		CD3DX12_CPU_DESCRIPTOR_HANDLE SRVHandle(mSRVHeap->GetCPUDescriptorHandleForHeapStart());
 		SRVHandle.Offset(Texture->Type, FDXResourceManager::GetInstance()->GetCBVSRVUAVDescriptorSize());
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
 		srvDesc.Format = TextureBuffer->GetDesc().Format;
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-		srvDesc.Texture2D.MostDetailedMip = 0;
 		srvDesc.Texture2D.MipLevels = TextureBuffer->GetDesc().MipLevels;
-		srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
-		GetDXResourceManagerPtr()->GetDevicePtr()->CreateShaderResourceView(TextureBuffer.Get(), &srvDesc, SRVHandle);
+		GetDXResourceManagerPtr()->GetDevicePtr()->CreateShaderResourceView(TextureBuffer, &srvDesc, SRVHandle);
 	}
 }
 

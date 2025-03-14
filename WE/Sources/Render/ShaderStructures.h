@@ -58,13 +58,16 @@ struct FSubmeshConstantBuffer
 	UINT MaterialIndex;
 };
 
-// register(b3)
-struct FMaterialConstantBuffer
+// register(t0, space1)
+struct FMaterialConstantBuffer  
 {
     DirectX::XMFLOAT4 DiffuseAlbedo = { 1.0f, 1.0f, 1.0f, 1.0f };
     DirectX::XMFLOAT3 FresnelR0 = { 0.01f, 0.01f, 0.01f };
     float Roughness = 0.25f;
-
     // Used in texture mapping.
     DirectX::XMFLOAT4X4 MatTransform = FDXMath::Identity4x4();
+	UINT TextureIndex;
+	UINT MaterialPad1;
+	UINT MaterialPad2;
+	UINT MaterialPad3;
 };

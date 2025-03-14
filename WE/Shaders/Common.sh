@@ -9,10 +9,14 @@ struct FMaterialData
     float3 FresnelR0;
     float Roughness;
     float4x4 MatTransform;
+    uint TextureIndex;
+    uint MaterialPad1;
+    uint MaterialPad2;
+    uint MaterialPad3;
 };
 
 
-Texture2D gTexture : register(t0);
+Texture2D gTexture[1024] : register(t0);
 StructuredBuffer<FMaterialData> gMaterialData : register(t0, space1);
 SamplerState gsamPointWrap : register(s0);
 SamplerState gsamPointClamp : register(s1);

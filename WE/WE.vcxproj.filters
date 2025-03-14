@@ -345,7 +345,7 @@
     <None Include="Shaders\LitUtility.sh">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\pbf.sf">
+    <None Include="Shaders\pbr.sf">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

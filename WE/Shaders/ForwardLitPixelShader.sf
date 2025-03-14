@@ -4,7 +4,7 @@ float4 MainPS(FVSOutput PIn) : SV_Target
 {
     FMaterialData MaterialData = gMaterialData[gMaterialIndex];
     
-    float4 Albedo = gTexture.Sample(gsamLinearWrap, PIn.TexC) * MaterialData.DiffuseAlbedo;
+    float4 Albedo = gTexture[MaterialData.TextureIndex].Sample(gsamLinearWrap, PIn.TexC) * MaterialData.DiffuseAlbedo;
     
 #ifdef ALPHA_TEST
     clip(Albedo.a - 0.1f);

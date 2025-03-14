@@ -3,7 +3,7 @@
 float4 MainPS(FGSOutput pin) : SV_Target
 {
     FMaterialData MaterialData = gMaterialData[gMaterialIndex];
-    float4 diffuseAlbedo = gTexture.Sample(gsamAnisotropicWrap, pin.TexC) * MaterialData.DiffuseAlbedo;
+    float4 diffuseAlbedo = gTexture[MaterialData.TextureIndex].Sample(gsamAnisotropicWrap, pin.TexC) * MaterialData.DiffuseAlbedo;
 	
 #ifdef ALPHA_TEST
 	// Discard pixel if texture alpha < 0.1.  We do this test as soon 

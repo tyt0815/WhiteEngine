@@ -84,15 +84,15 @@ void FFrameResourceManager::SetTargetFrameResource()
 void FFrameResourceManager::BuildRootSignature()
 {
 	CD3DX12_DESCRIPTOR_RANGE TextureTable;
-	TextureTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+	TextureTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1024, 0);
 
 	constexpr UINT ROOT_PARAMETERs_NUM = 5;
 	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERs_NUM];
-	RootParameter[0].InitAsConstantBufferView(0);
-	RootParameter[1].InitAsConstantBufferView(1);
-	RootParameter[2].InitAsConstantBufferView(2);
-	RootParameter[3].InitAsShaderResourceView(0, 1);
-	RootParameter[4].InitAsDescriptorTable(1, &TextureTable, D3D12_SHADER_VISIBILITY_PIXEL);
+	RootParameter[0].InitAsConstantBufferView(0);	// PassCB
+	RootParameter[1].InitAsConstantBufferView(1);	// MeshCB
+	RootParameter[2].InitAsConstantBufferView(2);	// SubmeshCB
+	RootParameter[3].InitAsShaderResourceView(0, 1);	// MaterialCB
+	RootParameter[4].InitAsDescriptorTable(1, &TextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// TextureTable
 
 	auto StaticSamplers = FTexture::GetStaticSamplers();
 
@@ -243,6 +243,7 @@ void FFrameResourceManager::UpdateMaterialCB()
 			MaterialConstants.FresnelR0 = Material->FresnelR0;
 			XMStoreFloat4x4(&MaterialConstants.MatTransform, XMMatrixTranspose(MaterialTransform));
 			MaterialConstants.Roughness = Material->Roughness;
+			MaterialConstants.TextureIndex = Material->DiffuseSrvHeapIndex;
 
 			mTargetFrameResource->MaterialConstantBuffer->CopyData(Material->Type, MaterialConstants);
 			--Material->DirtyFrameCount;
