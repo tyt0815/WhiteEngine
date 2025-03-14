@@ -3,7 +3,7 @@
 
 #include "LitUtility.sh"
 
-Texture2D gDiffuseMap : register(t0);
+Texture2D gTexture : register(t0);
 SamplerState gsamPointWrap : register(s0);
 SamplerState gsamPointClamp : register(s1);
 SamplerState gsamLinearWrap : register(s2);
@@ -13,21 +13,21 @@ SamplerState gsamAnisotropicClamp : register(s5);
 
 cbuffer ConstantBufferPerPass : register(b0)
 {
-    float4x4 View;
-    float4x4 InvView;
-    float4x4 Proj;
-    float4x4 InvProj;
-    float4x4 ViewProj;
-    float4x4 InvViewProj;
-    float3 EyePosW;
-    float cbPerObjectPad1;
-    float2 RenderTargetSize;
-    float2 InvRenderTargetSize;
-    float NearZ;
-    float FarZ;
-    float TotalTime;
-    float DeltaTime;
-    float4 AmbientLight;
+    float4x4 gView;
+    float4x4 gInvView;
+    float4x4 gProj;
+    float4x4 gInvProj;
+    float4x4 gViewProj;
+    float4x4 gInvViewProj;
+    float3 gEyePosW;
+    float gcbPerObjectPad1;
+    float2 gRenderTargetSize;
+    float2 gInvRenderTargetSize;
+    float gNearZ;
+    float gFarZ;
+    float gTotalTime;
+    float gDeltaTime;
+    float4 gAmbientLight;
     
     
     // Fog Info
@@ -45,16 +45,15 @@ cbuffer ConstantBufferPerPass : register(b0)
 
 cbuffer ConstantBufferPerObject : register(b1)
 {
-    float4x4 World;
-    float4x4 TexTransform;
+    float4x4 gWorld;
 };
 
 cbuffer ConstantBufferMaterial : register(b2)
 {
-    float4 DiffuseAlbedo;
-    float3 FresnelR0;
-    float Roughness;
-    float4x4 MatTransform;
+    float4 gDiffuseAlbedo;
+    float3 gFresnelR0;
+    float gRoughness;
+    float4x4 gMatTransform;
 };
 
 #endif

@@ -2,7 +2,7 @@
 
 float4 MainPS(FVSOutput PIn) : SV_Target
 {
-    float4 Albedo = gDiffuseMap.Sample(gsamLinearWrap, PIn.TexC) * DiffuseAlbedo;
+    float4 Albedo = gTexture.Sample(gsamLinearWrap, PIn.TexC) * gDiffuseAlbedo;
     
 #ifdef ALPHA_TEST
     clip(Albedo.a - 0.1f);
@@ -11,14 +11,14 @@ float4 MainPS(FVSOutput PIn) : SV_Target
 
     
     PIn.NormalW = normalize(PIn.NormalW);
-    float3 ToEyeW = EyePosW - PIn.PosW;
+    float3 ToEyeW = gEyePosW - PIn.PosW;
     float distToEye = length(ToEyeW);
     ToEyeW /= distToEye;
     
-    float4 Ambient = AmbientLight * Albedo;
+    float4 Ambient = gAmbientLight * Albedo;
     
-    const float Shiniess = 1.0f - Roughness;
-    Material Mat = { Albedo, FresnelR0, Shiniess };
+    const float Shiniess = 1.0f - gRoughness;
+    Material Mat = { Albedo, gFresnelR0, Shiniess };
     float3 ShadowFactor = 1.0f;
     float4 DirectLight = ComputeLighting(gLights, Mat, PIn.PosW,
         PIn.NormalW, ToEyeW, ShadowFactor

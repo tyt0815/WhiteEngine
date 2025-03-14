@@ -60,8 +60,6 @@ struct FPassConstants
 struct FObjectConstants
 {
     DirectX::XMFLOAT4X4 World = FDXMath::Identity4x4();
-    // TODO: TexTransform¿∫ ªË¡¶
-    DirectX::XMFLOAT4X4 TexTransform = FDXMath::Identity4x4();
 };
 
 struct FObjectCBInfo

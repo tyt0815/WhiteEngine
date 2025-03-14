@@ -117,6 +117,7 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Shaders\LitUtility.sh" />
+    <None Include="Shaders\pbf.sf" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
