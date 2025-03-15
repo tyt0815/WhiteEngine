@@ -17,22 +17,17 @@ enum EShadingModel : std::uint16_t
 enum EBlendMode : std::uint16_t
 {
 	EBM_Opaque = 0,
-	EBM_AlphaTest,
-	EBM_Transparency,
+	//EBM_AlphaTest,
+	//EBM_Transparency,
 	EBM_None
 };
 
 enum EMaterialType : UINT16
 {
 	EMT_Default = 0,
-	EMT_Tile0,
-	EMT_Brick0,
-	EMT_Stone0,
-	EMT_Skull,
-	EMT_Grass,
-	EMT_WireFence,
-	EMT_Water,
-	EMT_Foliage1,
+	EMT_RustedIron2,
+	EMT_ScuffedGold,
+	EMT_IceField,
 	EMT_None
 };
 
@@ -42,13 +37,12 @@ public:
 	EMaterialType Type;
 	EShadingModel ShadingModel;
 	EBlendMode BlendMode;
-	int DiffuseSrvHeapIndex = -1;
-	int NormalSrvHeapIndex = -1;
-	int DirtyFrameCount = -1;
-	DirectX::XMFLOAT4 DiffuseAlbedo = { 1.0f, 1.0f, 1.0f, 1.0f };
-	DirectX::XMFLOAT3 FresnelR0 = { 0.01f, 0.01f, 0.01f };
-	float Roughness = .25f;
+	UINT AlbedoSRVHeapIndex = -1;
+	UINT MetallicSRVHeapIndex = -1;
+	UINT NormalSRVHeapIndex = -1;
+	UINT RoughnessSRVHeapIndex = -1;
 	DirectX::XMFLOAT4X4 MatTransform = FDXMath::Identity4x4();
+	int DirtyFrameCount = -1;
 
 	friend class FMaterialManager;
 };
@@ -64,11 +58,10 @@ private:
 		EMaterialType Type,
 		EShadingModel ShadingModel,
 		EBlendMode BlendMode,
-		int DiffuseSrvHeapIndex,
-		int NormalSrvHeapIndex,
-		DirectX::XMFLOAT4 DiffuseAlbedo,
-		DirectX::XMFLOAT3 FresnelR0,
-		float Roughness,
+		UINT AlbedoSRVHeapIndex,
+		UINT MetallicSRVHeapIndex,
+		UINT NormalSRVHeapIndex,
+		UINT RoughnessSRVHeapIndex,
 		DirectX::XMFLOAT4X4 MatTransform
 	);
 	std::vector<std::unique_ptr<FMaterial>> mMaterials;

@@ -1,9 +1,9 @@
-#include "Box.h"
+#include "IceFieldGird.h"
 #include "GameFramework/Object/Component/StaticMeshComponent.h"
 
-ABox::ABox()
+AIceFieldGrid::AIceFieldGrid()
 {
 	WStaticMeshComponent* Component = CreateSceneComponent<WStaticMeshComponent>();
 	SetRootComponent(Component);
-	Component->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_Box));
+	Component->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_IceFieldGrid));
 }

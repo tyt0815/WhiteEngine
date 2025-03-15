@@ -3,19 +3,17 @@
 #include <vector>
 #include "DirectX/DXMath.h"
 #include "Utility/Class.h"
+#include "MeshGeometry.h"
+#include "Material.h"
 
 class FMeshGeometry;
 class FMaterial;
 
 enum EStaticMeshType : std::uint16_t
 {
-	ESMT_Box,
-	ESMT_Cylinder,
-	ESMT_Ground,
-	ESMT_Skull,
-	ESMT_Sphere,
-	ESMT_WaterBall,
-	ESMT_WireFence,
+	ESMT_RustedIron2Sphere,
+	ESMT_ScuffedGoldSphere,
+	ESMT_IceFieldGrid,
 	ESMT_None
 };
 
@@ -32,6 +30,7 @@ public:
 
 private:
 	void BuildStaticMeshs();
+	void BuildStaticMesh(EStaticMeshType Type, EMeshGeometryType MeshType, EMaterialType MaterialType);
 	std::vector<FStaticMesh> mStaticMeshs;
 public:
 	inline FStaticMesh GetStaticMesh(size_t i)

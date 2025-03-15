@@ -1,23 +1,23 @@
 #ifndef COMMON_SH
 #define COMMON_SH
+#include "Light.sh"
 
-#include "LitUtility.sh"
+#ifndef PI
+#define PI 3.14159265359
+#endif
 
-struct FMaterialData
+struct FMaterialSB
 {
-    float4 DiffuseAlbedo;
-    float3 FresnelR0;
-    float Roughness;
+    uint AlbedoTextureIndex;
+    uint MetallicTextureIndex;
+    uint RoughneesTextureIndex;
+    uint NormalTextureIndex;
     float4x4 MatTransform;
-    uint TextureIndex;
-    uint MaterialPad1;
-    uint MaterialPad2;
-    uint MaterialPad3;
 };
 
 
 Texture2D gTexture[1024] : register(t0);
-StructuredBuffer<FMaterialData> gMaterialData : register(t0, space1);
+StructuredBuffer<FMaterialSB> gMaterialData : register(t0, space1);
 SamplerState gsamPointWrap : register(s0);
 SamplerState gsamPointClamp : register(s1);
 SamplerState gsamLinearWrap : register(s2);
@@ -54,7 +54,7 @@ cbuffer ConstantBufferPerPass : register(b0)
     // indices [NUM_DIR_LIGHTS, NUM_DIR_LIGHTS+NUM_POINT_LIGHTS) are point lights;
     // indices [NUM_DIR_LIGHTS+NUM_POINT_LIGHTS, NUM_DIR_LIGHTS+NUM_POINT_LIGHT+NUM_SPOT_LIGHTS)
     // are spot lights for a maximum of MaxLights per object.
-    Light gLights[MAX_LIGHTS];
+    FDirectionalLight gDirectionalLights[DIR_LIGHTS_NUM];
 };
 
 cbuffer ConstantBufferPerObject : register(b1)
@@ -65,6 +65,9 @@ cbuffer ConstantBufferPerObject : register(b1)
 cbuffer SubmeshCB : register(b2)
 {
     uint gMaterialIndex;
+    uint gPadOfSubmeshCB1;
+    uint gPadOfSubmeshCB2;
+    uint gPadOfSubmeshCB3;
 };
 
 #endif

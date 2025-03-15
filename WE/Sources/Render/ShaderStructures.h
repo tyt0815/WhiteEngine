@@ -1,17 +1,15 @@
 #pragma once
 #include "DirectX/DXMath.h"
 
-struct FLight
-{
-    DirectX::XMFLOAT3 Strength = { 0.5f, 0.5f, 0.5f };
-    float FalloffStart = 1.0f;                          // point/spot light only
-    DirectX::XMFLOAT3 Direction = { 0.0f, -1.0f, 0.0f };// directional/spot light only
-    float FalloffEnd = 10.0f;                           // point/spot light only
-    DirectX::XMFLOAT3 Position = { 0.0f, 0.0f, 0.0f };  // point/spot light only
-    float SpotPower = 64.0f;                            // spot light only
-};
+constexpr int DIR_LIGHTS_NUM = 1;
 
-#define MaxLights 16
+struct FDirectionalLight
+{
+    XMFLOAT3 Direction;
+    UINT Pad1;
+    XMFLOAT3 Color;
+    UINT Pad2;
+};
 
 // register(b0)
 struct FPassConstantBuffer
@@ -43,7 +41,7 @@ struct FPassConstantBuffer
     // indices [NUM_DIR_LIGHTS, NUM_DIR_LIGHTS+NUM_POINT_LIGHTS) are point lights;
     // indices [NUM_DIR_LIGHTS+NUM_POINT_LIGHTS, NUM_DIR_LIGHTS+NUM_POINT_LIGHT+NUM_SPOT_LIGHTS)
     // are spot lights for a maximum of MaxLights per object.
-    FLight Lights[MaxLights];
+    FDirectionalLight DirectionalLights[DIR_LIGHTS_NUM];
 };
 
 // register(b1)
@@ -56,18 +54,17 @@ struct FMeshConstantBuffer
 struct FSubmeshConstantBuffer
 {
 	UINT MaterialIndex;
+    UINT Pad1;
+    UINT Pad2;
+    UINT Pad3;
 };
 
 // register(t0, space1)
-struct FMaterialConstantBuffer  
+struct FMaterialStructuredBuffer  
 {
-    DirectX::XMFLOAT4 DiffuseAlbedo = { 1.0f, 1.0f, 1.0f, 1.0f };
-    DirectX::XMFLOAT3 FresnelR0 = { 0.01f, 0.01f, 0.01f };
-    float Roughness = 0.25f;
-    // Used in texture mapping.
+    UINT AbeldoTextureIndex;
+    UINT MetallicTextureIndex;
+    UINT RoughnessTextureIndex;
+    UINT NormalTextureIndex;
     DirectX::XMFLOAT4X4 MatTransform = FDXMath::Identity4x4();
-	UINT TextureIndex;
-	UINT MaterialPad1;
-	UINT MaterialPad2;
-	UINT MaterialPad3;
 };

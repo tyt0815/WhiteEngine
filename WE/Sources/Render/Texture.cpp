@@ -75,21 +75,28 @@ FTextureManager::~FTextureManager()
 
 void FTextureManager::LoadTextures(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
 {
-	LoadTexture(ETT_Default, L"./Textures/checkboard.dds", Device, CommandList);
-	LoadTexture(ETT_White, L"./Textures/White.dds", Device, CommandList);
-	LoadTexture(ETT_WoodCrate, L"./Textures/WoodCrate01.dds", Device, CommandList);
-	LoadTexture(ETT_Bricks3, L"./Textures/bricks3.dds", Device, CommandList);
-	LoadTexture(ETT_Stone, L"./Textures/stone.dds", Device, CommandList);
-	LoadTexture(ETT_Tile, L"./Textures/tile.dds", Device, CommandList);
-	LoadTexture(ETT_Grass, L"./Textures/grass.dds", Device, CommandList);
-	LoadTexture(ETT_WireFence, L"./Textures/WireFence.dds", Device, CommandList);
-	LoadTexture(ETT_Water, L"./Textures/water1.dds", Device, CommandList);
-	LoadTexture(ETT_Foliage1, L"./Textures/Foliage1.dds", Device, CommandList);
-	LoadTexture(ETT_Foliage2, L"./Textures/Foliage2.dds", Device, CommandList);
+	LoadTexture(ETT_Default, L"Default.dds", Device, CommandList);
+	LoadTexture(ETT_White, L"White.dds", Device, CommandList);
+
+	LoadTexture(ETT_RustedIron2_BaseColor, L"RustedIron2_BaseColor.dds", Device, CommandList);
+	LoadTexture(ETT_RustedIron2_Normal, L"RustedIron2_Normal.dds", Device, CommandList);
+	LoadTexture(ETT_RustedIron2_Metallic, L"RustedIron2_Metallic.dds", Device, CommandList);
+	LoadTexture(ETT_RustedIron2_Roughness, L"RustedIron2_Roughness.dds", Device, CommandList);
+
+	LoadTexture(ETT_ScuffedGold_BaseColor, L"ScuffedGold_BaseColor.dds", Device, CommandList);
+	LoadTexture(ETT_ScuffedGold_Normal, L"ScuffedGold_Normal.dds", Device, CommandList);
+	LoadTexture(ETT_ScuffedGold_Metallic, L"ScuffedGold_Metallic.dds", Device, CommandList);
+	LoadTexture(ETT_ScuffedGold_Roughness, L"ScuffedGold_Roughness.dds", Device, CommandList);
+
+	LoadTexture(ETT_IceField_BaseColor, L"IceField_BaseColor.dds", Device, CommandList);
+	LoadTexture(ETT_IceField_Normal, L"IceField_Normal.dds", Device, CommandList);
+	LoadTexture(ETT_IceField_Metallic, L"IceField_Metallic.dds", Device, CommandList);
+	LoadTexture(ETT_IceField_Roughness, L"IceField_Roughness.dds", Device, CommandList);
 }
 
 void FTextureManager::LoadTexture(ETextureType Type, std::wstring Filename, ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
 {
+	static std::wstring Path = L"./Resources/Textures/";
 	std::unique_ptr<FTexture> Texture = std::make_unique<FTexture>();
 	Texture->Type = Type;
 	Texture->Filename = Filename;
@@ -97,7 +104,7 @@ void FTextureManager::LoadTexture(ETextureType Type, std::wstring Filename, ID3D
 		DirectX::CreateDDSTextureFromFile12(
 			Device,
 			CommandList, 
-			Texture->Filename.c_str(),
+			(Path + Texture->Filename).c_str(),
 			Texture->Resource, 
 			Texture->UploadHeap
 		)

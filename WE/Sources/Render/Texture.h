@@ -11,16 +11,19 @@
 enum ETextureType : UINT16
 {
 	ETT_Default,
-	ETT_WoodCrate,
-	ETT_Bricks3,
-	ETT_Stone,
-	ETT_Grass,
-	ETT_Tile,
 	ETT_White,
-	ETT_WireFence,
-	ETT_Water,
-	ETT_Foliage1,
-	ETT_Foliage2,
+	ETT_RustedIron2_BaseColor,
+	ETT_RustedIron2_Metallic,
+	ETT_RustedIron2_Normal,
+	ETT_RustedIron2_Roughness,
+	ETT_ScuffedGold_BaseColor,
+	ETT_ScuffedGold_Metallic,
+	ETT_ScuffedGold_Normal,
+	ETT_ScuffedGold_Roughness,
+	ETT_IceField_BaseColor,
+	ETT_IceField_Metallic,
+	ETT_IceField_Normal,
+	ETT_IceField_Roughness,
 	ETT_None
 };
 

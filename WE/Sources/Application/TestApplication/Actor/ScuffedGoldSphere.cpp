@@ -1,9 +1,9 @@
-#include "Cylinder.h"
+#include "ScuffedGoldSphere.h"
 #include "GameFramework/Object/Component/StaticMeshComponent.h"
 
-ACylinder::ACylinder()
+AScuffedGoldSphere::AScuffedGoldSphere()
 {
 	WStaticMeshComponent* Component = CreateSceneComponent<WStaticMeshComponent>();
 	SetRootComponent(Component);
-	Component->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_Cylinder));
+	Component->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_ScuffedGoldSphere));
 }

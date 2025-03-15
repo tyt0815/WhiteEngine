@@ -1,9 +1,8 @@
 #pragma once
-
 #include "GameFramework/Object/Actor/Actor.h"
 
-class AWaterBall : public AActor
+class AIceFieldGrid : public AActor
 {
 public:
-	AWaterBall();
+	AIceFieldGrid();
 };

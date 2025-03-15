@@ -26,98 +26,39 @@ void FMaterialManager::BuildMaterials()
 		ESM_DefaultLit,
 		EBM_Opaque,
 		ETT_Default,
-		-1,
-		XMFLOAT4(Colors::White),
-		XMFLOAT3(0.02f, 0.02f, 0.02f),
-		0.1f,
-		FDXMath::Identity4x4()
-	);
-	BuildMaterial(
-		EMT_Brick0,
-		ESM_DefaultLit,
-		EBM_Opaque,
-		ETT_Bricks3,
-		-1,
-		XMFLOAT4(Colors::White),
-		XMFLOAT3(0.02f, 0.02f, 0.02f),
-		0.1f,
-		FDXMath::Identity4x4()
-	);
-	BuildMaterial(
-		EMT_Grass,
-		ESM_DefaultLit,
-		EBM_Opaque,
-		ETT_Grass,
-		-1,
-		XMFLOAT4(Colors::White),
-		XMFLOAT3(0.01f, 0.01f, 0.01f),
-		0.9f,
-		FDXMath::Identity4x4()
-	);
-	BuildMaterial(
-		EMT_Stone0,
-		ESM_DefaultLit,
-		EBM_Opaque,
-		ETT_Stone,
-		-1,
-		XMFLOAT4(Colors::White),
-		XMFLOAT3(0.05f, 0.05f, 0.05f),
-		0.3f,
-		FDXMath::Identity4x4()
-	);
-	BuildMaterial(
-		EMT_Tile0,
-		ESM_DefaultLit,
-		EBM_Opaque,
-		ETT_Tile,
-		-1,
-		XMFLOAT4(Colors::White),
-		XMFLOAT3(0.02f, 0.02f, 0.02f),
-		0.2f,
-		FDXMath::Identity4x4()
-	);
-	BuildMaterial(
-		EMT_Skull,
-		ESM_DefaultLit,
-		EBM_Opaque,
 		ETT_White,
-		-1,
-		XMFLOAT4(Colors::DarkGray),
-		XMFLOAT3(0.05f, 0.05f, 0.05f),
-		0.3f,
+		ETT_White,
+		ETT_White,
 		FDXMath::Identity4x4()
 	);
 	BuildMaterial(
-		EMT_WireFence,
+		EMT_RustedIron2,
 		ESM_DefaultLit,
-		EBM_AlphaTest,
-		ETT_WireFence,
-		-1,
-		XMFLOAT4(Colors::White),
-		XMFLOAT3(0.05f, 0.05f, 0.05f),
-		0.2f,
+		EBM_Opaque,
+		ETT_RustedIron2_BaseColor,
+		ETT_RustedIron2_Metallic,
+		ETT_RustedIron2_Normal,
+		ETT_RustedIron2_Roughness,
 		FDXMath::Identity4x4()
 	);
 	BuildMaterial(
-		EMT_Water,
+		EMT_ScuffedGold,
 		ESM_DefaultLit,
-		EBM_Transparency,
-		ETT_Water,
-		-1,
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 0.5f),
-		XMFLOAT3(0.1f, 0.1f, 0.1f),
-		0.0f,
+		EBM_Opaque,
+		ETT_ScuffedGold_BaseColor,
+		ETT_ScuffedGold_Metallic,
+		ETT_ScuffedGold_Normal,
+		ETT_ScuffedGold_Roughness,
 		FDXMath::Identity4x4()
 	);
 	BuildMaterial(
-		EMT_Foliage1,
+		EMT_IceField,
 		ESM_DefaultLit,
-		EBM_AlphaTest,
-		ETT_Foliage1,
-		-1,
-		XMFLOAT4(Colors::White),
-		XMFLOAT3(0.02f, 0.02f, 0.02f),
-		0.1f,
+		EBM_Opaque,
+		ETT_IceField_BaseColor,
+		ETT_IceField_Metallic,
+		ETT_IceField_Normal,
+		ETT_IceField_Roughness,
 		FDXMath::Identity4x4()
 	);
 }
@@ -126,11 +67,10 @@ void FMaterialManager::BuildMaterial(
 	EMaterialType Type,
 	EShadingModel ShadingModel,
 	EBlendMode BlendMode,
-	int DiffuseSrvHeapIndex,
-	int NormalSrvHeapIndex,
-	DirectX::XMFLOAT4 DiffuseAlbedo,
-	DirectX::XMFLOAT3 FresnelR0,
-	float Roughness,
+	UINT AlbedoSRVHeapIndex,
+	UINT MetallicSRVHeapIndex,
+	UINT NormalSRVHeapIndex,
+	UINT RoughnessSRVHeapIndex,
 	DirectX::XMFLOAT4X4 MatTransform
 )
 {
@@ -138,11 +78,10 @@ void FMaterialManager::BuildMaterial(
 	Material->Type = Type;
 	Material->ShadingModel = ShadingModel;
 	Material->BlendMode = BlendMode;
-	Material->DiffuseSrvHeapIndex = DiffuseSrvHeapIndex;
-	Material->NormalSrvHeapIndex = NormalSrvHeapIndex;
-	Material->DiffuseAlbedo = DiffuseAlbedo;
-	Material->FresnelR0 = FresnelR0;
-	Material->Roughness = Roughness;
+	Material->AlbedoSRVHeapIndex = AlbedoSRVHeapIndex;
+	Material->MetallicSRVHeapIndex = MetallicSRVHeapIndex;
+	Material->NormalSRVHeapIndex = NormalSRVHeapIndex;
+	Material->RoughnessSRVHeapIndex = RoughnessSRVHeapIndex;
 	Material->DirtyFrameCount = FrameResourcesNum;
 	mMaterials[Type] = std::move(Material);
 }

@@ -15,25 +15,15 @@ FStaticMeshManager::~FStaticMeshManager()
 void FStaticMeshManager::BuildStaticMeshs()
 {
 	FStaticMesh StaticMesh;
-	StaticMesh.Geometry = GetMeshGeometryManager()->GetMeshGeometry(EMGT_Box);
-	StaticMesh.Material = GetMaterialManager()->GetMaterial(EMT_Stone0);
-	mStaticMeshs[ESMT_Box] = StaticMesh;
-	StaticMesh.Geometry = GetMeshGeometryManager()->GetMeshGeometry(EMGT_Cylinder);
-	StaticMesh.Material = GetMaterialManager()->GetMaterial(EMT_Brick0);
-	mStaticMeshs[ESMT_Cylinder] = StaticMesh;
-	StaticMesh.Geometry = GetMeshGeometryManager()->GetMeshGeometry(EMGT_Grid);
-	StaticMesh.Material = GetMaterialManager()->GetMaterial(EMT_Grass);
-	mStaticMeshs[ESMT_Ground] = StaticMesh;
-	StaticMesh.Geometry = GetMeshGeometryManager()->GetMeshGeometry(EMGT_Skull);
-	StaticMesh.Material = GetMaterialManager()->GetMaterial(EMT_Skull);
-	mStaticMeshs[ESMT_Skull] = StaticMesh;
-	StaticMesh.Geometry = GetMeshGeometryManager()->GetMeshGeometry(EMGT_Sphere);
-	StaticMesh.Material = GetMaterialManager()->GetMaterial(EMT_Tile0);
-	mStaticMeshs[ESMT_Sphere] = StaticMesh;
-	StaticMesh.Geometry = GetMeshGeometryManager()->GetMeshGeometry(EMGT_Sphere);
-	StaticMesh.Material = GetMaterialManager()->GetMaterial(EMT_Water);
-	mStaticMeshs[ESMT_WaterBall] = StaticMesh;
-	StaticMesh.Geometry = GetMeshGeometryManager()->GetMeshGeometry(EMGT_Box);
-	StaticMesh.Material = GetMaterialManager()->GetMaterial(EMT_WireFence);
-	mStaticMeshs[ESMT_WireFence] = StaticMesh;
+	BuildStaticMesh(ESMT_RustedIron2Sphere, EMGT_Sphere, EMT_RustedIron2);
+	BuildStaticMesh(ESMT_ScuffedGoldSphere, EMGT_Sphere, EMT_ScuffedGold);
+	BuildStaticMesh(ESMT_IceFieldGrid, EMGT_Grid, EMT_IceField);
+}
+
+void FStaticMeshManager::BuildStaticMesh(EStaticMeshType Type, EMeshGeometryType MeshType, EMaterialType MaterialType)
+{
+	FStaticMesh StaticMesh;
+	StaticMesh.Geometry = GetMeshGeometryManager()->GetMeshGeometry(MeshType);
+	StaticMesh.Material = GetMaterialManager()->GetMaterial(MaterialType);
+	mStaticMeshs[Type] = StaticMesh;
 }

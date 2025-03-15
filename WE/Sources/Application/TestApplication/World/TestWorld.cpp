@@ -1,7 +1,9 @@
 #include "TestWorld.h"
 #include "Render/MeshGeometry.h"
-#include "Application/TestApplication/Actor/ShapeActorsHeader.h"
 #include "Application/TestApplication/Pawn/GhostCameraPawn.h"
+#include "Application/TestApplication/Actor/IceFieldGird.h"
+#include "Application/TestApplication/Actor/RustedIron2Sphere.h"
+#include "Application/TestApplication/Actor/ScuffedGoldSphere.h"
 
 WTestWorld::WTestWorld()
 {
@@ -11,43 +13,17 @@ WTestWorld::WTestWorld()
 
 	AActor* Actor = nullptr;
 	FTransform Transform = FTransform::Default;
+
+	Actor = SpawnActor<ARustedIron2Sphere>();
 	Transform.Scale = XMFLOAT3(2.0f, 2.0f, 2.0f);
 	Transform.Translation = XMFLOAT3(0.0f, 0.5f, 10.0f);
-	Actor = SpawnActor<AWireFence>();
 	Actor->SetTransform(Transform);
 
-	Transform = FTransform::Default;
-	Actor = SpawnActor<AGrid>();
+	Actor = SpawnActor<AScuffedGoldSphere>();
+	Transform.Translation = XMFLOAT3(10.0f, 0.5f, 10.0f);
 	Actor->SetTransform(Transform);
 
-	Transform = FTransform::Default;
-	Transform.Scale = XMFLOAT3(0.5f, 0.5f, 0.5f);
-	Transform.Translation = XMFLOAT3(0.0f, 1.0f, 0.0f);
-	Actor = SpawnActor<ASkull>();
+	Actor = SpawnActor<AIceFieldGrid>();
+	Transform.Translation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	Actor->SetTransform(Transform);
-
-
-	//for (int i = 0; i < 50; ++i)
-	//{
-	//	// LeftCylinder
-	//	Transform = FTransform::Default;
-	//	Transform.Translation = XMFLOAT3(+5.0f, 1.5f, -10.0f + i * 5.0f);
-	//	Actor = SpawnActor<ACylinder>();
-	//	Actor->SetTransform(Transform);
-	//	// RightCylinder
-	//	Transform = FTransform::Default;
-	//	Transform.Translation = XMFLOAT3(-5.0f, 1.5f, -10.0f + i * 5.0f);
-	//	Actor = SpawnActor<ACylinder>();
-	//	Actor->SetTransform(Transform);
-	//	// LeftSphere
-	//	Transform = FTransform::Default;
-	//	Transform.Translation = XMFLOAT3(-5.0f, 3.5f, -10.0f + i * 5.0f);
-	//	Actor = SpawnActor<AWaterBall>();
-	//	Actor->SetTransform(Transform);
-	//	// RightSphere
-	//	Transform = FTransform::Default;
-	//	Transform.Translation = XMFLOAT3(+5.0f, 3.5f, -10.0f + i * 5.0f);
-	//	Actor = SpawnActor<AWaterBall>();
-	//	Actor->SetTransform(Transform);
-	//}
 }

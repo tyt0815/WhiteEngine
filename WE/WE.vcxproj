@@ -11,13 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Sources\Application\TestApplication\Actor\Box.cpp" />
-    <ClCompile Include="Sources\Application\TestApplication\Actor\Cylinder.cpp" />
-    <ClCompile Include="Sources\Application\TestApplication\Actor\Grid.cpp" />
-    <ClCompile Include="Sources\Application\TestApplication\Actor\Skull.cpp" />
-    <ClCompile Include="Sources\Application\TestApplication\Actor\Sphere.cpp" />
-    <ClCompile Include="Sources\Application\TestApplication\Actor\WaterBall.cpp" />
-    <ClCompile Include="Sources\Application\TestApplication\Actor\WireFence.cpp" />
+    <ClCompile Include="Sources\Application\TestApplication\Actor\IceFieldGird.cpp" />
+    <ClCompile Include="Sources\Application\TestApplication\Actor\RustedIron2Sphere.cpp" />
+    <ClCompile Include="Sources\Application\TestApplication\Actor\ScuffedGoldSphere.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\Pawn\GhostCameraPawn.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\TestApplication.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\World\TestWorld.cpp" />
@@ -53,14 +49,10 @@
     <ClCompile Include="Sources\Window\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Sources\Application\TestApplication\Actor\Box.h" />
-    <ClInclude Include="Sources\Application\TestApplication\Actor\Cylinder.h" />
-    <ClInclude Include="Sources\Application\TestApplication\Actor\Grid.h" />
-    <ClInclude Include="Sources\Application\TestApplication\Actor\ShapeActorsHeader.h" />
-    <ClInclude Include="Sources\Application\TestApplication\Actor\Skull.h" />
-    <ClInclude Include="Sources\Application\TestApplication\Actor\Sphere.h" />
-    <ClInclude Include="Sources\Application\TestApplication\Actor\WaterBall.h" />
-    <ClInclude Include="Sources\Application\TestApplication\Actor\WireFence.h" />
+    <ClInclude Include="Shaders\Light.sh" />
+    <ClInclude Include="Sources\Application\TestApplication\Actor\IceFieldGird.h" />
+    <ClInclude Include="Sources\Application\TestApplication\Actor\RustedIron2Sphere.h" />
+    <ClInclude Include="Sources\Application\TestApplication\Actor\ScuffedGoldSphere.h" />
     <ClInclude Include="Sources\Application\TestApplication\Pawn\GhostCameraPawn.h" />
     <ClInclude Include="Sources\Application\TestApplication\TestApplication.h" />
     <ClInclude Include="Sources\Application\TestApplication\World\TestWorld.h" />
@@ -116,7 +108,27 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Shaders\LitUtility.sh" />
+    <None Include="Shaders\Material.sh" />
     <None Include="Shaders\pbr.sf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\Textures\Default.dds" />
+    <Image Include="Resources\Textures\IceField_AO.dds" />
+    <Image Include="Resources\Textures\IceField_BaseColor.dds" />
+    <Image Include="Resources\Textures\IceField_Height.dds" />
+    <Image Include="Resources\Textures\IceField_Metallic.dds" />
+    <Image Include="Resources\Textures\IceField_Normal.dds" />
+    <Image Include="Resources\Textures\IceField_Roughness.dds" />
+    <Image Include="Resources\Textures\RustedIron2_BaseColor.dds" />
+    <Image Include="Resources\Textures\RustedIron2_Metallic.dds" />
+    <Image Include="Resources\Textures\RustedIron2_Normal.dds" />
+    <Image Include="Resources\Textures\RustedIron2_Roughness.dds" />
+    <Image Include="Resources\Textures\ScuffedGold_BaseColor.dds" />
+    <Image Include="Resources\Textures\ScuffedGold_BaseColor_Boosted.dds" />
+    <Image Include="Resources\Textures\ScuffedGold_Metallic.dds" />
+    <Image Include="Resources\Textures\ScuffedGold_Normal.dds" />
+    <Image Include="Resources\Textures\ScuffedGold_Roughness.dds" />
+    <Image Include="Resources\Textures\White.dds" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

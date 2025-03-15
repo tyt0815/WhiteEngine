@@ -24,11 +24,11 @@ void FShaderManager::BuildShaderAndInputLayout()
 		{NULL, NULL}
 	};
 
-	D3D_SHADER_MACRO AlphaTestDefine[] = {
-		{"FOG", "1"},
-		{"ALPHA_TEST", "1"},
-		{NULL, NULL}
-	};
+	//D3D_SHADER_MACRO AlphaTestDefine[] = {
+	//	{"FOG", "1"},
+	//	{"ALPHA_TEST", "1"},
+	//	{NULL, NULL}
+	//};
 
 	mShaders["ForwardLitVertexShader"] = FDXUtility::CompileShader(
 		L"Shaders\\ForwardLitVertexShader.sf",
@@ -43,33 +43,33 @@ void FShaderManager::BuildShaderAndInputLayout()
 		"ps_5_1"
 	);
 
-	mShaders["AlphTestPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\ForwardLitPixelShader.sf",
-		AlphaTestDefine,
-		"MainPS",
-		"ps_5_1"
-	);
+	//mShaders["AlphTestPixelShader"] = FDXUtility::CompileShader(
+	//	L"Shaders\\ForwardLitPixelShader.sf",
+	//	AlphaTestDefine,
+	//	"MainPS",
+	//	"ps_5_1"
+	//);
 
-	mShaders["BillboardVertexShader"] = FDXUtility::CompileShader(
-		L"Shaders\\BillboardVertexShader.sf",
-		nullptr,
-		"MainVS",
-		"vs_5_1"
-	);
+	//mShaders["BillboardVertexShader"] = FDXUtility::CompileShader(
+	//	L"Shaders\\BillboardVertexShader.sf",
+	//	nullptr,
+	//	"MainVS",
+	//	"vs_5_1"
+	//);
 
-	mShaders["BillboardGeometryShader"] = FDXUtility::CompileShader(
-		L"Shaders\\BillboardGeometryShader.sf",
-		nullptr,
-		"MainGS",
-		"gs_5_1"
-	);
+	//mShaders["BillboardGeometryShader"] = FDXUtility::CompileShader(
+	//	L"Shaders\\BillboardGeometryShader.sf",
+	//	nullptr,
+	//	"MainGS",
+	//	"gs_5_1"
+	//);
 
-	mShaders["BillboardPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\BillboardPixelShader.sf",
-		AlphaTestDefine,
-		"MainPS",
-		"ps_5_1"
-	);
+	//mShaders["BillboardPixelShader"] = FDXUtility::CompileShader(
+	//	L"Shaders\\BillboardPixelShader.sf",
+	//	AlphaTestDefine,
+	//	"MainPS",
+	//	"ps_5_1"
+	//);
 
 	mInputLayouts["Lit"] =
 	{
@@ -78,11 +78,11 @@ void FShaderManager::BuildShaderAndInputLayout()
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 	};
 
-	mInputLayouts["Billboard"] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "SIZE", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-	};
+	//mInputLayouts["Billboard"] =
+	//{
+	//	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+	//	{ "SIZE", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+	//};
 }
 
 void FShaderManager::BuildPipelineStateObject()
@@ -138,49 +138,49 @@ void FShaderManager::BuildPipelineStateObject()
 		);
 	}
 
-	{
-		D3D12_GRAPHICS_PIPELINE_STATE_DESC TransparencyPipelineStateDesc = ForwardLitPipelineStateDesc;
+	//{
+	//	D3D12_GRAPHICS_PIPELINE_STATE_DESC TransparencyPipelineStateDesc = ForwardLitPipelineStateDesc;
 
-		D3D12_RENDER_TARGET_BLEND_DESC BlendDesc;
-		BlendDesc.BlendEnable = true;
-		BlendDesc.LogicOpEnable = false;
-		BlendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
-		BlendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
-		BlendDesc.BlendOp = D3D12_BLEND_OP_ADD;
-		BlendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
-		BlendDesc.DestBlendAlpha = D3D12_BLEND_ZERO;
-		BlendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
-		BlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
-		BlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+	//	D3D12_RENDER_TARGET_BLEND_DESC BlendDesc;
+	//	BlendDesc.BlendEnable = true;
+	//	BlendDesc.LogicOpEnable = false;
+	//	BlendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+	//	BlendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+	//	BlendDesc.BlendOp = D3D12_BLEND_OP_ADD;
+	//	BlendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
+	//	BlendDesc.DestBlendAlpha = D3D12_BLEND_ZERO;
+	//	BlendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+	//	BlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
+	//	BlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
-		TransparencyPipelineStateDesc.BlendState.RenderTarget[0] = BlendDesc;
-		THROW_IF_FAILED(
-			Device->CreateGraphicsPipelineState(
-				&TransparencyPipelineStateDesc,
-				IID_PPV_ARGS(mPipelineStates[ESM_DefaultLit][EBM_Transparency].GetAddressOf())
-			)
-		);
-	}
+	//	TransparencyPipelineStateDesc.BlendState.RenderTarget[0] = BlendDesc;
+	//	THROW_IF_FAILED(
+	//		Device->CreateGraphicsPipelineState(
+	//			&TransparencyPipelineStateDesc,
+	//			IID_PPV_ARGS(mPipelineStates[ESM_DefaultLit][EBM_Transparency].GetAddressOf())
+	//		)
+	//	);
+	//}
 
-	{
-		D3D12_GRAPHICS_PIPELINE_STATE_DESC AlphaTestPipelineStateDesc = ForwardLitPipelineStateDesc;
-		AlphaTestPipelineStateDesc.PS =
-		{
-			reinterpret_cast<BYTE*>(mShaders["AlphTestPixelShader"]->GetBufferPointer()),
-			mShaders["AlphTestPixelShader"]->GetBufferSize()
-		};
+	//{
+	//	D3D12_GRAPHICS_PIPELINE_STATE_DESC AlphaTestPipelineStateDesc = ForwardLitPipelineStateDesc;
+	//	AlphaTestPipelineStateDesc.PS =
+	//	{
+	//		reinterpret_cast<BYTE*>(mShaders["AlphTestPixelShader"]->GetBufferPointer()),
+	//		mShaders["AlphTestPixelShader"]->GetBufferSize()
+	//	};
 
-		AlphaTestPipelineStateDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-		THROW_IF_FAILED(
-			Device->CreateGraphicsPipelineState(
-				&AlphaTestPipelineStateDesc,
-				IID_PPV_ARGS(mPipelineStates[ESM_DefaultLit][EBM_AlphaTest].GetAddressOf())
-			)
-		);
-	}
+	//	AlphaTestPipelineStateDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	//	THROW_IF_FAILED(
+	//		Device->CreateGraphicsPipelineState(
+	//			&AlphaTestPipelineStateDesc,
+	//			IID_PPV_ARGS(mPipelineStates[ESM_DefaultLit][EBM_AlphaTest].GetAddressOf())
+	//		)
+	//	);
+	//}
 
 	// Billboard
-	{
+	/*{
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC BillboardPipelineStateDesc = ForwardLitPipelineStateDesc;
 		BillboardPipelineStateDesc.VS =
 		{
@@ -207,5 +207,5 @@ void FShaderManager::BuildPipelineStateObject()
 				IID_PPV_ARGS(mBillboardPipelineState.GetAddressOf())
 			)
 		);
-	}
+	}*/
 }

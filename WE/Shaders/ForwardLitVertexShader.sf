@@ -1,9 +1,9 @@
     #include "ForwardLitCommon.sh"
 
 FVSOutput MainVS(FVSInput VIn)
-{  
+{
     FVSOutput VOut;
-    FMaterialData MaterialData = gMaterialData[gMaterialIndex];
+    FMaterialSB MaterialData = gMaterialData[gMaterialIndex];
     
     float4 PosW = mul(float4(VIn.PosL, 1.0f), gWorld);
     VOut.PosW = PosW.xyz;

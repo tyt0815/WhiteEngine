@@ -23,7 +23,7 @@ FFrameResource::FFrameResource()
 	PassConstantBuffer = std::make_unique<TUploadBuffer<FPassConstantBuffer>>(Device, (UINT)PASS_COUNT, true);
 	MeshConstantBuffer = std::make_unique<TUploadBuffer<FMeshConstantBuffer>>(Device, 1, true);
 	SubmeshConstantBuffer = std::make_unique<TUploadBuffer<FSubmeshConstantBuffer>>(Device, 1, true);
-	MaterialConstantBuffer = std::make_unique<TUploadBuffer<FMaterialConstantBuffer>>(Device, EMT_None, false);
+	MaterialConstantBuffer = std::make_unique<TUploadBuffer<FMaterialStructuredBuffer>>(Device, EMT_None, false);
 }
 
 FFrameResourceManager::FFrameResourceManager()
@@ -174,12 +174,8 @@ void FFrameResourceManager::UpdatePassCB()
 	PassConstants.FogStart = 200.0f;
 	PassConstants.FogRange = 100.0f;
 
-	PassConstants.Lights[0].Direction = { 0.57735f, -0.57735f, 0.57735f };
-	PassConstants.Lights[0].Strength = { 1.2f, 1.2f, 1.2f };
-	PassConstants.Lights[1].Direction = { -0.57735f, -0.57735f, 0.57735f };
-	PassConstants.Lights[1].Strength = { 0.3f, 0.3f, 0.3f };
-	PassConstants.Lights[2].Direction = { 0.0f, -0.707f, -0.707f };
-	PassConstants.Lights[2].Strength = { 0.15f, 0.15f, 0.15f };
+	PassConstants.DirectionalLights[0].Direction = { 0.57735f, -0.57735f, 0.57735f };
+	PassConstants.DirectionalLights[0].Color = { 1.0f, 1.0f, 1.0f };
 
 	mTargetFrameResource->PassConstantBuffer->CopyData(0, PassConstants);
 }
@@ -238,12 +234,12 @@ void FFrameResourceManager::UpdateMaterialCB()
 		if (Material->DirtyFrameCount > 0)
 		{
 			XMMATRIX MaterialTransform = XMLoadFloat4x4(&Material->MatTransform);
-			FMaterialConstantBuffer MaterialConstants;
-			MaterialConstants.DiffuseAlbedo = Material->DiffuseAlbedo;
-			MaterialConstants.FresnelR0 = Material->FresnelR0;
+			FMaterialStructuredBuffer MaterialConstants;
+			MaterialConstants.AbeldoTextureIndex = Material->AlbedoSRVHeapIndex;
+			MaterialConstants.MetallicTextureIndex = Material->MetallicSRVHeapIndex;
+			MaterialConstants.NormalTextureIndex = Material->NormalSRVHeapIndex;
+			MaterialConstants.RoughnessTextureIndex = Material->RoughnessSRVHeapIndex;
 			XMStoreFloat4x4(&MaterialConstants.MatTransform, XMMatrixTranspose(MaterialTransform));
-			MaterialConstants.Roughness = Material->Roughness;
-			MaterialConstants.TextureIndex = Material->DiffuseSrvHeapIndex;
 
 			mTargetFrameResource->MaterialConstantBuffer->CopyData(Material->Type, MaterialConstants);
 			--Material->DirtyFrameCount;

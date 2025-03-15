@@ -35,7 +35,7 @@ public:
 	std::unique_ptr<TUploadBuffer<FPassConstantBuffer>> PassConstantBuffer;
 	std::unique_ptr<TUploadBuffer<FMeshConstantBuffer>> MeshConstantBuffer;
 	std::unique_ptr<TUploadBuffer<FSubmeshConstantBuffer>> SubmeshConstantBuffer;
-	std::unique_ptr<TUploadBuffer<FMaterialConstantBuffer>> MaterialConstantBuffer;
+	std::unique_ptr<TUploadBuffer<FMaterialStructuredBuffer>> MaterialConstantBuffer;
 
 	UINT64 Fence = 0;
 private:
@@ -77,7 +77,7 @@ public:
     {
         mTargetFrameResource->MeshConstantBuffer->CopyData(i, ObjectCB);
     }
-    inline void SetMaterialCBOfTargetFrame(int i, const FMaterialConstantBuffer& MaterialCB)
+    inline void SetMaterialCBOfTargetFrame(int i, const FMaterialStructuredBuffer& MaterialCB)
     {
         mTargetFrameResource->MaterialConstantBuffer->CopyData(i, MaterialCB);
     }

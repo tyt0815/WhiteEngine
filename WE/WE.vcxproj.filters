@@ -60,6 +60,9 @@
     <Filter Include="Sources\Application\TestApplication\World">
       <UniqueIdentifier>{5ac56932-7135-42f0-9d2c-6a67b2a666b5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resources\Textures">
+      <UniqueIdentifier>{e571654b-8841-4804-b2e7-5cba740881ae}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Utility\Timer.cpp">
@@ -143,27 +146,6 @@
     <ClCompile Include="Sources\Render\StaticMesh.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Application\TestApplication\Actor\Grid.cpp">
-      <Filter>Sources\Application\TestApplication\Actor</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Application\TestApplication\Actor\Skull.cpp">
-      <Filter>Sources\Application\TestApplication\Actor</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Application\TestApplication\Actor\Sphere.cpp">
-      <Filter>Sources\Application\TestApplication\Actor</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Application\TestApplication\Actor\WaterBall.cpp">
-      <Filter>Sources\Application\TestApplication\Actor</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Application\TestApplication\Actor\WireFence.cpp">
-      <Filter>Sources\Application\TestApplication\Actor</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Application\TestApplication\Actor\Box.cpp">
-      <Filter>Sources\Application\TestApplication\Actor</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Application\TestApplication\Actor\Cylinder.cpp">
-      <Filter>Sources\Application\TestApplication\Actor</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\Application\TestApplication\World\TestWorld.cpp">
       <Filter>Sources\Application\TestApplication\World</Filter>
     </ClCompile>
@@ -175,6 +157,15 @@
     </ClCompile>
     <ClCompile Include="Sources\GameFramework\Object\Component\ActorComponent.cpp">
       <Filter>Sources\GameFramework\Object\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Application\TestApplication\Actor\RustedIron2Sphere.cpp">
+      <Filter>Sources\Application\TestApplication\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Application\TestApplication\Actor\ScuffedGoldSphere.cpp">
+      <Filter>Sources\Application\TestApplication\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Application\TestApplication\Actor\IceFieldGird.cpp">
+      <Filter>Sources\Application\TestApplication\Actor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -277,30 +268,6 @@
     <ClInclude Include="Sources\Application\TestApplication\Pawn\GhostCameraPawn.h">
       <Filter>Sources\Application\TestApplication\Pawn</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Application\TestApplication\Actor\Cylinder.h">
-      <Filter>Sources\Application\TestApplication\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Application\TestApplication\Actor\Grid.h">
-      <Filter>Sources\Application\TestApplication\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Application\TestApplication\Actor\ShapeActorsHeader.h">
-      <Filter>Sources\Application\TestApplication\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Application\TestApplication\Actor\Skull.h">
-      <Filter>Sources\Application\TestApplication\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Application\TestApplication\Actor\Sphere.h">
-      <Filter>Sources\Application\TestApplication\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Application\TestApplication\Actor\WaterBall.h">
-      <Filter>Sources\Application\TestApplication\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Application\TestApplication\Actor\WireFence.h">
-      <Filter>Sources\Application\TestApplication\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Application\TestApplication\Actor\Box.h">
-      <Filter>Sources\Application\TestApplication\Actor</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\Application\TestApplication\World\TestWorld.h">
       <Filter>Sources\Application\TestApplication\World</Filter>
     </ClInclude>
@@ -309,6 +276,18 @@
     </ClInclude>
     <ClInclude Include="Sources\Render\ShaderStructures.h">
       <Filter>Sources\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Application\TestApplication\Actor\RustedIron2Sphere.h">
+      <Filter>Sources\Application\TestApplication\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Application\TestApplication\Actor\ScuffedGoldSphere.h">
+      <Filter>Sources\Application\TestApplication\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Application\TestApplication\Actor\IceFieldGird.h">
+      <Filter>Sources\Application\TestApplication\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Shaders\Light.sh">
+      <Filter>Shaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -342,5 +321,61 @@
     <None Include="Shaders\pbr.sf">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Shaders\Material.sh">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\Textures\Default.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="Resources\Textures\IceField_AO.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="Resources\Textures\IceField_BaseColor.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="Resources\Textures\IceField_Height.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="Resources\Textures\IceField_Metallic.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="Resources\Textures\IceField_Normal.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="Resources\Textures\IceField_Roughness.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="Resources\Textures\RustedIron2_BaseColor.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="Resources\Textures\RustedIron2_Metallic.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="Resources\Textures\RustedIron2_Normal.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="Resources\Textures\RustedIron2_Roughness.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="Resources\Textures\ScuffedGold_BaseColor.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="Resources\Textures\ScuffedGold_BaseColor_Boosted.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="Resources\Textures\ScuffedGold_Metallic.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="Resources\Textures\ScuffedGold_Normal.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="Resources\Textures\ScuffedGold_Roughness.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="Resources\Textures\White.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
   </ItemGroup>
 </Project>
