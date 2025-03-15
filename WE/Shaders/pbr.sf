@@ -1,6 +1,39 @@
 #ifndef PBR_H
 #define PBR_H
+#include "Common.sh"
+
+struct FVSInput
+{
+    float3 PosL : POSITION;
+    float3 NormalL : NORMAL;
+    float2 TexC : TEXCOORD;
+};
+
+struct FVSOutput
+{
+    float4 PosH : SV_POSITION;
+    float3 PosW : POSITION;
+    float3 NormalW : NORMAL;
+    float2 TexC : TEXCOORD;
+};
 
 
+FVSOutput MainVS(FVSInput VIn)
+{
+    FVSOutput VOut;
+    FMaterialData MaterialData = gMaterialData[gMaterialIndex];
+    
+    float4 PosW = mul(float4(VIn.PosL, 1.0f), gWorld);
+    VOut.PosW = PosW.xyz;
+    VOut.NormalW = mul(VIn.NormalL, (float3x3) gWorld);
+    VOut.PosH = mul(PosW, gViewProj);
+    VOut.TexC = mul(float4(VIn.TexC, 0.0f, 1.0f), MaterialData.MatTransform).xy;
+    return VOut;
+}
 
+float4 MainPS(FVSOutput PIn) : SV_Target
+{
+    
+    return float4(1.0f, 0.0f, 0.0f, 1.0f);
+}
 #endif

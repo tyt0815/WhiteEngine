@@ -33,7 +33,6 @@ enum EMaterialType : UINT16
 	EMT_WireFence,
 	EMT_Water,
 	EMT_Foliage1,
-	EMT_RustedIron2,
 	EMT_None
 };
 

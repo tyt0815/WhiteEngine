@@ -15,5 +15,5 @@ protected:
 	void AddRollInput(float Value);
 
 	float mMoveSpeed = 30.0f;
-	float mCameraSpeed = 60.f;
+	float mCameraSpeed = 1.f;
 };

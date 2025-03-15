@@ -16,7 +16,6 @@ enum EStaticMeshType : std::uint16_t
 	ESMT_Sphere,
 	ESMT_WaterBall,
 	ESMT_WireFence,
-	ESMT_RustedIron2,
 	ESMT_None
 };
 

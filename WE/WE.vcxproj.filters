@@ -164,9 +164,6 @@
     <ClCompile Include="Sources\Application\TestApplication\Actor\Cylinder.cpp">
       <Filter>Sources\Application\TestApplication\Actor</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Application\TestApplication\World\BoxWorld.cpp">
-      <Filter>Sources\Application\TestApplication\World</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\Application\TestApplication\World\TestWorld.cpp">
       <Filter>Sources\Application\TestApplication\World</Filter>
     </ClCompile>
@@ -303,9 +300,6 @@
     </ClInclude>
     <ClInclude Include="Sources\Application\TestApplication\Actor\Box.h">
       <Filter>Sources\Application\TestApplication\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Application\TestApplication\World\BoxWorld.h">
-      <Filter>Sources\Application\TestApplication\World</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Application\TestApplication\World\TestWorld.h">
       <Filter>Sources\Application\TestApplication\World</Filter>

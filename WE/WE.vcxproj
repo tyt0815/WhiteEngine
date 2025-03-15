@@ -20,7 +20,6 @@
     <ClCompile Include="Sources\Application\TestApplication\Actor\WireFence.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\Pawn\GhostCameraPawn.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\TestApplication.cpp" />
-    <ClCompile Include="Sources\Application\TestApplication\World\BoxWorld.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\World\TestWorld.cpp" />
     <ClCompile Include="Sources\DirectX\DXResourceManager.cpp" />
     <ClCompile Include="Sources\DirectX\DXException.cpp" />
@@ -64,7 +63,6 @@
     <ClInclude Include="Sources\Application\TestApplication\Actor\WireFence.h" />
     <ClInclude Include="Sources\Application\TestApplication\Pawn\GhostCameraPawn.h" />
     <ClInclude Include="Sources\Application\TestApplication\TestApplication.h" />
-    <ClInclude Include="Sources\Application\TestApplication\World\BoxWorld.h" />
     <ClInclude Include="Sources\Application\TestApplication\World\TestWorld.h" />
     <ClInclude Include="Sources\DirectX\d3dx12.h" />
     <ClInclude Include="Sources\DirectX\DXResourceManager.h" />

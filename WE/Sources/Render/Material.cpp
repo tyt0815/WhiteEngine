@@ -120,17 +120,6 @@ void FMaterialManager::BuildMaterials()
 		0.1f,
 		FDXMath::Identity4x4()
 	);
-	BuildMaterial(
-		EMT_RustedIron2,
-		ESM_DefaultLit,
-		EBM_Opaque,
-		ETT_RustedIron2_Albedo,
-		-1,
-		XMFLOAT4(Colors::White),
-		XMFLOAT3(0.02f, 0.02f, 0.02f),
-		0.1f,
-		FDXMath::Identity4x4()
-	);
 }
 
 void FMaterialManager::BuildMaterial(

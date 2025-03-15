@@ -36,7 +36,4 @@ void FStaticMeshManager::BuildStaticMeshs()
 	StaticMesh.Geometry = GetMeshGeometryManager()->GetMeshGeometry(EMGT_Box);
 	StaticMesh.Material = GetMaterialManager()->GetMaterial(EMT_WireFence);
 	mStaticMeshs[ESMT_WireFence] = StaticMesh;
-	StaticMesh.Geometry = GetMeshGeometryManager()->GetMeshGeometry(EMGT_Sphere);
-	StaticMesh.Material = GetMaterialManager()->GetMaterial(EMT_RustedIron2);
-	mStaticMeshs[ESMT_RustedIron2] = StaticMesh;
 }
