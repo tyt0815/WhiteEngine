@@ -315,13 +315,16 @@
     <None Include="Shaders\Common.sh">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\LitUtility.sh">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\pbr.sf">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="Shaders\Material.sh">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\CubeSkyCommon.sh">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\CubeSkyVertexShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\CubeSkyPixelShader.sf">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

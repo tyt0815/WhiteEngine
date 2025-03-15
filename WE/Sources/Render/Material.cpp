@@ -1,7 +1,6 @@
 #include "Material.h"
 #include "ShaderStructures.h"
 #include <DirectXColors.h>
-#include "Texture.h"
 #include "DirectX/DXResourceManager.h"
 
 extern const int FrameResourcesNum;
@@ -61,9 +60,10 @@ void FMaterialManager::BuildMaterials()
 		ETT_IceField_Roughness,
 		FDXMath::Identity4x4()
 	);
+	
 }
 
-void FMaterialManager::BuildMaterial(
+void FMaterialManager::Internal_BuildMaterial(
 	EMaterialType Type,
 	EShadingModel ShadingModel,
 	EBlendMode BlendMode,
@@ -82,6 +82,30 @@ void FMaterialManager::BuildMaterial(
 	Material->MetallicSRVHeapIndex = MetallicSRVHeapIndex;
 	Material->NormalSRVHeapIndex = NormalSRVHeapIndex;
 	Material->RoughnessSRVHeapIndex = RoughnessSRVHeapIndex;
+	Material->MatTransform = MatTransform;
 	Material->DirtyFrameCount = FrameResourcesNum;
 	mMaterials[Type] = std::move(Material);
+}
+
+void FMaterialManager::BuildMaterial(
+	EMaterialType Type,
+	EShadingModel ShadingModel,
+	EBlendMode BlendMode,
+	ETextureType AlbedoTexture,
+	ETextureType MetallicTexture,
+	ETextureType NormalTexture,
+	ETextureType RoughnessTexture,
+	DirectX::XMFLOAT4X4 MatTransform
+)
+{
+	Internal_BuildMaterial(
+		Type,
+		ShadingModel,
+		BlendMode,
+		GetTextureManager()->GetTextureSRVHeapIndex(AlbedoTexture),
+		GetTextureManager()->GetTextureSRVHeapIndex(MetallicTexture),
+		GetTextureManager()->GetTextureSRVHeapIndex(NormalTexture),
+		GetTextureManager()->GetTextureSRVHeapIndex(RoughnessTexture),
+		MatTransform
+	);
 }

@@ -1,0 +1,12 @@
+#include "CubeSkyCommon.sh"
+
+FVertexOut MainVS(FVertexIn VIn)
+{
+    FVertexOut VOut;
+    
+    VOut.PosL = VIn.PosL;
+    float4 PosW = mul(float4(VIn.PosL, 1.0f), gWorld);
+    PosW.xyz += gEyePosW;
+    VOut.PosH = mul(PosW, gViewProj).xyww;
+    return VOut;
+}

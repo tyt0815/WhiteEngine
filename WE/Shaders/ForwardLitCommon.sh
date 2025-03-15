@@ -1,5 +1,5 @@
-#ifndef BASEPASSCOMMON_SH
-#define BASEPASSCOMMON_SH
+#ifndef FORWARDLITCOMMON_SH
+#define FORWARDLITCOMMON_SH
 
 #include "Common.sh"
 

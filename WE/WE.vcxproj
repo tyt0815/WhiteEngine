@@ -98,6 +98,9 @@
     <None Include="Shaders\BillboardPixelShader.sf" />
     <None Include="Shaders\BillboardVertexShader.sf" />
     <None Include="Shaders\Common.sh" />
+    <None Include="Shaders\CubeSkyCommon.sh" />
+    <None Include="Shaders\CubeSkyPixelShader.sf" />
+    <None Include="Shaders\CubeSkyVertexShader.sf" />
     <None Include="Shaders\ForwardLitCommon.sh">
       <FileType>Document</FileType>
     </None>
@@ -107,9 +110,7 @@
     <None Include="Shaders\ForwardLitVertexShader.sf">
       <FileType>Document</FileType>
     </None>
-    <None Include="Shaders\LitUtility.sh" />
     <None Include="Shaders\Material.sh" />
-    <None Include="Shaders\pbr.sf" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\Default.dds" />

@@ -24,12 +24,6 @@ void FShaderManager::BuildShaderAndInputLayout()
 		{NULL, NULL}
 	};
 
-	//D3D_SHADER_MACRO AlphaTestDefine[] = {
-	//	{"FOG", "1"},
-	//	{"ALPHA_TEST", "1"},
-	//	{NULL, NULL}
-	//};
-
 	mShaders["ForwardLitVertexShader"] = FDXUtility::CompileShader(
 		L"Shaders\\ForwardLitVertexShader.sf",
 		nullptr,
@@ -38,6 +32,20 @@ void FShaderManager::BuildShaderAndInputLayout()
 	);
 	mShaders["ForwardLitPixelShader"] = FDXUtility::CompileShader(
 		L"Shaders\\ForwardLitPixelShader.sf",
+		Defines,
+		"MainPS",
+		"ps_5_1"
+	);
+
+	mShaders["CubeSkyVertexShader"] = FDXUtility::CompileShader(
+		L"Shaders\\CubeSkyVertexShader.sf",
+		{},
+		"MainVS",
+		"vs_5_1"
+	);
+
+	mShaders["CubeSkyPixelShader"] = FDXUtility::CompileShader(
+		L"Shaders\\CubeSkyPixelShader.sf",
 		Defines,
 		"MainPS",
 		"ps_5_1"
@@ -72,6 +80,13 @@ void FShaderManager::BuildShaderAndInputLayout()
 	//);
 
 	mInputLayouts["Lit"] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+	};
+
+	mInputLayouts["CubeSky"] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -134,6 +149,28 @@ void FShaderManager::BuildPipelineStateObject()
 		THROW_IF_FAILED(
 			Device->CreateGraphicsPipelineState(
 				&WireFramePipelineStateDesc, IID_PPV_ARGS(mWireFramePipelineState.GetAddressOf())
+			)
+		);
+	}
+
+	{
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC CubeSkyPSDesc = ForwardLitPipelineStateDesc;
+		CubeSkyPSDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+		CubeSkyPSDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+		CubeSkyPSDesc.VS =
+		{
+			reinterpret_cast<BYTE*>(mShaders["CubeSkyVertexShader"]->GetBufferPointer()),
+			mShaders["CubeSkyVertexShader"]->GetBufferSize()
+		};
+		CubeSkyPSDesc.PS =
+		{
+			reinterpret_cast<BYTE*>(mShaders["CubeSkyPixelShader"]->GetBufferPointer()),
+			mShaders["CubeSkyPixelShader"]->GetBufferSize()
+		};
+		THROW_IF_FAILED(
+			Device->CreateGraphicsPipelineState(
+				&CubeSkyPSDesc,
+				IID_PPV_ARGS(mCubeSkyPipelineState.GetAddressOf())
 			)
 		);
 	}

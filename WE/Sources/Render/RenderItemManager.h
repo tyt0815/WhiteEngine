@@ -26,6 +26,7 @@ public:
 
 private:
 	std::array<std::array<TPool<FRenderItemInfo>, EBM_None>, ESM_None> mRenderItems;
+	FRenderItemInfo mCubeSkyInfo;
 
 public:
 	inline size_t RegisterRenderItem(EShadingModel ShadingModel, EBlendMode BlendMode, const FRenderItemInfo& Info)

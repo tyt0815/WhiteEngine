@@ -4,6 +4,7 @@
 #include <memory>
 #include <unordered_map>
 #include <wrl.h>
+#include "Texture.h"
 #include "DirectX/DXMath.h"
 #include "Utility/Class.h"
 #include "Utility/String.h"
@@ -54,7 +55,7 @@ public:
 	
 private:
 	void BuildMaterials();
-	void BuildMaterial(
+	void Internal_BuildMaterial(
 		EMaterialType Type,
 		EShadingModel ShadingModel,
 		EBlendMode BlendMode,
@@ -62,6 +63,16 @@ private:
 		UINT MetallicSRVHeapIndex,
 		UINT NormalSRVHeapIndex,
 		UINT RoughnessSRVHeapIndex,
+		DirectX::XMFLOAT4X4 MatTransform
+	);
+	void BuildMaterial(
+		EMaterialType Type,
+		EShadingModel ShadingModel,
+		EBlendMode BlendMode,
+		ETextureType AlbedoSRVHeapIndex,
+		ETextureType MetallicSRVHeapIndex,
+		ETextureType NormalSRVHeapIndex,
+		ETextureType RoughnessSRVHeapIndex,
 		DirectX::XMFLOAT4X4 MatTransform
 	);
 	std::vector<std::unique_ptr<FMaterial>> mMaterials;

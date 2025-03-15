@@ -1,6 +1,10 @@
 #ifndef LIGHT_SH
 #define LIGHT_SH
 
+#ifndef PI
+#define PI 3.14159265359
+#endif
+
 #ifndef DIR_LIGHTS_NUM 
 #define DIR_LIGHTS_NUM 1
 #endif
@@ -20,5 +24,78 @@ struct FDirectionalLight
     float3 Color;
     uint Pad2;
 };
+
+float3 FresnelSchlick(float cosTheta, float3 F0)
+{
+    return F0 + (1.0f - F0) * pow(clamp(1.0f - cosTheta, 0.0f, 1.0f), 5.0f);
+}
+
+float DistributionGGX(float3 N, float3 H, float Roughness)
+{
+    float a = Roughness * Roughness;
+    float a2 = a * a;
+    float NdotH = max(dot(N, H), 0.0f);
+    float NdotH2 = NdotH * NdotH;
+    
+    float Num = a2;
+    float Denom = (NdotH2 * (a2 - 1.0) + 1.0f);
+    Denom = PI * Denom * Denom;
+
+    return Num / Denom;
+}
+
+float GeometrySchlickGGX(float NdotV, float Roughness)
+{
+    float r = (Roughness + 1.0);
+    float k = (r * r) / 8.0;
+
+    float Num = NdotV;
+    float Denom = NdotV * (1.0 - k) + k;
+	
+    return Num / Denom;
+}
+
+float GeometrySmith(float3 N, float3 V, float3 L, float Roughness)
+{
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotL = max(dot(N, L), 0.0);
+    float ggx2 = GeometrySchlickGGX(NdotV, Roughness);
+    float ggx1 = GeometrySchlickGGX(NdotL, Roughness);
+	
+    return ggx1 * ggx2;
+}
+
+float3 ComputeDirectionalLight(
+    FDirectionalLight Light,
+    float3 V,
+    float3 Albedo,
+    float Metallic,
+    float3 Noraml,
+    float Roughness,
+    float3 F0
+)
+{
+    // 방사선 계산
+    float3 Radiance = Light.Color;
+        
+        // 쿠크-토렌스 brdf
+    float3 L = normalize(-Light.Direction);
+    float3 H = normalize(V + L);
+    float NDF = DistributionGGX(Noraml, H, Roughness);
+    float G = GeometrySmith(Noraml, V, L, Roughness);
+    float3 F = FresnelSchlick(max(dot(H, V), 0.0f), F0);
+        
+    float3 kS = F;
+    float3 kD = (float3) 1.0f - kS;
+    kD *= 1.0f - Metallic;
+
+    float3 Numerator = NDF * G * F;
+    float Denominator = 4.0f * max(dot(Noraml, V), 0.0f) * max(dot(Noraml, L), 0.0f);
+    float3 Specular = Numerator / Denominator;
+        
+        // 방사선에 Lo 추가
+    float NDotL = max(dot(Noraml, L), 0.0f);
+    return (kD * Albedo / PI + Specular) * Radiance * NDotL;
+}
 
 #endif

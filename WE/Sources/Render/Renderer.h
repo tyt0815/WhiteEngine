@@ -33,5 +33,6 @@ public:
 
 private:
 	void DrawRenderItems(FFrameResource* FrameResource, ID3D12GraphicsCommandList* CommandList, const TPool<FRenderItemInfo>& RenderItems);
+	void DrawCubeSky(FFrameResource* FrameResource, ID3D12GraphicsCommandList* CommandList);
 	bool bWireFrame = false;
 };

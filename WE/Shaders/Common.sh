@@ -16,7 +16,8 @@ struct FMaterialSB
 };
 
 
-Texture2D gTexture[1024] : register(t0);
+TextureCube gTextureCube : register(t0);
+Texture2D gTexture[1024] : register(t1);
 StructuredBuffer<FMaterialSB> gMaterialData : register(t0, space1);
 SamplerState gsamPointWrap : register(s0);
 SamplerState gsamPointClamp : register(s1);
