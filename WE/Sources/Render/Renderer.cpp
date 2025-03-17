@@ -3,6 +3,7 @@
 #include <DirectXColors.h>
 
 #include "MeshGeometry.h"
+#include "CubeSkyRenderer.h"
 #include "Shader.h"
 #include "Texture.h"
 #include "Material.h"
@@ -13,7 +14,8 @@
 #include "GameFramework/Object/World/World.h"
 #include "RenderItemManager.h"
 
-FRenderer::FRenderer()
+FRenderer::FRenderer():
+	CubeSkyRenderer(FCubeSkyRenderer::GetInstance())
 {
 	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
 }
@@ -88,8 +90,8 @@ void FRenderer::Render(const FRenderData& RenderData)
 			}
 		}
 	}
-	CommandList->SetPipelineState(GetShaderManager()->GetCubeSkyPipelineStatePtr());
-	DrawCubeSky(TargetFrameResource, CommandList);
+	
+	CubeSkyRenderer->Render(CommandList);
 	////////////////////////////////////////////////////////////////////////////////
 
 	ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
@@ -144,28 +146,4 @@ void FRenderer::DrawRenderItems(FFrameResource* FrameResource, ID3D12GraphicsCom
 			);
 		}
 	}
-}
-
-void FRenderer::DrawCubeSky(FFrameResource* FrameResource, ID3D12GraphicsCommandList* CommandList)
-{
-	ID3D12Resource* MeshConstantBuffer = FrameResource->MeshConstantBuffer->Resource();
-	UINT ObjectConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FMeshConstantBuffer));
-	auto MeshCBAddress = MeshConstantBuffer->GetGPUVirtualAddress() + GetFrameResourceManager()->GetCubeSkyMeshCBIndex() * ObjectConstantBufferByteSize;
-	CommandList->SetGraphicsRootConstantBufferView(1, MeshCBAddress);
-
-	FMeshGeometry* Sphere = GetMeshGeometryManager()->GetMeshGeometry(EMGT_Sphere);
-
-	D3D12_VERTEX_BUFFER_VIEW VertexBufferView = Sphere->VertexBufferView();
-	D3D12_INDEX_BUFFER_VIEW IndexBufferView = Sphere->IndexBufferView();
-	CommandList->IASetVertexBuffers(0, 1, &VertexBufferView);
-	CommandList->IASetIndexBuffer(&IndexBufferView);
-	CommandList->IASetPrimitiveTopology(Sphere->PrimitiveType);
-
-	CommandList->DrawIndexedInstanced(
-		Sphere->DrawArgs[0].IndexCount,
-		1,
-		Sphere->DrawArgs[0].StartIndexLocation,
-		Sphere->DrawArgs[0].BaseVertexLocation,
-		0
-	);
 }

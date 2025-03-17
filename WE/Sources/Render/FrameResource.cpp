@@ -34,14 +34,6 @@ FFrameResourceManager::FFrameResourceManager()
 	}
 	mTargetFrameResource = mFrameResources[mTargetFrameResourceIndex].get();
 
-	// Mesh for CubeSky
-	FMeshCBInfo SphereMeshInfo;
-	FMeshConstantBuffer SphereMeshCB;
-	XMStoreFloat4x4(&SphereMeshCB.World, XMMatrixScaling(5000.0f, 5000.0f, 5000.0f));
-	SphereMeshInfo.DirtyFrameCount = FrameResourcesNum;
-	SphereMeshInfo.MeshCB = SphereMeshCB;
-	mCubeSkyMeshCBIndex = mMeshCBInfoPool.Register(SphereMeshInfo);
-
 	BuildRootSignature();
 }
 

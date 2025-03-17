@@ -167,6 +167,9 @@
     <ClCompile Include="Sources\Application\TestApplication\Actor\IceFieldGird.cpp">
       <Filter>Sources\Application\TestApplication\Actor</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Render\CubeSkyRenderer.cpp">
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -288,6 +291,9 @@
     </ClInclude>
     <ClInclude Include="Shaders\Light.sh">
       <Filter>Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\CubeSkyRenderer.h">
+      <Filter>Sources\Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

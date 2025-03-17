@@ -9,7 +9,7 @@
 #include "FrameResource.h"
 #include "RenderItemManager.h"
 
-class WWorld;
+class FCubeSkyRenderer;
 
 struct FRenderData
 {
@@ -33,6 +33,6 @@ public:
 
 private:
 	void DrawRenderItems(FFrameResource* FrameResource, ID3D12GraphicsCommandList* CommandList, const TPool<FRenderItemInfo>& RenderItems);
-	void DrawCubeSky(FFrameResource* FrameResource, ID3D12GraphicsCommandList* CommandList);
+	FCubeSkyRenderer* const CubeSkyRenderer;
 	bool bWireFrame = false;
 };

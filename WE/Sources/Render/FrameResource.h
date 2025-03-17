@@ -63,7 +63,6 @@ private:
     std::uint32_t mTargetFrameResourceIndex = 0;
     TPool<FMeshCBInfo> mMeshCBInfoPool;
 	TPool<FSubmeshCBInfo> mSubmeshCBInfoPool;
-    size_t mCubeSkyMeshCBIndex;
 
 public:
     inline FFrameResource* GetTargetFrameResource() const
@@ -110,10 +109,6 @@ public:
 	{
 		mSubmeshCBInfoPool.SetItem(Id, SubmeshCBInfo);
 	}
-    inline size_t GetCubeSkyMeshCBIndex() const
-    {
-        return mCubeSkyMeshCBIndex;
-    }
 };
 
 inline FFrameResourceManager* GetFrameResourceManager()
