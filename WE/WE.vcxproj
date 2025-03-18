@@ -32,6 +32,7 @@
     <ClCompile Include="Sources\GameFramework\Object\Pawn\Pawn.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\World\World.cpp" />
     <ClCompile Include="Sources\Main.cpp" />
+    <ClCompile Include="Sources\Render\CubeRenderTarget.cpp" />
     <ClCompile Include="Sources\Render\CubeSkyRenderer.cpp" />
     <ClCompile Include="Sources\Render\DDSTextureLoader.cpp" />
     <ClCompile Include="Sources\Render\FrameResource.cpp">
@@ -72,6 +73,7 @@
     <ClInclude Include="Sources\GameFramework\Object\Object.h" />
     <ClInclude Include="Sources\GameFramework\Object\Pawn\Pawn.h" />
     <ClInclude Include="Sources\GameFramework\Object\World\World.h" />
+    <ClInclude Include="Sources\Render\CubeRenderTarget.h" />
     <ClInclude Include="Sources\Render\CubeSkyRenderer.h" />
     <ClInclude Include="Sources\Render\DDSTextureLoader.h" />
     <ClInclude Include="Sources\Render\FrameResource.h">

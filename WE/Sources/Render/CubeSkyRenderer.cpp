@@ -3,11 +3,15 @@
 #include "FrameResource.h"
 #include "DirectX/DXResourceManager.h"
 #include "MeshGeometry.h"
+#include "CubeRenderTarget.h"
 
-FCubeSkyRenderer::FCubeSkyRenderer()
+FCubeSkyRenderer::FCubeSkyRenderer() :
+	mDevice(GetDXResourceManagerPtr()->GetDevicePtr()),
+	mCubeMap(GetTextureManager()->GetTextureCube("Desert"))
 {
 	BuildShaderAndInputLayout();
 	BuildPipelineStateObject();
+	BuildDiffuseCubeMap();
 }
 
 FCubeSkyRenderer::~FCubeSkyRenderer()
@@ -17,6 +21,11 @@ FCubeSkyRenderer::~FCubeSkyRenderer()
 void FCubeSkyRenderer::Render(ID3D12GraphicsCommandList* CommandList)
 {
 	CommandList->SetPipelineState(mPipelineState.Get());
+
+
+	CD3DX12_GPU_DESCRIPTOR_HANDLE SRVHandle(GetTextureManager()->GetTextureCubeSRVHeapPtr()->GetGPUDescriptorHandleForHeapStart());
+	SRVHandle.Offset(mCubeMap->SRVHeapIndex, GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize());
+	CommandList->SetGraphicsRootDescriptorTable(5, SRVHandle);
 
 	FMeshGeometry* Sphere = GetMeshGeometryManager()->GetMeshGeometry(EMGT_Sphere);
 	D3D12_VERTEX_BUFFER_VIEW VertexBufferView = Sphere->VertexBufferView();
@@ -33,6 +42,32 @@ void FCubeSkyRenderer::Render(ID3D12GraphicsCommandList* CommandList)
 		Sphere->DrawArgs[0].BaseVertexLocation,
 		0
 	);
+}
+
+void FCubeSkyRenderer::BuildDiffuseCubeMap()
+{
+	mDiffuseCubeMap = std::make_unique<FCubeRenderTarget>(
+		static_cast<UINT>(mCubeMap->Resource->GetDesc().Width),
+		static_cast<UINT>(mCubeMap->Resource->GetDesc().Height),
+		DXGI_FORMAT_R8G8B8A8_UNORM
+		);
+
+
+
+	//mDiffuseCubeMap->BuildDescriptors()
+
+	// 텍스처 배열 렌더 타켓 뷰 생성
+	//D3D12_RENDER_TARGET_VIEW_DESC RTVDesc;
+	//RTVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	//RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+	//RTVDesc.Texture2DArray.FirstArraySlice = 0;
+	//RTVDesc.Texture2DArray.ArraySize = 6;
+	//RTVDesc.Texture2DArray.MipSlice = 0;
+	//mDevice->CreateRenderTargetView(
+	//	mDiffuseCubeMap->Resource(),
+	//	&RTVDesc,
+	//	mDiffuseCubeMap->Rtv(0)
+	//);
 }
 
 void FCubeSkyRenderer::BuildShaderAndInputLayout()

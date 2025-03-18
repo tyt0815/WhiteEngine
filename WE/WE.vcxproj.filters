@@ -170,6 +170,9 @@
     <ClCompile Include="Sources\Render\CubeSkyRenderer.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Render\CubeRenderTarget.cpp">
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -293,6 +296,9 @@
       <Filter>Shaders</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Render\CubeSkyRenderer.h">
+      <Filter>Sources\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\CubeRenderTarget.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
   </ItemGroup>

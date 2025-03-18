@@ -69,10 +69,10 @@ private:
 		EMaterialType Type,
 		EShadingModel ShadingModel,
 		EBlendMode BlendMode,
-		ETextureType AlbedoSRVHeapIndex,
-		ETextureType MetallicSRVHeapIndex,
-		ETextureType NormalSRVHeapIndex,
-		ETextureType RoughnessSRVHeapIndex,
+		std::string AlbedoTexture,
+		std::string MetallicTexture,
+		std::string NormalTexture,
+		std::string RoughnessTexture,
 		DirectX::XMFLOAT4X4 MatTransform
 	);
 	std::vector<std::unique_ptr<FMaterial>> mMaterials;

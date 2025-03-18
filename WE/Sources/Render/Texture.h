@@ -2,36 +2,11 @@
 
 #include <array>
 #include <memory>
-#include <string>
 #include <unordered_map>
 #include <wrl.h>
 #include "DirectX/d3dx12.h"
 #include "Utility/Class.h"
-
-enum ETextureType : UINT16
-{
-	ETT_Default,
-	ETT_White,
-	ETT_RustedIron2_BaseColor,
-	ETT_RustedIron2_Metallic,
-	ETT_RustedIron2_Normal,
-	ETT_RustedIron2_Roughness,
-	ETT_ScuffedGold_BaseColor,
-	ETT_ScuffedGold_Metallic,
-	ETT_ScuffedGold_Normal,
-	ETT_ScuffedGold_Roughness,
-	ETT_IceField_BaseColor,
-	ETT_IceField_Metallic,
-	ETT_IceField_Normal,
-	ETT_IceField_Roughness,
-	ETT_None
-};
-
-enum ECubeTextureType : UINT16
-{
-	ECTT_Snow,
-	ECTT_None
-};
+#include "Utility/String.h"
 
 class FTexture
 {
@@ -39,8 +14,8 @@ public:
 	static std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> GetStaticSamplers();
 
 	// Unique material name for lookup.
-	//std::string Name;
-	std::uint16_t SRVHeapIndex;
+	std::string Name;
+	UINT SRVHeapIndex;
 	std::wstring Filename;
 	Microsoft::WRL::ComPtr<ID3D12Resource> Resource = nullptr;
 	Microsoft::WRL::ComPtr<ID3D12Resource> UploadHeap = nullptr;
@@ -54,45 +29,51 @@ public:
 private:
 	void BuildTextures(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 	std::unique_ptr<FTexture> LoadTexture(
-		std::uint16_t SRVHeapIndex,
+		std::string Name,
+		UINT SRVHeapIndex,
 		std::wstring Filename,
 		ID3D12Device* Device,
 		ID3D12GraphicsCommandList* CommandList
 	);
 	void BuildTexture(
-		ETextureType Type,
+		std::string Name,
 		std::wstring Filename,
 		ID3D12Device* Device, 
 		ID3D12GraphicsCommandList* CommandList
 	);
 	void BuildCubeTexture(
-		ECubeTextureType Type,
+		std::string Name,
 		std::wstring Filename,
 		ID3D12Device* Device,
 		ID3D12GraphicsCommandList* CommandList
 	);
 	void BuildShaderResourceDescriptorHeap();
 	void BuildShaderResource();
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSRVHeap;
-	std::vector<std::unique_ptr<FTexture>> mTextures;
-	std::vector<std::unique_ptr<FTexture>> mCubeTextures;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mTexture2DSRVHeap;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mTextureCubeSRVHeap;
+	std::unordered_map<std::string, std::unique_ptr<FTexture>> mTexture2Ds;
+	std::unordered_map<std::string, std::unique_ptr<FTexture>> mTextureCubes;
 public:
-	inline ID3D12DescriptorHeap* GetSRVHeapPtr() const
+	inline ID3D12DescriptorHeap* GetTexture2DSRVHeapPtr() const
 	{
-		return mSRVHeap.Get();
+		return mTexture2DSRVHeap.Get();
 	}
-	inline FTexture* GetTexture(ETextureType Type) const
+	inline ID3D12DescriptorHeap* GetTextureCubeSRVHeapPtr() const
 	{
-		return mTextures[Type].get();
+		return mTextureCubeSRVHeap.Get();
 	}
-	inline std::uint16_t GetTextureSRVHeapIndex(ETextureType Type) const
+	inline FTexture* GetTexture2D(std::string Name) const
 	{
-		return mTextures[Type]->SRVHeapIndex;
+		return (*mTexture2Ds.find(Name)).second.get();
 	}
-	inline FTexture* GetCubeTexture(ECubeTextureType Type) const
+	inline std::uint16_t GetTexture2DSRVHeapIndex(std::string Name) const
 	{
-		return mCubeTextures[Type].get();
+		return (*mTexture2Ds.find(Name)).second->SRVHeapIndex;
 	}
+	inline FTexture* GetTextureCube(std::string Name) const
+	{
+		return (*mTextureCubes.find(Name)).second.get();
+	}	
 };
 
 inline FTextureManager* GetTextureManager()

@@ -59,7 +59,7 @@ void FRenderer::Render(const FRenderData& RenderData)
 	// Render
 
 	// Pass Constantbuffer
-	ID3D12DescriptorHeap* descriptorHeaps[] = { GetTextureManager()->GetSRVHeapPtr() };
+	ID3D12DescriptorHeap* descriptorHeaps[] = { GetTextureManager()->GetTexture2DSRVHeapPtr() };
 	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 	CommandList->SetGraphicsRootSignature(GetFrameResourceManager()->GetRootSignaturePtr());
 
@@ -68,11 +68,8 @@ void FRenderer::Render(const FRenderData& RenderData)
 	CommandList->SetGraphicsRootConstantBufferView(0, PassConstantBufferAdress);
 	auto MaterialConstantBuffer = TargetFrameResource->MaterialConstantBuffer->Resource();
 	CommandList->SetGraphicsRootShaderResourceView(3, MaterialConstantBuffer->GetGPUVirtualAddress());
-	auto TextureDescriptorHeap = GetTextureManager()->GetSRVHeapPtr();
+	auto TextureDescriptorHeap = GetTextureManager()->GetTexture2DSRVHeapPtr();
 	CommandList->SetGraphicsRootDescriptorTable(4, TextureDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
-	CD3DX12_GPU_DESCRIPTOR_HANDLE CubeSkyDescriptorHandle(GetTextureManager()->GetSRVHeapPtr()->GetGPUDescriptorHandleForHeapStart());
-	CubeSkyDescriptorHandle.Offset(GetTextureManager()->GetCubeTexture(ECTT_Snow)->SRVHeapIndex, GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize());
-	CommandList->SetGraphicsRootDescriptorTable(5, CubeSkyDescriptorHandle);
 	if (bWireFrame)
 	{
 		// TODO

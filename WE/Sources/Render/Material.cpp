@@ -24,40 +24,40 @@ void FMaterialManager::BuildMaterials()
 		EMT_Default,
 		ESM_DefaultLit,
 		EBM_Opaque,
-		ETT_Default,
-		ETT_White,
-		ETT_White,
-		ETT_White,
+		"Default",
+		"White",
+		"White",
+		"White",
 		FDXMath::Identity4x4()
 	);
 	BuildMaterial(
 		EMT_RustedIron2,
 		ESM_DefaultLit,
 		EBM_Opaque,
-		ETT_RustedIron2_BaseColor,
-		ETT_RustedIron2_Metallic,
-		ETT_RustedIron2_Normal,
-		ETT_RustedIron2_Roughness,
+		"RustedIron2_BaseColor",
+		"RustedIron2_Metallic",
+		"RustedIron2_Normal",
+		"RustedIron2_Roughness",
 		FDXMath::Identity4x4()
 	);
 	BuildMaterial(
 		EMT_ScuffedGold,
 		ESM_DefaultLit,
 		EBM_Opaque,
-		ETT_ScuffedGold_BaseColor,
-		ETT_ScuffedGold_Metallic,
-		ETT_ScuffedGold_Normal,
-		ETT_ScuffedGold_Roughness,
+		"ScuffedGold_BaseColor",
+		"ScuffedGold_Metallic",
+		"ScuffedGold_Normal",
+		"ScuffedGold_Roughness",
 		FDXMath::Identity4x4()
 	);
 	BuildMaterial(
 		EMT_IceField,
 		ESM_DefaultLit,
 		EBM_Opaque,
-		ETT_IceField_BaseColor,
-		ETT_IceField_Metallic,
-		ETT_IceField_Normal,
-		ETT_IceField_Roughness,
+		"IceField_BaseColor",
+		"IceField_Metallic",
+		"IceField_Normal",
+		"IceField_Roughness",
 		FDXMath::Identity4x4()
 	);
 	
@@ -91,10 +91,10 @@ void FMaterialManager::BuildMaterial(
 	EMaterialType Type,
 	EShadingModel ShadingModel,
 	EBlendMode BlendMode,
-	ETextureType AlbedoTexture,
-	ETextureType MetallicTexture,
-	ETextureType NormalTexture,
-	ETextureType RoughnessTexture,
+	std::string AlbedoTexture,
+	std::string MetallicTexture,
+	std::string NormalTexture,
+	std::string RoughnessTexture,
 	DirectX::XMFLOAT4X4 MatTransform
 )
 {
@@ -102,10 +102,10 @@ void FMaterialManager::BuildMaterial(
 		Type,
 		ShadingModel,
 		BlendMode,
-		GetTextureManager()->GetTextureSRVHeapIndex(AlbedoTexture),
-		GetTextureManager()->GetTextureSRVHeapIndex(MetallicTexture),
-		GetTextureManager()->GetTextureSRVHeapIndex(NormalTexture),
-		GetTextureManager()->GetTextureSRVHeapIndex(RoughnessTexture),
+		GetTextureManager()->GetTexture2DSRVHeapIndex(AlbedoTexture),
+		GetTextureManager()->GetTexture2DSRVHeapIndex(MetallicTexture),
+		GetTextureManager()->GetTexture2DSRVHeapIndex(NormalTexture),
+		GetTextureManager()->GetTexture2DSRVHeapIndex(RoughnessTexture),
 		MatTransform
 	);
 }
