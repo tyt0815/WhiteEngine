@@ -13,10 +13,9 @@ float4 MainPS(FVSOutput PIn) : SV_Target
     // clip(Albedo.a - 0.1f);
 #endif
     
-    PIn.NormalW = normalize(PIn.NormalW);
-    float3 ToEyeW = gEyePosW - PIn.PosW;
-    float distToEye = length(ToEyeW);
-    ToEyeW /= distToEye;
+    float3 N = normalize(PIn.NormalW);
+    float3 V = normalize(gEyePosW - PIn.PosW);
+    float3 R = reflect(-V, N);
     
     float3 F0 = (float3)0.04;
     F0 = lerp(F0, Albedo, Metallic);
@@ -26,11 +25,17 @@ float4 MainPS(FVSOutput PIn) : SV_Target
     // DirectionalLight 
     for (int i = 0; i < DIR_LIGHTS_NUM; ++i)
     {
-        Lo += ComputeDirectionalLight(gDirectionalLights[i], ToEyeW, Albedo, Metallic, PIn.NormalW, Roughness, F0);
+        Lo += ComputeDirectionalLight(gDirectionalLights[i], V, Albedo, Metallic, N, Roughness, F0);
     }
     
+    float3 kS = FresnelSchlick(max(dot(N, V), 0.0f), F0);
+    float3 kD = 1.0f - kS;
+    kD *= 1.0f - Metallic;
+    float3 Irradiance = gTextureCube.Sample(gsamLinearWrap, N).rgb;
+    float3 Diffuse = Irradiance * Albedo;
     // TODO: AO 적용. float3(1.0f)를 AO로 변경
-    float3 Ambient = (float3) 0.03 * Albedo * (float3)1.0f;
+    float3 Ambient = (kD * Diffuse) * (float3) 1.0f;
+    
     float3 Color = Ambient + Lo;
     Color = Color / (Color + (float3)1.0f);
     Color = pow(Color, (float3)(1.0f / 2.2f));
@@ -39,5 +44,6 @@ float4 MainPS(FVSOutput PIn) : SV_Target
     float fogAmount = saturate((distToEye - gFogStart) / gFogRange);
 	Color = lerp(Color, gFogColor, fogAmount);
 #endif
+    return float4(kD, 1.0f);
     return float4(Color, 1.0f);
 }

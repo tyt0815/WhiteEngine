@@ -77,6 +77,12 @@ void FRenderer::Render(const FRenderData& RenderData)
 	}
 	else
 	{
+		CD3DX12_GPU_DESCRIPTOR_HANDLE SkyDiffuseTextureHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(TextureDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+		SkyDiffuseTextureHandle.Offset(
+			GetTextureManager()->GetTextureCube("SkyDiffuse")->SRVHeapIndex,
+			GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()
+		);
+		CommandList->SetGraphicsRootDescriptorTable(5, SkyDiffuseTextureHandle);
 		for (size_t i = 0; i < ESM_None; ++i)
 		{
 			EShadingModel ShadingModel = static_cast<EShadingModel>(i);

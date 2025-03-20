@@ -28,7 +28,7 @@ void FCubeSkyRenderer::Render(ID3D12GraphicsCommandList* CommandList)
 {
 	CommandList->SetPipelineState(mPipelineState.Get());
 	CD3DX12_GPU_DESCRIPTOR_HANDLE SRVHandle(GetTextureManager()->GetTexture2DSRVHeapPtr()->GetGPUDescriptorHandleForHeapStart());
-	SRVHandle.Offset(mDiffuseCubeRenderTarget->mTexture->SRVHeapIndex, GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize());
+	SRVHandle.Offset(mSkyTextureCube->SRVHeapIndex, GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize());
 	CommandList->SetGraphicsRootDescriptorTable(5, SRVHandle);
 
 	DrawSphere(CommandList);

@@ -16,14 +16,10 @@ WTestWorld::WTestWorld()
 
 	Actor = SpawnActor<ARustedIron2Sphere>();
 	Transform.Scale = XMFLOAT3(2.0f, 2.0f, 2.0f);
-	Transform.Translation = XMFLOAT3(0.0f, 0.5f, 10.0f);
+	Transform.Translation = XMFLOAT3(0.0f, 0.0f, 5.0f);
 	Actor->SetTransform(Transform);
 
 	Actor = SpawnActor<AScuffedGoldSphere>();
-	Transform.Translation = XMFLOAT3(10.0f, 0.5f, 10.0f);
-	Actor->SetTransform(Transform);
-
-	Actor = SpawnActor<AIceFieldGrid>();
-	Transform.Translation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	Transform.Translation = XMFLOAT3(2.0f, 0.0f, 5.0f);
 	Actor->SetTransform(Transform);
 }

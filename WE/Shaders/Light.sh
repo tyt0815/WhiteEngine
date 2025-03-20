@@ -30,6 +30,11 @@ float3 FresnelSchlick(float cosTheta, float3 F0)
     return F0 + (1.0f - F0) * pow(clamp(1.0f - cosTheta, 0.0f, 1.0f), 5.0f);
 }
 
+float3 FresnelSchlickRoughness(float cosTheta, float3 F0, float Roughness)
+{
+    return F0 + (max((float3)(1.0f - Roughness), F0) - F0) * pow(clamp(1.0f - cosTheta, 0.0f, 1.0f), 5.0f);
+}
+
 float DistributionGGX(float3 N, float3 H, float Roughness)
 {
     float a = Roughness * Roughness;
@@ -70,31 +75,32 @@ float3 ComputeDirectionalLight(
     float3 V,
     float3 Albedo,
     float Metallic,
-    float3 Noraml,
+    float3 N,
     float Roughness,
     float3 F0
 )
 {
+    float3 L = normalize(-Light.Direction);
+    float3 H = normalize(V + L);
+    
     // 방사선 계산
     float3 Radiance = Light.Color;
         
         // 쿠크-토렌스 brdf
-    float3 L = normalize(-Light.Direction);
-    float3 H = normalize(V + L);
-    float NDF = DistributionGGX(Noraml, H, Roughness);
-    float G = GeometrySmith(Noraml, V, L, Roughness);
+    float NDF = DistributionGGX(N, H, Roughness);
+    float G = GeometrySmith(N, V, L, Roughness);
     float3 F = FresnelSchlick(max(dot(H, V), 0.0f), F0);
+    
+    float3 Numerator = NDF * G * F;
+    float Denominator = 4.0f * max(dot(N, V), 0.0f) * max(dot(N, L), 0.0f) + 0.00001f;
+    float3 Specular = Numerator / Denominator;
         
     float3 kS = F;
     float3 kD = (float3) 1.0f - kS;
     kD *= 1.0f - Metallic;
-
-    float3 Numerator = NDF * G * F;
-    float Denominator = 4.0f * max(dot(Noraml, V), 0.0f) * max(dot(Noraml, L), 0.0f);
-    float3 Specular = Numerator / Denominator;
         
         // 방사선에 Lo 추가
-    float NDotL = max(dot(Noraml, L), 0.0f);
+    float NDotL = max(dot(N, L), 0.0f);
     return (kD * Albedo / PI + Specular) * Radiance * NDotL;
 }
 
