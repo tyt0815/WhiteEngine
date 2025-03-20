@@ -29,6 +29,7 @@ enum EMaterialType : UINT16
 	EMT_RustedIron2,
 	EMT_ScuffedGold,
 	EMT_IceField,
+	EMT_ThickMortarStonework,
 	EMT_None
 };
 

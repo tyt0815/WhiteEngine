@@ -60,7 +60,16 @@ void FMaterialManager::BuildMaterials()
 		"IceField_Roughness",
 		FDXMath::Identity4x4()
 	);
-	
+	BuildMaterial(
+		EMT_ThickMortarStonework,
+		ESM_DefaultLit,
+		EBM_Opaque,
+		"ThickMortarStonework_Albedo",
+		"ThickMortarStonework_Metallic",
+		"ThickMortarStonework_Normal",
+		"ThickMortarStonework_Roughness",
+		FDXMath::Identity4x4()
+	);
 }
 
 void FMaterialManager::Internal_BuildMaterial(

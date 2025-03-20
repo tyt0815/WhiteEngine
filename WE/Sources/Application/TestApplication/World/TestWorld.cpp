@@ -4,6 +4,7 @@
 #include "Application/TestApplication/Actor/IceFieldGird.h"
 #include "Application/TestApplication/Actor/RustedIron2Sphere.h"
 #include "Application/TestApplication/Actor/ScuffedGoldSphere.h"
+#include "Application/TestApplication/Actor/ThickMortarStonework.h"
 
 WTestWorld::WTestWorld()
 {
@@ -21,5 +22,9 @@ WTestWorld::WTestWorld()
 
 	Actor = SpawnActor<AScuffedGoldSphere>();
 	Transform.Translation = XMFLOAT3(2.0f, 0.0f, 5.0f);
+	Actor->SetTransform(Transform);
+
+	Actor = SpawnActor<AThickMortarStonework>();
+	Transform.Translation = XMFLOAT3(-2.0f, 0.0f, 5.0f);
 	Actor->SetTransform(Transform);
 }

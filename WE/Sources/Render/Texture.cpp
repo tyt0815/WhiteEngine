@@ -148,6 +148,11 @@ void FTextureManager::BuildTextures(ID3D12Device* Device, ID3D12GraphicsCommandL
 	BuildTexture("IceField_Metallic", L"IceField_Metallic.dds", Device, CommandList);
 	BuildTexture("IceField_Roughness", L"IceField_Roughness.dds", Device, CommandList);
 
+	BuildTexture("ThickMortarStonework_Albedo", L"ThickMortarStonework_Albedo.dds", Device, CommandList);
+	BuildTexture("ThickMortarStonework_Normal", L"IceField_Normal.dds", Device, CommandList);
+	BuildTexture("ThickMortarStonework_Metallic", L"IceField_Metallic.dds", Device, CommandList);
+	BuildTexture("ThickMortarStonework_Roughness", L"IceField_Roughness.dds", Device, CommandList);
+
 	BuildCubeTexture("Snow", L"SnowCube.dds", Device, CommandList);
 	BuildCubeTexture("Desert", L"DesertCube.dds", Device, CommandList);
 }
