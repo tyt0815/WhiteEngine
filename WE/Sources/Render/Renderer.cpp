@@ -59,9 +59,10 @@ void FRenderer::Render(const FRenderData& RenderData)
 	// Render
 
 	// Pass Constantbuffer
-	ID3D12DescriptorHeap* descriptorHeaps[] = { GetTextureManager()->GetTexture2DSRVHeapPtr() };
-	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 	CommandList->SetGraphicsRootSignature(GetFrameResourceManager()->GetRootSignaturePtr());
+	FTextureManager* TexManager = GetTextureManager();
+	ID3D12DescriptorHeap* descriptorHeaps[] = { TexManager->GetTexture2DSRVHeapPtr() };
+	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
 	auto PassConstantBuffer = TargetFrameResource->PassConstantBuffer->Resource();
 	auto PassConstantBufferAdress = PassConstantBuffer->GetGPUVirtualAddress();

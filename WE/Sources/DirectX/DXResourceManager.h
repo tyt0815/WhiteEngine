@@ -139,6 +139,10 @@ public:
 	{
 		return CurrentFence;
 	}
+	inline UINT GetRTVDescriptorSize() const
+	{
+		return RTVDescriptorSize;
+	}
 };
 
 inline FDXResourceManager* GetDXResourceManagerPtr()

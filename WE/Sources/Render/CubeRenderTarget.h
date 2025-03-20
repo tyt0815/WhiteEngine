@@ -1,5 +1,12 @@
+//***************************************************************************************
+// FCubeRenderTarget.h by Frank Luna (C) 2015 All Rights Reserved.
+//***************************************************************************************
+
 #pragma once
+
 #include "DirectX/DXUtility.h"
+
+class FTexture;
 
 enum class CubeMapFace : int
 {
@@ -14,7 +21,7 @@ enum class CubeMapFace : int
 class FCubeRenderTarget
 {
 public:
-	FCubeRenderTarget(UINT width, UINT height, DXGI_FORMAT format);
+	FCubeRenderTarget(std::string Name, UINT width, UINT height, DXGI_FORMAT format);
 
 	FCubeRenderTarget(const FCubeRenderTarget& rhs) = delete;
 	FCubeRenderTarget& operator=(const FCubeRenderTarget& rhs) = delete;
@@ -34,6 +41,7 @@ public:
 
 	void OnResize(UINT newWidth, UINT newHeight);
 
+	FTexture* mTexture;
 private:
 	void BuildDescriptors();
 	void BuildResource();

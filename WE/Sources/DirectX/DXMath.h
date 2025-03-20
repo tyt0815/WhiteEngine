@@ -53,7 +53,7 @@ public:
 	static float AngleFromXY(float x, float y);
 	static DirectX::XMVECTOR RandUnitVec3();
 	static DirectX::XMVECTOR RandHemisphereUnitVec3(DirectX::XMVECTOR n);
-
+	static DirectX::XMFLOAT4X4 CalcViewMatrix(DirectX::XMFLOAT3 Target, DirectX::XMFLOAT3 Up, DirectX::XMFLOAT3 Position);
 	static const float Infinity;
 	static const float Pi;
 

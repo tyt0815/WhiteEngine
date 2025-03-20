@@ -339,6 +339,15 @@
     <None Include="Shaders\CubeSkyPixelShader.sf">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Shaders\CubeSkyDiffuseMapCommon.sh">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\CubeSkyDiffuseMapVertexShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\CubeSkyDiffuseMapPixelShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\Default.dds">

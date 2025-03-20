@@ -113,3 +113,46 @@ XMVECTOR FDXMath::RandHemisphereUnitVec3(XMVECTOR n)
 		return XMVector3Normalize(v);
 	}
 }
+
+DirectX::XMFLOAT4X4 FDXMath::CalcViewMatrix(DirectX::XMFLOAT3 Target, DirectX::XMFLOAT3 Up, DirectX::XMFLOAT3 Position)
+{
+	XMVECTOR U = XMLoadFloat3(&Up);
+	XMVECTOR T = XMLoadFloat3(&Target);
+	XMVECTOR P = XMLoadFloat3(&Position);
+	XMVECTOR L = XMVector3Normalize(XMVectorSubtract(T, P));
+	XMVECTOR R = XMVector3Normalize(XMVector3Cross(U, L));
+	U = XMVector3Normalize(XMVector3Cross(L, R));
+
+	// Fill in the view matrix entries.
+	float x = -XMVectorGetX(XMVector3Dot(P, R));
+	float y = -XMVectorGetX(XMVector3Dot(P, U));
+	float z = -XMVectorGetX(XMVector3Dot(P, L));
+
+	XMFLOAT4X4 View = FDXMath::Identity4x4();
+	XMFLOAT3 Right;
+	XMFLOAT3 Look;
+	XMStoreFloat3(&Right, R);
+	XMStoreFloat3(&Up, U);
+	XMStoreFloat3(&Look, L);
+	View(0, 0) = Right.x;
+	View(1, 0) = Right.y;
+	View(2, 0) = Right.z;
+	View(3, 0) = x;
+
+	View(0, 1) = Up.x;
+	View(1, 1) = Up.y;
+	View(2, 1) = Up.z;
+	View(3, 1) = y;
+
+	View(0, 2) = Look.x;
+	View(1, 2) = Look.y;
+	View(2, 2) = Look.z;
+	View(3, 2) = z;
+
+	View(0, 3) = 0.0f;
+	View(1, 3) = 0.0f;
+	View(2, 3) = 0.0f;
+	View(3, 3) = 1.0f;
+
+	return View;
+}

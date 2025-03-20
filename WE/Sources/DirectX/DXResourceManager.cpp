@@ -130,7 +130,7 @@ void FDXResourceManager::Resize(UINT Width, UINT Height)
 	//   1. SRV format: DXGI_FORMAT_R24_UNORM_X8_TYPELESS
 	//   2. DSV Format: DXGI_FORMAT_D24_UNORM_S8_UINT
 	// we need to create the depth buffer resource with a typeless format.  
-	depthStencilDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
+	depthStencilDesc.Format = DepthStencilFormat;
 
 	depthStencilDesc.SampleDesc.Count = bMSAA ? 4 : 1;
 	depthStencilDesc.SampleDesc.Quality = bMSAA ? (MSAAQuality_4x - 1) : 0;

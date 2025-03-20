@@ -8,6 +8,9 @@
 #include "Utility/Class.h"
 #include "Utility/String.h"
 
+constexpr UINT TEXTURE2D_NUM = 1000;
+constexpr UINT TEXTURECUBE_NUM = 24;
+
 class FTexture
 {
 public:
@@ -16,7 +19,6 @@ public:
 	// Unique material name for lookup.
 	std::string Name;
 	UINT SRVHeapIndex;
-	std::wstring Filename;
 	Microsoft::WRL::ComPtr<ID3D12Resource> Resource = nullptr;
 	Microsoft::WRL::ComPtr<ID3D12Resource> UploadHeap = nullptr;
 };
@@ -25,12 +27,15 @@ class FTextureManager
 {
 	SINGLETON(FTextureManager);
 public:
+	void RegisterTexture2D(std::unique_ptr<FTexture> Texture2D);
+	void RegisterTextureCube(std::unique_ptr<FTexture> TextureCube);
+	void UpdateTexture2D(std::string Name);
+	void UpdateTextureCube(std::string Name);
 
 private:
 	void BuildTextures(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 	std::unique_ptr<FTexture> LoadTexture(
 		std::string Name,
-		UINT SRVHeapIndex,
 		std::wstring Filename,
 		ID3D12Device* Device,
 		ID3D12GraphicsCommandList* CommandList
@@ -48,19 +53,13 @@ private:
 		ID3D12GraphicsCommandList* CommandList
 	);
 	void BuildShaderResourceDescriptorHeap();
-	void BuildShaderResource();
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mTexture2DSRVHeap;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mTextureCubeSRVHeap;
 	std::unordered_map<std::string, std::unique_ptr<FTexture>> mTexture2Ds;
 	std::unordered_map<std::string, std::unique_ptr<FTexture>> mTextureCubes;
 public:
 	inline ID3D12DescriptorHeap* GetTexture2DSRVHeapPtr() const
 	{
 		return mTexture2DSRVHeap.Get();
-	}
-	inline ID3D12DescriptorHeap* GetTextureCubeSRVHeapPtr() const
-	{
-		return mTextureCubeSRVHeap.Get();
 	}
 	inline FTexture* GetTexture2D(std::string Name) const
 	{

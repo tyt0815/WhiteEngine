@@ -1,14 +1,16 @@
 //***************************************************************************************
-// CubeRenderTarget.cpp by Frank Luna (C) 2011 All Rights Reserved.
+// FCubeRenderTarget.cpp by Frank Luna (C) 2011 All Rights Reserved.
 //***************************************************************************************
 
 #include "CubeRenderTarget.h"
-#include "DirectX/DXException.h"
+#include <memory>
 #include "DirectX/DXResourceManager.h"
+#include "Texture.h"
 
-FCubeRenderTarget::FCubeRenderTarget(UINT width, UINT height, DXGI_FORMAT format) :
-	mDevice(GetDXResourceManagerPtr()->GetDevicePtr())
+FCubeRenderTarget::FCubeRenderTarget(std::string Name, UINT width, UINT height, DXGI_FORMAT format)
 {
+	mDevice = GetDXResourceManagerPtr()->GetDevicePtr();
+
 	mWidth = width;
 	mHeight = height;
 	mFormat = format;
@@ -17,6 +19,11 @@ FCubeRenderTarget::FCubeRenderTarget(UINT width, UINT height, DXGI_FORMAT format
 	mScissorRect = { 0, 0, (int)width, (int)height };
 
 	BuildResource();
+	std::unique_ptr<FTexture> Texture = std::make_unique<FTexture>();
+	mTexture = Texture.get();
+	Texture->Name = Name;
+	Texture->Resource = mCubeMap;
+	GetTextureManager()->RegisterTextureCube(std::move(Texture));
 }
 
 ID3D12Resource* FCubeRenderTarget::Resource()
@@ -44,9 +51,11 @@ D3D12_RECT FCubeRenderTarget::ScissorRect()const
 	return mScissorRect;
 }
 
-void FCubeRenderTarget::BuildDescriptors(CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuSrv,
+void FCubeRenderTarget::BuildDescriptors(
+	CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuSrv,
 	CD3DX12_GPU_DESCRIPTOR_HANDLE hGpuSrv,
-	CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuRtv[6])
+	CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuRtv[6]
+)
 {
 	// Save references to the descriptors. 
 	mhCpuSrv = hCpuSrv;
@@ -128,12 +137,15 @@ void FCubeRenderTarget::BuildResource()
 	texDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	texDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
-	CD3DX12_HEAP_PROPERTIES DefaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-	THROW_IF_FAILED(mDevice->CreateCommittedResource(
-		&DefaultHeapProperties,
-		D3D12_HEAP_FLAG_NONE,
-		&texDesc,
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&mCubeMap)));
+	D3D12_HEAP_PROPERTIES DefaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+	THROW_IF_FAILED(
+		mDevice->CreateCommittedResource(
+			&DefaultHeapProperties,
+			D3D12_HEAP_FLAG_NONE,
+			&texDesc,
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(&mCubeMap)
+		)
+	);
 }
