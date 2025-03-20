@@ -8,9 +8,14 @@
 
 FCubeSkyRenderer::FCubeSkyRenderer() :
 	mDevice(GetDXResourceManagerPtr()->GetDevicePtr()),
-	mSkyTextureCube(GetTextureManager()->GetTextureCube("Desert"))
+	mSkyTextureCube(GetTextureManager()->GetTextureCube("Snow"))
 {
 	BuildShaderAndInputLayout();
+	BuildDescriptorHeaps();
+	BuildDepthStencilBuffer();
+	BuildViewMatrix();
+	BuildConstantBuffers();
+	BuildRootSignature();
 	BuildPipelineStateObject();
 	BuildDiffuseCubeMap();
 }
@@ -23,7 +28,6 @@ void FCubeSkyRenderer::Render(ID3D12GraphicsCommandList* CommandList)
 {
 	CommandList->SetPipelineState(mPipelineState.Get());
 	CD3DX12_GPU_DESCRIPTOR_HANDLE SRVHandle(GetTextureManager()->GetTexture2DSRVHeapPtr()->GetGPUDescriptorHandleForHeapStart());
-	//SRVHandle.Offset(mSkyTextureCube->SRVHeapIndex, GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()); 
 	SRVHandle.Offset(mDiffuseCubeRenderTarget->mTexture->SRVHeapIndex, GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize());
 	CommandList->SetGraphicsRootDescriptorTable(5, SRVHandle);
 
@@ -103,6 +107,7 @@ void FCubeSkyRenderer::BuildPipelineStateObject()
 		)
 	);
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC DiffuseCubeSkyPSDesc = CubeSkyPSDesc;
+	DiffuseCubeSkyPSDesc.pRootSignature = mRootSignature.Get();
 	DiffuseCubeSkyPSDesc.VS =
 	{
 		reinterpret_cast<BYTE*>(mDiffuseMapVertexShader->GetBufferPointer()),
@@ -123,11 +128,6 @@ void FCubeSkyRenderer::BuildPipelineStateObject()
 
 void FCubeSkyRenderer::BuildDiffuseCubeMap()
 {
-	BuildDescriptorHeaps();
-	BuildDepthStencilBuffer();
-	BuildViewMatrix();
-	BuildConstantBuffers();
-	BuildRootSignature();
 
 	mDiffuseCubeRenderTarget = std::make_unique<FCubeRenderTarget>(
 		"SkyDiffuse",
@@ -357,15 +357,23 @@ void FCubeSkyRenderer::RenderDiffuseMap(ID3D12Device* Device, ID3D12GraphicsComm
 		1,
 		&ResourceBarrier
 	);
+
 	D3D12_VIEWPORT Viewport = mDiffuseCubeRenderTarget->Viewport();
 	D3D12_RECT ScissorRect = mDiffuseCubeRenderTarget->ScissorRect();
 	CommandList->RSSetViewports(1, &Viewport);
 	CommandList->RSSetScissorRects(1, &ScissorRect);
+
 	CommandList->SetPipelineState(mDiffuseCubePipelineState.Get());
+
 	CommandList->SetGraphicsRootSignature(mRootSignature.Get());
-	ID3D12DescriptorHeap* descriptorHeaps[] = { GetTextureManager()->GetTexture2DSRVHeapPtr() };
+
+	ID3D12DescriptorHeap* SRVHeap = GetTextureManager()->GetTexture2DSRVHeapPtr();
+	ID3D12DescriptorHeap* descriptorHeaps[] = { SRVHeap };
 	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
+	CD3DX12_GPU_DESCRIPTOR_HANDLE SRVHandle(SRVHeap->GetGPUDescriptorHandleForHeapStart());
+	SRVHandle.Offset(mSkyTextureCube->SRVHeapIndex, GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize());
+	CommandList->SetGraphicsRootDescriptorTable(1, SRVHandle);
 	for (int i = 0; i < 6; ++i)
 	{
 		D3D12_CPU_DESCRIPTOR_HANDLE RTV = mDiffuseCubeRenderTarget->Rtv(i);
@@ -390,6 +398,7 @@ void FCubeSkyRenderer::RenderDiffuseMap(ID3D12Device* Device, ID3D12GraphicsComm
 		UINT CBSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FTempCB));
 		D3D12_GPU_VIRTUAL_ADDRESS CBAddress = TempCB->GetGPUVirtualAddress() + (i * CBSize);
 		CommandList->SetGraphicsRootConstantBufferView(0, CBAddress);
+		
 		// TODO: Draw
 		DrawSphere(CommandList);
 		//

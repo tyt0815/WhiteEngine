@@ -1,20 +1,11 @@
 #include "CubeSkyDiffuseMapCommon.sh"
 
-#define SCALE_VALUE 5000
-
 FVSOutput MainVS(FVSInput VIn)
 {
     FVSOutput VOut;
-    float4x4 World = float4x4(
-        float4(SCALE_VALUE, 0.0f, 0.0f, 0.0f),
-        float4(0.0f, SCALE_VALUE, 0.0f, 0.0f),
-        float4(0.0f, 0.0f, SCALE_VALUE, 0.0f),
-        float4(0.0f, 0.0f, 0.0f, 0.0f)
-    );
+    VOut.PosL = VIn.PosL;
     float4 PosW = float4(VIn.PosL, 1.0f);
-    VOut.PosW = PosW.xyz;
     VOut.NormalW = VIn.NormalL;
     VOut.PosH = mul(PosW, gViewProj);
-    VOut.TexC = VIn.TexC;
     return VOut;
 }

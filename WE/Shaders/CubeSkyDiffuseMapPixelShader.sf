@@ -2,5 +2,26 @@
 
 float4 MainPS(FVSOutput PIn) : SV_Target
 {
-    return float4(1.0f, 1.0f, 1.0f, 1.0f);
+    float3 Normal = normalize(PIn.PosL);
+    float3 Irradiance = (float3) 0.0f;
+    
+    float3 Up = float3(0.0f, 1.0f, 0.0f);
+    float3 Right = normalize(cross(Up, Normal));
+    Up = normalize(cross(Normal, Right));
+    
+    float SampleDelta = 0.025f;
+    float nrSamples = 0.0f;
+    for (float phi = 0.0f; phi < 2.0 * PI; phi += SampleDelta)
+    {
+        for (float theta = 0.0f; theta < 0.5 * PI; theta += SampleDelta)
+        {
+            float3 TangentSample = float3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
+            float3 SampleVec = TangentSample.x * Right + TangentSample.y * Up + TangentSample.z * Normal;
+            Irradiance += gTextureCube.Sample(gsamLinearWrap, SampleVec).rgb * cos(theta) * sin(theta);
+            nrSamples++;
+        }
+
+    }
+    Irradiance = PI * Irradiance * (1.0f / nrSamples);
+    return float4(Irradiance, 1.0f);
 }
