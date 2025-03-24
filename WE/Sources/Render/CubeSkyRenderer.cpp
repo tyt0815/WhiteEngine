@@ -8,7 +8,7 @@
 
 FCubeSkyRenderer::FCubeSkyRenderer() :
 	mDevice(GetDXResourceManagerPtr()->GetDevicePtr()),
-	mSkyTextureCube(GetTextureManager()->GetTextureCube("Snow"))
+	mSkyTextureCube(GetTextureManager()->GetTextureCube("Desert"))
 {
 	BuildShaderAndInputLayout();
 	BuildDescriptorHeaps();
@@ -128,12 +128,12 @@ void FCubeSkyRenderer::BuildPipelineStateObject()
 
 void FCubeSkyRenderer::BuildDiffuseCubeMap()
 {
-
 	mDiffuseCubeRenderTarget = std::make_unique<FCubeRenderTarget>(
 		"SkyDiffuse",
 		(UINT)mSkyTextureCube->Resource->GetDesc().Width,
 		(UINT)mSkyTextureCube->Resource->GetDesc().Height,
-		mDiffuseTextureCubeFormat
+		mDiffuseTextureCubeFormat,
+		1
 	);
 	FDXResourceManager* DXManager = GetDXResourceManagerPtr();
 	FTextureManager* TexManager = GetTextureManager();
@@ -150,11 +150,16 @@ void FCubeSkyRenderer::BuildDiffuseCubeMap()
 		mTextureCubeHeapIndex,
 		CBVSRVUAVDescriptorSize
 	);
-	CD3DX12_CPU_DESCRIPTOR_HANDLE RTVCPUHandle[6];
+	std::vector<CD3DX12_CPU_DESCRIPTOR_HANDLE> RTVCPUHandle[6];
 	UINT RTVDescriptorSize = DXManager->GetRTVDescriptorSize();
+	UINT MipLevel = mDiffuseCubeRenderTarget->GetMipLevels();
 	for (int i = 0; i < 6; ++i)
 	{
-		RTVCPUHandle[i] = CD3DX12_CPU_DESCRIPTOR_HANDLE(mRTVHeap->GetCPUDescriptorHandleForHeapStart(), i, RTVDescriptorSize);
+		RTVCPUHandle[i].resize(MipLevel);
+		for (UINT j = 0; j < RTVCPUHandle[i].size(); ++j)
+		{
+			RTVCPUHandle[i][j] = CD3DX12_CPU_DESCRIPTOR_HANDLE(mRTVHeap->GetCPUDescriptorHandleForHeapStart(), i * MipLevel + j, RTVDescriptorSize);
+		}
 	}
 	mDiffuseCubeRenderTarget->BuildDescriptors(
 		SRVCPUHandle,
@@ -169,7 +174,7 @@ void FCubeSkyRenderer::BuildDescriptorHeaps()
 {
 	// RTVHeap
 	D3D12_DESCRIPTOR_HEAP_DESC RTVHeapDesc;
-	RTVHeapDesc.NumDescriptors = 6;
+	RTVHeapDesc.NumDescriptors = 6 * 2;	//	TODO: MipLevel ÇÏµåÄÚµùµÊ
 	RTVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 	RTVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	RTVHeapDesc.NodeMask = 0;
@@ -376,33 +381,52 @@ void FCubeSkyRenderer::RenderDiffuseMap(ID3D12Device* Device, ID3D12GraphicsComm
 	CommandList->SetGraphicsRootDescriptorTable(1, SRVHandle);
 	for (int i = 0; i < 6; ++i)
 	{
-		D3D12_CPU_DESCRIPTOR_HANDLE RTV = mDiffuseCubeRenderTarget->Rtv(i);
-		D3D12_CPU_DESCRIPTOR_HANDLE DSV = mDSVHeap->GetCPUDescriptorHandleForHeapStart();
-		CommandList->ClearRenderTargetView(
-			RTV,
-			DirectX::Colors::LightBlue,
-			0,
-			nullptr
-		);
-		CommandList->ClearDepthStencilView(
-			DSV,
-			D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
-			1.0f,
-			0,
-			0,
-			nullptr
-		);
+		for (UINT j = 0; j < mDiffuseCubeRenderTarget->GetMipLevels(); ++j)
+		{
+			D3D12_CPU_DESCRIPTOR_HANDLE RTV = mDiffuseCubeRenderTarget->Rtv(i, j);
+			D3D12_CPU_DESCRIPTOR_HANDLE DSV = mDSVHeap->GetCPUDescriptorHandleForHeapStart();
+			CommandList->ClearRenderTargetView(
+				RTV,
+				DirectX::Colors::LightBlue,
+				0,
+				nullptr
+			);
+			CommandList->ClearDepthStencilView(
+				DSV,
+				D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
+				1.0f,
+				0,
+				0,
+				nullptr
+			);
 
-		CommandList->OMSetRenderTargets(1, &RTV, true, &DSV);
-		ID3D12Resource* TempCB = mTempCB->Resource();
-		UINT CBSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FTempCB));
-		D3D12_GPU_VIRTUAL_ADDRESS CBAddress = TempCB->GetGPUVirtualAddress() + (i * CBSize);
-		CommandList->SetGraphicsRootConstantBufferView(0, CBAddress);
+			CommandList->OMSetRenderTargets(1, &RTV, true, &DSV);
+			ID3D12Resource* TempCB = mTempCB->Resource();
+			UINT CBSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FTempCB));
+			D3D12_GPU_VIRTUAL_ADDRESS CBAddress = TempCB->GetGPUVirtualAddress() + (i * CBSize);
+			CommandList->SetGraphicsRootConstantBufferView(0, CBAddress);
+
+			DrawSphere(CommandList);
+		}
+	}
+
+	for (int i = 0; i < 6; ++i)
+	{
+		ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+			mDiffuseCubeRenderTarget->Resource(),
+			D3D12_RESOURCE_STATE_RENDER_TARGET,
+			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
+		);
+		CommandList->ResourceBarrier(1, &ResourceBarrier);
+
 		
-		// TODO: Draw
-		DrawSphere(CommandList);
-		//
 
+		ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+			mDiffuseCubeRenderTarget->Resource(),
+			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+			D3D12_RESOURCE_STATE_RENDER_TARGET
+		);
+		CommandList->ResourceBarrier(1, &ResourceBarrier);
 	}
 
 	ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
