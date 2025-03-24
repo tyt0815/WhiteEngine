@@ -22,17 +22,4 @@ cbuffer FTempCB : register(b0)
     float4x4 gViewProj;
 }
 
-struct FVSInput
-{
-    float3 PosL : POSITION;
-    float3 NormalL : NORMAL;
-    float2 TexC : TEXCOORD;
-};
-
-struct FVSOutput
-{
-    float4 PosH : SV_Position;
-    float3 PosL : POSITION;
-    float3 NormalW : NORMAL;
-};
 #endif

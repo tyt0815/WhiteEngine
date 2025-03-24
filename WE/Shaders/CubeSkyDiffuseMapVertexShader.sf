@@ -1,11 +1,16 @@
 #include "CubeSkyDiffuseMapCommon.sh"
 
-FVSOutput MainVS(FVSInput VIn)
+void DrawSphere(in float3 InPosL, in float4x4 ViewProj, out float3 OutPosL, out float4 OutPosH)
 {
-    FVSOutput VOut;
-    VOut.PosL = VIn.PosL;
-    float4 PosW = float4(VIn.PosL, 1.0f);
-    VOut.NormalW = VIn.NormalL;
-    VOut.PosH = mul(PosW, gViewProj);
-    return VOut;
+    OutPosL = InPosL;
+    OutPosH = mul(float4(InPosL, 1.0f), ViewProj);
+}
+
+void MainVS(
+    float3 InPosL : POSITION,
+    out float3 OutPosL : POSITION0,
+    out float4 OutPosH : SV_Position
+)
+{
+    DrawSphere(InPosL, gViewProj, OutPosL, OutPosH);
 }

@@ -45,6 +45,7 @@
     <ClCompile Include="Sources\Render\Renderer.cpp" />
     <ClCompile Include="Sources\Render\RenderItemManager.cpp" />
     <ClCompile Include="Sources\Render\Shader.cpp" />
+    <ClCompile Include="Sources\Render\ShapeDrawer.cpp" />
     <ClCompile Include="Sources\Render\StaticMesh.cpp" />
     <ClCompile Include="Sources\Render\Texture.cpp" />
     <ClCompile Include="Sources\Utility\FileIO.cpp" />
@@ -88,6 +89,7 @@
     <ClInclude Include="Sources\Render\RenderItemManager.h" />
     <ClInclude Include="Sources\Render\Shader.h" />
     <ClInclude Include="Sources\Render\ShaderStructures.h" />
+    <ClInclude Include="Sources\Render\ShapeDrawer.h" />
     <ClInclude Include="Sources\Render\StaticMesh.h" />
     <ClInclude Include="Sources\Render\Texture.h" />
     <ClInclude Include="Sources\Render\UploadBuffer.h" />

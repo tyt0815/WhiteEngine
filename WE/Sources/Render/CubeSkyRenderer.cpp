@@ -5,36 +5,11 @@
 #include "DirectX/DXResourceManager.h"
 #include "MeshGeometry.h"
 #include "CubeRenderTarget.h"
-
-void DrawSphere(ID3D12GraphicsCommandList* CommandList)
-{
-	FMeshGeometry* Sphere = GetMeshGeometryManager()->GetMeshGeometry(EMGT_Sphere);
-	D3D12_VERTEX_BUFFER_VIEW VertexBufferView = Sphere->VertexBufferView();
-	D3D12_INDEX_BUFFER_VIEW IndexBufferView = Sphere->IndexBufferView();
-
-	CommandList->IASetVertexBuffers(0, 1, &VertexBufferView);
-	CommandList->IASetIndexBuffer(&IndexBufferView);
-	CommandList->IASetPrimitiveTopology(Sphere->PrimitiveType);
-
-	CommandList->DrawIndexedInstanced(
-		Sphere->DrawArgs[0].IndexCount,
-		1,
-		Sphere->DrawArgs[0].StartIndexLocation,
-		Sphere->DrawArgs[0].BaseVertexLocation,
-		0
-	);
-}
+#include "ShapeDrawer.h"
 
 FCubeSkyIrradianceMapRenderer::FCubeSkyIrradianceMapRenderer(FCubeRenderTarget* CubeRenderTarget):
 	mCubeRenderTarget(CubeRenderTarget)
 {
-	mInputLayout =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-	};
-
 	// Build CB
 	mTempCB = std::make_unique <TUploadBuffer<FTempCB>>(
 		GetDXResourceManagerPtr()->GetDevicePtr(),
@@ -118,6 +93,7 @@ FCubeSkyIrradianceMapRenderer::FCubeSkyIrradianceMapRenderer(FCubeRenderTarget* 
 	// Create PipelineState Object
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC DiffuseCubeSkyPSDesc;
 	ZeroMemory(&DiffuseCubeSkyPSDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+	auto mInputLayout = GetShapeDrawer()->GetDrawingSphereInputLayouts();
 	DiffuseCubeSkyPSDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
 	DiffuseCubeSkyPSDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	DiffuseCubeSkyPSDesc.SampleMask = UINT_MAX;
@@ -221,7 +197,7 @@ void FCubeSkyIrradianceMapRenderer::Internal_Render(ID3D12Device* Device, ID3D12
 			D3D12_GPU_VIRTUAL_ADDRESS CBAddress = TempCB->GetGPUVirtualAddress() + (i * CBSize);
 			CommandList->SetGraphicsRootConstantBufferView(0, CBAddress);
 
-			DrawSphere(CommandList);
+			GetShapeDrawer()->DrawSphere(CommandList);
 		}
 	}
 
@@ -274,7 +250,7 @@ void FCubeSkyRenderer::Render(ID3D12GraphicsCommandList* CommandList)
 	SRVHandle.Offset(mSkyTextureCube->SRVHeapIndex, GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize());
 	CommandList->SetGraphicsRootDescriptorTable(5, SRVHandle);
 
-	DrawSphere(CommandList);
+	GetShapeDrawer()->DrawSphere(CommandList);
 }
 
 void FCubeSkyRenderer::BuildShaderAndInputLayout()

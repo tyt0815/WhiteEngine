@@ -31,7 +31,7 @@ public:
 
 private:
 	void BuildStaticMeshs();
-	void BuildStaticMesh(EStaticMeshType Type, EMeshGeometryType MeshType, EMaterialType MaterialType);
+	void BuildStaticMesh(EStaticMeshType Type, std::string MeshName, EMaterialType MaterialType);
 	std::vector<FStaticMesh> mStaticMeshs;
 public:
 	inline FStaticMesh GetStaticMesh(size_t i)

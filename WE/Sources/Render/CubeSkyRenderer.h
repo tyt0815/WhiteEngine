@@ -10,8 +10,6 @@
 class FTexture;
 class FCubeRenderTarget;
 
-void DrawSphere(ID3D12GraphicsCommandList* CommandList);
-
 class FCubeSkyIrradianceMapRenderer
 {
 	struct FTempCB
@@ -34,7 +32,6 @@ private:
 	std::unique_ptr<TUploadBuffer<FTempCB>> mTempCB;
 	FCubeRenderTarget* mCubeRenderTarget;
 	FTexture* mSkyTextureCube = nullptr;
-	std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
 };
 
 class FCubeSkyRenderer

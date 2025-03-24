@@ -1,30 +1,29 @@
 #pragma once
 #include <d3d12.h>
+#include <D3Dcompiler.h>
 #include <DirectXCollision.h>
-#include <string>
 #include <vector>
 #include <memory>
+#include <unordered_map>
 #include <wrl.h>
 #include "GeometryGenerator.h"
 #include "DirectX/DXMath.h"
+#include "DirectX/DXUtility.h"
+#include "DirectX/DXException.h"
+#include "Utility/String.h"
 #include "Utility/Class.h"
-
-enum EMeshGeometryType
-{
-	EMGT_Box,
-	EMGT_Grid,
-	EMGT_Sphere,
-	EMGT_Cylinder,
-	EMGT_Skull,
-	EMGT_BillboardPoint,
-	EMGT_None
-};
 
 struct FVertex
 {
 	DirectX::XMFLOAT3 Pos;
 	DirectX::XMFLOAT3 Normal;
 	DirectX::XMFLOAT2 TexC;
+};
+
+struct FSpriteVertex
+{
+	XMFLOAT3 Pos;
+	XMFLOAT2 Size;
 };
 
 struct FSubmeshGeometry
@@ -41,7 +40,7 @@ struct FSubmeshGeometry
 class FMeshGeometry
 {
 public:
-	EMeshGeometryType Type;
+	std::string Name;
 
 	// System memory copies.  Use Blobs because the vertex/index format can be generic.
 	// It is up to the client to cast appropriately.  
@@ -98,35 +97,128 @@ class FMeshGeometryManager
 {
 	SINGLETON(FMeshGeometryManager);
 public:
-
-private:
-	void BuildMeshGeometries(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
-	void BuildMeshGeometry(
-		EMeshGeometryType Type,
-		const std::vector<FVertex>& Vertices,
+	template <typename TVertex>
+	inline void BuildMeshGeometryU16(
+		std::string Name,
+		const std::vector<TVertex>& Vertices,
+		const std::vector<std::uint16_t>& Indices,
+		const std::vector<FSubmeshGeometry>& Submesh,
+		D3D_PRIMITIVE_TOPOLOGY PrimitiveType,
+		ID3D12Device* Device,
+		ID3D12GraphicsCommandList* CommandList
+	);
+	template <typename TVertex>
+	inline void BuildMeshGeometryU32(
+		std::string Name,
+		const std::vector<TVertex>& Vertices,
 		const std::vector<std::uint32_t>& Indices,
 		const std::vector<FSubmeshGeometry>& Submesh,
 		D3D_PRIMITIVE_TOPOLOGY PrimitiveType,
 		ID3D12Device* Device,
 		ID3D12GraphicsCommandList* CommandList
 	);
+
+private:
+	void BuildMeshGeometries(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 	void BuildMeshGeometryFromMeshData(
-		EMeshGeometryType Type,
-		const UGeometryGenerator::MeshData& MeshData,
+		std::string Name,
+		const FGeometryGenerator::MeshData& MeshData,
 		ID3D12Device* Device,
 		ID3D12GraphicsCommandList* CommandList
 	);
 	void BuildSkullMeshGeometry(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 	void BuildBillboardPoints(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
-	std::vector<std::unique_ptr<FMeshGeometry>> mMeshGeometries;
+	std::unordered_map<std::string, std::unique_ptr<FMeshGeometry>> mMeshGeometries;
 public:
-	inline FMeshGeometry* GetMeshGeometry(std::uint64_t i)
+	inline FMeshGeometry* GetMeshGeometry(std::string Name)
 	{
-		return mMeshGeometries[i].get();
+		return mMeshGeometries[Name].get();
 	}
 };
 
 inline FMeshGeometryManager* GetMeshGeometryManager()
 {
 	return FMeshGeometryManager::GetInstance();
+}
+
+template<typename TVertex>
+inline void FMeshGeometryManager::BuildMeshGeometryU16(
+	std::string Name,
+	const std::vector<TVertex>& Vertices,
+	const std::vector<std::uint16_t>& Indices,
+	const std::vector<FSubmeshGeometry>& Submesh,
+	D3D_PRIMITIVE_TOPOLOGY PrimitiveType,
+	ID3D12Device* Device,
+	ID3D12GraphicsCommandList* CommandList
+)
+{
+	const UINT VBByteSize = (UINT)Vertices.size() * sizeof(TVertex);
+	const UINT IBByteSize = (UINT)Indices.size() * sizeof(std::uint16_t);
+
+	std::unique_ptr<FMeshGeometry> Geometry = std::make_unique<FMeshGeometry>();
+	Geometry->Name = Name;
+	Geometry->PrimitiveType = PrimitiveType;
+	THROW_IF_FAILED(D3DCreateBlob(VBByteSize, &Geometry->VertexBufferCPU));
+	CopyMemory(Geometry->VertexBufferCPU->GetBufferPointer(), Vertices.data(), VBByteSize);
+
+	THROW_IF_FAILED(D3DCreateBlob(IBByteSize, &Geometry->IndexBufferCPU));
+	CopyMemory(Geometry->IndexBufferCPU->GetBufferPointer(), Indices.data(), IBByteSize);
+
+	Geometry->VertexBufferGPU = FDXUtility::CreateDefaultBuffer(Device,
+		CommandList, Vertices.data(), VBByteSize, Geometry->VertexBufferUploader);
+
+	Geometry->IndexBufferGPU = FDXUtility::CreateDefaultBuffer(Device,
+		CommandList, Indices.data(), IBByteSize, Geometry->IndexBufferUploader);
+
+	Geometry->VertexByteStride = sizeof(TVertex);
+	Geometry->VertexBufferByteSize = VBByteSize;
+	Geometry->IndexFormat = DXGI_FORMAT_R16_UINT;
+	Geometry->IndexBufferByteSize = IBByteSize;
+
+	for (int i = 0; i < Submesh.size(); ++i)
+	{
+		Geometry->DrawArgs.push_back(Submesh[i]);
+	}
+	mMeshGeometries[Name] = std::move(Geometry);
+}
+
+template<typename TVertex>
+inline void FMeshGeometryManager::BuildMeshGeometryU32(
+	std::string Name,
+	const std::vector<TVertex>& Vertices,
+	const std::vector<std::uint32_t>& Indices,
+	const std::vector<FSubmeshGeometry>& Submesh,
+	D3D_PRIMITIVE_TOPOLOGY PrimitiveType,
+	ID3D12Device* Device,
+	ID3D12GraphicsCommandList* CommandList
+)
+{
+	const UINT VBByteSize = (UINT)Vertices.size() * sizeof(TVertex);
+	const UINT IBByteSize = (UINT)Indices.size() * sizeof(std::uint32_t);
+
+	std::unique_ptr<FMeshGeometry> Geometry = std::make_unique<FMeshGeometry>();
+	Geometry->Name = Name;
+	Geometry->PrimitiveType = PrimitiveType;
+	THROW_IF_FAILED(D3DCreateBlob(VBByteSize, &Geometry->VertexBufferCPU));
+	CopyMemory(Geometry->VertexBufferCPU->GetBufferPointer(), Vertices.data(), VBByteSize);
+
+	THROW_IF_FAILED(D3DCreateBlob(IBByteSize, &Geometry->IndexBufferCPU));
+	CopyMemory(Geometry->IndexBufferCPU->GetBufferPointer(), Indices.data(), IBByteSize);
+
+	Geometry->VertexBufferGPU = FDXUtility::CreateDefaultBuffer(Device,
+		CommandList, Vertices.data(), VBByteSize, Geometry->VertexBufferUploader);
+
+	Geometry->IndexBufferGPU = FDXUtility::CreateDefaultBuffer(Device,
+		CommandList, Indices.data(), IBByteSize, Geometry->IndexBufferUploader);
+
+	Geometry->VertexByteStride = sizeof(TVertex);
+	Geometry->VertexBufferByteSize = VBByteSize;
+	Geometry->IndexFormat = DXGI_FORMAT_R32_UINT;
+	Geometry->IndexBufferByteSize = IBByteSize;
+
+	for (int i = 0; i < Submesh.size(); ++i)
+	{
+		Geometry->DrawArgs.push_back(Submesh[i]);
+	}
+	mMeshGeometries[Name] = std::move(Geometry);
 }

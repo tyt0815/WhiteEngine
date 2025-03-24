@@ -1,5 +1,5 @@
 //***************************************************************************************
-// UGeometryGenerator.cpp by Frank Luna (C) 2011 All Rights Reserved.
+// FGeometryGenerator.cpp by Frank Luna (C) 2011 All Rights Reserved.
 //***************************************************************************************
 
 #include "GeometryGenerator.h"
@@ -7,7 +7,7 @@
 
 using namespace DirectX;
 
-UGeometryGenerator::MeshData UGeometryGenerator::CreateBox(float width, float height, float depth, uint32 numSubdivisions)
+FGeometryGenerator::MeshData FGeometryGenerator::CreateBox(float width, float height, float depth, uint32 numSubdivisions)
 {
     MeshData meshData;
 
@@ -100,7 +100,7 @@ UGeometryGenerator::MeshData UGeometryGenerator::CreateBox(float width, float he
     return meshData;
 }
 
-UGeometryGenerator::MeshData UGeometryGenerator::CreateSphere(float radius, uint32 sliceCount, uint32 stackCount)
+FGeometryGenerator::MeshData FGeometryGenerator::CreateSphere(float radius, uint32 sliceCount, uint32 stackCount)
 {
     MeshData meshData;
 
@@ -211,7 +211,7 @@ UGeometryGenerator::MeshData UGeometryGenerator::CreateSphere(float radius, uint
     return meshData;
 }
  
-void UGeometryGenerator::Subdivide(MeshData& meshData)
+void FGeometryGenerator::Subdivide(MeshData& meshData)
 {
 	// Save a copy of the input geometry.
 	MeshData inputCopy = meshData;
@@ -274,7 +274,7 @@ void UGeometryGenerator::Subdivide(MeshData& meshData)
 	}
 }
 
-UGeometryGenerator::Vertex UGeometryGenerator::MidPoint(const Vertex& v0, const Vertex& v1)
+FGeometryGenerator::Vertex FGeometryGenerator::MidPoint(const Vertex& v0, const Vertex& v1)
 {
     XMVECTOR p0 = XMLoadFloat3(&v0.Position);
     XMVECTOR p1 = XMLoadFloat3(&v1.Position);
@@ -304,7 +304,7 @@ UGeometryGenerator::Vertex UGeometryGenerator::MidPoint(const Vertex& v0, const 
     return v;
 }
 
-UGeometryGenerator::MeshData UGeometryGenerator::CreateGeosphere(float radius, uint32 numSubdivisions)
+FGeometryGenerator::MeshData FGeometryGenerator::CreateGeosphere(float radius, uint32 numSubdivisions)
 {
     MeshData meshData;
 
@@ -379,7 +379,7 @@ UGeometryGenerator::MeshData UGeometryGenerator::CreateGeosphere(float radius, u
     return meshData;
 }
 
-UGeometryGenerator::MeshData UGeometryGenerator::CreateCylinder(float bottomRadius, float topRadius, float height, uint32 sliceCount, uint32 stackCount)
+FGeometryGenerator::MeshData FGeometryGenerator::CreateCylinder(float bottomRadius, float topRadius, float height, uint32 sliceCount, uint32 stackCount)
 {
     MeshData meshData;
 
@@ -473,7 +473,7 @@ UGeometryGenerator::MeshData UGeometryGenerator::CreateCylinder(float bottomRadi
     return meshData;
 }
 
-void UGeometryGenerator::BuildCylinderTopCap(float bottomRadius, float topRadius, float height,
+void FGeometryGenerator::BuildCylinderTopCap(float bottomRadius, float topRadius, float height,
 											uint32 sliceCount, uint32 stackCount, MeshData& meshData)
 {
 	uint32 baseIndex = (uint32)meshData.Vertices.size();
@@ -509,7 +509,7 @@ void UGeometryGenerator::BuildCylinderTopCap(float bottomRadius, float topRadius
 	}
 }
 
-void UGeometryGenerator::BuildCylinderBottomCap(float bottomRadius, float topRadius, float height,
+void FGeometryGenerator::BuildCylinderBottomCap(float bottomRadius, float topRadius, float height,
 											   uint32 sliceCount, uint32 stackCount, MeshData& meshData)
 {
 	// 
@@ -548,7 +548,7 @@ void UGeometryGenerator::BuildCylinderBottomCap(float bottomRadius, float topRad
 	}
 }
 
-UGeometryGenerator::MeshData UGeometryGenerator::CreateGrid(float width, float depth, uint32 m, uint32 n)
+FGeometryGenerator::MeshData FGeometryGenerator::CreateGrid(float width, float depth, uint32 m, uint32 n)
 {
     MeshData meshData;
 
@@ -613,7 +613,7 @@ UGeometryGenerator::MeshData UGeometryGenerator::CreateGrid(float width, float d
     return meshData;
 }
 
-UGeometryGenerator::MeshData UGeometryGenerator::CreateQuad(float x, float y, float w, float h, float depth)
+FGeometryGenerator::MeshData FGeometryGenerator::CreateQuad(float x, float y, float w, float h, float depth)
 {
     MeshData meshData;
 

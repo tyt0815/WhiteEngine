@@ -1,8 +1,11 @@
 #include "CubeSkyDiffuseMapCommon.sh"
 
-float4 MainPS(FVSOutput PIn) : SV_Target
+float4 MainPS(
+    float3 OutPosL : POSITION0,
+    float4 OutPosH : SV_Position
+) : SV_Target
 {
-    float3 Normal = normalize(PIn.PosL);
+    float3 Normal = normalize(OutPosL);
     float3 Irradiance = (float3) 0.0f;
     
     float3 Up = float3(0.0f, 1.0f, 0.0f);

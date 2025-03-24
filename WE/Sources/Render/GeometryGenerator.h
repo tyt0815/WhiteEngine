@@ -1,5 +1,5 @@
 //***************************************************************************************
-// UGeometryGenerator.h by Frank Luna (C) 2011 All Rights Reserved.
+// FGeometryGenerator.h by Frank Luna (C) 2011 All Rights Reserved.
 //   
 // Defines a static class for procedurally generating the geometry of 
 // common mathematical objects.
@@ -18,7 +18,7 @@
 #include <DirectXMath.h>
 #include <vector>
 
-class UGeometryGenerator
+class FGeometryGenerator
 {
 public:
 

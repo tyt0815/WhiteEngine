@@ -176,6 +176,9 @@
     <ClCompile Include="Sources\Application\TestApplication\Actor\ThickMortarStonework.cpp">
       <Filter>Sources\Application\TestApplication\Actor</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Render\ShapeDrawer.cpp">
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -306,6 +309,9 @@
     </ClInclude>
     <ClInclude Include="Sources\Application\TestApplication\Actor\ThickMortarStonework.h">
       <Filter>Sources\Application\TestApplication\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\ShapeDrawer.h">
+      <Filter>Sources\Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

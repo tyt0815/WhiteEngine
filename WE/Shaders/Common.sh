@@ -2,6 +2,12 @@
 #define COMMON_SH
 #include "Light.sh"
 
+void DrawSphere(in float3 InPosL, in float4x4 ViewProj, out float3 OutPosL, out float4 OutPosH)
+{
+    OutPosL = InPosL;
+    OutPosH = mul(float4(InPosL, 1.0f), ViewProj);
+}
+
 struct FMaterialSB
 {
     uint AlbedoTextureIndex;
