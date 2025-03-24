@@ -11,7 +11,7 @@
 FMeshGeometryManager::FMeshGeometryManager()
 {
 	mMeshGeometries.resize(EMGT_None);
-	GetDXResourceManagerPtr()->FlushAndExecuteCommand(&FMeshGeometryManager::BuildMeshGeometries, this);
+	GetDXResourceManagerPtr()->ExecuteAndFlushCommand(&FMeshGeometryManager::BuildMeshGeometries, this);
 }
 
 FMeshGeometryManager::~FMeshGeometryManager()

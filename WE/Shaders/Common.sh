@@ -2,10 +2,6 @@
 #define COMMON_SH
 #include "Light.sh"
 
-#ifndef PI
-#define PI 3.14159265359
-#endif
-
 struct FMaterialSB
 {
     uint AlbedoTextureIndex;

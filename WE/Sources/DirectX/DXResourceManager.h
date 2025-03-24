@@ -19,7 +19,7 @@ public:
 	void Resize(UINT Width, UINT Height);
 	void FlushAndExecuteCommand(void(*CommandFunction)(ID3D12Device*, ID3D12GraphicsCommandList*));
 	template<typename T>
-	void FlushAndExecuteCommand(void(T::*CommandFunction)(ID3D12Device*, ID3D12GraphicsCommandList*), T* ObjectPtr);
+	void ExecuteAndFlushCommand(void(T::*CommandFunction)(ID3D12Device*, ID3D12GraphicsCommandList*), T* ObjectPtr);
 	void FlushCommandQueue();
 
 	// TODO
@@ -151,7 +151,7 @@ inline FDXResourceManager* GetDXResourceManagerPtr()
 }
 
 template<typename T>
-inline void FDXResourceManager::FlushAndExecuteCommand(void(T::* CommandFunction)(ID3D12Device*, ID3D12GraphicsCommandList*), T* ObjectPtr)
+inline void FDXResourceManager::ExecuteAndFlushCommand(void(T::* CommandFunction)(ID3D12Device*, ID3D12GraphicsCommandList*), T* ObjectPtr)
 {
 	std::function<void(ID3D12Device*, ID3D12GraphicsCommandList*)> BoundFunction =
 		std::bind(CommandFunction, ObjectPtr, std::placeholders::_1, std::placeholders::_2);
@@ -162,4 +162,5 @@ inline void FDXResourceManager::FlushAndExecuteCommand(void(T::* CommandFunction
 	THROW_IF_FAILED(CommandList->Close());
 	ID3D12CommandList* CmdLists[] = { CommandList.Get() };
 	CommandQueue->ExecuteCommandLists(_countof(CmdLists), CmdLists);
+	FlushCommandQueue();
 }

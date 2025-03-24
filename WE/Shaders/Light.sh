@@ -1,9 +1,7 @@
 #ifndef LIGHT_SH
 #define LIGHT_SH
 
-#ifndef PI
-#define PI 3.14159265359
-#endif
+#include "Math.sh"
 
 #ifndef DIR_LIGHTS_NUM 
 #define DIR_LIGHTS_NUM 1
@@ -83,10 +81,10 @@ float3 ComputeDirectionalLight(
     float3 L = normalize(-Light.Direction);
     float3 H = normalize(V + L);
     
-    // ¹æ»ç¼± °è»ê
+    // ï¿½ï¿½ç¼± ï¿½ï¿½ï¿½
     float3 Radiance = Light.Color;
         
-        // ÄíÅ©-Åä·»½º brdf
+        // ï¿½ï¿½Å©-ï¿½ä·»ï¿½ï¿½ brdf
     float NDF = DistributionGGX(N, H, Roughness);
     float G = GeometrySmith(N, V, L, Roughness);
     float3 F = FresnelSchlick(max(dot(H, V), 0.0f), F0);
@@ -99,9 +97,11 @@ float3 ComputeDirectionalLight(
     float3 kD = (float3) 1.0f - kS;
     kD *= 1.0f - Metallic;
         
-        // ¹æ»ç¼±¿¡ Lo Ãß°¡
+        // ï¿½ï¿½ç¼±ï¿½ï¿½ Lo ï¿½ß°ï¿½
     float NDotL = max(dot(N, L), 0.0f);
     return (kD * Albedo / PI + Specular) * Radiance * NDotL;
 }
+
+// float3 Pre
 
 #endif

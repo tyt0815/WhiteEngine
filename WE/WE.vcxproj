@@ -120,6 +120,7 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Shaders\Material.sh" />
+    <None Include="Shaders\Math.sh" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\Default.dds" />

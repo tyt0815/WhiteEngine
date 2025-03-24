@@ -9,7 +9,7 @@ FVertexOut MainVS(FVertexIn VIn)
         float4(SCALE_VALUE, 0.0f, 0.0f, 0.0f),
         float4(0.0f, SCALE_VALUE, 0.0f, 0.0f),
         float4(0.0f, 0.0f, SCALE_VALUE, 0.0f),
-        float4(0.0f, 0.0f, 0.0f, 0.0f)
+        float4(0.0f, 0.0f, 0.0f, 1.0f)
     );
     VOut.PosL = VIn.PosL;
     float4 PosW = mul(float4(VIn.PosL, 1.0f), World);

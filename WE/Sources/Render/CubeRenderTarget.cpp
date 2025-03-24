@@ -8,88 +8,141 @@
 #include "DirectX/DXResourceManager.h"
 #include "Texture.h"
 
-FCubeRenderTarget::FCubeRenderTarget(std::string Name, UINT width, UINT height, DXGI_FORMAT format, UINT MipLevels)
+std::array<DirectX::XMFLOAT4X4, 6> FCubeRenderTarget::GetCubeMapViews()
 {
-	mDevice = GetDXResourceManagerPtr()->GetDevicePtr();
+	// Build ViewMat
+	// Generate the cube map about the given position.
+	XMFLOAT3 Position(0.0f, 0.0f, 0.0f);
 
-	mWidth = width;
-	mHeight = height;
-	mFormat = format;
-	mMipLevels = MipLevels;
-
-	mViewport = { 0.0f, 0.0f, (float)width, (float)height, 0.0f, 1.0f };
-	mScissorRect = { 0, 0, (int)width, (int)height };
-
-	BuildResource();
-	std::unique_ptr<FTexture> Texture = std::make_unique<FTexture>();
-	mTexture = Texture.get();
-	Texture->Name = Name;
-	Texture->Resource = mCubeMap;
-	GetTextureManager()->RegisterTextureCube(std::move(Texture));
-}
-
-ID3D12Resource* FCubeRenderTarget::Resource()
-{
-	return mCubeMap.Get();
-}
-
-CD3DX12_GPU_DESCRIPTOR_HANDLE FCubeRenderTarget::Srv()
-{
-	return mhGpuSrv;
-}
-
-CD3DX12_CPU_DESCRIPTOR_HANDLE FCubeRenderTarget::Rtv(int faceIndex, int MipLevel)
-{
-	return mhCpuRtv[faceIndex][MipLevel];
-}
-
-D3D12_VIEWPORT FCubeRenderTarget::Viewport()const
-{
-	return mViewport;
-}
-
-D3D12_RECT FCubeRenderTarget::ScissorRect()const
-{
-	return mScissorRect;
-}
-
-void FCubeRenderTarget::BuildDescriptors(
-	CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuSrv,
-	CD3DX12_GPU_DESCRIPTOR_HANDLE hGpuSrv,
-	std::vector<CD3DX12_CPU_DESCRIPTOR_HANDLE> hCpuRtv[6]
-)
-{
-	// Save references to the descriptors. 
-	mhCpuSrv = hCpuSrv;
-	mhGpuSrv = hGpuSrv;
-
-
-	for (int i = 0; i < 6; ++i)
+	// Look along each coordinate axis.
+	XMFLOAT3 targets[6] =
 	{
-		assert(hCpuRtv[i].size() == mMipLevels);
-		mhCpuRtv[i].resize(mMipLevels);
-		for (UINT j = 0; j < mMipLevels; ++j)
-		{
-			mhCpuRtv[i][j] = hCpuRtv[i][j];
-		}
-	}
+		XMFLOAT3(1.0f, 0.0f, 0.0f), // +X
+		XMFLOAT3(-1.0f, 0.0f, 0.0f), // -X
+		XMFLOAT3(0.0f, 1.0f, 0.0f), // +Y
+		XMFLOAT3(0.0f, -1.0f, 0.0f), // -Y
+		XMFLOAT3(0.0f, 0.0f, 1.0f), // +Z
+		XMFLOAT3(0.0f, 0.0f, -1.0f)  // -Z
+	};
 
-	//  Create the descriptors
+	// Use world up vector (0,1,0) for all directions except +Y/-Y.  In these cases, we
+	// are looking down +Y or -Y, so we need a different "up" vector.
+	XMFLOAT3 ups[6] =
+	{
+		XMFLOAT3(0.0f, 1.0f, 0.0f),  // +X
+		XMFLOAT3(0.0f, 1.0f, 0.0f),  // -X
+		XMFLOAT3(0.0f, 0.0f, -1.0f), // +Y
+		XMFLOAT3(0.0f, 0.0f, +1.0f), // -Y
+		XMFLOAT3(0.0f, 1.0f, 0.0f),	 // +Z
+		XMFLOAT3(0.0f, 1.0f, 0.0f)	 // -Z
+	};
+
+	return {
+		FDXMath::CalcViewMatrix(targets[0], ups[0], Position),
+		FDXMath::CalcViewMatrix(targets[1], ups[1], Position),
+		FDXMath::CalcViewMatrix(targets[2], ups[2], Position),
+		FDXMath::CalcViewMatrix(targets[3], ups[3], Position),
+		FDXMath::CalcViewMatrix(targets[4], ups[4], Position),
+		FDXMath::CalcViewMatrix(targets[5], ups[5], Position)
+	};
+}
+
+FCubeRenderTarget::FCubeRenderTarget(
+	std::string Name,
+	UINT Width,
+	UINT Height,
+	UINT MipLevels,
+	DXGI_FORMAT Format,
+	DXGI_FORMAT DepthStencilFormat
+):
+	mName(Name),
+	mWidth(Width),
+	mHeight(Height),
+	mMipLevels(MipLevels),
+	mFormat(Format),
+	mDepthStencilFormat(DepthStencilFormat),
+	mViewport({ 0.0f, 0.0f, (float)Width, (float)Height, 0.0f, 1.0f }),
+	mScissorRect({ 0, 0, (int)Width, (int)Height })
+{
+	Initialize();
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE FCubeRenderTarget::GetRTV(int FaceIndex, int MipLevel) const
+{
+	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
+		mRTVHeap->GetCPUDescriptorHandleForHeapStart(),
+		FaceIndex * mMipLevels + MipLevel,
+		GetDXResourceManagerPtr()->GetRTVDescriptorSize()
+	);
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE FCubeRenderTarget::GetCubeMapCPUDescriptorHeap() const
+{
+	return GetTextureManager()->GetCPUDescriptorHandle(mTexture->SRVHeapIndex);
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE FCubeRenderTarget::GetCubeMapGPUDescriptorHeap() const
+{
+	return GetTextureManager()->GetGPUDescriptorHandle(mTexture->SRVHeapIndex);
+}
+
+void FCubeRenderTarget::OnResize(UINT Width, UINT Height)
+{
+	if ((mWidth != Width) || (mHeight != Height))
+	{
+		mWidth = Width;
+		mHeight = Height;
+
+		Initialize();
+	}
+}
+
+void FCubeRenderTarget::Initialize()
+{
+	BuildResource();
+	BuildRTVAndDSV();
 	BuildDescriptors();
 }
 
-void FCubeRenderTarget::OnResize(UINT newWidth, UINT newHeight)
+void FCubeRenderTarget::BuildRTVAndDSV()
 {
-	if ((mWidth != newWidth) || (mHeight != newHeight))
-	{
-		mWidth = newWidth;
-		mHeight = newHeight;
+	FDXResourceManager* DXManager = GetDXResourceManagerPtr();
+	ID3D12Device* Device = DXManager->GetDevicePtr();
+	// RTVHeap
+	D3D12_DESCRIPTOR_HEAP_DESC RTVHeapDesc;
+	RTVHeapDesc.NumDescriptors = 6 * mMipLevels;
+	RTVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	RTVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	RTVHeapDesc.NodeMask = 0;
+	THROW_IF_FAILED(
+		Device->CreateDescriptorHeap(
+			&RTVHeapDesc,
+			IID_PPV_ARGS(mRTVHeap.GetAddressOf())
+		)
+	);
 
-		BuildResource();
+	// DSVHeap
+	D3D12_DESCRIPTOR_HEAP_DESC DSVHeapDesc;
+	DSVHeapDesc.NumDescriptors = 1;
+	DSVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	DSVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	DSVHeapDesc.NodeMask = 0;
+	THROW_IF_FAILED(
+		Device->CreateDescriptorHeap(
+			&DSVHeapDesc,
+			IID_PPV_ARGS(mDSVHeap.GetAddressOf())
+		)
+	);
 
-		// New resource, so we need new descriptors to that resource.
-		BuildDescriptors();
-	}
+	Device->CreateDepthStencilView(
+		mDepthStencilResource.Get(),
+		nullptr,
+		mDSVHeap->GetCPUDescriptorHandleForHeapStart()
+	);
+
+	FTextureManager* TexManager = GetTextureManager();
+	ID3D12DescriptorHeap* SRVHeap = TexManager->GetSRVHeapPtr();
+	UINT CBVSRVUAVDescriptorSize = DXManager->GetCBVSRVUAVDescriptorSize();
 }
 
 void FCubeRenderTarget::BuildDescriptors()
@@ -103,27 +156,29 @@ void FCubeRenderTarget::BuildDescriptors()
 	srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
 
 	// Create SRV to the entire cubemap resource.
-	mDevice->CreateShaderResourceView(mCubeMap.Get(), &srvDesc, mhCpuSrv);
+	FDXResourceManager* DXManager = GetDXResourceManagerPtr();
+	ID3D12Device* Device = DXManager->GetDevicePtr();
+	Device->CreateShaderResourceView(mCubeMapResource.Get(), &srvDesc, GetCubeMapCPUDescriptorHeap());
 
 	// Create RTV to each cube face.
 	for (int i = 0; i < 6; ++i)
 	{
 		for (UINT j = 0; j < mMipLevels; ++j)
 		{
-			D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
-			rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
-			rtvDesc.Format = mFormat;
-			rtvDesc.Texture2DArray.PlaneSlice = 0;
+			D3D12_RENDER_TARGET_VIEW_DESC RTVDesc;
+			RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+			RTVDesc.Format = mFormat;
+			RTVDesc.Texture2DArray.PlaneSlice = 0;
 
 			// Render target to ith element, jth mipmap.
-			rtvDesc.Texture2DArray.FirstArraySlice = i;
-			rtvDesc.Texture2DArray.MipSlice = j;
+			RTVDesc.Texture2DArray.FirstArraySlice = i;
+			RTVDesc.Texture2DArray.MipSlice = j;
 
 			// Only view one element of the array.
-			rtvDesc.Texture2DArray.ArraySize = 1;
+			RTVDesc.Texture2DArray.ArraySize = 1;
 
 			// Create RTV to ith cubemap face.
-			mDevice->CreateRenderTargetView(mCubeMap.Get(), &rtvDesc, mhCpuRtv[i][j]);
+			Device->CreateRenderTargetView(mCubeMapResource.Get(), &RTVDesc, GetRTV(i, j));
 		}
 	}
 }
@@ -136,29 +191,67 @@ void FCubeRenderTarget::BuildResource()
 	// could be bound as an UnorderedAccessView.  Therefore this format 
 	// does not support D3D11_BIND_UNORDERED_ACCESS.
 
-	D3D12_RESOURCE_DESC texDesc;
-	ZeroMemory(&texDesc, sizeof(D3D12_RESOURCE_DESC));
-	texDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	texDesc.Alignment = 0;
-	texDesc.Width = mWidth;
-	texDesc.Height = mHeight;
-	texDesc.DepthOrArraySize = 6;
-	texDesc.MipLevels = mMipLevels;
-	texDesc.Format = mFormat;
-	texDesc.SampleDesc.Count = 1;
-	texDesc.SampleDesc.Quality = 0;
-	texDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	texDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+	D3D12_RESOURCE_DESC TextureDesc;
+	ZeroMemory(&TextureDesc, sizeof(D3D12_RESOURCE_DESC));
+	TextureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	TextureDesc.Alignment = 0;
+	TextureDesc.Width = mWidth;
+	TextureDesc.Height = mHeight;
+	TextureDesc.DepthOrArraySize = 6;
+	TextureDesc.MipLevels = mMipLevels;
+	TextureDesc.Format = mFormat;
+	TextureDesc.SampleDesc.Count = 1;
+	TextureDesc.SampleDesc.Quality = 0;
+	TextureDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	TextureDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
+	FDXResourceManager* DXManager = GetDXResourceManagerPtr();
+	ID3D12Device* Device = DXManager->GetDevicePtr();
 	D3D12_HEAP_PROPERTIES DefaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 	THROW_IF_FAILED(
-		mDevice->CreateCommittedResource(
+		Device->CreateCommittedResource(
 			&DefaultHeapProperties,
 			D3D12_HEAP_FLAG_NONE,
-			&texDesc,
+			&TextureDesc,
 			D3D12_RESOURCE_STATE_GENERIC_READ,
 			nullptr,
-			IID_PPV_ARGS(&mCubeMap)
+			IID_PPV_ARGS(&mCubeMapResource)
+		)
+	);
+	FTextureManager* TexManager = GetTextureManager();
+	std::unique_ptr<FTexture> Texture = std::make_unique<FTexture>();
+	mTexture = Texture.get();
+	Texture->Name = mName;
+	Texture->Resource = mCubeMapResource;
+	TexManager->RegisterTextureCube(std::move(Texture));
+
+	// Build Depth Stencil Buffer
+	D3D12_RESOURCE_DESC DepthStencilDesc;
+	ZeroMemory(&DepthStencilDesc, sizeof(D3D12_RESOURCE_DESC));
+	DepthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	DepthStencilDesc.Alignment = 0;
+	DepthStencilDesc.Width = mWidth;
+	DepthStencilDesc.Height = mHeight;
+	DepthStencilDesc.DepthOrArraySize = 1;
+	DepthStencilDesc.MipLevels = 1;
+	DepthStencilDesc.Format = mDepthStencilFormat;
+	DepthStencilDesc.SampleDesc.Count = 1;
+	DepthStencilDesc.SampleDesc.Quality = 0;
+	DepthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	DepthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+	D3D12_CLEAR_VALUE OptClear;
+	OptClear.Format = mDepthStencilFormat;
+	OptClear.DepthStencil.Depth = 1.0f;
+	OptClear.DepthStencil.Stencil = 0;
+	THROW_IF_FAILED(
+		Device->CreateCommittedResource(
+			&DefaultHeapProperties,
+			D3D12_HEAP_FLAG_NONE,
+			&DepthStencilDesc,
+			D3D12_RESOURCE_STATE_COMMON,
+			&OptClear,
+			IID_PPV_ARGS(mDepthStencilResource.GetAddressOf())
 		)
 	);
 }

@@ -61,7 +61,7 @@ void FRenderer::Render(const FRenderData& RenderData)
 	// Pass Constantbuffer
 	CommandList->SetGraphicsRootSignature(GetFrameResourceManager()->GetRootSignaturePtr());
 	FTextureManager* TexManager = GetTextureManager();
-	ID3D12DescriptorHeap* descriptorHeaps[] = { TexManager->GetTexture2DSRVHeapPtr() };
+	ID3D12DescriptorHeap* descriptorHeaps[] = { TexManager->GetSRVHeapPtr() };
 	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
 	auto PassConstantBuffer = TargetFrameResource->PassConstantBuffer->Resource();
@@ -69,7 +69,7 @@ void FRenderer::Render(const FRenderData& RenderData)
 	CommandList->SetGraphicsRootConstantBufferView(0, PassConstantBufferAdress);
 	auto MaterialConstantBuffer = TargetFrameResource->MaterialConstantBuffer->Resource();
 	CommandList->SetGraphicsRootShaderResourceView(3, MaterialConstantBuffer->GetGPUVirtualAddress());
-	auto TextureDescriptorHeap = GetTextureManager()->GetTexture2DSRVHeapPtr();
+	auto TextureDescriptorHeap = GetTextureManager()->GetSRVHeapPtr();
 	CommandList->SetGraphicsRootDescriptorTable(4, TextureDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 	if (bWireFrame)
 	{
@@ -79,7 +79,7 @@ void FRenderer::Render(const FRenderData& RenderData)
 	{
 		CD3DX12_GPU_DESCRIPTOR_HANDLE SkyDiffuseTextureHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(TextureDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 		SkyDiffuseTextureHandle.Offset(
-			GetTextureManager()->GetTextureCube("SkyDiffuse")->SRVHeapIndex,
+			GetTextureManager()->GetTextureCube("SkyIrradiance")->SRVHeapIndex,
 			GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()
 		);
 		CommandList->SetGraphicsRootDescriptorTable(5, SkyDiffuseTextureHandle);

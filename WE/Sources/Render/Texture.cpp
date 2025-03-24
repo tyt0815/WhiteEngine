@@ -62,7 +62,7 @@ std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> FTexture::GetStaticSamplers()
 FTextureManager::FTextureManager()
 {
 	BuildShaderResourceDescriptorHeap();
-	GetDXResourceManagerPtr()->FlushAndExecuteCommand(&FTextureManager::BuildTextures, this);
+	GetDXResourceManagerPtr()->ExecuteAndFlushCommand(&FTextureManager::BuildTextures, this);
 }
 
 FTextureManager::~FTextureManager()
@@ -106,7 +106,7 @@ void FTextureManager::UpdateTexture2D(std::string Name)
 	SRVDesc.Texture2D.MipLevels = TextureBuffer->GetDesc().MipLevels;
 	SRVDesc.Format = TextureBuffer->GetDesc().Format;
 
-	CD3DX12_CPU_DESCRIPTOR_HANDLE SRVHandle(mTexture2DSRVHeap->GetCPUDescriptorHandleForHeapStart());
+	CD3DX12_CPU_DESCRIPTOR_HANDLE SRVHandle(mSRVHeap->GetCPUDescriptorHandleForHeapStart());
 	SRVHandle.Offset(Texture->SRVHeapIndex, FDXResourceManager::GetInstance()->GetCBVSRVUAVDescriptorSize());
 	GetDXResourceManagerPtr()->GetDevicePtr()->CreateShaderResourceView(TextureBuffer, &SRVDesc, SRVHandle);
 }
@@ -123,9 +123,27 @@ void FTextureManager::UpdateTextureCube(std::string Name)
 	SRVDesc.Texture2D.MipLevels = TextureBuffer->GetDesc().MipLevels;
 	SRVDesc.Format = TextureBuffer->GetDesc().Format;
 
-	CD3DX12_CPU_DESCRIPTOR_HANDLE SRVHandle(mTexture2DSRVHeap->GetCPUDescriptorHandleForHeapStart());
+	CD3DX12_CPU_DESCRIPTOR_HANDLE SRVHandle(mSRVHeap->GetCPUDescriptorHandleForHeapStart());
 	SRVHandle.Offset(Texture->SRVHeapIndex, FDXResourceManager::GetInstance()->GetCBVSRVUAVDescriptorSize());
 	GetDXResourceManagerPtr()->GetDevicePtr()->CreateShaderResourceView(TextureBuffer, &SRVDesc, SRVHandle);
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE FTextureManager::GetCPUDescriptorHandle(int i) const
+{
+	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
+		mSRVHeap->GetCPUDescriptorHandleForHeapStart(),
+		i,
+		GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()
+	);
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE FTextureManager::GetGPUDescriptorHandle(int i) const
+{
+	return CD3DX12_GPU_DESCRIPTOR_HANDLE(
+		mSRVHeap->GetGPUDescriptorHandleForHeapStart(),
+		i,
+		GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()
+	);
 }
 
 void FTextureManager::BuildTextures(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
@@ -201,7 +219,7 @@ void FTextureManager::BuildShaderResourceDescriptorHeap()
 	THROW_IF_FAILED(
 		Device->CreateDescriptorHeap(
 			&SRVHeapDesc,
-			IID_PPV_ARGS(mTexture2DSRVHeap.GetAddressOf())
+			IID_PPV_ARGS(mSRVHeap.GetAddressOf())
 		)
 	);
 }

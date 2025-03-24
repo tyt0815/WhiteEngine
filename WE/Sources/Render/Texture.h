@@ -31,6 +31,8 @@ public:
 	void RegisterTextureCube(std::unique_ptr<FTexture> TextureCube);
 	void UpdateTexture2D(std::string Name);
 	void UpdateTextureCube(std::string Name);
+	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(int i) const;
+	D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(int i) const;
 
 private:
 	void BuildTextures(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
@@ -53,13 +55,13 @@ private:
 		ID3D12GraphicsCommandList* CommandList
 	);
 	void BuildShaderResourceDescriptorHeap();
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mTexture2DSRVHeap;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSRVHeap;
 	std::unordered_map<std::string, std::unique_ptr<FTexture>> mTexture2Ds;
 	std::unordered_map<std::string, std::unique_ptr<FTexture>> mTextureCubes;
 public:
-	inline ID3D12DescriptorHeap* GetTexture2DSRVHeapPtr() const
+	inline ID3D12DescriptorHeap* GetSRVHeapPtr() const
 	{
-		return mTexture2DSRVHeap.Get();
+		return mSRVHeap.Get();
 	}
 	inline FTexture* GetTexture2D(std::string Name) const
 	{
@@ -72,7 +74,7 @@ public:
 	inline FTexture* GetTextureCube(std::string Name) const
 	{
 		return (*mTextureCubes.find(Name)).second.get();
-	}	
+	}
 };
 
 inline FTextureManager* GetTextureManager()
