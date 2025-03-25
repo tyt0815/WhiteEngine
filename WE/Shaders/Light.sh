@@ -2,6 +2,7 @@
 #define LIGHT_SH
 
 #include "Math.sh"
+#include "Material.sh"
 
 #ifndef DIR_LIGHTS_NUM 
 #define DIR_LIGHTS_NUM 1
@@ -70,23 +71,19 @@ float GeometrySmith(float3 N, float3 V, float3 L, float Roughness)
 
 float3 ComputeDirectionalLight(
     FDirectionalLight Light,
+    FMaterial Material,
     float3 V,
-    float3 Albedo,
-    float Metallic,
     float3 N,
-    float Roughness,
     float3 F0
 )
 {
     float3 L = normalize(-Light.Direction);
     float3 H = normalize(V + L);
     
-    // ��缱 ���
     float3 Radiance = Light.Color;
         
-        // ��ũ-�䷻�� brdf
-    float NDF = DistributionGGX(N, H, Roughness);
-    float G = GeometrySmith(N, V, L, Roughness);
+    float NDF = DistributionGGX(N, H, Material.Roughness);
+    float G = GeometrySmith(N, V, L, Material.Roughness);
     float3 F = FresnelSchlick(max(dot(H, V), 0.0f), F0);
     
     float3 Numerator = NDF * G * F;
@@ -95,11 +92,11 @@ float3 ComputeDirectionalLight(
         
     float3 kS = F;
     float3 kD = (float3) 1.0f - kS;
-    kD *= 1.0f - Metallic;
+    kD *= 1.0f - Material.Metallic;
         
-        // ��缱�� Lo �߰�
+    
     float NDotL = max(dot(N, L), 0.0f);
-    return (kD * Albedo / PI + Specular) * Radiance * NDotL;
+    return (kD * Material.Albedo / PI + Specular) * Radiance * NDotL;
 }
 
 // float3 Pre

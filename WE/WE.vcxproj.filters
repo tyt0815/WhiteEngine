@@ -342,22 +342,22 @@
     <None Include="Shaders\Material.sh">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\CubeSkyCommon.sh">
+    <None Include="Shaders\SkyCubeMapCommon.sh">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\CubeSkyVertexShader.sf">
+    <None Include="Shaders\SkyCubeMapVertexShader.sf">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\CubeSkyPixelShader.sf">
+    <None Include="Shaders\SkyCubeMapPixelShader.sf">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\CubeSkyDiffuseMapCommon.sh">
+    <None Include="Shaders\SkyIrradianceCubeMapCommon.sh">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\CubeSkyDiffuseMapVertexShader.sf">
+    <None Include="Shaders\SkyIrradianceCubeMapVertexShader.sf">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\CubeSkyDiffuseMapPixelShader.sf">
+    <None Include="Shaders\SkyIrradianceCubeMapPixelShader.sf">
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shaders\Math.sh">

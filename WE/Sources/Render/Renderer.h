@@ -2,6 +2,7 @@
 
 #include <d3d12.h>
 #include <unordered_map>
+#include <memory>
 #include <vector>
 
 #include "GameFramework/Object/Actor/Actor.h"
@@ -33,6 +34,6 @@ public:
 
 private:
 	void DrawRenderItems(FFrameResource* FrameResource, ID3D12GraphicsCommandList* CommandList, const TPool<FRenderItemInfo>& RenderItems);
-	FCubeSkyRenderer* const CubeSkyRenderer;
+	std::unique_ptr<FCubeSkyRenderer> mSkyCubeMapRenderer;
 	bool bWireFrame = false;
 };

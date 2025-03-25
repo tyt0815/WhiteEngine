@@ -3,9 +3,8 @@
 
 struct FMaterial
 {
-    float4 DiffuseAlbedo;
-    float3 FresnelR0;
-    float Shininess;
+    float3 Albedo;
+    float Metallic;
+    float Roughness;
 };
-
 #endif

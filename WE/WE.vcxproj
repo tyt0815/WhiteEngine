@@ -106,12 +106,12 @@
     <None Include="Shaders\BillboardPixelShader.sf" />
     <None Include="Shaders\BillboardVertexShader.sf" />
     <None Include="Shaders\Common.sh" />
-    <None Include="Shaders\CubeSkyCommon.sh" />
-    <None Include="Shaders\CubeSkyDiffuseMapCommon.sh" />
-    <None Include="Shaders\CubeSkyDiffuseMapPixelShader.sf" />
-    <None Include="Shaders\CubeSkyDiffuseMapVertexShader.sf" />
-    <None Include="Shaders\CubeSkyPixelShader.sf" />
-    <None Include="Shaders\CubeSkyVertexShader.sf" />
+    <None Include="Shaders\SkyCubeMapCommon.sh" />
+    <None Include="Shaders\SkyIrradianceCubeMapCommon.sh" />
+    <None Include="Shaders\SkyIrradianceCubeMapPixelShader.sf" />
+    <None Include="Shaders\SkyIrradianceCubeMapVertexShader.sf" />
+    <None Include="Shaders\SkyCubeMapPixelShader.sf" />
+    <None Include="Shaders\SkyCubeMapVertexShader.sf" />
     <None Include="Shaders\ForwardLitCommon.sh">
       <FileType>Document</FileType>
     </None>

@@ -15,7 +15,7 @@
 #include "RenderItemManager.h"
 
 FRenderer::FRenderer():
-	CubeSkyRenderer(FCubeSkyRenderer::GetInstance())
+	mSkyCubeMapRenderer(std::make_unique<FCubeSkyRenderer>(std::string("Desert")))
 {
 	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
 }
@@ -69,20 +69,17 @@ void FRenderer::Render(const FRenderData& RenderData)
 	CommandList->SetGraphicsRootConstantBufferView(0, PassConstantBufferAdress);
 	auto MaterialConstantBuffer = TargetFrameResource->MaterialConstantBuffer->Resource();
 	CommandList->SetGraphicsRootShaderResourceView(3, MaterialConstantBuffer->GetGPUVirtualAddress());
-	auto TextureDescriptorHeap = GetTextureManager()->GetSRVHeapPtr();
-	CommandList->SetGraphicsRootDescriptorTable(4, TextureDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+	CommandList->SetGraphicsRootDescriptorTable(4, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
 	if (bWireFrame)
 	{
 		// TODO
 	}
 	else
 	{
-		CD3DX12_GPU_DESCRIPTOR_HANDLE SkyDiffuseTextureHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(TextureDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
-		SkyDiffuseTextureHandle.Offset(
-			GetTextureManager()->GetTextureCube("SkyIrradiance")->SRVHeapIndex,
-			GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()
+		CommandList->SetGraphicsRootDescriptorTable(
+			5, 
+			GetTextureManager()->GetTextureCubeGPUDescriptorHandle(mSkyCubeMapRenderer->GetSkyIrradianceCubeMapSRVHeapIndex())
 		);
-		CommandList->SetGraphicsRootDescriptorTable(5, SkyDiffuseTextureHandle);
 		for (size_t i = 0; i < ESM_None; ++i)
 		{
 			EShadingModel ShadingModel = static_cast<EShadingModel>(i);
@@ -95,7 +92,7 @@ void FRenderer::Render(const FRenderData& RenderData)
 		}
 	}
 	
-	CubeSkyRenderer->Render(CommandList);
+	mSkyCubeMapRenderer->Render(CommandList);
 	////////////////////////////////////////////////////////////////////////////////
 
 	ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(

@@ -4,61 +4,6 @@
 #include "DirectX/DXException.h"
 #include "DirectX/DXResourceManager.h"
 
-std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> FTexture::GetStaticSamplers()
-{
-	const CD3DX12_STATIC_SAMPLER_DESC pointWrap(
-		0, // shaderRegister
-		D3D12_FILTER_MIN_MAG_MIP_POINT, // filter
-		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressU
-		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressV
-		D3D12_TEXTURE_ADDRESS_MODE_WRAP); // addressW
-
-	const CD3DX12_STATIC_SAMPLER_DESC pointClamp(
-		1, // shaderRegister
-		D3D12_FILTER_MIN_MAG_MIP_POINT, // filter
-		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // addressU
-		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // addressV
-		D3D12_TEXTURE_ADDRESS_MODE_CLAMP); // addressW
-
-	const CD3DX12_STATIC_SAMPLER_DESC linearWrap(
-		2, // shaderRegister
-		D3D12_FILTER_MIN_MAG_MIP_LINEAR, // filter
-		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressU
-		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressV
-		D3D12_TEXTURE_ADDRESS_MODE_WRAP); // addressW
-
-	const CD3DX12_STATIC_SAMPLER_DESC linearClamp(
-		3, // shaderRegister
-		D3D12_FILTER_MIN_MAG_MIP_LINEAR, // filter
-		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // addressU
-		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // addressV
-		D3D12_TEXTURE_ADDRESS_MODE_CLAMP); // addressW
-
-	const CD3DX12_STATIC_SAMPLER_DESC anisotropicWrap(
-		4, // shaderRegister
-		D3D12_FILTER_ANISOTROPIC, // filter
-		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressU
-		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressV
-		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressW
-		0.0f,                             // mipLODBias
-		8);                               // maxAnisotropy
-
-	const CD3DX12_STATIC_SAMPLER_DESC anisotropicClamp(
-		5, // shaderRegister
-		D3D12_FILTER_ANISOTROPIC, // filter
-		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // addressU
-		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // addressV
-		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // addressW
-		0.0f,                              // mipLODBias
-		8);                                // maxAnisotropy
-
-	return {
-		pointWrap, pointClamp,
-		linearWrap, linearClamp,
-		anisotropicWrap, anisotropicClamp 
-	};
-}
-
 FTextureManager::FTextureManager()
 {
 	BuildShaderResourceDescriptorHeap();
@@ -89,7 +34,7 @@ void FTextureManager::RegisterTextureCube(std::unique_ptr<FTexture> TextureCube)
 		throw L"최대 텍스처수 초과";
 	}
 	std::string Name = TextureCube->Name;
-	TextureCube->SRVHeapIndex = TEXTURE2D_NUM + (UINT)mTextureCubes.size();
+	TextureCube->SRVHeapIndex = (UINT)mTextureCubes.size();
 	mTextureCubes[Name] = std::move(TextureCube);
 	UpdateTextureCube(Name);
 }
@@ -106,9 +51,11 @@ void FTextureManager::UpdateTexture2D(std::string Name)
 	SRVDesc.Texture2D.MipLevels = TextureBuffer->GetDesc().MipLevels;
 	SRVDesc.Format = TextureBuffer->GetDesc().Format;
 
-	CD3DX12_CPU_DESCRIPTOR_HANDLE SRVHandle(mSRVHeap->GetCPUDescriptorHandleForHeapStart());
-	SRVHandle.Offset(Texture->SRVHeapIndex, FDXResourceManager::GetInstance()->GetCBVSRVUAVDescriptorSize());
-	GetDXResourceManagerPtr()->GetDevicePtr()->CreateShaderResourceView(TextureBuffer, &SRVDesc, SRVHandle);
+	GetDXResourceManagerPtr()->GetDevicePtr()->CreateShaderResourceView(
+		TextureBuffer,
+		&SRVDesc,
+		GetTexture2DCPUDescriptorHandle(Texture->SRVHeapIndex)
+	);
 }
 
 void FTextureManager::UpdateTextureCube(std::string Name)
@@ -122,25 +69,72 @@ void FTextureManager::UpdateTextureCube(std::string Name)
 	ID3D12Resource* TextureBuffer = Texture->Resource.Get();
 	SRVDesc.Texture2D.MipLevels = TextureBuffer->GetDesc().MipLevels;
 	SRVDesc.Format = TextureBuffer->GetDesc().Format;
-
-	CD3DX12_CPU_DESCRIPTOR_HANDLE SRVHandle(mSRVHeap->GetCPUDescriptorHandleForHeapStart());
-	SRVHandle.Offset(Texture->SRVHeapIndex, FDXResourceManager::GetInstance()->GetCBVSRVUAVDescriptorSize());
-	GetDXResourceManagerPtr()->GetDevicePtr()->CreateShaderResourceView(TextureBuffer, &SRVDesc, SRVHandle);
+	GetDXResourceManagerPtr()->GetDevicePtr()->CreateShaderResourceView(
+		TextureBuffer,
+		&SRVDesc,
+		GetTextureCubeCPUDescriptorHandle(Texture->SRVHeapIndex)
+	);
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE FTextureManager::GetCPUDescriptorHandle(int i) const
+D3D12_CPU_DESCRIPTOR_HANDLE FTextureManager::GetTexture2DCPUSRVForHeapStart() const
+{
+	return mSRVHeap->GetCPUDescriptorHandleForHeapStart();
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE FTextureManager::GetTextureCubeCPUSRVForHeapStart() const
 {
 	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
 		mSRVHeap->GetCPUDescriptorHandleForHeapStart(),
+		TEXTURE2D_NUM,
+		GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()
+		);
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE FTextureManager::GetTexture2DGPUSRVForHeapStart() const
+{
+	return mSRVHeap->GetGPUDescriptorHandleForHeapStart();
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE FTextureManager::GetTextureCubeGPUSRVForHeapStart() const
+{
+	return CD3DX12_GPU_DESCRIPTOR_HANDLE(
+		mSRVHeap->GetGPUDescriptorHandleForHeapStart(),
+		TEXTURE2D_NUM, 
+		GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()
+	);
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE FTextureManager::GetTexture2DCPUDescriptorHandle(int i) const
+{
+	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
+		GetTexture2DCPUSRVForHeapStart(),
 		i,
 		GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()
 	);
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE FTextureManager::GetGPUDescriptorHandle(int i) const
+D3D12_CPU_DESCRIPTOR_HANDLE FTextureManager::GetTextureCubeCPUDescriptorHandle(int i) const
+{
+	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
+		GetTextureCubeCPUSRVForHeapStart(),
+		i,
+		GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()
+	);
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE FTextureManager::GetTexture2DGPUDescriptorHandle(int i) const
 {
 	return CD3DX12_GPU_DESCRIPTOR_HANDLE(
-		mSRVHeap->GetGPUDescriptorHandleForHeapStart(),
+		GetTexture2DGPUSRVForHeapStart(),
+		i,
+		GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()
+	);
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE FTextureManager::GetTextureCubeGPUDescriptorHandle(int i) const
+{
+	return CD3DX12_GPU_DESCRIPTOR_HANDLE(
+		GetTextureCubeGPUSRVForHeapStart(),
 		i,
 		GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()
 	);

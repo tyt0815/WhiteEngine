@@ -99,40 +99,7 @@ void FFrameResourceManager::BuildRootSignature()
 	RootParameter[4].InitAsDescriptorTable(1, &TextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// TextureTable
 	RootParameter[5].InitAsDescriptorTable(1, &CubeTextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// CubeTextureTable
 
-	auto StaticSamplers = FTexture::GetStaticSamplers();
-
-	CD3DX12_ROOT_SIGNATURE_DESC RootSignatureDesc(
-		ROOT_PARAMETERs_NUM,
-		RootParameter,
-		(UINT)StaticSamplers.size(),
-		StaticSamplers.data(),
-		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
-	);
-
-	Microsoft::WRL::ComPtr<ID3DBlob> SerializedRootSignature = nullptr;
-	Microsoft::WRL::ComPtr<ID3DBlob> ErrorBlob = nullptr;
-	HRESULT HResult = D3D12SerializeRootSignature(
-		&RootSignatureDesc,
-		D3D_ROOT_SIGNATURE_VERSION_1,
-		SerializedRootSignature.GetAddressOf(),
-		ErrorBlob.GetAddressOf()
-	);
-
-	if (ErrorBlob != nullptr)
-	{
-		::OutputDebugStringA((char*)ErrorBlob->GetBufferPointer());
-	}
-	THROW_IF_FAILED(HResult);
-
-	ID3D12Device* Device = GetDXResourceManagerPtr()->GetDevicePtr();
-	THROW_IF_FAILED(
-		Device->CreateRootSignature(
-			0,
-			SerializedRootSignature->GetBufferPointer(),
-			SerializedRootSignature->GetBufferSize(),
-			IID_PPV_ARGS(mRootSignature.GetAddressOf())
-		)
-	)
+	FDXUtility::BuildRootSignature(RootParameter, ROOT_PARAMETERs_NUM, mRootSignature.GetAddressOf());
 }
 
 void FFrameResourceManager::UpdatePassCB()

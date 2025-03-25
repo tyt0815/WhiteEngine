@@ -78,12 +78,12 @@ D3D12_CPU_DESCRIPTOR_HANDLE FCubeRenderTarget::GetRTV(int FaceIndex, int MipLeve
 
 D3D12_CPU_DESCRIPTOR_HANDLE FCubeRenderTarget::GetCubeMapCPUDescriptorHeap() const
 {
-	return GetTextureManager()->GetCPUDescriptorHandle(mTexture->SRVHeapIndex);
+	return GetTextureManager()->GetTextureCubeCPUDescriptorHandle(mTexture->SRVHeapIndex);
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE FCubeRenderTarget::GetCubeMapGPUDescriptorHeap() const
 {
-	return GetTextureManager()->GetGPUDescriptorHandle(mTexture->SRVHeapIndex);
+	return GetTextureManager()->GetTextureCubeGPUDescriptorHandle(mTexture->SRVHeapIndex);
 }
 
 void FCubeRenderTarget::OnResize(UINT Width, UINT Height)
@@ -139,10 +139,6 @@ void FCubeRenderTarget::BuildRTVAndDSV()
 		nullptr,
 		mDSVHeap->GetCPUDescriptorHandleForHeapStart()
 	);
-
-	FTextureManager* TexManager = GetTextureManager();
-	ID3D12DescriptorHeap* SRVHeap = TexManager->GetSRVHeapPtr();
-	UINT CBVSRVUAVDescriptorSize = DXManager->GetCBVSRVUAVDescriptorSize();
 }
 
 void FCubeRenderTarget::BuildDescriptors()

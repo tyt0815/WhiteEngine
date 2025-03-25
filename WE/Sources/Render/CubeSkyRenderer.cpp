@@ -6,12 +6,14 @@
 #include "MeshGeometry.h"
 #include "CubeRenderTarget.h"
 #include "ShapeDrawer.h"
+#include "GameFramework/Object/World/World.h"
+#include "GameFramework/Object/Component/CameraComponent.h"
 
 FCubeSkyIrradianceMapRenderer::FCubeSkyIrradianceMapRenderer(FCubeRenderTarget* CubeRenderTarget):
 	mCubeRenderTarget(CubeRenderTarget)
 {
 	// Build CB
-	mTempCB = std::make_unique <TUploadBuffer<FTempCB>>(
+	mTempCB = std::make_unique <TUploadBuffer<FConstantBuffers>>(
 		GetDXResourceManagerPtr()->GetDevicePtr(),
 		6,
 		true
@@ -21,7 +23,7 @@ FCubeSkyIrradianceMapRenderer::FCubeSkyIrradianceMapRenderer(FCubeRenderTarget* 
 	XMMATRIX P = XMMatrixPerspectiveFovLH(FDXMath::Pi / 2, 1.0f, 0.1f, 10.0f);
 	for (int i = 0; i < 6; ++i)
 	{
-		FTempCB CB;
+		FConstantBuffers CB;
 		XMMATRIX V = XMLoadFloat4x4(&CubeViews[i]);
 		XMMATRIX VP = XMMatrixMultiply(V, P);
 		XMStoreFloat4x4(&CB.View, XMMatrixTranspose(V));
@@ -40,51 +42,22 @@ FCubeSkyIrradianceMapRenderer::FCubeSkyIrradianceMapRenderer(FCubeRenderTarget* 
 	RootParameter[0].InitAsConstantBufferView(0);
 	RootParameter[1].InitAsDescriptorTable(1, &CubeTextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// CubeTextureTable
 
-	auto StaticSamplers = FTexture::GetStaticSamplers();
-
-	CD3DX12_ROOT_SIGNATURE_DESC RootSignatureDesc(
-		ROOT_PARAMETERs_NUM,
+	FDXUtility::BuildRootSignature(
 		RootParameter,
-		(UINT)StaticSamplers.size(),
-		StaticSamplers.data(),
-		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
-	);
-
-	Microsoft::WRL::ComPtr<ID3DBlob> SerializedRootSignature = nullptr;
-	Microsoft::WRL::ComPtr<ID3DBlob> ErrorBlob = nullptr;
-	HRESULT HResult = D3D12SerializeRootSignature(
-		&RootSignatureDesc,
-		D3D_ROOT_SIGNATURE_VERSION_1,
-		SerializedRootSignature.GetAddressOf(),
-		ErrorBlob.GetAddressOf()
-	);
-
-	if (ErrorBlob != nullptr)
-	{
-		::OutputDebugStringA((char*)ErrorBlob->GetBufferPointer());
-	}
-	THROW_IF_FAILED(HResult);
-
-	ID3D12Device* Device = GetDXResourceManagerPtr()->GetDevicePtr();
-	THROW_IF_FAILED(
-		Device->CreateRootSignature(
-			0,
-			SerializedRootSignature->GetBufferPointer(),
-			SerializedRootSignature->GetBufferSize(),
-			IID_PPV_ARGS(mRootSignature.GetAddressOf())
-		)
+		ROOT_PARAMETERs_NUM,
+		mRootSignature.GetAddressOf()
 	);
 
 	// Compile Shader
 	mVertexShader = FDXUtility::CompileShader(
-		L"Shaders\\CubeSkyDiffuseMapVertexShader.sf",
+		L"Shaders\\SkyIrradianceCubeMapVertexShader.sf",
 		nullptr,
 		"MainVS",
 		"vs_5_1"
 	);
 
 	mPixelShader = FDXUtility::CompileShader(
-		L"Shaders\\CubeSkyDiffuseMapPixelShader.sf",
+		L"Shaders\\SkyIrradianceCubeMapPixelShader.sf",
 		nullptr,
 		"MainPS",
 		"ps_5_1"
@@ -93,7 +66,7 @@ FCubeSkyIrradianceMapRenderer::FCubeSkyIrradianceMapRenderer(FCubeRenderTarget* 
 	// Create PipelineState Object
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC DiffuseCubeSkyPSDesc;
 	ZeroMemory(&DiffuseCubeSkyPSDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
-	auto mInputLayout = GetShapeDrawer()->GetDrawingSphereInputLayouts();
+	auto mInputLayout = GetDrawingSphereInputLayouts();
 	DiffuseCubeSkyPSDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
 	DiffuseCubeSkyPSDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	DiffuseCubeSkyPSDesc.SampleMask = UINT_MAX;
@@ -166,10 +139,7 @@ void FCubeSkyIrradianceMapRenderer::Internal_Render(ID3D12Device* Device, ID3D12
 	ID3D12DescriptorHeap* SRVHeap = GetTextureManager()->GetSRVHeapPtr();
 	ID3D12DescriptorHeap* descriptorHeaps[] = { SRVHeap };
 	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
-
-	CD3DX12_GPU_DESCRIPTOR_HANDLE SRVHandle(SRVHeap->GetGPUDescriptorHandleForHeapStart());
-	SRVHandle.Offset(mSkyTextureCube->SRVHeapIndex, GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize());
-	CommandList->SetGraphicsRootDescriptorTable(1, SRVHandle);
+	CommandList->SetGraphicsRootDescriptorTable(1, GetTextureManager()->GetTextureCubeGPUDescriptorHandle(mSkyTextureCube->SRVHeapIndex));
 	for (int i = 0; i < 6; ++i)
 	{
 		for (UINT j = 0; j < mCubeRenderTarget->GetMipLevels(); ++j)
@@ -193,11 +163,11 @@ void FCubeSkyIrradianceMapRenderer::Internal_Render(ID3D12Device* Device, ID3D12
 
 			CommandList->OMSetRenderTargets(1, &RTV, true, &DSV);
 			ID3D12Resource* TempCB = mTempCB->Resource();
-			UINT CBSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FTempCB));
+			UINT CBSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FConstantBuffers));
 			D3D12_GPU_VIRTUAL_ADDRESS CBAddress = TempCB->GetGPUVirtualAddress() + (i * CBSize);
 			CommandList->SetGraphicsRootConstantBufferView(0, CBAddress);
 
-			GetShapeDrawer()->DrawSphere(CommandList);
+			DrawSphere(CommandList);
 		}
 	}
 
@@ -223,47 +193,38 @@ void FCubeSkyIrradianceMapRenderer::Internal_Render(ID3D12Device* Device, ID3D12
 	);
 }
 
-
-FCubeSkyRenderer::FCubeSkyRenderer() :
-	mSkyTextureCube(GetTextureManager()->GetTextureCube("Desert"))
+FCubeSkyRenderer::FCubeSkyRenderer(std::string SkyCubeMapName):
+	mSkyTextureCube(GetTextureManager()->GetTextureCube(SkyCubeMapName))
 {
+	BuildCBs();
+	BuildRootSignature();
 	BuildShaderAndInputLayout();
 	BuildPipelineStateObject();
-	mSkyIrradianceMapName = "SkyIrradiance";
-	mSkyIrradianceMapRenderTarget = std::make_unique<FCubeRenderTarget>(
-		mSkyIrradianceMapName,
-		(UINT)mSkyTextureCube->Resource->GetDesc().Width,
-		(UINT)mSkyTextureCube->Resource->GetDesc().Height
-	);
-	FCubeSkyIrradianceMapRenderer IrradianceMapRenderer(mSkyIrradianceMapRenderTarget.get());
-	IrradianceMapRenderer.Render(mSkyTextureCube);
-}
-
-FCubeSkyRenderer::~FCubeSkyRenderer()
-{
+	CraeteIrradianceMap();
 }
 
 void FCubeSkyRenderer::Render(ID3D12GraphicsCommandList* CommandList)
 {
+	UpdateCBs();
 	CommandList->SetPipelineState(mPipelineState.Get());
-	CD3DX12_GPU_DESCRIPTOR_HANDLE SRVHandle(GetTextureManager()->GetSRVHeapPtr()->GetGPUDescriptorHandleForHeapStart());
-	SRVHandle.Offset(mSkyTextureCube->SRVHeapIndex, GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize());
-	CommandList->SetGraphicsRootDescriptorTable(5, SRVHandle);
+	CommandList->SetGraphicsRootSignature(mRootSignature.Get());
+	CommandList->SetGraphicsRootConstantBufferView(0, mCB->Resource()->GetGPUVirtualAddress());
+	CommandList->SetGraphicsRootDescriptorTable(1, GetTextureManager()->GetTextureCubeGPUDescriptorHandle(mSkyTextureCube->SRVHeapIndex));
 
-	GetShapeDrawer()->DrawSphere(CommandList);
+	DrawSphere(CommandList);
 }
 
 void FCubeSkyRenderer::BuildShaderAndInputLayout()
 {
 	mVertexShader = FDXUtility::CompileShader(
-		L"Shaders\\CubeSkyVertexShader.sf",
+		L"Shaders\\SkyCubeMapVertexShader.sf",
 		nullptr,
 		"MainVS",
 		"vs_5_1"
 	);
 
 	mPixelShader = FDXUtility::CompileShader(
-		L"Shaders\\CubeSkyPixelShader.sf",
+		L"Shaders\\SkyCubeMapPixelShader.sf",
 		nullptr,
 		"MainPS",
 		"ps_5_1"
@@ -271,9 +232,7 @@ void FCubeSkyRenderer::BuildShaderAndInputLayout()
 
 	mInputLayout =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 	};
 }
 
@@ -282,7 +241,7 @@ void FCubeSkyRenderer::BuildPipelineStateObject()
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC CubeSkyPSDesc;
 	ZeroMemory(&CubeSkyPSDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 	CubeSkyPSDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
-	CubeSkyPSDesc.pRootSignature = GetFrameResourceManager()->GetRootSignaturePtr();
+	CubeSkyPSDesc.pRootSignature = mRootSignature.Get();
 	CubeSkyPSDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	CubeSkyPSDesc.SampleMask = UINT_MAX;
 	CubeSkyPSDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -312,4 +271,58 @@ void FCubeSkyRenderer::BuildPipelineStateObject()
 		)
 	);
 	
+}
+
+void FCubeSkyRenderer::BuildCBs()
+{
+	mCB = std::make_unique<TUploadBuffer<FConstantBuffers>>(
+		GetDXResourceManagerPtr()->GetDevicePtr(),
+		1,
+		true
+	);
+}
+
+void FCubeSkyRenderer::BuildRootSignature()
+{
+	CD3DX12_DESCRIPTOR_RANGE CubeTextureTable;
+	CubeTextureTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+
+	// Tip: 자주 사용되는 것일수록 작은 인덱스에 보관하는게 퍼포먼스가 좋음
+	constexpr UINT ROOT_PARAMETERs_NUM = 2;
+	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERs_NUM];
+	RootParameter[0].InitAsConstantBufferView(0);
+	RootParameter[1].InitAsDescriptorTable(1, &CubeTextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// CubeTextureTable
+
+	FDXUtility::BuildRootSignature(
+		RootParameter,
+		ROOT_PARAMETERs_NUM,
+		mRootSignature.GetAddressOf()
+	);
+}
+
+void FCubeSkyRenderer::CraeteIrradianceMap()
+{
+	mSkyIrradianceMapName = mSkyTextureCube->Name + "_Irradiance";
+	mSkyIrradianceMapRenderTarget = std::make_unique<FCubeRenderTarget>(
+		mSkyIrradianceMapName,
+		(UINT)mSkyTextureCube->Resource->GetDesc().Width,
+		(UINT)mSkyTextureCube->Resource->GetDesc().Height
+	);
+	SkyIrradianceCubeMapSRVHeapIndex = mSkyIrradianceMapRenderTarget->mTexture->SRVHeapIndex;
+	FCubeSkyIrradianceMapRenderer IrradianceMapRenderer(mSkyIrradianceMapRenderTarget.get());
+	IrradianceMapRenderer.Render(mSkyTextureCube);
+}
+
+void FCubeSkyRenderer::UpdateCBs()
+{
+	WCameraComponent* Camera = GetWorld()->GetPlayerCamera();
+	FConstantBuffers CB;
+	CB.gEyePosW = Camera->GetLocation();
+	XMFLOAT4X4 View = Camera->GetViewMatrix();
+	XMFLOAT4X4 Proj = Camera->GetProjMatrix();
+	XMMATRIX V = XMLoadFloat4x4(&View);
+	XMMATRIX P = XMLoadFloat4x4(&Proj);
+	XMMATRIX VP = V * P;
+	XMStoreFloat4x4(&CB.gViewProj, XMMatrixTranspose(VP));
+	mCB->CopyData(0, CB);
 }

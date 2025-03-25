@@ -1,6 +1,0 @@
-#include "CubeSkyCommon.sh"
-
-float4 MainPS(FVertexOut PIn) : SV_Target
-{
-    return gTextureCube.Sample(gsamLinearWrap, PIn.PosL);
-}

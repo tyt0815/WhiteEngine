@@ -6,13 +6,14 @@
 #include "UploadBuffer.h"
 #include "DirectX/DXMath.h"
 #include "Utility/Class.h"
+#include "CubeRenderTarget.h"
 
 class FTexture;
 class FCubeRenderTarget;
 
-class FCubeSkyIrradianceMapRenderer
+class FCubeSkyIrradianceMapRenderer : FNoncopyable
 {
-	struct FTempCB
+	struct FConstantBuffers
 	{
 		XMFLOAT4X4 View;
 		XMFLOAT4X4 Proj;
@@ -29,25 +30,45 @@ private:
 	Microsoft::WRL::ComPtr<ID3DBlob> mPixelShader;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> mPipelineState;
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
-	std::unique_ptr<TUploadBuffer<FTempCB>> mTempCB;
+	std::unique_ptr<TUploadBuffer<FConstantBuffers>> mTempCB;
 	FCubeRenderTarget* mCubeRenderTarget;
 	FTexture* mSkyTextureCube = nullptr;
 };
 
-class FCubeSkyRenderer
+class FCubeSkyRenderer : FNoncopyable
 {
-	SINGLETON(FCubeSkyRenderer);
+	struct FConstantBuffers
+	{
+		XMFLOAT4X4 gViewProj;
+		XMFLOAT3 gEyePosW;
+		UINT Pad1;
+	};
 public:
+	FCubeSkyRenderer(std::string SkyCubeMapName);
+	FCubeSkyRenderer() = delete;
 	virtual void Render(ID3D12GraphicsCommandList* CommandList);
 
 private:
 	void BuildShaderAndInputLayout();
 	void BuildPipelineStateObject();
+	void BuildCBs();
+	void BuildRootSignature();
+	void CraeteIrradianceMap();
+	void UpdateCBs();
+	Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
 	Microsoft::WRL::ComPtr<ID3DBlob> mVertexShader;
 	Microsoft::WRL::ComPtr<ID3DBlob> mPixelShader;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> mPipelineState;
 	std::unique_ptr<FCubeRenderTarget> mSkyIrradianceMapRenderTarget;
+	std::unique_ptr<TUploadBuffer<FConstantBuffers>> mCB;
 	FTexture* mSkyTextureCube = nullptr;
 	std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
 	std::string mSkyIrradianceMapName;
+	UINT SkyIrradianceCubeMapSRVHeapIndex;
+
+public:
+	inline UINT GetSkyIrradianceCubeMapSRVHeapIndex() const
+	{
+		return SkyIrradianceCubeMapSRVHeapIndex;
+	}
 };

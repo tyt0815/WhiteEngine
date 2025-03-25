@@ -1,6 +1,5 @@
 #pragma once
 
-#include <array>
 #include <memory>
 #include <unordered_map>
 #include <wrl.h>
@@ -8,13 +7,12 @@
 #include "Utility/Class.h"
 #include "Utility/String.h"
 
-constexpr UINT TEXTURE2D_NUM = 1000;
-constexpr UINT TEXTURECUBE_NUM = 24;
+constexpr UINT TEXTURE2D_NUM = 1024;
+constexpr UINT TEXTURECUBE_NUM = 1024;
 
 class FTexture
 {
 public:
-	static std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> GetStaticSamplers();
 
 	// Unique material name for lookup.
 	std::string Name;
@@ -31,8 +29,14 @@ public:
 	void RegisterTextureCube(std::unique_ptr<FTexture> TextureCube);
 	void UpdateTexture2D(std::string Name);
 	void UpdateTextureCube(std::string Name);
-	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(int i) const;
-	D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(int i) const;
+	D3D12_CPU_DESCRIPTOR_HANDLE GetTexture2DCPUSRVForHeapStart() const;
+	D3D12_CPU_DESCRIPTOR_HANDLE GetTextureCubeCPUSRVForHeapStart() const;
+	D3D12_GPU_DESCRIPTOR_HANDLE GetTexture2DGPUSRVForHeapStart() const;
+	D3D12_GPU_DESCRIPTOR_HANDLE GetTextureCubeGPUSRVForHeapStart() const;
+	D3D12_CPU_DESCRIPTOR_HANDLE GetTexture2DCPUDescriptorHandle(int i) const;
+	D3D12_CPU_DESCRIPTOR_HANDLE GetTextureCubeCPUDescriptorHandle(int i) const;
+	D3D12_GPU_DESCRIPTOR_HANDLE GetTexture2DGPUDescriptorHandle(int i) const;
+	D3D12_GPU_DESCRIPTOR_HANDLE GetTextureCubeGPUDescriptorHandle(int i) const;
 
 private:
 	void BuildTextures(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);

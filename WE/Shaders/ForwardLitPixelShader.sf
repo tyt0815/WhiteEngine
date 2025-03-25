@@ -3,10 +3,10 @@
 float4 MainPS(FVSOutput PIn) : SV_Target
 {
     FMaterialSB MaterialData = gMaterialData[gMaterialIndex];
-    
-    float3 Albedo = pow(gTexture[MaterialData.AlbedoTextureIndex].Sample(gsamLinearWrap, PIn.TexC).rgb, 2.2); // 감마 보정된 값을 원래대로 돌리기 위해 2.2제곱
-    float Metallic = gTexture[MaterialData.MetallicTextureIndex].Sample(gsamLinearWrap, PIn.TexC).r;
-    float Roughness = gTexture[MaterialData.RoughneesTextureIndex].Sample(gsamLinearWrap, PIn.TexC).r;
+    FMaterial Material;
+    Material.Albedo = pow(gTexture[MaterialData.AlbedoTextureIndex].Sample(gsamLinearWrap, PIn.TexC).rgb, 2.2); // 감마 보정된 값을 원래대로 돌리기 위해 2.2제곱
+    Material.Metallic = gTexture[MaterialData.MetallicTextureIndex].Sample(gsamLinearWrap, PIn.TexC).r;
+    Material.Roughness = gTexture[MaterialData.RoughneesTextureIndex].Sample(gsamLinearWrap, PIn.TexC).r;
     
 #ifdef ALPHA_TEST
     // TODO
@@ -18,21 +18,21 @@ float4 MainPS(FVSOutput PIn) : SV_Target
     float3 R = reflect(-V, N);
     
     float3 F0 = (float3)0.04;
-    F0 = lerp(F0, Albedo, Metallic);
+    F0 = lerp(F0, Material.Albedo, Material.Metallic);
     
     float3 Lo = (float3)0.0f;
     
     // DirectionalLight 
     for (int i = 0; i < DIR_LIGHTS_NUM; ++i)
     {
-        Lo += ComputeDirectionalLight(gDirectionalLights[i], V, Albedo, Metallic, N, Roughness, F0);
+        Lo += ComputeDirectionalLight(gDirectionalLights[i], Material, V,  N, F0);
     }
     
     float3 kS = FresnelSchlick(max(dot(N, V), 0.0f), F0);
     float3 kD = 1.0f - kS;
-    kD *= 1.0f - Metallic;
+    kD *= 1.0f - Material.Metallic;
     float3 Irradiance = gTextureCube.Sample(gsamLinearWrap, N).rgb;
-    float3 Diffuse = Irradiance * Albedo;
+    float3 Diffuse = Irradiance * Material.Albedo;
     // TODO: AO 적용. float3(1.0f)를 AO로 변경
     float3 Ambient = (kD * Diffuse) * (float3) 1.0f;
     
