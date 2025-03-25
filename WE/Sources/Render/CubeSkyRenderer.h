@@ -18,6 +18,10 @@ class FCubeSkyIrradianceMapRenderer : FNoncopyable
 		XMFLOAT4X4 View;
 		XMFLOAT4X4 Proj;
 		XMFLOAT4X4 ViewProj;
+		UINT SkyCubeMapIndex;
+		UINT Pad1;
+		UINT Pad2;
+		UINT Pad3;
 	};
 public:
 	FCubeSkyIrradianceMapRenderer(FCubeRenderTarget* CubeRenderTarget);
@@ -41,7 +45,7 @@ class FCubeSkyRenderer : FNoncopyable
 	{
 		XMFLOAT4X4 gViewProj;
 		XMFLOAT3 gEyePosW;
-		UINT Pad1;
+		UINT SkyCubeMapIndex;
 	};
 public:
 	FCubeSkyRenderer(std::string SkyCubeMapName);

@@ -31,7 +31,7 @@ float4 MainPS(FVSOutput PIn) : SV_Target
     float3 kS = FresnelSchlick(max(dot(N, V), 0.0f), F0);
     float3 kD = 1.0f - kS;
     kD *= 1.0f - Material.Metallic;
-    float3 Irradiance = gTextureCube.Sample(gsamLinearWrap, N).rgb;
+    float3 Irradiance = gTextureCube[gSkyIrradianceCubeMapIndex].Sample(gsamLinearWrap, N).rgb;
     float3 Diffuse = Irradiance * Material.Albedo;
     // TODO: AO 적용. float3(1.0f)를 AO로 변경
     float3 Ambient = (kD * Diffuse) * (float3) 1.0f;

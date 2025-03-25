@@ -70,16 +70,13 @@ void FRenderer::Render(const FRenderData& RenderData)
 	auto MaterialConstantBuffer = TargetFrameResource->MaterialConstantBuffer->Resource();
 	CommandList->SetGraphicsRootShaderResourceView(3, MaterialConstantBuffer->GetGPUVirtualAddress());
 	CommandList->SetGraphicsRootDescriptorTable(4, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
+	CommandList->SetGraphicsRootDescriptorTable(5, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
 	if (bWireFrame)
 	{
 		// TODO
 	}
 	else
 	{
-		CommandList->SetGraphicsRootDescriptorTable(
-			5, 
-			GetTextureManager()->GetTextureCubeGPUDescriptorHandle(mSkyCubeMapRenderer->GetSkyIrradianceCubeMapSRVHeapIndex())
-		);
 		for (size_t i = 0; i < ESM_None; ++i)
 		{
 			EShadingModel ShadingModel = static_cast<EShadingModel>(i);

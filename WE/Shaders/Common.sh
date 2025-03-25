@@ -2,6 +2,9 @@
 #define COMMON_SH
 #include "Math.sh"    
 
+Texture2D gTexture[1024] : register(t0, space0);
+TextureCube gTextureCube[1024] : register(t0, space1);
+
 SamplerState gsamPointWrap : register(s0);
 SamplerState gsamPointClamp : register(s1);
 SamplerState gsamLinearWrap : register(s2);

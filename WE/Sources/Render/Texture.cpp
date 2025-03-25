@@ -69,6 +69,7 @@ void FTextureManager::UpdateTextureCube(std::string Name)
 	ID3D12Resource* TextureBuffer = Texture->Resource.Get();
 	SRVDesc.Texture2D.MipLevels = TextureBuffer->GetDesc().MipLevels;
 	SRVDesc.Format = TextureBuffer->GetDesc().Format;
+
 	GetDXResourceManagerPtr()->GetDevicePtr()->CreateShaderResourceView(
 		TextureBuffer,
 		&SRVDesc,
@@ -84,7 +85,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE FTextureManager::GetTexture2DCPUSRVForHeapStart() co
 D3D12_CPU_DESCRIPTOR_HANDLE FTextureManager::GetTextureCubeCPUSRVForHeapStart() const
 {
 	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
-		mSRVHeap->GetCPUDescriptorHandleForHeapStart(),
+		GetTexture2DCPUSRVForHeapStart(),
 		TEXTURE2D_NUM,
 		GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()
 		);
@@ -98,7 +99,7 @@ D3D12_GPU_DESCRIPTOR_HANDLE FTextureManager::GetTexture2DGPUSRVForHeapStart() co
 D3D12_GPU_DESCRIPTOR_HANDLE FTextureManager::GetTextureCubeGPUSRVForHeapStart() const
 {
 	return CD3DX12_GPU_DESCRIPTOR_HANDLE(
-		mSRVHeap->GetGPUDescriptorHandleForHeapStart(),
+		GetTexture2DGPUSRVForHeapStart(),
 		TEXTURE2D_NUM, 
 		GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()
 	);
@@ -138,6 +139,20 @@ D3D12_GPU_DESCRIPTOR_HANDLE FTextureManager::GetTextureCubeGPUDescriptorHandle(i
 		i,
 		GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()
 	);
+}
+
+D3D12_DESCRIPTOR_RANGE FTextureManager::GetTexture2DDescriptorRange() const
+{
+	CD3DX12_DESCRIPTOR_RANGE TextureTable;
+	TextureTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, TEXTURE2D_NUM, 0, 0);
+	return TextureTable;
+}
+
+D3D12_DESCRIPTOR_RANGE FTextureManager::GetTextureCubeDescriptorRange() const
+{
+	CD3DX12_DESCRIPTOR_RANGE CubeTextureTable;
+	CubeTextureTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, TEXTURECUBE_NUM, 0, 1);
+	return CubeTextureTable;
 }
 
 void FTextureManager::BuildTextures(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)

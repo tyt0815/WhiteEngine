@@ -37,6 +37,8 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE GetTextureCubeCPUDescriptorHandle(int i) const;
 	D3D12_GPU_DESCRIPTOR_HANDLE GetTexture2DGPUDescriptorHandle(int i) const;
 	D3D12_GPU_DESCRIPTOR_HANDLE GetTextureCubeGPUDescriptorHandle(int i) const;
+	D3D12_DESCRIPTOR_RANGE GetTexture2DDescriptorRange() const;
+	D3D12_DESCRIPTOR_RANGE GetTextureCubeDescriptorRange() const;
 
 private:
 	void BuildTextures(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);

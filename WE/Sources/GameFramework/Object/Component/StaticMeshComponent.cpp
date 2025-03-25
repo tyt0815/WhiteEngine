@@ -38,6 +38,8 @@ void WStaticMeshComponent::SetStaticMesh(const FStaticMesh& StaticMesh)
 		DrawArgs.BaseVertexLocation = mStaticMesh.Geometry->DrawArgs[i].BaseVertexLocation;
 		FSubmeshConstantBuffer SubmeshCB;
 		SubmeshCB.MaterialIndex = mStaticMesh.Material->Type;
+		// TODO: 하드코딩되어있음
+		SubmeshCB.SkyIrradianceCubeMapIndex = 2;
 		FSubmeshCBInfo SubmeshCBInfo;
 		SubmeshCBInfo.SubmeshCB = SubmeshCB;
 		SubmeshCBInfo.DirtyFrameCount = FrameResourcesNum;

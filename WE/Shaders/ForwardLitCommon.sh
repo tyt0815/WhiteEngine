@@ -11,11 +11,7 @@ struct FMaterialSB
     uint NormalTextureIndex;
     float4x4 MatTransform;
 };
-
-
-TextureCube gTextureCube : register(t0);
-Texture2D gTexture[1000] : register(t1);
-StructuredBuffer<FMaterialSB> gMaterialData : register(t0, space1);
+StructuredBuffer<FMaterialSB> gMaterialData : register(t0, space2);
 
 
 cbuffer ConstantBufferPerPass : register(b0)
@@ -42,11 +38,7 @@ cbuffer ConstantBufferPerPass : register(b0)
     float gFogStart;
     float gFogRange;
     float2 cbPerObjectPad2;
-
-    // Indices [0, NUM_DIR_LIGHTS) are directional lights;
-    // indices [NUM_DIR_LIGHTS, NUM_DIR_LIGHTS+NUM_POINT_LIGHTS) are point lights;
-    // indices [NUM_DIR_LIGHTS+NUM_POINT_LIGHTS, NUM_DIR_LIGHTS+NUM_POINT_LIGHT+NUM_SPOT_LIGHTS)
-    // are spot lights for a maximum of MaxLights per object.
+    
     FDirectionalLight gDirectionalLights[DIR_LIGHTS_NUM];
 };
 
@@ -58,9 +50,9 @@ cbuffer ConstantBufferPerObject : register(b1)
 cbuffer SubmeshCB : register(b2)
 {
     uint gMaterialIndex;
+    uint gSkyIrradianceCubeMapIndex;
     uint gPadOfSubmeshCB1;
     uint gPadOfSubmeshCB2;
-    uint gPadOfSubmeshCB3;
 };
 
 

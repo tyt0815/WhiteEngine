@@ -19,22 +19,8 @@ FCubeSkyIrradianceMapRenderer::FCubeSkyIrradianceMapRenderer(FCubeRenderTarget* 
 		true
 	);
 
-	std::array<DirectX::XMFLOAT4X4, 6> CubeViews = FCubeRenderTarget::GetCubeMapViews();
-	XMMATRIX P = XMMatrixPerspectiveFovLH(FDXMath::Pi / 2, 1.0f, 0.1f, 10.0f);
-	for (int i = 0; i < 6; ++i)
-	{
-		FConstantBuffers CB;
-		XMMATRIX V = XMLoadFloat4x4(&CubeViews[i]);
-		XMMATRIX VP = XMMatrixMultiply(V, P);
-		XMStoreFloat4x4(&CB.View, XMMatrixTranspose(V));
-		XMStoreFloat4x4(&CB.Proj, XMMatrixTranspose(P));
-		XMStoreFloat4x4(&CB.ViewProj, XMMatrixTranspose(VP));
-		mTempCB->CopyData(i, CB);
-	}
-
 	// Build RootSignature
-	CD3DX12_DESCRIPTOR_RANGE CubeTextureTable;
-	CubeTextureTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
 
 	// Tip: 자주 사용되는 것일수록 작은 인덱스에 보관하는게 퍼포먼스가 좋음
 	constexpr UINT ROOT_PARAMETERs_NUM = 2;
@@ -102,6 +88,22 @@ FCubeSkyIrradianceMapRenderer::FCubeSkyIrradianceMapRenderer(FCubeRenderTarget* 
 void FCubeSkyIrradianceMapRenderer::Render(FTexture* SkyTextureCube)
 {
 	mSkyTextureCube = SkyTextureCube;
+
+	// UpdateCB
+	std::array<DirectX::XMFLOAT4X4, 6> CubeViews = FCubeRenderTarget::GetCubeMapViews();
+	XMMATRIX P = XMMatrixPerspectiveFovLH(FDXMath::Pi / 2, 1.0f, 0.1f, 10.0f);
+	for (int i = 0; i < 6; ++i)
+	{
+		FConstantBuffers CB;
+		XMMATRIX V = XMLoadFloat4x4(&CubeViews[i]);
+		XMMATRIX VP = XMMatrixMultiply(V, P);
+		XMStoreFloat4x4(&CB.View, XMMatrixTranspose(V));
+		XMStoreFloat4x4(&CB.Proj, XMMatrixTranspose(P));
+		XMStoreFloat4x4(&CB.ViewProj, XMMatrixTranspose(VP));
+		CB.SkyCubeMapIndex = mSkyTextureCube->SRVHeapIndex;
+		mTempCB->CopyData(i, CB);
+	}
+
 	GetDXResourceManagerPtr()->ExecuteAndFlushCommand(&FCubeSkyIrradianceMapRenderer::Internal_Render, this);
 }
 
@@ -139,7 +141,7 @@ void FCubeSkyIrradianceMapRenderer::Internal_Render(ID3D12Device* Device, ID3D12
 	ID3D12DescriptorHeap* SRVHeap = GetTextureManager()->GetSRVHeapPtr();
 	ID3D12DescriptorHeap* descriptorHeaps[] = { SRVHeap };
 	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
-	CommandList->SetGraphicsRootDescriptorTable(1, GetTextureManager()->GetTextureCubeGPUDescriptorHandle(mSkyTextureCube->SRVHeapIndex));
+	CommandList->SetGraphicsRootDescriptorTable(1, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
 	for (int i = 0; i < 6; ++i)
 	{
 		for (UINT j = 0; j < mCubeRenderTarget->GetMipLevels(); ++j)
@@ -209,7 +211,7 @@ void FCubeSkyRenderer::Render(ID3D12GraphicsCommandList* CommandList)
 	CommandList->SetPipelineState(mPipelineState.Get());
 	CommandList->SetGraphicsRootSignature(mRootSignature.Get());
 	CommandList->SetGraphicsRootConstantBufferView(0, mCB->Resource()->GetGPUVirtualAddress());
-	CommandList->SetGraphicsRootDescriptorTable(1, GetTextureManager()->GetTextureCubeGPUDescriptorHandle(mSkyTextureCube->SRVHeapIndex));
+	CommandList->SetGraphicsRootDescriptorTable(1, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
 
 	DrawSphere(CommandList);
 }
@@ -284,8 +286,7 @@ void FCubeSkyRenderer::BuildCBs()
 
 void FCubeSkyRenderer::BuildRootSignature()
 {
-	CD3DX12_DESCRIPTOR_RANGE CubeTextureTable;
-	CubeTextureTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
 
 	// Tip: 자주 사용되는 것일수록 작은 인덱스에 보관하는게 퍼포먼스가 좋음
 	constexpr UINT ROOT_PARAMETERs_NUM = 2;
@@ -324,5 +325,6 @@ void FCubeSkyRenderer::UpdateCBs()
 	XMMATRIX P = XMLoadFloat4x4(&Proj);
 	XMMATRIX VP = V * P;
 	XMStoreFloat4x4(&CB.gViewProj, XMMatrixTranspose(VP));
+	CB.SkyCubeMapIndex = mSkyTextureCube->SRVHeapIndex;
 	mCB->CopyData(0, CB);
 }

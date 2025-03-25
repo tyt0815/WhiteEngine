@@ -54,9 +54,9 @@ struct FMeshConstantBuffer
 struct FSubmeshConstantBuffer
 {
 	UINT MaterialIndex;
+    UINT SkyIrradianceCubeMapIndex;
     UINT Pad1;
     UINT Pad2;
-    UINT Pad3;
 };
 
 // register(t0, space1)

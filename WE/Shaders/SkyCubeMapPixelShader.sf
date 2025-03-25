@@ -5,5 +5,5 @@ float4 MainPS(
     float4 PosH : SV_Position
 ) : SV_Target
 {
-    return gTextureCube.Sample(gsamLinearWrap, PosL);
+    return gTextureCube[gSkyCubeMapIndex].Sample(gsamLinearWrap, PosL);
 }

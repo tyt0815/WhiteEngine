@@ -20,7 +20,7 @@ float4 MainPS(
         {
             float3 TangentSample = float3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
             float3 SampleVec = TangentSample.x * Right + TangentSample.y * Up + TangentSample.z * Normal;
-            Irradiance += gTextureCube.Sample(gsamLinearWrap, SampleVec).rgb * cos(theta) * sin(theta);
+            Irradiance += gTextureCube[gSkyCubeMapIndex].Sample(gsamLinearWrap, SampleVec).rgb * cos(theta) * sin(theta);
             nrSamples++;
         }
 
