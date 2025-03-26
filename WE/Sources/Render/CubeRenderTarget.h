@@ -41,6 +41,8 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE GetRTV(int FaceIndex, int MipLevel) const;
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCubeMapCPUDescriptorHeap() const;
 	D3D12_GPU_DESCRIPTOR_HANDLE GetCubeMapGPUDescriptorHeap() const;
+	D3D12_VIEWPORT GetViewportMipLevel(int i) const;
+	D3D12_RECT GetScissorRectMipLevel(int i) const;
 
 	FTexture* mTexture;
 private:
@@ -93,6 +95,14 @@ public:
 	inline D3D12_RECT GetScissorRect() const
 	{
 		return mScissorRect;
+	}
+	inline DXGI_FORMAT GetFormat() const
+	{
+		return mFormat;
+	}
+	inline DXGI_FORMAT GetDepthStencilFormat() const
+	{
+		return mDepthStencilFormat;
 	}
 };
 

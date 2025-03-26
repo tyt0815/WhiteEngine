@@ -363,13 +363,13 @@
     <None Include="Shaders\Math.sh">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\SkySpecularCubeMapVertexShader.sf">
+    <None Include="Shaders\PreFilteredSkyCubeMapVertexShader.sf">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\SkySpecularCubeMapPixelShader.sf">
+    <None Include="Shaders\PreFilteredSkyCubeMapPixelShader.sf">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\SkySpecularCubeMapCommon.sh">
+    <None Include="Shaders\PreFilteredSkyCubeMapCommon.sh">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

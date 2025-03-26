@@ -1,4 +1,4 @@
-#include "SkySpecularCubeMapCommon.sh"
+#include "PreFilteredSkyCubeMapCommon.sh"
 
 void MainVS(
     float3 InPosL : POSITION,

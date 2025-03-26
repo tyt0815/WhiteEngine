@@ -51,8 +51,8 @@ cbuffer SubmeshCB : register(b2)
 {
     uint gMaterialIndex;
     uint gSkyIrradianceCubeMapIndex;
+    uint gSkySpecularCubeMapIndex;
     uint gPadOfSubmeshCB1;
-    uint gPadOfSubmeshCB2;
 };
 
 

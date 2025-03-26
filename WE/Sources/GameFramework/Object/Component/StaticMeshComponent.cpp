@@ -40,6 +40,7 @@ void WStaticMeshComponent::SetStaticMesh(const FStaticMesh& StaticMesh)
 		SubmeshCB.MaterialIndex = mStaticMesh.Material->Type;
 		// TODO: 하드코딩되어있음
 		SubmeshCB.SkyIrradianceCubeMapIndex = 2;
+		SubmeshCB.SkySpecularCubeMapIndex = 3;
 		FSubmeshCBInfo SubmeshCBInfo;
 		SubmeshCBInfo.SubmeshCB = SubmeshCB;
 		SubmeshCBInfo.DirtyFrameCount = FrameResourcesNum;

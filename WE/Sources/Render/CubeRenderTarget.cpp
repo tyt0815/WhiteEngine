@@ -86,6 +86,22 @@ D3D12_GPU_DESCRIPTOR_HANDLE FCubeRenderTarget::GetCubeMapGPUDescriptorHeap() con
 	return GetTextureManager()->GetTextureCubeGPUDescriptorHandle(mTexture->SRVHeapIndex);
 }
 
+D3D12_VIEWPORT FCubeRenderTarget::GetViewportMipLevel(int i) const
+{
+	D3D12_VIEWPORT Viewport = GetViewport();
+	Viewport.Width = static_cast<float>(max(1.0f, Viewport.Width / pow(2, i)));
+	Viewport.Height = static_cast<float>(max(1.0f, Viewport.Height / pow(2, i)));
+	return Viewport;
+}
+
+D3D12_RECT FCubeRenderTarget::GetScissorRectMipLevel(int i) const
+{
+	D3D12_RECT ScissorRect = GetScissorRect();
+	ScissorRect.right = static_cast<int>(max(1, ScissorRect.right / pow(2, i)));
+	ScissorRect.bottom = static_cast<int>(max(1, ScissorRect.bottom / pow(2, i)));
+	return ScissorRect;
+}
+
 void FCubeRenderTarget::OnResize(UINT Width, UINT Height)
 {
 	if ((mWidth != Width) || (mHeight != Height))
@@ -159,21 +175,16 @@ void FCubeRenderTarget::BuildDescriptors()
 	// Create RTV to each cube face.
 	for (int i = 0; i < 6; ++i)
 	{
+		D3D12_RENDER_TARGET_VIEW_DESC RTVDesc;
+		RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+		RTVDesc.Format = mFormat;
+		RTVDesc.Texture2DArray.PlaneSlice = 0;
+		RTVDesc.Texture2DArray.FirstArraySlice = i;
+		RTVDesc.Texture2DArray.ArraySize = 1;
 		for (UINT j = 0; j < mMipLevels; ++j)
 		{
-			D3D12_RENDER_TARGET_VIEW_DESC RTVDesc;
-			RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
-			RTVDesc.Format = mFormat;
-			RTVDesc.Texture2DArray.PlaneSlice = 0;
-
 			// Render target to ith element, jth mipmap.
-			RTVDesc.Texture2DArray.FirstArraySlice = i;
 			RTVDesc.Texture2DArray.MipSlice = j;
-
-			// Only view one element of the array.
-			RTVDesc.Texture2DArray.ArraySize = 1;
-
-			// Create RTV to ith cubemap face.
 			Device->CreateRenderTargetView(mCubeMapResource.Get(), &RTVDesc, GetRTV(i, j));
 		}
 	}

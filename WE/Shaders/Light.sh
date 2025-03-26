@@ -99,6 +99,24 @@ float3 ComputeDirectionalLight(
     return (kD * Material.Albedo / PI + Specular) * Radiance * NDotL;
 }
 
-// float3 Pre
+float3 ImportanceSampleGGX(float2 Xi, float3 N, float Roughness)
+{
+    float a = Roughness * Roughness;
+    float Phi = 2.0f * PI * Xi.x;
+    float cosTheta = sqrt((1.0f * Xi.y) / (1.0f + (a * a - 1.0f) * Xi.y));
+    float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
+    
+    float3 H;
+    H.x = cos(Phi) * sinTheta;
+    H.y = sin(Phi) * sinTheta;
+    H.z = cosTheta;
+    
+    float3 Up = abs(N.z) < 0.999 ? float3(0.0f, 0.0f, 1.0f) : float3(1.0f, 0.0f, 0.0f);
+    float3 Tangent = normalize(cross(Up, N));
+    float3 Bitangent = cross(N, Tangent);
+    
+    float3 SampleVec = Tangent * H.x + Bitangent * H.y + N * H.z;
+    return normalize(SampleVec);
+}
 
 #endif

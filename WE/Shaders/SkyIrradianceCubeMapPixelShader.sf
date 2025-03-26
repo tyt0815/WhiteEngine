@@ -26,5 +26,6 @@ float4 MainPS(
 
     }
     Irradiance = PI * Irradiance * (1.0f / nrSamples);
+    
     return float4(Irradiance, 1.0f);
 }

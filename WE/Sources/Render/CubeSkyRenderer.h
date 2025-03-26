@@ -24,15 +24,55 @@ class FCubeSkyIrradianceMapRenderer : FNoncopyable
 public:
 	FCubeSkyIrradianceMapRenderer(FCubeRenderTarget* CubeRenderTarget);
 	FCubeSkyIrradianceMapRenderer() = delete;
-
 	void Render(FTexture* SkyTextureCube);
+
 private:
+	void BuildPipelineState();
+	void BuildShaders();
+	void BuildRootSignature();
+	void BuildCB();
+	void UpdateCBs();
 	void Internal_Render(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 	Microsoft::WRL::ComPtr<ID3DBlob> mVertexShader;
 	Microsoft::WRL::ComPtr<ID3DBlob> mPixelShader;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> mPipelineState;
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
 	std::unique_ptr<TUploadBuffer<FConstantBuffers>> mTempCB;
+	FCubeRenderTarget* mCubeRenderTarget;
+	FTexture* mSkyTextureCube = nullptr;
+};
+
+class FPreFilteredSkyCubeMapRenderer : FNoncopyable
+{
+	struct FConstantBuffers
+	{
+		XMFLOAT4X4 ViewProj;
+		float Roughness;
+		UINT SkyCubeMapIndex;
+		float ResolutionOfSkyCubeMap;
+		UINT Pad1;
+	};
+
+public:
+	FPreFilteredSkyCubeMapRenderer(FCubeRenderTarget* CubeRenderTarget);
+	FPreFilteredSkyCubeMapRenderer() = delete;
+	void Render(FTexture* SkyTextureCube);
+
+private:
+	void BuildCB();
+	void BuildRootSignature();
+	void BuildShaders();
+	void BuildPipelineState();
+	void UpdateCBS();
+	void Internal_Render(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
+
+private:
+	Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature; 
+	Microsoft::WRL::ComPtr<ID3DBlob> mVertexShader;
+	Microsoft::WRL::ComPtr<ID3DBlob> mPixelShader;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> mPipelineState;
+
+	std::unique_ptr<TUploadBuffer<FConstantBuffers>> mCB;
 	FCubeRenderTarget* mCubeRenderTarget;
 	FTexture* mSkyTextureCube = nullptr;
 };
@@ -56,17 +96,22 @@ private:
 	void BuildCBs();
 	void BuildRootSignature();
 	void CraeteIrradianceMap();
+	void CreatePreFilteredSkyCubeMap();
 	void UpdateCBs();
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
 	Microsoft::WRL::ComPtr<ID3DBlob> mVertexShader;
 	Microsoft::WRL::ComPtr<ID3DBlob> mPixelShader;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> mPipelineState;
 	std::unique_ptr<FCubeRenderTarget> mSkyIrradianceMapRenderTarget;
+	std::unique_ptr<FCubeRenderTarget> mPreFilteredSkyCubeMapRenderTarget;
 	std::unique_ptr<TUploadBuffer<FConstantBuffers>> mCB;
 	FTexture* mSkyTextureCube = nullptr;
 	std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
 	std::string mSkyIrradianceMapName;
+	std::string mPreFilteredSkyCubeMapName;
 	UINT SkyIrradianceCubeMapSRVHeapIndex;
+	UINT mPreFilteredSkyCubeMapSRVHeapIndex;
+	
 
 public:
 	inline UINT GetSkyIrradianceCubeMapSRVHeapIndex() const

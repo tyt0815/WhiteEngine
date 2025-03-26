@@ -44,5 +44,6 @@ float4 MainPS(FVSOutput PIn) : SV_Target
     float fogAmount = saturate((distToEye - gFogStart) / gFogRange);
 	Color = lerp(Color, gFogColor, fogAmount);
 #endif
+    
     return float4(Color, 1.0f);
 }
