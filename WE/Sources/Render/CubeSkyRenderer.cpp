@@ -97,8 +97,6 @@ void FCubeSkyIrradianceMapRenderer::Render(FTexture* SkyTextureCube)
 		FConstantBuffers CB;
 		XMMATRIX V = XMLoadFloat4x4(&CubeViews[i]);
 		XMMATRIX VP = XMMatrixMultiply(V, P);
-		XMStoreFloat4x4(&CB.View, XMMatrixTranspose(V));
-		XMStoreFloat4x4(&CB.Proj, XMMatrixTranspose(P));
 		XMStoreFloat4x4(&CB.ViewProj, XMMatrixTranspose(VP));
 		CB.SkyCubeMapIndex = mSkyTextureCube->SRVHeapIndex;
 		mTempCB->CopyData(i, CB);

@@ -1,9 +1,10 @@
-#ifndef SKYIRRADIANCECUBEMAPCOMMON_SH
-#define SKYIRRADIANCECUBEMAPCOMMON_SH
-#include "Common.sh"
+#ifndef SKYSPECULARCUBEMAPCOMMON_SH
+#define SKYSPECULARCUBEMAPCOMMON_SH
 
 cbuffer ConstantBuffers : register(b0)
 {
+    float4x4 gView;
+    float4x4 gProj;
     float4x4 gViewProj;
     uint gSkyCubeMapIndex;
     uint Pad1;

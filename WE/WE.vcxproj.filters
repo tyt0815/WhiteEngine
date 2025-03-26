@@ -363,6 +363,15 @@
     <None Include="Shaders\Math.sh">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Shaders\SkySpecularCubeMapVertexShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\SkySpecularCubeMapPixelShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\SkySpecularCubeMapCommon.sh">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\Default.dds">

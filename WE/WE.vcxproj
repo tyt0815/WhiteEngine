@@ -123,6 +123,9 @@
     </None>
     <None Include="Shaders\Material.sh" />
     <None Include="Shaders\Math.sh" />
+    <None Include="Shaders\SkySpecularCubeMapCommon.sh" />
+    <None Include="Shaders\SkySpecularCubeMapPixelShader.sf" />
+    <None Include="Shaders\SkySpecularCubeMapVertexShader.sf" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\Default.dds" />

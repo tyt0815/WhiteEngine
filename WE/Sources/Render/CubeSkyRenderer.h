@@ -15,8 +15,6 @@ class FCubeSkyIrradianceMapRenderer : FNoncopyable
 {
 	struct FConstantBuffers
 	{
-		XMFLOAT4X4 View;
-		XMFLOAT4X4 Proj;
 		XMFLOAT4X4 ViewProj;
 		UINT SkyCubeMapIndex;
 		UINT Pad1;
