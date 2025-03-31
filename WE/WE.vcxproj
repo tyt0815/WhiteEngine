@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClCompile Include="Sources\Application\TestApplication\Actor\IceFieldGird.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\Actor\RustedIron2Sphere.cpp" />
+    <ClCompile Include="Sources\Application\TestApplication\Actor\ScuffedGoldBox.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\Actor\ScuffedGoldSphere.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\Actor\ThickMortarStonework.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\Pawn\GhostCameraPawn.cpp" />
@@ -44,6 +45,7 @@
     <ClCompile Include="Sources\Render\MeshGeometry.cpp" />
     <ClCompile Include="Sources\Render\Renderer.cpp" />
     <ClCompile Include="Sources\Render\RenderItemManager.cpp" />
+    <ClCompile Include="Sources\Render\RenderTarget.cpp" />
     <ClCompile Include="Sources\Render\Shader.cpp" />
     <ClCompile Include="Sources\Render\ShapeDrawer.cpp" />
     <ClCompile Include="Sources\Render\StaticMesh.cpp" />
@@ -53,9 +55,11 @@
     <ClCompile Include="Sources\Window\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Shaders\IndirectSpecularIntegralCommon.sh" />
     <ClInclude Include="Shaders\Light.sh" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\IceFieldGird.h" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\RustedIron2Sphere.h" />
+    <ClInclude Include="Sources\Application\TestApplication\Actor\ScuffedGoldBox.h" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\ScuffedGoldSphere.h" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\ThickMortarStonework.h" />
     <ClInclude Include="Sources\Application\TestApplication\Pawn\GhostCameraPawn.h" />
@@ -87,6 +91,7 @@
     <ClInclude Include="Sources\Render\MeshGeometry.h" />
     <ClInclude Include="Sources\Render\Renderer.h" />
     <ClInclude Include="Sources\Render\RenderItemManager.h" />
+    <ClInclude Include="Sources\Render\RenderTarget.h" />
     <ClInclude Include="Sources\Render\Shader.h" />
     <ClInclude Include="Sources\Render\ShaderStructures.h" />
     <ClInclude Include="Sources\Render\ShapeDrawer.h" />
@@ -106,6 +111,8 @@
     <None Include="Shaders\BillboardPixelShader.sf" />
     <None Include="Shaders\BillboardVertexShader.sf" />
     <None Include="Shaders\Common.sh" />
+    <None Include="Shaders\IndirectSpecularIntegralPixelShader.sf" />
+    <None Include="Shaders\IndirectSpecularIntegralVertexShader.sf" />
     <None Include="Shaders\SkyCubeMapCommon.sh" />
     <None Include="Shaders\SkyIrradianceCubeMapCommon.sh" />
     <None Include="Shaders\SkyIrradianceCubeMapPixelShader.sf" />

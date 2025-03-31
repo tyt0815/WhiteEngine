@@ -139,7 +139,7 @@ void FFrameResourceManager::UpdatePassCB()
 	PassConstants.FarZ = Camera->GetFarZ();
 	PassConstants.TotalTime = Timer->GetTotalTime();
 	PassConstants.DeltaTime = Timer->GetDeltaTime();
-
+	PassConstants.IndirectSpecularIntegralTextureIndex = GetTextureManager()->GetTexture2DSRVHeapIndex("IndirectSpecularIntegral");
 	PassConstants.AmbientLight = { 0.25f, 0.25f, 0.35f, 1.0f };
 
 	PassConstants.FogColor = XMFLOAT4(Colors::LightSkyBlue);

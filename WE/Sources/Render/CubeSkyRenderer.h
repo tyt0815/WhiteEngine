@@ -6,9 +6,11 @@
 #include "UploadBuffer.h"
 #include "DirectX/DXMath.h"
 #include "Utility/Class.h"
+#include "RenderTarget.h"
 #include "CubeRenderTarget.h"
 
 class FTexture;
+class FRenderTarget;
 class FCubeRenderTarget;
 
 class FCubeSkyIrradianceMapRenderer : FNoncopyable
@@ -63,7 +65,7 @@ private:
 	void BuildRootSignature();
 	void BuildShaders();
 	void BuildPipelineState();
-	void UpdateCBS();
+	void UpdateCBs();
 	void Internal_Render(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 
 private:
@@ -74,6 +76,36 @@ private:
 
 	std::unique_ptr<TUploadBuffer<FConstantBuffers>> mCB;
 	FCubeRenderTarget* mCubeRenderTarget;
+	FTexture* mSkyTextureCube = nullptr;
+};
+
+class FIndirectSpecularIntegralRenderer : FNoncopyable
+{
+	struct FConstantBuffers
+	{
+
+	};
+public:
+	FIndirectSpecularIntegralRenderer(FRenderTarget* RenderTarget);
+	FIndirectSpecularIntegralRenderer() = delete;
+	void Render(FTexture* SkyTextureCube);
+
+private:
+	void BuildCB();
+	void BuildRootSignature();
+	void BuildShaders();
+	void BuildPipelineState();
+	void UpdateCBs();
+	void Internal_Render(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
+
+private:
+	Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
+	Microsoft::WRL::ComPtr<ID3DBlob> mVertexShader;
+	Microsoft::WRL::ComPtr<ID3DBlob> mPixelShader;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> mPipelineState;
+
+	std::unique_ptr<TUploadBuffer<FConstantBuffers>> mCB;
+	FRenderTarget* mRenderTarget;
 	FTexture* mSkyTextureCube = nullptr;
 };
 
@@ -97,6 +129,7 @@ private:
 	void BuildRootSignature();
 	void CraeteIrradianceMap();
 	void CreatePreFilteredSkyCubeMap();
+	void CreateIndirectSpecularIntegral();
 	void UpdateCBs();
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
 	Microsoft::WRL::ComPtr<ID3DBlob> mVertexShader;
@@ -104,18 +137,29 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> mPipelineState;
 	std::unique_ptr<FCubeRenderTarget> mSkyIrradianceMapRenderTarget;
 	std::unique_ptr<FCubeRenderTarget> mPreFilteredSkyCubeMapRenderTarget;
+	std::unique_ptr<FRenderTarget> mIndirectSpecularIntegralRenderTarget;
 	std::unique_ptr<TUploadBuffer<FConstantBuffers>> mCB;
 	FTexture* mSkyTextureCube = nullptr;
 	std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
 	std::string mSkyIrradianceMapName;
 	std::string mPreFilteredSkyCubeMapName;
+	std::string mIndirectSpecularIntegralTextureName;
 	UINT SkyIrradianceCubeMapSRVHeapIndex;
 	UINT mPreFilteredSkyCubeMapSRVHeapIndex;
+	UINT mIndirectSpecularIntegralTextureSRVHeapIndex;
 	
 
 public:
 	inline UINT GetSkyIrradianceCubeMapSRVHeapIndex() const
 	{
 		return SkyIrradianceCubeMapSRVHeapIndex;
+	}
+	inline UINT GetPreFilteredSkyCubeMapSRVHeapIndex() const
+	{
+		return mPreFilteredSkyCubeMapSRVHeapIndex;
+	}
+	inline UINT GetIndirectSpecularIntegralTextureSRVHeapIndex() const
+	{
+		return mIndirectSpecularIntegralTextureSRVHeapIndex;
 	}
 };

@@ -212,6 +212,9 @@ void FCubeRenderTarget::BuildResource()
 	TextureDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	TextureDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
+	D3D12_CLEAR_VALUE RTOptClear;
+	RTOptClear.Format = mFormat;
+
 	FDXResourceManager* DXManager = GetDXResourceManagerPtr();
 	ID3D12Device* Device = DXManager->GetDevicePtr();
 	D3D12_HEAP_PROPERTIES DefaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);

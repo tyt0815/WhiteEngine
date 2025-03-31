@@ -4,6 +4,7 @@
 #include "FrameResource.h"
 #include "DirectX/DXResourceManager.h"
 #include "MeshGeometry.h"
+#include "RenderTarget.h"
 #include "CubeRenderTarget.h"
 #include "ShapeDrawer.h"
 #include "GameFramework/Object/World/World.h"
@@ -230,7 +231,7 @@ FPreFilteredSkyCubeMapRenderer::FPreFilteredSkyCubeMapRenderer(FCubeRenderTarget
 void FPreFilteredSkyCubeMapRenderer::Render(FTexture* SkyTextureCube)
 {
 	mSkyTextureCube = SkyTextureCube;
-	UpdateCBS();
+	UpdateCBs();
 	GetDXResourceManagerPtr()->ExecuteAndFlushCommand(&FPreFilteredSkyCubeMapRenderer::Internal_Render, this);
 }
 
@@ -283,42 +284,42 @@ void FPreFilteredSkyCubeMapRenderer::BuildShaders()
 void FPreFilteredSkyCubeMapRenderer::BuildPipelineState()
 {
 	// Create PipelineState Object
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC SkySpecularCubePSDesc;
-	ZeroMemory(&SkySpecularCubePSDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC PreFilteredSkyCubeMapPipelineStateDesc;
+	ZeroMemory(&PreFilteredSkyCubeMapPipelineStateDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 	auto mInputLayout = GetDrawingSphereInputLayouts();
-	SkySpecularCubePSDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
-	SkySpecularCubePSDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	SkySpecularCubePSDesc.SampleMask = UINT_MAX;
-	SkySpecularCubePSDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	SkySpecularCubePSDesc.NumRenderTargets = 1;
-	SkySpecularCubePSDesc.RTVFormats[0] = mCubeRenderTarget->GetFormat();
-	SkySpecularCubePSDesc.SampleDesc.Count = 1;
-	SkySpecularCubePSDesc.SampleDesc.Quality = 0;
-	SkySpecularCubePSDesc.DSVFormat = mCubeRenderTarget->GetDepthStencilFormat();
-	SkySpecularCubePSDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	SkySpecularCubePSDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-	SkySpecularCubePSDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-	SkySpecularCubePSDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-	SkySpecularCubePSDesc.pRootSignature = mRootSignature.Get();
-	SkySpecularCubePSDesc.VS =
+	PreFilteredSkyCubeMapPipelineStateDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
+	PreFilteredSkyCubeMapPipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	PreFilteredSkyCubeMapPipelineStateDesc.SampleMask = UINT_MAX;
+	PreFilteredSkyCubeMapPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	PreFilteredSkyCubeMapPipelineStateDesc.NumRenderTargets = 1;
+	PreFilteredSkyCubeMapPipelineStateDesc.RTVFormats[0] = mCubeRenderTarget->GetFormat();
+	PreFilteredSkyCubeMapPipelineStateDesc.SampleDesc.Count = 1;
+	PreFilteredSkyCubeMapPipelineStateDesc.SampleDesc.Quality = 0;
+	PreFilteredSkyCubeMapPipelineStateDesc.DSVFormat = mCubeRenderTarget->GetDepthStencilFormat();
+	PreFilteredSkyCubeMapPipelineStateDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	PreFilteredSkyCubeMapPipelineStateDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	PreFilteredSkyCubeMapPipelineStateDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	PreFilteredSkyCubeMapPipelineStateDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+	PreFilteredSkyCubeMapPipelineStateDesc.pRootSignature = mRootSignature.Get();
+	PreFilteredSkyCubeMapPipelineStateDesc.VS =
 	{
 		reinterpret_cast<BYTE*>(mVertexShader->GetBufferPointer()),
 		mVertexShader->GetBufferSize()
 	};
-	SkySpecularCubePSDesc.PS =
+	PreFilteredSkyCubeMapPipelineStateDesc.PS =
 	{
 		reinterpret_cast<BYTE*>(mPixelShader->GetBufferPointer()),
 		mPixelShader->GetBufferSize()
 	};
 	THROW_IF_FAILED(
 		GetDXResourceManagerPtr()->GetDevicePtr()->CreateGraphicsPipelineState(
-			&SkySpecularCubePSDesc,
+			&PreFilteredSkyCubeMapPipelineStateDesc,
 			IID_PPV_ARGS(mPipelineState.GetAddressOf())
 		)
 	);
 }
 
-void FPreFilteredSkyCubeMapRenderer::UpdateCBS()
+void FPreFilteredSkyCubeMapRenderer::UpdateCBs()
 {
 	// UpdateCB
 	std::array<DirectX::XMFLOAT4X4, 6> CubeViews = FCubeRenderTarget::GetCubeMapViews();
@@ -444,6 +445,7 @@ FCubeSkyRenderer::FCubeSkyRenderer(std::string SkyCubeMapName):
 	BuildPipelineStateObject();
 	CraeteIrradianceMap();
 	CreatePreFilteredSkyCubeMap();
+	CreateIndirectSpecularIntegral();
 }
 
 void FCubeSkyRenderer::Render(ID3D12GraphicsCommandList* CommandList)
@@ -569,6 +571,19 @@ void FCubeSkyRenderer::CreatePreFilteredSkyCubeMap()
 	PreFilteredSkyCubeMapRenderer.Render(mSkyTextureCube);
 }
 
+void FCubeSkyRenderer::CreateIndirectSpecularIntegral()
+{
+	mIndirectSpecularIntegralTextureName = "IndirectSpecularIntegral";
+	mIndirectSpecularIntegralRenderTarget = std::make_unique<FRenderTarget>(
+		mIndirectSpecularIntegralTextureName,
+		512u,
+		512u
+	);
+	mIndirectSpecularIntegralTextureSRVHeapIndex = mIndirectSpecularIntegralRenderTarget->GetTexture()->SRVHeapIndex;
+	FIndirectSpecularIntegralRenderer Renderer(mIndirectSpecularIntegralRenderTarget.get());
+	Renderer.Render(mSkyTextureCube);
+}
+
 void FCubeSkyRenderer::UpdateCBs()
 {
 	WCameraComponent* Camera = GetWorld()->GetPlayerCamera();
@@ -582,4 +597,192 @@ void FCubeSkyRenderer::UpdateCBs()
 	XMStoreFloat4x4(&CB.gViewProj, XMMatrixTranspose(VP));
 	CB.SkyCubeMapIndex = mSkyTextureCube->SRVHeapIndex;
 	mCB->CopyData(0, CB);
+}
+
+FIndirectSpecularIntegralRenderer::FIndirectSpecularIntegralRenderer(FRenderTarget* RenderTarget):
+	mRenderTarget(RenderTarget)
+{
+	BuildCB();
+	BuildRootSignature();
+	BuildShaders();
+	BuildPipelineState();
+}
+
+void FIndirectSpecularIntegralRenderer::Render(FTexture* SkyTextureCube)
+{
+	mSkyTextureCube = SkyTextureCube;
+	UpdateCBs();
+	GetDXResourceManagerPtr()->ExecuteAndFlushCommand(&FIndirectSpecularIntegralRenderer::Internal_Render, this);
+}
+
+void FIndirectSpecularIntegralRenderer::BuildCB()
+{
+	// Build CB
+	mCB = std::make_unique <TUploadBuffer<FConstantBuffers>>(
+		GetDXResourceManagerPtr()->GetDevicePtr(),
+		1,
+		true
+	);
+}
+
+void FIndirectSpecularIntegralRenderer::BuildRootSignature()
+{
+	// Build RootSignature
+	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
+
+	// Tip: 자주 사용되는 것일수록 작은 인덱스에 보관하는게 퍼포먼스가 좋음
+	constexpr UINT ROOT_PARAMETERs_NUM = 1;
+	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERs_NUM];
+	RootParameter[0].InitAsDescriptorTable(1, &CubeTextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// CubeTextureTable
+
+	FDXUtility::BuildRootSignature(
+		RootParameter,
+		ROOT_PARAMETERs_NUM,
+		mRootSignature.GetAddressOf()
+	);
+}
+
+void FIndirectSpecularIntegralRenderer::BuildShaders()
+{
+	// Compile Shader
+	mVertexShader = FDXUtility::CompileShader(
+		L"Shaders\\IndirectSpecularIntegralVertexShader.sf",
+		nullptr,
+		"MainVS",
+		"vs_5_1"
+	);
+
+	mPixelShader = FDXUtility::CompileShader(
+		L"Shaders\\IndirectSpecularIntegralPixelShader.sf",
+		nullptr,
+		"MainPS",
+		"ps_5_1"
+	);
+}
+
+void FIndirectSpecularIntegralRenderer::BuildPipelineState()
+{
+	// Create PipelineState Object
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC IndirectSpecularIntegralPipelineStateDesc;
+	ZeroMemory(&IndirectSpecularIntegralPipelineStateDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+	auto mInputLayout = GetDrawingRectInputLayouts();
+	IndirectSpecularIntegralPipelineStateDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
+	IndirectSpecularIntegralPipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	IndirectSpecularIntegralPipelineStateDesc.SampleMask = UINT_MAX;
+	IndirectSpecularIntegralPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	IndirectSpecularIntegralPipelineStateDesc.NumRenderTargets = 1;
+	IndirectSpecularIntegralPipelineStateDesc.RTVFormats[0] = mRenderTarget->GetFormat();
+	IndirectSpecularIntegralPipelineStateDesc.SampleDesc.Count = 1;
+	IndirectSpecularIntegralPipelineStateDesc.SampleDesc.Quality = 0;
+	IndirectSpecularIntegralPipelineStateDesc.DSVFormat = mRenderTarget->GetDepthStencilFormat();
+	IndirectSpecularIntegralPipelineStateDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	IndirectSpecularIntegralPipelineStateDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	IndirectSpecularIntegralPipelineStateDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	IndirectSpecularIntegralPipelineStateDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+	IndirectSpecularIntegralPipelineStateDesc.pRootSignature = mRootSignature.Get();
+	IndirectSpecularIntegralPipelineStateDesc.VS =
+	{
+		reinterpret_cast<BYTE*>(mVertexShader->GetBufferPointer()),
+		mVertexShader->GetBufferSize()
+	};
+	IndirectSpecularIntegralPipelineStateDesc.PS =
+	{
+		reinterpret_cast<BYTE*>(mPixelShader->GetBufferPointer()),
+		mPixelShader->GetBufferSize()
+	};
+	THROW_IF_FAILED(
+		GetDXResourceManagerPtr()->GetDevicePtr()->CreateGraphicsPipelineState(
+			&IndirectSpecularIntegralPipelineStateDesc,
+			IID_PPV_ARGS(mPipelineState.GetAddressOf())
+		)
+	);
+}
+
+void FIndirectSpecularIntegralRenderer::UpdateCBs()
+{
+	// UpdateCB
+	//FConstantBuffers CB;
+	//XMMATRIX V = XMLoadFloat4x4(&CubeViews[i]);
+	//XMMATRIX VP = XMMatrixMultiply(V, P);
+	//XMStoreFloat4x4(&CB.ViewProj, XMMatrixTranspose(VP));
+	//CB.SkyCubeMapIndex = mSkyTextureCube->SRVHeapIndex;
+	//CB.ResolutionOfSkyCubeMap = (float)mSkyTextureCube->Resource->GetDesc().Width;
+	//for (UINT j = 0; j < MipLevels; ++j)
+	//{
+	//	CB.Roughness = j / max(1.0f, (MipLevels - 1.0f));
+	//	mCB->CopyData(i * MipLevels + j, CB);
+	//}
+}
+
+void FIndirectSpecularIntegralRenderer::Internal_Render(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
+{
+	D3D12_RESOURCE_BARRIER ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+		mRenderTarget->GetDepthStencilResource(),
+		D3D12_RESOURCE_STATE_COMMON,
+		D3D12_RESOURCE_STATE_DEPTH_WRITE
+	);
+	CommandList->ResourceBarrier(
+		1,
+		&ResourceBarrier
+	);
+
+	ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+		mRenderTarget->GetResource(),
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		D3D12_RESOURCE_STATE_RENDER_TARGET
+	);
+	CommandList->ResourceBarrier(
+		1,
+		&ResourceBarrier
+	);
+
+	CommandList->SetPipelineState(mPipelineState.Get());
+
+	CommandList->SetGraphicsRootSignature(mRootSignature.Get());
+
+	D3D12_VIEWPORT Viewport = mRenderTarget->GetViewport();
+	D3D12_RECT ScissorRect = mRenderTarget->GetScissorRect();
+	CommandList->RSSetViewports(1, &Viewport);
+	CommandList->RSSetScissorRects(1, &ScissorRect);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE RTV = mRenderTarget->GetRTV(0);
+	D3D12_CPU_DESCRIPTOR_HANDLE DSV = mRenderTarget->GetDSVHeap()->GetCPUDescriptorHandleForHeapStart();
+	CommandList->OMSetRenderTargets(1, &RTV, true, &DSV);
+	CommandList->ClearRenderTargetView(
+		RTV,
+		DirectX::Colors::LightBlue,
+		0,
+		nullptr
+	);
+	CommandList->ClearDepthStencilView(
+		DSV,
+		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
+		1.0f,
+		0,
+		0,
+		nullptr
+	);
+	DrawRect(CommandList);
+	
+
+	ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+		mRenderTarget->GetResource(),
+		D3D12_RESOURCE_STATE_RENDER_TARGET,
+		D3D12_RESOURCE_STATE_GENERIC_READ
+	);
+	CommandList->ResourceBarrier(
+		1,
+		&ResourceBarrier
+	);
+
+
+	ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+		mRenderTarget->GetDepthStencilResource(),
+		D3D12_RESOURCE_STATE_DEPTH_WRITE,
+		D3D12_RESOURCE_STATE_COMMON
+	);
+	CommandList->ResourceBarrier(
+		1,
+		&ResourceBarrier
+	);
 }

@@ -18,4 +18,10 @@ void DrawSphere(in float3 InPosL, in float4x4 ViewProj, out float3 OutPosL, out 
     OutPosH = mul(float4(InPosL, 1.0f), ViewProj);
 }
 
+void DrawRect(in float2 InPosition, in float2 InTexC, out float4 OutPosition, out float2 OutTexC)
+{
+    OutPosition = float4(InPosition, 0.0f, 1.0f);
+    OutTexC = InTexC;
+}
+
 #endif

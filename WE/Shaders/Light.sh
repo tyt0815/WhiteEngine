@@ -86,14 +86,13 @@ float3 ComputeDirectionalLight(
     float G = GeometrySmith(N, V, L, Material.Roughness);
     float3 F = FresnelSchlick(max(dot(H, V), 0.0f), F0);
     
-    float3 Numerator = NDF * G * F;
-    float Denominator = 4.0f * max(dot(N, V), 0.0f) * max(dot(N, L), 0.0f) + 0.00001f;
-    float3 Specular = Numerator / Denominator;
-        
     float3 kS = F;
     float3 kD = (float3) 1.0f - kS;
     kD *= 1.0f - Material.Metallic;
-        
+    
+    float3 Numerator = NDF * G * F;
+    float Denominator = 4.0f * max(dot(N, V), 0.0f) * max(dot(N, L), 0.0f) + 0.00001f;
+    float3 Specular = Numerator / Denominator;
     
     float NDotL = max(dot(N, L), 0.0f);
     return (kD * Material.Albedo / PI + Specular) * Radiance * NDotL;
@@ -102,21 +101,69 @@ float3 ComputeDirectionalLight(
 float3 ImportanceSampleGGX(float2 Xi, float3 N, float Roughness)
 {
     float a = Roughness * Roughness;
-    float Phi = 2.0f * PI * Xi.x;
-    float cosTheta = sqrt((1.0f * Xi.y) / (1.0f + (a * a - 1.0f) * Xi.y));
-    float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
+    float Phi = 2 * PI * Xi.x;
+    float CosTheta = sqrt((1 - Xi.y) / (1 + (a * a - 1) * Xi.y));
+    float SinTheta = sqrt(1 - CosTheta * CosTheta);
     
     float3 H;
-    H.x = cos(Phi) * sinTheta;
-    H.y = sin(Phi) * sinTheta;
-    H.z = cosTheta;
+    H.x = SinTheta * cos(Phi);
+    H.y = SinTheta * sin(Phi);
+    H.z = CosTheta;
     
-    float3 Up = abs(N.z) < 0.999 ? float3(0.0f, 0.0f, 1.0f) : float3(1.0f, 0.0f, 0.0f);
-    float3 Tangent = normalize(cross(Up, N));
-    float3 Bitangent = cross(N, Tangent);
+    float3 UpVector = abs(N.z) < 0.999 ? float3(0, 0, 1) : float3(1, 0, 0);
+    float3 TangentX = normalize(cross(UpVector, N));
+    float3 TangentY = cross(N, TangentX);
     
-    float3 SampleVec = Tangent * H.x + Bitangent * H.y + N * H.z;
-    return normalize(SampleVec);
+    return TangentX * H.x + TangentY * H.y + N * H.z;
+}
+
+float GeometrySchlickGGXForIntegrateBRDF(float NdotV, float Roughness)
+{
+    float a = Roughness;
+    float k = (a * a) / 2.0;
+
+    float nom = NdotV;
+    float denom = NdotV * (1.0 - k) + k;
+
+    return nom / denom;
+}
+
+float GeometrySmithForIntegrateBRDF(float Roughness, float NoV, float NoL)
+{
+    float ggx2 = GeometrySchlickGGXForIntegrateBRDF(NoV, Roughness);
+    float ggx1 = GeometrySchlickGGXForIntegrateBRDF(NoL, Roughness);
+
+    return ggx1 * ggx2;
+}
+
+float2 IntegrateBRDF(float NoV, float Roughness)
+{
+    float3 V;
+    V.x = sqrt(1.0f - NoV * NoV); // sin
+    V.y = 0;
+    V.z = NoV; // cos
+    float A = 0;
+    float B = 0;
+    const uint NumSamples = 1024;
+    float3 N = float3(0.0f, 0.0f, 1.0f);
+    for (uint i = 0; i < NumSamples; i++)
+    {
+        float2 Xi = Hammersley(i, NumSamples);
+        float3 H = ImportanceSampleGGX(Xi, N, Roughness);
+        float3 L = 2 * dot(V, H) * H - V;
+        float NoL = saturate(L.z);
+        float NoH = saturate(H.z);
+        float VoH = saturate(dot(V, H));
+        if (NoL > 0)
+        {
+            float G = GeometrySmithForIntegrateBRDF(Roughness, NoV, NoL);
+            float G_Vis = G * VoH / (NoH * NoV);
+            float Fc = pow(1 - VoH, 5);
+            A += (1 - Fc) * G_Vis;
+            B += Fc * G_Vis;
+        }
+    }
+    return float2(A, B) / NumSamples;
 }
 
 #endif

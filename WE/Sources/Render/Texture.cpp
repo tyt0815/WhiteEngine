@@ -159,6 +159,7 @@ void FTextureManager::BuildTextures(ID3D12Device* Device, ID3D12GraphicsCommandL
 {
 	BuildTexture("Default", L"Default.dds", Device, CommandList);
 	BuildTexture("White", L"White.dds", Device, CommandList);
+	BuildTexture("Black", L"Black.dds", Device, CommandList);
 
 	BuildTexture("RustedIron2_BaseColor", L"RustedIron2_BaseColor.dds", Device, CommandList);
 	BuildTexture("RustedIron2_Normal", L"RustedIron2_Normal.dds", Device, CommandList);
@@ -179,6 +180,8 @@ void FTextureManager::BuildTextures(ID3D12Device* Device, ID3D12GraphicsCommandL
 	BuildTexture("ThickMortarStonework_Normal", L"IceField_Normal.dds", Device, CommandList);
 	BuildTexture("ThickMortarStonework_Metallic", L"IceField_Metallic.dds", Device, CommandList);
 	BuildTexture("ThickMortarStonework_Roughness", L"IceField_Roughness.dds", Device, CommandList);
+	
+	BuildTexture("SpecularIntegral", L"SpecularIntegral.dds", Device, CommandList);
 
 	BuildCubeTexture("Snow", L"SnowCube.dds", Device, CommandList);
 	BuildCubeTexture("Desert", L"DesertCube.dds", Device, CommandList);

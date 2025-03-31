@@ -1,0 +1,181 @@
+#include "RenderTarget.h"
+#include "DirectX/DXException.h"
+#include "DirectX/DXResourceManager.h"
+#include "Texture.h"
+
+FRenderTarget::FRenderTarget(std::string Name, UINT Width, UINT Height, UINT MipLevels, DXGI_FORMAT Format, DXGI_FORMAT DepthStencilFormat) :
+	mName(Name),
+	mWidth(Width),
+	mHeight(Height),
+	mMipLevels(MipLevels),
+	mFormat(Format),
+	mDepthStencilFormat(DepthStencilFormat),
+	mViewport({ 0.0f, 0.0f, (float)Width, (float)Height, 0.0f, 1.0f }),
+	mScissorRect({ 0, 0, (int)Width, (int)Height })
+{
+	Initialize();
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE FRenderTarget::GetRTV(int MipLevel) const
+{
+	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
+		mRTVHeap->GetCPUDescriptorHandleForHeapStart(),
+		MipLevel,
+		GetDXResourceManagerPtr()->GetRTVDescriptorSize()
+	);
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE FRenderTarget::GetCPUDescriptorHeap() const
+{
+	return GetTextureManager()->GetTexture2DCPUDescriptorHandle(mTexture->SRVHeapIndex);
+}
+
+D3D12_VIEWPORT FRenderTarget::GetViewportMipLevel(int i) const
+{
+	D3D12_VIEWPORT Viewport = GetViewport();
+	Viewport.Width = static_cast<float>(max(1.0f, Viewport.Width / pow(2, i)));
+	Viewport.Height = static_cast<float>(max(1.0f, Viewport.Height / pow(2, i)));
+	return Viewport;
+}
+
+D3D12_RECT FRenderTarget::GetScissorRectMipLevel(int i) const
+{
+	D3D12_RECT ScissorRect = GetScissorRect();
+	ScissorRect.right = static_cast<int>(max(1, ScissorRect.right / pow(2, i)));
+	ScissorRect.bottom = static_cast<int>(max(1, ScissorRect.bottom / pow(2, i)));
+	return ScissorRect;
+}
+
+void FRenderTarget::Initialize()
+{
+	BuildResource();
+	BuildRTVAndDSV();
+	BuildDescriptors();
+}
+
+void FRenderTarget::BuildResource()
+{
+	// Note, compressed formats cannot be used for UAV.  We get error like:
+	// ERROR: ID3D11Device::CreateTexture2D: The format (0x4d, BC3_UNORM) 
+	// cannot be bound as an UnorderedAccessView, or cast to a format that
+	// could be bound as an UnorderedAccessView.  Therefore this format 
+	// does not support D3D11_BIND_UNORDERED_ACCESS.
+
+	D3D12_RESOURCE_DESC TextureDesc;
+	ZeroMemory(&TextureDesc, sizeof(D3D12_RESOURCE_DESC));
+	TextureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	TextureDesc.Alignment = 0;
+	TextureDesc.Width = mWidth;
+	TextureDesc.Height = mHeight;
+	TextureDesc.DepthOrArraySize = 1;
+	TextureDesc.MipLevels = mMipLevels;
+	TextureDesc.Format = mFormat;
+	TextureDesc.SampleDesc.Count = 1;
+	TextureDesc.SampleDesc.Quality = 0;
+	TextureDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	TextureDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+	FDXResourceManager* DXManager = GetDXResourceManagerPtr();
+	ID3D12Device* Device = DXManager->GetDevicePtr();
+	D3D12_HEAP_PROPERTIES DefaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+	THROW_IF_FAILED(
+		Device->CreateCommittedResource(
+			&DefaultHeapProperties,
+			D3D12_HEAP_FLAG_NONE,
+			&TextureDesc,
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(&mResource)
+		)
+	);
+	FTextureManager* TexManager = GetTextureManager();
+	std::unique_ptr<FTexture> Texture = std::make_unique<FTexture>();
+	mTexture = Texture.get();
+	Texture->Name = mName;
+	Texture->Resource = mResource;
+	TexManager->RegisterTexture2D(std::move(Texture));
+
+	// Build Depth Stencil Buffer
+	D3D12_RESOURCE_DESC DepthStencilDesc;
+	ZeroMemory(&DepthStencilDesc, sizeof(D3D12_RESOURCE_DESC));
+	DepthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	DepthStencilDesc.Alignment = 0;
+	DepthStencilDesc.Width = mWidth;
+	DepthStencilDesc.Height = mHeight;
+	DepthStencilDesc.DepthOrArraySize = 1;
+	DepthStencilDesc.MipLevels = 1;
+	DepthStencilDesc.Format = mDepthStencilFormat;
+	DepthStencilDesc.SampleDesc.Count = 1;
+	DepthStencilDesc.SampleDesc.Quality = 0;
+	DepthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	DepthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+	D3D12_CLEAR_VALUE OptClear;
+	OptClear.Format = mDepthStencilFormat;
+	OptClear.DepthStencil.Depth = 1.0f;
+	OptClear.DepthStencil.Stencil = 0;
+	THROW_IF_FAILED(
+		Device->CreateCommittedResource(
+			&DefaultHeapProperties,
+			D3D12_HEAP_FLAG_NONE,
+			&DepthStencilDesc,
+			D3D12_RESOURCE_STATE_COMMON,
+			&OptClear,
+			IID_PPV_ARGS(mDepthStencilResource.GetAddressOf())
+		)
+	);
+}
+
+void FRenderTarget::BuildRTVAndDSV()
+{
+	FDXResourceManager* DXManager = GetDXResourceManagerPtr();
+	ID3D12Device* Device = DXManager->GetDevicePtr();
+	// RTVHeap
+	D3D12_DESCRIPTOR_HEAP_DESC RTVHeapDesc;
+	RTVHeapDesc.NumDescriptors = mMipLevels;
+	RTVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	RTVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	RTVHeapDesc.NodeMask = 0;
+	THROW_IF_FAILED(
+		Device->CreateDescriptorHeap(
+			&RTVHeapDesc,
+			IID_PPV_ARGS(mRTVHeap.GetAddressOf())
+		)
+	);
+
+	// DSVHeap
+	D3D12_DESCRIPTOR_HEAP_DESC DSVHeapDesc;
+	DSVHeapDesc.NumDescriptors = 1;
+	DSVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	DSVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	DSVHeapDesc.NodeMask = 0;
+	THROW_IF_FAILED(
+		Device->CreateDescriptorHeap(
+			&DSVHeapDesc,
+			IID_PPV_ARGS(mDSVHeap.GetAddressOf())
+		)
+	);
+
+	Device->CreateDepthStencilView(
+		mDepthStencilResource.Get(),
+		nullptr,
+		mDSVHeap->GetCPUDescriptorHandleForHeapStart()
+	);
+}
+
+void FRenderTarget::BuildDescriptors()
+{
+	FDXResourceManager* DXManager = GetDXResourceManagerPtr();
+	ID3D12Device* Device = DXManager->GetDevicePtr();
+
+	D3D12_RENDER_TARGET_VIEW_DESC RTVDesc;
+	RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+	RTVDesc.Format = mFormat;
+	RTVDesc.Texture2D.PlaneSlice = 0;
+	for (UINT i = 0; i < mMipLevels; ++i)
+	{
+		// Render target to ith element, jth mipmap.
+		RTVDesc.Texture2D.MipSlice = i;
+		Device->CreateRenderTargetView(mResource.Get(), &RTVDesc, GetRTV(i));
+	}
+}

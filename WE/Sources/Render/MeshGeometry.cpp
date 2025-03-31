@@ -25,6 +25,7 @@ void FMeshGeometryManager::BuildMeshGeometries(ID3D12Device* Device, ID3D12Graph
 	BuildMeshGeometryFromMeshData("Cylinder", GeoGen.CreateCylinder(0.5f, 0.3f, 3.0f, 20, 20), Device, CommandList);
 	BuildSkullMeshGeometry(Device, CommandList);
 	BuildBillboardPoints(Device, CommandList);
+	BuildRectangle(Device, CommandList);
 }
 
 void FMeshGeometryManager::BuildMeshGeometryFromMeshData(
@@ -128,6 +129,43 @@ void FMeshGeometryManager::BuildBillboardPoints(ID3D12Device* Device, ID3D12Grap
 		indices,
 		Submeshs,
 		D3D_PRIMITIVE_TOPOLOGY_POINTLIST,
+		Device,
+		CommandList
+	);
+}
+
+void FMeshGeometryManager::BuildRectangle(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
+{
+	struct FRectVertex
+	{
+		XMFLOAT2 Position;
+		XMFLOAT2 TexC;
+	};
+	std::vector<FRectVertex> Vertices = {
+		{XMFLOAT2(-1.f, -1.f), XMFLOAT2(0.f, 1.f)},
+		{XMFLOAT2(-1.f, 1.f), XMFLOAT2(0.f, 0.f)},
+		{XMFLOAT2(1.f, 1.f), XMFLOAT2(1.f, 0.f)},
+		{XMFLOAT2(1.f, -1.f), XMFLOAT2(1.f, 1.f)}
+	};
+
+	std::vector<std::uint16_t> Indices = {
+		0, 1, 2,
+		0, 2, 3
+	};
+
+
+	FSubmeshGeometry submesh;
+	submesh.IndexCount = (UINT)Indices.size();
+	submesh.StartIndexLocation = 0;
+	submesh.BaseVertexLocation = 0;
+	std::vector<FSubmeshGeometry> Submeshs = { submesh };
+
+	BuildMeshGeometryU16(
+		"Rectangle",
+		Vertices,
+		Indices,
+		Submeshs,
+		D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
 		Device,
 		CommandList
 	);

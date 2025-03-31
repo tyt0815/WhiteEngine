@@ -18,7 +18,10 @@ void WPrimitiveComponent::Update()
 		MeshCBInfo.DirtyFrameCount = FrameResourcesNum;
 		XMFLOAT4X4 World = GetWorldMatrix();
 		XMMATRIX WorldMat = XMLoadFloat4x4(&World);
+		
+		XMMATRIX InvTransposeWorld = FDXMath::InverseTranspose(WorldMat);
 		XMStoreFloat4x4(&MeshCBInfo.MeshCB.World, XMMatrixTranspose(WorldMat));
+		XMStoreFloat4x4(&MeshCBInfo.MeshCB.InvTransposeWorld, XMMatrixTranspose(InvTransposeWorld));
 		GetFrameResourceManager()->SetMeshCBInfo(mPrimitiveCBIndex, MeshCBInfo);
 	}
 }

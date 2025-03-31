@@ -7,7 +7,7 @@ FVSOutput MainVS(FVSInput VIn)
     
     float4 PosW = mul(float4(VIn.PosL, 1.0f), gWorld);
     VOut.PosW = PosW.xyz;
-    VOut.NormalW = mul(VIn.NormalL, (float3x3) gWorld);
+    VOut.NormalW = mul(VIn.NormalL, (float3x3) gInvTransposeWorld);
     VOut.PosH = mul(PosW, gViewProj);
     VOut.TexC = mul(float4(VIn.TexC, 0.0f, 1.0f), MaterialData.MatTransform).xy;
     return VOut;

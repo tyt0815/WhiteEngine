@@ -128,6 +128,7 @@ private:
 	);
 	void BuildSkullMeshGeometry(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 	void BuildBillboardPoints(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
+	void BuildRectangle(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 	std::unordered_map<std::string, std::unique_ptr<FMeshGeometry>> mMeshGeometries;
 public:
 	inline FMeshGeometry* GetMeshGeometry(std::string Name)

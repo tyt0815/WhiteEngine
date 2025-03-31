@@ -3,6 +3,7 @@
 #include "Application/TestApplication/Pawn/GhostCameraPawn.h"
 #include "Application/TestApplication/Actor/IceFieldGird.h"
 #include "Application/TestApplication/Actor/RustedIron2Sphere.h"
+#include "Application/TestApplication/Actor/ScuffedGoldBox.h"
 #include "Application/TestApplication/Actor/ScuffedGoldSphere.h"
 #include "Application/TestApplication/Actor/ThickMortarStonework.h"
 
@@ -26,5 +27,9 @@ WTestWorld::WTestWorld()
 
 	Actor = SpawnActor<AThickMortarStonework>();
 	Transform.Translation = XMFLOAT3(-2.0f, 0.0f, 5.0f);
+	Actor->SetTransform(Transform);
+
+	Actor = SpawnActor<AScuffedGoldBox>();
+	Transform.Translation = XMFLOAT3(4.0f, 0.0f, 5.0f);
 	Actor->SetTransform(Transform);
 }

@@ -15,7 +15,7 @@
 #include "RenderItemManager.h"
 
 FRenderer::FRenderer():
-	mSkyCubeMapRenderer(std::make_unique<FCubeSkyRenderer>(std::string("Desert")))
+	mSkyCubeMapRenderer(std::make_unique<FCubeSkyRenderer>(std::string("Snow")))
 {
 	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
 }
@@ -49,7 +49,12 @@ void FRenderer::Render(const FRenderData& RenderData)
 
 	D3D12_CPU_DESCRIPTOR_HANDLE RenderTargetView = DeviceManager->GetCurrentBackBufferView();
 	D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView = DeviceManager->GetDepthStencilView();
-	CommandList->ClearRenderTargetView(RenderTargetView, Colors::LightSkyBlue, 0, nullptr);
+	CommandList->ClearRenderTargetView(
+		RenderTargetView,
+		Colors::LightSkyBlue,
+		0,
+		nullptr
+	);
 	CommandList->ClearDepthStencilView(DepthStencilView, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
 	CommandList->OMSetRenderTargets(1, &RenderTargetView, true, &DepthStencilView);

@@ -23,7 +23,7 @@ cbuffer ConstantBufferPerPass : register(b0)
     float4x4 gViewProj;
     float4x4 gInvViewProj;
     float3 gEyePosW;
-    float gcbPerObjectPad1;
+    uint gIndirectSpecularIntegralTextureIndex;
     float2 gRenderTargetSize;
     float2 gInvRenderTargetSize;
     float gNearZ;
@@ -45,13 +45,14 @@ cbuffer ConstantBufferPerPass : register(b0)
 cbuffer ConstantBufferPerObject : register(b1)
 {
     float4x4 gWorld;
+    float4x4 gInvTransposeWorld;
 };
 
 cbuffer SubmeshCB : register(b2)
 {
     uint gMaterialIndex;
     uint gSkyIrradianceCubeMapIndex;
-    uint gSkySpecularCubeMapIndex;
+    uint gPrefilteredSkyCubeMapIndex;
     uint gPadOfSubmeshCB1;
 };
 
