@@ -12,7 +12,7 @@
 #include "Utility/String.h"
 #include "d3dx12.h"
 
-extern const int FrameResourcesNum;
+extern const int gFrameResourcesNum;
 
 class FDXUtility
 {

@@ -21,7 +21,6 @@ public:
 
 private:
 	void CalculateFrameStats();
-	void CreateRenderData(FRenderData& RenderData);
 
 	WWorld* mWorld;
 

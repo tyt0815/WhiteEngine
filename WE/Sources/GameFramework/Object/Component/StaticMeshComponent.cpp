@@ -1,7 +1,8 @@
 #include "StaticMeshComponent.h"
 #include "Render/MeshGeometry.h"
 #include "Render/RenderItemManager.h"
-#include "Render/FrameResource.h"
+
+extern const int gFrameResourcesNum;
 
 WStaticMeshComponent::WStaticMeshComponent()
 {
@@ -21,13 +22,17 @@ void WStaticMeshComponent::SetStaticMesh(const FStaticMesh& StaticMesh)
 			}
 		}
 	}
-	mSubmeshCBInfoPoolIds.clear();
+	for (size_t i = 0; i < mSubmeshCBIndices.size(); ++i)
+	{
+		GetRenderItemManager()->RemoveSubmeshInfo(mSubmeshCBIndices[i]);
+	}
+	mSubmeshCBIndices.clear();
 
 	mStaticMesh = StaticMesh;
 	FRenderItemInfo DrawArgs;
 	DrawArgs.MeshGeometry = mStaticMesh.Geometry;
-	DrawArgs.Material = mStaticMesh.Material;
-	DrawArgs.MeshCBIndex = (UINT)mPrimitiveCBIndex;
+	DrawArgs.Material = mStaticMesh.Material;		// TODO: Submesh당 Material로 변경? 밑에 되있는데...
+	DrawArgs.MeshCBIndex = (UINT)mMeshCBIndex;
 
 	for (size_t i = 0; i < mStaticMesh.Geometry->DrawArgs.size(); ++i)
 	{
@@ -36,18 +41,21 @@ void WStaticMeshComponent::SetStaticMesh(const FStaticMesh& StaticMesh)
 		DrawArgs.IndexCount = mStaticMesh.Geometry->DrawArgs[i].IndexCount;
 		DrawArgs.StartIndexLocation = mStaticMesh.Geometry->DrawArgs[i].StartIndexLocation;
 		DrawArgs.BaseVertexLocation = mStaticMesh.Geometry->DrawArgs[i].BaseVertexLocation;
-		FSubmeshConstantBuffer SubmeshCB;
-		SubmeshCB.MaterialIndex = mStaticMesh.Material->Type;
-		// TODO: 하드코딩되어있음
-		SubmeshCB.SkyIrradianceCubeMapIndex = 2;
-		SubmeshCB.SkySpecularCubeMapIndex = 3;
-		FSubmeshCBInfo SubmeshCBInfo;
-		SubmeshCBInfo.SubmeshCB = SubmeshCB;
-		SubmeshCBInfo.DirtyFrameCount = FrameResourcesNum;
-		mSubmeshCBInfoPoolIds.push_back(GetFrameResourceManager()->RegisterSubmeshCBInfo(SubmeshCBInfo));
-		DrawArgs.SubmeshCBIndex = mSubmeshCBInfoPoolIds.back();
-		size_t Temp = GetRenderItemManager()->RegisterRenderItem(ShadingModel, BlendMode, DrawArgs);
-		mRenderItemInfoPoolIds[ShadingModel][BlendMode].push_back(Temp);
+		FSubmeshInfo SubmeshInfo;
+		SubmeshInfo.MaterialIndex = mStaticMesh.Material->Type;
+		// TODO: 하드코딩
+		SubmeshInfo.SkyIrradianceCubeMapIndex = 2;
+		SubmeshInfo.SkySpecularCubeMapIndex = 3;
+		SubmeshInfo.DirtyFrameCount = gFrameResourcesNum;
+
+		std::uint64_t SubmeshCBIndex = GetRenderItemManager()->RegisterSubmeshInfo();
+		mSubmeshCBIndices.push_back(SubmeshCBIndex);
+		GetRenderItemManager()->SetSubmeshInfo(SubmeshCBIndex, SubmeshInfo);
+
+		DrawArgs.SubmeshCBIndex = SubmeshCBIndex;
+		mRenderItemInfoPoolIds[ShadingModel][BlendMode].push_back(
+			GetRenderItemManager()->RegisterRenderItem(ShadingModel, BlendMode, DrawArgs)
+		);
 
 	}
 }

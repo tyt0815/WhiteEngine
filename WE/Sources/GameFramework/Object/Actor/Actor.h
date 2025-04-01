@@ -4,7 +4,7 @@
 #include <d3d12.h>
 #include "GameFramework/Object/Component/SceneComponent.h"
 
-extern const int FrameResourcesNum;
+extern const int gFrameResourcesNum;
 
 class FMeshGeometry;
 class FMaterial;

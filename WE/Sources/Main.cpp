@@ -48,7 +48,6 @@ void InitializeSingleton()
     GetTextureManager();
     GetMaterialManager();
     GetMeshGeometryManager();
-    GetFrameResourceManager();
     GetShaderManager();
     GetRenderItemManager();
 }

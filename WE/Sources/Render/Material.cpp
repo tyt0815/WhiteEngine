@@ -1,11 +1,8 @@
 #include "Material.h"
-#include "ShaderStructures.h"
 #include <DirectXColors.h>
 #include "DirectX/DXResourceManager.h"
 
-extern const int FrameResourcesNum;
-
-//FMaterialManager* gMaterialManager = GetMaterialManager();
+extern const int gFrameResourcesNum;
 
 FMaterialManager::FMaterialManager()
 {
@@ -92,7 +89,7 @@ void FMaterialManager::Internal_BuildMaterial(
 	Material->NormalSRVHeapIndex = NormalSRVHeapIndex;
 	Material->RoughnessSRVHeapIndex = RoughnessSRVHeapIndex;
 	Material->MatTransform = MatTransform;
-	Material->DirtyFrameCount = FrameResourcesNum;
+	Material->DirtyFrameCount = gFrameResourcesNum;
 	mMaterials[Type] = std::move(Material);
 }
 

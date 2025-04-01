@@ -43,10 +43,7 @@ int FTestApplication::Run()
 				//ProcessInput();
 				GetInputSystemManager()->Tick();
 				GetWObjectManager()->Tick(GetAppTimer()->GetDeltaTime());
-				GetFrameResourceManager()->Tick();
-				FRenderData RenderData;
-				CreateRenderData(RenderData);
-				Renderer.Render(RenderData);
+				Renderer.Render();
 				DXManager->PresentAndSwapBuffer();
 			}
 			else
@@ -58,7 +55,6 @@ int FTestApplication::Run()
 	}
 
 	// GPU 의 명령이 끝나고 Com객체들을 해제해야 정상적인 해제 가능
-	GetFrameResourceManager()->FlushCommandQueues();
 	return (int)msg.wParam;
 }
 
@@ -94,9 +90,4 @@ void FTestApplication::CalculateFrameStats()
 		frameCnt = 0;
 		timeElapsed += 1.0f;
 	}
-}
-
-void FTestApplication::CreateRenderData(FRenderData& RenderData)
-{
-	RenderData.FrameResource = GetFrameResourceManager()->GetTargetFrameResource();
 }

@@ -9,7 +9,7 @@ public:
 
 protected:
 	virtual void Update() override;
-	std::uint64_t mPrimitiveCBIndex;
+	std::uint64_t mMeshCBIndex;
 
 private:
 

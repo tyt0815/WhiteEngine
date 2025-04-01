@@ -4,11 +4,6 @@
 #include "Render/StaticMesh.h"
 #include "Render/Material.h"
 
-class FMeshGeometry;
-class FMaterial;
-
-extern const int FrameResourcesNum;
-
 class WStaticMeshComponent : public WPrimitiveComponent
 {
 public:
@@ -18,5 +13,5 @@ public:
 private:
 	FStaticMesh mStaticMesh;
 	std::array<std::array<std::vector<size_t>, EBM_None>, ESM_None> mRenderItemInfoPoolIds;
-	std::vector<size_t> mSubmeshCBInfoPoolIds;
+	std::vector<size_t> mSubmeshCBIndices;
 };
