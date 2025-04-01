@@ -5,7 +5,7 @@
 #include "DirectX/DXResourceManager.h"
 #include "GameFramework/InputSystem/InputSystem.h"
 #include "World/TestWorld.h"
-#include "Render/Renderer.h"
+#include "Render/ForwardRenderer.h"
 #include "Render/RenderItemManager.h"
 #include "Render/Texture.h"
 #include "Utility/Class.h"

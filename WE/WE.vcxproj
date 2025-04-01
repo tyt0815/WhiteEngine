@@ -37,16 +37,12 @@
     <ClCompile Include="Sources\Render\CubeRenderTarget.cpp" />
     <ClCompile Include="Sources\Render\CubeSkyRenderer.cpp" />
     <ClCompile Include="Sources\Render\DDSTextureLoader.cpp" />
-    <ClCompile Include="Sources\Render\FrameResource.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="Sources\Render\GeometryGenerator.cpp" />
     <ClCompile Include="Sources\Render\Material.cpp" />
     <ClCompile Include="Sources\Render\MeshGeometry.cpp" />
-    <ClCompile Include="Sources\Render\Renderer.cpp" />
+    <ClCompile Include="Sources\Render\ForwardRenderer.cpp" />
     <ClCompile Include="Sources\Render\RenderItemManager.cpp" />
     <ClCompile Include="Sources\Render\RenderTarget.cpp" />
-    <ClCompile Include="Sources\Render\Shader.cpp" />
     <ClCompile Include="Sources\Render\ShapeDrawer.cpp" />
     <ClCompile Include="Sources\Render\StaticMesh.cpp" />
     <ClCompile Include="Sources\Render\Texture.cpp" />
@@ -83,16 +79,12 @@
     <ClInclude Include="Sources\Render\CubeRenderTarget.h" />
     <ClInclude Include="Sources\Render\CubeSkyRenderer.h" />
     <ClInclude Include="Sources\Render\DDSTextureLoader.h" />
-    <ClInclude Include="Sources\Render\FrameResource.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="Sources\Render\GeometryGenerator.h" />
     <ClInclude Include="Sources\Render\Material.h" />
     <ClInclude Include="Sources\Render\MeshGeometry.h" />
-    <ClInclude Include="Sources\Render\Renderer.h" />
+    <ClInclude Include="Sources\Render\ForwardRenderer.h" />
     <ClInclude Include="Sources\Render\RenderItemManager.h" />
     <ClInclude Include="Sources\Render\RenderTarget.h" />
-    <ClInclude Include="Sources\Render\Shader.h" />
     <ClInclude Include="Sources\Render\ShapeDrawer.h" />
     <ClInclude Include="Sources\Render\StaticMesh.h" />
     <ClInclude Include="Sources\Render\Texture.h" />

@@ -19,7 +19,7 @@ constexpr int DIR_LIGHTS_NUM = 1;
 constexpr int MESH_CB_NUM = 512;
 constexpr int SUBMESH_CB_NUM = 1024;
 
-class FRenderer : FNoncopyable
+class FForwardRenderer : FNoncopyable
 {
     struct FDirectionalLight
     {
@@ -28,7 +28,7 @@ class FRenderer : FNoncopyable
         XMFLOAT3 Color;
         UINT Pad2;
     };
-
+    
     // register(b0)
     struct FPassConstantBuffer
     {
@@ -100,14 +100,16 @@ class FRenderer : FNoncopyable
         UINT64 Fence = 0;
     };
 public:
-	FRenderer();
-    virtual ~FRenderer();
+	FForwardRenderer();
+    virtual ~FForwardRenderer();
 	virtual void Render();
 
 private:
     void CreateFrameResources();
     void InitializeFrameResource(FFrameResource* FrameResource);
     void BuildRootSignature();
+    void BuildShadersAndInputLayouts();
+    void BuildPipelineStates();
     void UpdateTargetFrameResource();
     void SetTargetFrameResource();
     void FlushFrameResourceQueue(FFrameResource* FrameResource);
@@ -117,9 +119,13 @@ private:
     void UpdateMaterialCB(TUploadBuffer<FMaterialStructuredBuffer>* MaterialStructuredBuffer);
 	void DrawRenderItems(FFrameResource* FrameResource, ID3D12GraphicsCommandList* CommandList, const TPool<FRenderItemInfo>& RenderItems);
     Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
+    Microsoft::WRL::ComPtr<ID3D12PipelineState> mWireFramePipelineState;
 	std::unique_ptr<FCubeSkyRenderer> mSkyCubeMapRenderer;
     std::array<std::unique_ptr<FFrameResource>, FRAME_RESOURCES_NUM> mFrameResources;
     FFrameResource* mTargetFrameResource;
+    std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3DBlob>> mShaders;
+    std::unordered_map<std::string, std::vector<D3D12_INPUT_ELEMENT_DESC>> mInputLayouts;
+    std::array<std::array<Microsoft::WRL::ComPtr<ID3D12PipelineState>, EBM_None>, ESM_None> mPipelineStates;
     int mTargetFrameResourceIndex = 0;
 	bool bWireFrame = false;
 };

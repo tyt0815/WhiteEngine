@@ -1,7 +1,6 @@
 #include "Application/TestApplication/TestApplication.h"
 #include "DirectX/DXException.h"
 #include "Render/MeshGeometry.h"
-#include "Render/Shader.h"
 #include "Render/RenderItemManager.h"
 
 #pragma comment(lib,"d3dcompiler.lib")
@@ -48,6 +47,5 @@ void InitializeSingleton()
     GetTextureManager();
     GetMaterialManager();
     GetMeshGeometryManager();
-    GetShaderManager();
     GetRenderItemManager();
 }

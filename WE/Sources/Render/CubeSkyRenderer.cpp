@@ -1,7 +1,6 @@
 #include "CubeSkyRenderer.h"
 #include <DirectXColors.h>
 #include "Texture.h"
-#include "FrameResource.h"
 #include "DirectX/DXResourceManager.h"
 #include "MeshGeometry.h"
 #include "RenderTarget.h"

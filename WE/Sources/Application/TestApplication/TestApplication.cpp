@@ -22,7 +22,7 @@ int FTestApplication::Run()
 	MSG msg = { 0 };
 	FDXResourceManager* DXManager = FDXResourceManager::GetInstance();
 
-	FRenderer Renderer;
+	FForwardRenderer Renderer;
 	while (msg.message != WM_QUIT)
 	{
 		// If there are Window messages then process them.

@@ -1,10 +1,9 @@
-#include "Renderer.h"
+#include "ForwardRenderer.h"
 
 #include <DirectXColors.h>
 
 #include "MeshGeometry.h"
 #include "CubeSkyRenderer.h"
-#include "Shader.h"
 #include "Texture.h"
 #include "Material.h"
 #include "DirectX/DXResourceManager.h"
@@ -14,18 +13,19 @@
 #include "GameFramework/Object/Component/CameraComponent.h"
 #include "GameFramework/Object/World/World.h"
 #include "RenderItemManager.h"
-#include "FrameResource.h"
 
 const int gFrameResourcesNum = FRAME_RESOURCES_NUM;
 
-FRenderer::FRenderer():
+FForwardRenderer::FForwardRenderer():
 	mSkyCubeMapRenderer(std::make_unique<FCubeSkyRenderer>(std::string("Snow")))
 {
 	CreateFrameResources();
 	BuildRootSignature();
+	BuildShadersAndInputLayouts();
+	BuildPipelineStates();
 }
 
-FRenderer::~FRenderer()
+FForwardRenderer::~FForwardRenderer()
 {
 	for (int i = 0; i < gFrameResourcesNum; ++i)
 	{
@@ -33,7 +33,7 @@ FRenderer::~FRenderer()
 	}
 }
 
-void FRenderer::Render()
+void FForwardRenderer::Render()
 {
 	UpdateTargetFrameResource();
 	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
@@ -78,7 +78,7 @@ void FRenderer::Render()
 	// Render
 
 	// Pass Constantbuffer
-	CommandList->SetGraphicsRootSignature(GetFrameResourceManager()->GetRootSignaturePtr());
+	CommandList->SetGraphicsRootSignature(mRootSignature.Get());
 	FTextureManager* TexManager = GetTextureManager();
 	ID3D12DescriptorHeap* descriptorHeaps[] = { TexManager->GetSRVHeapPtr() };
 	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
@@ -102,7 +102,7 @@ void FRenderer::Render()
 			for (size_t j = 0; j < EBM_None; ++j)
 			{
 				EBlendMode BlendMode = static_cast<EBlendMode>(j);
-				CommandList->SetPipelineState(GetShaderManager()->GetPipelineStatePtr(ShadingModel, BlendMode));
+				CommandList->SetPipelineState(mPipelineStates[i][j].Get());
 				DrawRenderItems(TargetFrameResource, CommandList, GetRenderItemManager()->GetRenderItems(ShadingModel, BlendMode));
 			}
 		}
@@ -124,7 +124,7 @@ void FRenderer::Render()
 	CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
 }
 
-void FRenderer::CreateFrameResources()
+void FForwardRenderer::CreateFrameResources()
 {
 	for (int i = 0; i < mFrameResources.size(); ++i)
 	{
@@ -134,7 +134,7 @@ void FRenderer::CreateFrameResources()
 	mTargetFrameResource = mFrameResources[mTargetFrameResourceIndex].get();
 }
 
-void FRenderer::InitializeFrameResource(FFrameResource* FrameResource)
+void FForwardRenderer::InitializeFrameResource(FFrameResource* FrameResource)
 {
 	ID3D12Device* Device = GetDXResourceManagerPtr()->GetDevicePtr();
 	THROW_IF_FAILED(
@@ -149,7 +149,7 @@ void FRenderer::InitializeFrameResource(FFrameResource* FrameResource)
 	FrameResource->MaterialConstantBuffer = std::make_unique<TUploadBuffer<FMaterialStructuredBuffer>>(Device, EMT_None, false);
 }
 
-void FRenderer::BuildRootSignature()
+void FForwardRenderer::BuildRootSignature()
 {
 	D3D12_DESCRIPTOR_RANGE TextureTable = GetTextureManager()->GetTexture2DDescriptorRange();
 	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
@@ -167,7 +167,81 @@ void FRenderer::BuildRootSignature()
 	FDXUtility::BuildRootSignature(RootParameter, ROOT_PARAMETERs_NUM, mRootSignature.GetAddressOf());
 }
 
-void FRenderer::UpdateTargetFrameResource()
+void FForwardRenderer::BuildShadersAndInputLayouts()
+{
+	D3D_SHADER_MACRO Defines[] = {
+		//{"FOG", "1"},
+		{NULL, NULL}
+	};
+
+	mShaders["ForwardLitVertexShader"] = FDXUtility::CompileShader(
+		L"Shaders\\ForwardLitVertexShader.sf",
+		nullptr,
+		"MainVS",
+		"vs_5_1"
+	);
+	mShaders["ForwardLitPixelShader"] = FDXUtility::CompileShader(
+		L"Shaders\\ForwardLitPixelShader.sf",
+		Defines,
+		"MainPS",
+		"ps_5_1"
+	);
+
+	mInputLayouts["Lit"] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+	};
+}
+
+void FForwardRenderer::BuildPipelineStates()
+{
+	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
+	ID3D12Device* Device = DeviceManager->GetDevicePtr();
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC ForwardLitPipelineStateDesc;
+	ZeroMemory(&ForwardLitPipelineStateDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+	ForwardLitPipelineStateDesc.InputLayout = { mInputLayouts["Lit"].data(), (UINT)mInputLayouts["Lit"].size() };
+	ForwardLitPipelineStateDesc.pRootSignature = mRootSignature.Get();
+	ForwardLitPipelineStateDesc.VS =
+	{
+		reinterpret_cast<BYTE*>(mShaders["ForwardLitVertexShader"]->GetBufferPointer()),
+		mShaders["ForwardLitVertexShader"]->GetBufferSize()
+	};
+	ForwardLitPipelineStateDesc.PS =
+	{
+		reinterpret_cast<BYTE*>(mShaders["ForwardLitPixelShader"]->GetBufferPointer()),
+		mShaders["ForwardLitPixelShader"]->GetBufferSize()
+	};
+	ForwardLitPipelineStateDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	ForwardLitPipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	ForwardLitPipelineStateDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	ForwardLitPipelineStateDesc.SampleMask = UINT_MAX;
+	ForwardLitPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	ForwardLitPipelineStateDesc.NumRenderTargets = 1;
+	ForwardLitPipelineStateDesc.RTVFormats[0] = DeviceManager->GetBackbufferFormat();
+	ForwardLitPipelineStateDesc.SampleDesc.Count = DeviceManager->IsMSAAOn() ? 4 : 1;
+	ForwardLitPipelineStateDesc.SampleDesc.Quality = DeviceManager->IsMSAAOn() ? (DeviceManager->GetMSAAQuality_4x() - 1) : 0;
+	ForwardLitPipelineStateDesc.DSVFormat = DeviceManager->GetDepthStencilFormat();
+	THROW_IF_FAILED(
+		Device->CreateGraphicsPipelineState(
+			&ForwardLitPipelineStateDesc,
+			IID_PPV_ARGS(mPipelineStates[ESM_DefaultLit][EBM_Opaque].GetAddressOf())
+		)
+	);
+
+	{
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC WireFramePipelineStateDesc = ForwardLitPipelineStateDesc;
+		WireFramePipelineStateDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+		THROW_IF_FAILED(
+			Device->CreateGraphicsPipelineState(
+				&WireFramePipelineStateDesc, IID_PPV_ARGS(mWireFramePipelineState.GetAddressOf())
+			)
+		);
+	}
+}
+
+void FForwardRenderer::UpdateTargetFrameResource()
 {
 	// Set Target Frame Resource
 	SetTargetFrameResource();
@@ -178,7 +252,7 @@ void FRenderer::UpdateTargetFrameResource()
 	UpdateMaterialCB(mTargetFrameResource->MaterialConstantBuffer.get());
 }
 
-void FRenderer::SetTargetFrameResource()
+void FForwardRenderer::SetTargetFrameResource()
 {
 	FDXResourceManager* DXResourceManager = GetDXResourceManagerPtr();
 	DXResourceManager->SignalFence();
@@ -189,7 +263,7 @@ void FRenderer::SetTargetFrameResource()
 	FlushFrameResourceQueue(mTargetFrameResource);
 }
 
-void FRenderer::FlushFrameResourceQueue(FFrameResource* FrameResource)
+void FForwardRenderer::FlushFrameResourceQueue(FFrameResource* FrameResource)
 {
 	ID3D12Fence* Fence = GetDXResourceManagerPtr()->GetFencePtr();
 	if (FrameResource->Fence != 0 && Fence->GetCompletedValue() < FrameResource->Fence)
@@ -204,7 +278,7 @@ void FRenderer::FlushFrameResourceQueue(FFrameResource* FrameResource)
 	}
 }
 
-void FRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuffer)
+void FForwardRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuffer)
 {
 	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
 	UTimer* Timer = GetAppTimer();
@@ -254,7 +328,7 @@ void FRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuf
 	PassConstantBuffer->CopyData(0, PassConstants);
 }
 
-void FRenderer::UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConstantBuffer)
+void FForwardRenderer::UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConstantBuffer)
 {
 	size_t TargetIndex = GetRenderItemManager()->GetMeshInfoPoolSize();
 	for (size_t i = 0; i < TargetIndex; ++i)
@@ -278,7 +352,7 @@ void FRenderer::UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConstantBuf
 	}
 }
 
-void FRenderer::UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshConstantBuffer)
+void FForwardRenderer::UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshConstantBuffer)
 {
 	size_t TargetIndex = GetRenderItemManager()->GetSubmeshInfoPoolSize();
 	for (size_t i = 0; i < TargetIndex; ++i)
@@ -301,7 +375,7 @@ void FRenderer::UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshCo
 	}
 }
 
-void FRenderer::UpdateMaterialCB(TUploadBuffer<FMaterialStructuredBuffer>* MaterialStructuredBuffer)
+void FForwardRenderer::UpdateMaterialCB(TUploadBuffer<FMaterialStructuredBuffer>* MaterialStructuredBuffer)
 {
 	for (std::uint16_t i = 0; i < EMT_None; ++i)
 	{
@@ -322,7 +396,7 @@ void FRenderer::UpdateMaterialCB(TUploadBuffer<FMaterialStructuredBuffer>* Mater
 	}
 }
 
-void FRenderer::DrawRenderItems(FFrameResource* FrameResource, ID3D12GraphicsCommandList* CommandList, const TPool<FRenderItemInfo>& RenderItems)
+void FForwardRenderer::DrawRenderItems(FFrameResource* FrameResource, ID3D12GraphicsCommandList* CommandList, const TPool<FRenderItemInfo>& RenderItems)
 {
 	ID3D12Resource* MeshConstantBuffer = FrameResource->MeshConstantBuffer->Resource();
 	ID3D12Resource* SubmeshConstantBuffer = FrameResource->SubmeshConstantBuffer->Resource();
