@@ -3,10 +3,19 @@
 #include "DirectX/DXResourceManager.h"
 #include "Texture.h"
 
-FRenderTarget::FRenderTarget(std::string Name, UINT Width, UINT Height, UINT MipLevels, DXGI_FORMAT Format, DXGI_FORMAT DepthStencilFormat) :
+FRenderTarget::FRenderTarget(
+	std::string Name,
+	UINT Width,
+	UINT Height,
+	UINT ArraySize, 
+	UINT MipLevels,
+	DXGI_FORMAT Format,
+	DXGI_FORMAT DepthStencilFormat
+) :
 	mName(Name),
 	mWidth(Width),
 	mHeight(Height),
+	mArraySize(ArraySize),
 	mMipLevels(MipLevels),
 	mFormat(Format),
 	mDepthStencilFormat(DepthStencilFormat),
@@ -67,7 +76,7 @@ void FRenderTarget::BuildResource()
 	TextureDesc.Alignment = 0;
 	TextureDesc.Width = mWidth;
 	TextureDesc.Height = mHeight;
-	TextureDesc.DepthOrArraySize = 1;
+	TextureDesc.DepthOrArraySize = mArraySize;
 	TextureDesc.MipLevels = mMipLevels;
 	TextureDesc.Format = mFormat;
 	TextureDesc.SampleDesc.Count = 1;
@@ -78,13 +87,20 @@ void FRenderTarget::BuildResource()
 	FDXResourceManager* DXManager = GetDXResourceManagerPtr();
 	ID3D12Device* Device = DXManager->GetDevicePtr();
 	D3D12_HEAP_PROPERTIES DefaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+
+	D3D12_CLEAR_VALUE OptClear;
+	OptClear.Format = mFormat;
+	OptClear.Color[0] = 0.0f;
+	OptClear.Color[1] = 0.0f;
+	OptClear.Color[2] = 0.0f;
+	OptClear.Color[3] = 1.0f;
 	THROW_IF_FAILED(
 		Device->CreateCommittedResource(
 			&DefaultHeapProperties,
 			D3D12_HEAP_FLAG_NONE,
 			&TextureDesc,
 			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
+			&OptClear,
 			IID_PPV_ARGS(&mResource)
 		)
 	);
@@ -110,7 +126,6 @@ void FRenderTarget::BuildResource()
 	DepthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	DepthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
-	D3D12_CLEAR_VALUE OptClear;
 	OptClear.Format = mDepthStencilFormat;
 	OptClear.DepthStencil.Depth = 1.0f;
 	OptClear.DepthStencil.Stencil = 0;
@@ -156,11 +171,6 @@ void FRenderTarget::BuildRTVAndDSV()
 		)
 	);
 
-	Device->CreateDepthStencilView(
-		mDepthStencilResource.Get(),
-		nullptr,
-		mDSVHeap->GetCPUDescriptorHandleForHeapStart()
-	);
 }
 
 void FRenderTarget::BuildDescriptors()
@@ -178,4 +188,10 @@ void FRenderTarget::BuildDescriptors()
 		RTVDesc.Texture2D.MipSlice = i;
 		Device->CreateRenderTargetView(mResource.Get(), &RTVDesc, GetRTV(i));
 	}
+
+	Device->CreateDepthStencilView(
+		mDepthStencilResource.Get(),
+		nullptr,
+		mDSVHeap->GetCPUDescriptorHandleForHeapStart()
+	);
 }

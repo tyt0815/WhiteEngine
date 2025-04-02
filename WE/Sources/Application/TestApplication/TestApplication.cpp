@@ -22,7 +22,7 @@ int FTestApplication::Run()
 	MSG msg = { 0 };
 	FDXResourceManager* DXManager = FDXResourceManager::GetInstance();
 
-	FForwardRenderer Renderer;
+	FForwardShadingSceneRenderer Renderer;
 	while (msg.message != WM_QUIT)
 	{
 		// If there are Window messages then process them.
@@ -53,7 +53,7 @@ int FTestApplication::Run()
 			}
 		}
 	}
-
+	Renderer.Destroy();
 	// GPU 의 명령이 끝나고 Com객체들을 해제해야 정상적인 해제 가능
 	return (int)msg.wParam;
 }

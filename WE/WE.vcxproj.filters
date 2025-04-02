@@ -74,9 +74,6 @@
     <ClCompile Include="Sources\Render\GeometryGenerator.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Render\FrameResource.cpp">
-      <Filter>Sources\Render</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\Render\Material.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
@@ -94,9 +91,6 @@
     </ClCompile>
     <ClCompile Include="Sources\DirectX\DXResourceManager.cpp">
       <Filter>Sources\DirectX</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Render\Renderer.cpp">
-      <Filter>Sources\Render</Filter>
     </ClCompile>
     <ClCompile Include="Sources\DirectX\DXMath.cpp">
       <Filter>Sources\DirectX</Filter>
@@ -130,9 +124,6 @@
     </ClCompile>
     <ClCompile Include="Sources\GameFramework\Object\Component\StaticMeshComponent.cpp">
       <Filter>Sources\GameFramework\Object\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Render\Shader.cpp">
-      <Filter>Sources\Render</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Render\RenderItemManager.cpp">
       <Filter>Sources\Render</Filter>
@@ -185,6 +176,12 @@
     <ClCompile Include="Sources\Application\TestApplication\Actor\ScuffedGoldBox.cpp">
       <Filter>Sources\Application\TestApplication\Actor</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Render\ForwardShadingSceneRenderer.cpp">
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Render\SceneRenderer.cpp">
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -192,9 +189,6 @@
     </ClInclude>
     <ClInclude Include="Sources\Utility\Timer.h">
       <Filter>Sources\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Render\FrameResource.h">
-      <Filter>Sources\Render</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Render\DDSTextureLoader.h">
       <Filter>Sources\Render</Filter>
@@ -219,9 +213,6 @@
     </ClInclude>
     <ClInclude Include="Sources\Window\Window.h">
       <Filter>Sources\Window</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Render\Renderer.h">
-      <Filter>Sources\Render</Filter>
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\InputSystem\InputSystem.h">
       <Filter>Sources\GameFramework\InputSystem</Filter>
@@ -262,9 +253,6 @@
     <ClInclude Include="Sources\GameFramework\Object\Object.h">
       <Filter>Sources\GameFramework\Object</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Render\Shader.h">
-      <Filter>Sources\Render</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\Utility\Pool.h">
       <Filter>Sources\Utility</Filter>
     </ClInclude>
@@ -291,9 +279,6 @@
     </ClInclude>
     <ClInclude Include="Sources\Application\TestApplication\TestApplication.h">
       <Filter>Sources\Application\TestApplication</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Render\ShaderStructures.h">
-      <Filter>Sources\Render</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Application\TestApplication\Actor\RustedIron2Sphere.h">
       <Filter>Sources\Application\TestApplication\Actor</Filter>
@@ -327,6 +312,15 @@
     </ClInclude>
     <ClInclude Include="Sources\Application\TestApplication\Actor\ScuffedGoldBox.h">
       <Filter>Sources\Application\TestApplication\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\DeferredShadingSceneRenderer.h">
+      <Filter>Sources\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\ForwardShadingSceneRenderer.h">
+      <Filter>Sources\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\SceneRenderer.h">
+      <Filter>Sources\Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

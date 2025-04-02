@@ -1,26 +1,22 @@
 #pragma once
-
-#include <d3d12.h>
-#include <array>
-#include <unordered_map>
-#include <memory>
-#include <vector>
+#include "SceneRenderer.h"
 #include "GameFramework/Object/Actor/Actor.h"
 #include "Utility/Class.h"
 #include "RenderItemManager.h"
 #include "CubeSkyRenderer.h"
 #include "UploadBuffer.h"
 
-extern const int gFrameResourcesNum;
-constexpr std::uint32_t FRAME_RESOURCES_NUM = 3;
+
+
 constexpr int DIR_LIGHTS_NUM = 1;
 
 // CosntantBuffer
 constexpr int MESH_CB_NUM = 512;
 constexpr int SUBMESH_CB_NUM = 1024;
 
-class FForwardRenderer : FNoncopyable
+class FForwardShadingSceneRenderer : public FSceneRenderer
 {
+    typedef FSceneRenderer Super;
     struct FDirectionalLight
     {
         XMFLOAT3 Direction;
@@ -88,44 +84,52 @@ class FForwardRenderer : FNoncopyable
         DirectX::XMFLOAT4X4 MatTransform = FDXMath::Identity4x4();
     };
 
-    struct FFrameResource : FNoncopyable
+    class FForwardShadingSceneFrameResource : public FFrameResource
     {
-        Microsoft::WRL::ComPtr<ID3D12CommandAllocator> CommandAllocator;
+    public:
+        FForwardShadingSceneFrameResource();
+    private:
+        std::unique_ptr<TUploadBuffer<FPassConstantBuffer>> mPassConstantBuffer;
+        std::unique_ptr<TUploadBuffer<FMeshConstantBuffer>> mMeshConstantBuffer;
+        std::unique_ptr<TUploadBuffer<FSubmeshConstantBuffer>> mSubmeshConstantBuffer;
+        std::unique_ptr<TUploadBuffer<FMaterialStructuredBuffer>> mMaterialConstantBuffer;
 
-        std::unique_ptr<TUploadBuffer<FPassConstantBuffer>> PassConstantBuffer;
-        std::unique_ptr<TUploadBuffer<FMeshConstantBuffer>> MeshConstantBuffer;
-        std::unique_ptr<TUploadBuffer<FSubmeshConstantBuffer>> SubmeshConstantBuffer;
-        std::unique_ptr<TUploadBuffer<FMaterialStructuredBuffer>> MaterialConstantBuffer;
-
-        UINT64 Fence = 0;
+    public:
+        inline TUploadBuffer<FPassConstantBuffer>* GetPassCB()
+        {
+            return mPassConstantBuffer.get();
+        }
+        inline TUploadBuffer<FMeshConstantBuffer>* GetMeshCB()
+        {
+            return mMeshConstantBuffer.get();
+        }
+        inline TUploadBuffer<FSubmeshConstantBuffer>* GetSubmeshCB()
+        {
+            return mSubmeshConstantBuffer.get();
+        }
+        inline TUploadBuffer<FMaterialStructuredBuffer>* GetMaterialSB()
+        {
+            return mMaterialConstantBuffer.get();
+        }
     };
 public:
-	FForwardRenderer();
-    virtual ~FForwardRenderer();
+	FForwardShadingSceneRenderer();
 	virtual void Render();
 
 private:
-    void CreateFrameResources();
-    void InitializeFrameResource(FFrameResource* FrameResource);
-    void BuildRootSignature();
-    void BuildShadersAndInputLayouts();
-    void BuildPipelineStates();
-    void UpdateTargetFrameResource();
-    void SetTargetFrameResource();
-    void FlushFrameResourceQueue(FFrameResource* FrameResource);
+    virtual void CreateFrameResources() override;
+    virtual void BuildRootSignature() override;
+    virtual void BuildShadersAndInputLayouts() override;
+    virtual void BuildPipelineStates() override;
+    virtual void UpdateFrameBuffers(FFrameResource* FrameResource) override;
     void UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuffer);
     void UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConstantBuffer);
     void UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshConstantBuffer);
     void UpdateMaterialCB(TUploadBuffer<FMaterialStructuredBuffer>* MaterialStructuredBuffer);
-	void DrawRenderItems(FFrameResource* FrameResource, ID3D12GraphicsCommandList* CommandList, const TPool<FRenderItemInfo>& RenderItems);
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
-    Microsoft::WRL::ComPtr<ID3D12PipelineState> mWireFramePipelineState;
+	void DrawRenderItems(
+        FForwardShadingSceneFrameResource* FrameResource,
+        ID3D12GraphicsCommandList* CommandList,
+        const TPool<FRenderItemInfo>& RenderItems
+    );
 	std::unique_ptr<FCubeSkyRenderer> mSkyCubeMapRenderer;
-    std::array<std::unique_ptr<FFrameResource>, FRAME_RESOURCES_NUM> mFrameResources;
-    FFrameResource* mTargetFrameResource;
-    std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3DBlob>> mShaders;
-    std::unordered_map<std::string, std::vector<D3D12_INPUT_ELEMENT_DESC>> mInputLayouts;
-    std::array<std::array<Microsoft::WRL::ComPtr<ID3D12PipelineState>, EBM_None>, ESM_None> mPipelineStates;
-    int mTargetFrameResourceIndex = 0;
-	bool bWireFrame = false;
 };

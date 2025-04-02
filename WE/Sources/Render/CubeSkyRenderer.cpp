@@ -173,7 +173,7 @@ void FCubeSkyIrradianceMapRenderer::Internal_Render(ID3D12Device* Device, ID3D12
 			D3D12_CPU_DESCRIPTOR_HANDLE DSV = mCubeRenderTarget->GetDSVHeap()->GetCPUDescriptorHandleForHeapStart();
 			CommandList->ClearRenderTargetView(
 				RTV,
-				DirectX::Colors::LightBlue,
+				DirectX::Colors::Black,
 				0,
 				nullptr
 			);
@@ -390,7 +390,7 @@ void FPreFilteredSkyCubeMapRenderer::Internal_Render(ID3D12Device* Device, ID3D1
 			D3D12_CPU_DESCRIPTOR_HANDLE DSV = mCubeRenderTarget->GetDSVHeap()->GetCPUDescriptorHandleForHeapStart();
 			CommandList->ClearRenderTargetView(
 				RTV,
-				DirectX::Colors::LightBlue,
+				DirectX::Colors::Black,
 				0,
 				nullptr
 			);
@@ -749,7 +749,7 @@ void FIndirectSpecularIntegralRenderer::Internal_Render(ID3D12Device* Device, ID
 	CommandList->OMSetRenderTargets(1, &RTV, true, &DSV);
 	CommandList->ClearRenderTargetView(
 		RTV,
-		DirectX::Colors::LightBlue,
+		DirectX::Colors::Black,
 		0,
 		nullptr
 	);

@@ -14,6 +14,7 @@ public:
 		std::string Name,
 		UINT Width,
 		UINT Height,
+		UINT ArraySize = 1,
 		UINT MipLevels = 1,
 		DXGI_FORMAT Format = DXGI_FORMAT_R8G8B8A8_UNORM,
 		DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT
@@ -41,6 +42,7 @@ private:
 	DXGI_FORMAT mDepthStencilFormat;
 	UINT mWidth = 0;
 	UINT mHeight = 0;
+	UINT mArraySize;
 	UINT mMipLevels;
 public:
 	inline UINT GetMipLevels() const

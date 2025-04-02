@@ -212,8 +212,10 @@ void FCubeRenderTarget::BuildResource()
 	TextureDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	TextureDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
-	D3D12_CLEAR_VALUE RTOptClear;
-	RTOptClear.Format = mFormat;
+	D3D12_CLEAR_VALUE OptClear;
+	ZeroMemory(&OptClear, sizeof(D3D12_CLEAR_VALUE));
+	OptClear.Format = mFormat;
+	OptClear.Color[3] = 1.0f;
 
 	FDXResourceManager* DXManager = GetDXResourceManagerPtr();
 	ID3D12Device* Device = DXManager->GetDevicePtr();
@@ -224,7 +226,7 @@ void FCubeRenderTarget::BuildResource()
 			D3D12_HEAP_FLAG_NONE,
 			&TextureDesc,
 			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
+			&OptClear,
 			IID_PPV_ARGS(&mCubeMapResource)
 		)
 	);
@@ -250,7 +252,6 @@ void FCubeRenderTarget::BuildResource()
 	DepthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	DepthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
-	D3D12_CLEAR_VALUE OptClear;
 	OptClear.Format = mDepthStencilFormat;
 	OptClear.DepthStencil.Depth = 1.0f;
 	OptClear.DepthStencil.Stencil = 0;

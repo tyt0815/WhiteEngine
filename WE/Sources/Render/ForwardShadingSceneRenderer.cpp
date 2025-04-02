@@ -1,4 +1,4 @@
-#include "ForwardRenderer.h"
+#include "ForwardShadingSceneRenderer.h"
 
 #include <DirectXColors.h>
 
@@ -14,9 +14,7 @@
 #include "GameFramework/Object/World/World.h"
 #include "RenderItemManager.h"
 
-const int gFrameResourcesNum = FRAME_RESOURCES_NUM;
-
-FForwardRenderer::FForwardRenderer():
+FForwardShadingSceneRenderer::FForwardShadingSceneRenderer():
 	mSkyCubeMapRenderer(std::make_unique<FCubeSkyRenderer>(std::string("Snow")))
 {
 	CreateFrameResources();
@@ -25,23 +23,16 @@ FForwardRenderer::FForwardRenderer():
 	BuildPipelineStates();
 }
 
-FForwardRenderer::~FForwardRenderer()
+void FForwardShadingSceneRenderer::Render()
 {
-	for (int i = 0; i < gFrameResourcesNum; ++i)
-	{
-		SetTargetFrameResource();
-	}
-}
+	Super::Render();
 
-void FForwardRenderer::Render()
-{
-	UpdateTargetFrameResource();
 	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
 	ID3D12Device* Device = DeviceManager->GetDevicePtr();
 	ID3D12GraphicsCommandList* CommandList = DeviceManager->GetCommandListPtr();
 	ID3D12CommandQueue* CommandQueue = DeviceManager->GetCommandQueuePtr();
-	FFrameResource* TargetFrameResource = mTargetFrameResource;
-	ID3D12CommandAllocator* TargetCommandAllocator = TargetFrameResource->CommandAllocator.Get();
+	FForwardShadingSceneFrameResource* TargetFrameResource = dynamic_cast<FForwardShadingSceneFrameResource*>(GetTargetFrameResource());
+	ID3D12CommandAllocator* TargetCommandAllocator = TargetFrameResource->GetCommandAllocatorPtr();
 	WWorld* World = GetWorld();
 
 	ID3D12Resource* RenderTarget = DeviceManager->GetCurrentBackBufferPtr();
@@ -83,10 +74,10 @@ void FForwardRenderer::Render()
 	ID3D12DescriptorHeap* descriptorHeaps[] = { TexManager->GetSRVHeapPtr() };
 	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-	auto PassConstantBuffer = TargetFrameResource->PassConstantBuffer->Resource();
+	auto PassConstantBuffer = TargetFrameResource->GetPassCB()->Resource();
 	auto PassConstantBufferAdress = PassConstantBuffer->GetGPUVirtualAddress();
 	CommandList->SetGraphicsRootConstantBufferView(0, PassConstantBufferAdress);
-	auto MaterialConstantBuffer = TargetFrameResource->MaterialConstantBuffer->Resource();
+	auto MaterialConstantBuffer = TargetFrameResource->GetMaterialSB()->Resource();
 	CommandList->SetGraphicsRootShaderResourceView(3, MaterialConstantBuffer->GetGPUVirtualAddress());
 	CommandList->SetGraphicsRootDescriptorTable(4, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
 	CommandList->SetGraphicsRootDescriptorTable(5, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
@@ -124,32 +115,15 @@ void FForwardRenderer::Render()
 	CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
 }
 
-void FForwardRenderer::CreateFrameResources()
+void FForwardShadingSceneRenderer::CreateFrameResources()
 {
 	for (int i = 0; i < mFrameResources.size(); ++i)
 	{
-		mFrameResources[i] = std::make_unique<FFrameResource>();
-		InitializeFrameResource(mFrameResources[i].get());
+		mFrameResources[i] = std::make_unique<FForwardShadingSceneFrameResource>();
 	}
-	mTargetFrameResource = mFrameResources[mTargetFrameResourceIndex].get();
 }
 
-void FForwardRenderer::InitializeFrameResource(FFrameResource* FrameResource)
-{
-	ID3D12Device* Device = GetDXResourceManagerPtr()->GetDevicePtr();
-	THROW_IF_FAILED(
-		Device->CreateCommandAllocator(
-			D3D12_COMMAND_LIST_TYPE_DIRECT,
-			IID_PPV_ARGS(FrameResource->CommandAllocator.GetAddressOf())
-		)
-	);
-	FrameResource->PassConstantBuffer = std::make_unique<TUploadBuffer<FPassConstantBuffer>>(Device, 1, true);
-	FrameResource->MeshConstantBuffer = std::make_unique<TUploadBuffer<FMeshConstantBuffer>>(Device, MESH_CB_NUM, true);
-	FrameResource->SubmeshConstantBuffer = std::make_unique<TUploadBuffer<FSubmeshConstantBuffer>>(Device, SUBMESH_CB_NUM, true);
-	FrameResource->MaterialConstantBuffer = std::make_unique<TUploadBuffer<FMaterialStructuredBuffer>>(Device, EMT_None, false);
-}
-
-void FForwardRenderer::BuildRootSignature()
+void FForwardShadingSceneRenderer::BuildRootSignature()
 {
 	D3D12_DESCRIPTOR_RANGE TextureTable = GetTextureManager()->GetTexture2DDescriptorRange();
 	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
@@ -167,7 +141,7 @@ void FForwardRenderer::BuildRootSignature()
 	FDXUtility::BuildRootSignature(RootParameter, ROOT_PARAMETERs_NUM, mRootSignature.GetAddressOf());
 }
 
-void FForwardRenderer::BuildShadersAndInputLayouts()
+void FForwardShadingSceneRenderer::BuildShadersAndInputLayouts()
 {
 	D3D_SHADER_MACRO Defines[] = {
 		//{"FOG", "1"},
@@ -195,7 +169,7 @@ void FForwardRenderer::BuildShadersAndInputLayouts()
 	};
 }
 
-void FForwardRenderer::BuildPipelineStates()
+void FForwardShadingSceneRenderer::BuildPipelineStates()
 {
 	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
 	ID3D12Device* Device = DeviceManager->GetDevicePtr();
@@ -241,44 +215,16 @@ void FForwardRenderer::BuildPipelineStates()
 	}
 }
 
-void FForwardRenderer::UpdateTargetFrameResource()
+void FForwardShadingSceneRenderer::UpdateFrameBuffers(FFrameResource* FrameResource)
 {
-	// Set Target Frame Resource
-	SetTargetFrameResource();
-
-	UpdatePassCB(mTargetFrameResource->PassConstantBuffer.get());
-	UpdateMeshCB(mTargetFrameResource->MeshConstantBuffer.get());
-	UpdateSubmeshCB(mTargetFrameResource->SubmeshConstantBuffer.get());
-	UpdateMaterialCB(mTargetFrameResource->MaterialConstantBuffer.get());
+	FForwardShadingSceneFrameResource* FSSFrameResource = dynamic_cast<FForwardShadingSceneFrameResource*>(FrameResource);
+	UpdatePassCB(FSSFrameResource->GetPassCB());
+	UpdateMeshCB(FSSFrameResource->GetMeshCB());
+	UpdateSubmeshCB(FSSFrameResource->GetSubmeshCB());
+	UpdateMaterialCB(FSSFrameResource->GetMaterialSB());
 }
 
-void FForwardRenderer::SetTargetFrameResource()
-{
-	FDXResourceManager* DXResourceManager = GetDXResourceManagerPtr();
-	DXResourceManager->SignalFence();
-	mTargetFrameResource->Fence = DXResourceManager->GetCurrentFence();
-	mTargetFrameResourceIndex = (mTargetFrameResourceIndex + 1) % gFrameResourcesNum;
-	mTargetFrameResource = mFrameResources[mTargetFrameResourceIndex].get();
-
-	FlushFrameResourceQueue(mTargetFrameResource);
-}
-
-void FForwardRenderer::FlushFrameResourceQueue(FFrameResource* FrameResource)
-{
-	ID3D12Fence* Fence = GetDXResourceManagerPtr()->GetFencePtr();
-	if (FrameResource->Fence != 0 && Fence->GetCompletedValue() < FrameResource->Fence)
-	{
-		HANDLE eventHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
-		THROW_IF_FAILED(Fence->SetEventOnCompletion(FrameResource->Fence, eventHandle));
-		if (eventHandle)
-		{
-			WaitForSingleObject(eventHandle, INFINITE);
-			CloseHandle(eventHandle);
-		}
-	}
-}
-
-void FForwardRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuffer)
+void FForwardShadingSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuffer)
 {
 	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
 	UTimer* Timer = GetAppTimer();
@@ -328,7 +274,7 @@ void FForwardRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassCons
 	PassConstantBuffer->CopyData(0, PassConstants);
 }
 
-void FForwardRenderer::UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConstantBuffer)
+void FForwardShadingSceneRenderer::UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConstantBuffer)
 {
 	size_t TargetIndex = GetRenderItemManager()->GetMeshInfoPoolSize();
 	for (size_t i = 0; i < TargetIndex; ++i)
@@ -352,7 +298,7 @@ void FForwardRenderer::UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshCons
 	}
 }
 
-void FForwardRenderer::UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshConstantBuffer)
+void FForwardShadingSceneRenderer::UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshConstantBuffer)
 {
 	size_t TargetIndex = GetRenderItemManager()->GetSubmeshInfoPoolSize();
 	for (size_t i = 0; i < TargetIndex; ++i)
@@ -375,7 +321,7 @@ void FForwardRenderer::UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* Su
 	}
 }
 
-void FForwardRenderer::UpdateMaterialCB(TUploadBuffer<FMaterialStructuredBuffer>* MaterialStructuredBuffer)
+void FForwardShadingSceneRenderer::UpdateMaterialCB(TUploadBuffer<FMaterialStructuredBuffer>* MaterialStructuredBuffer)
 {
 	for (std::uint16_t i = 0; i < EMT_None; ++i)
 	{
@@ -390,16 +336,20 @@ void FForwardRenderer::UpdateMaterialCB(TUploadBuffer<FMaterialStructuredBuffer>
 			MaterialConstants.RoughnessTextureIndex = Material->RoughnessSRVHeapIndex;
 			XMStoreFloat4x4(&MaterialConstants.MatTransform, XMMatrixTranspose(MaterialTransform));
 
-			mTargetFrameResource->MaterialConstantBuffer->CopyData(Material->Type, MaterialConstants);
+			MaterialStructuredBuffer->CopyData(Material->Type, MaterialConstants);
 			--Material->DirtyFrameCount;
 		}
 	}
 }
 
-void FForwardRenderer::DrawRenderItems(FFrameResource* FrameResource, ID3D12GraphicsCommandList* CommandList, const TPool<FRenderItemInfo>& RenderItems)
+void FForwardShadingSceneRenderer::DrawRenderItems(
+	FForwardShadingSceneFrameResource* FrameResource,
+	ID3D12GraphicsCommandList* CommandList,
+	const TPool<FRenderItemInfo>& RenderItems
+)
 {
-	ID3D12Resource* MeshConstantBuffer = FrameResource->MeshConstantBuffer->Resource();
-	ID3D12Resource* SubmeshConstantBuffer = FrameResource->SubmeshConstantBuffer->Resource();
+	ID3D12Resource* MeshConstantBuffer = FrameResource->GetMeshCB()->Resource();
+	ID3D12Resource* SubmeshConstantBuffer = FrameResource->GetSubmeshCB()->Resource();
 
 	UINT ObjectConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FMeshConstantBuffer));
 	UINT SubmeshConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FSubmeshConstantBuffer));
@@ -435,4 +385,13 @@ void FForwardRenderer::DrawRenderItems(FFrameResource* FrameResource, ID3D12Grap
 			);
 		}
 	}
+}
+
+FForwardShadingSceneRenderer::FForwardShadingSceneFrameResource::FForwardShadingSceneFrameResource()
+{
+	ID3D12Device* Device = GetDXResourceManagerPtr()->GetDevicePtr();
+	mPassConstantBuffer = std::make_unique<TUploadBuffer<FPassConstantBuffer>>(Device, 1, true);
+	mMeshConstantBuffer = std::make_unique<TUploadBuffer<FMeshConstantBuffer>>(Device, MESH_CB_NUM, true);
+	mSubmeshConstantBuffer = std::make_unique<TUploadBuffer<FSubmeshConstantBuffer>>(Device, SUBMESH_CB_NUM, true);
+	mMaterialConstantBuffer = std::make_unique<TUploadBuffer<FMaterialStructuredBuffer>>(Device, EMT_None, false);
 }
