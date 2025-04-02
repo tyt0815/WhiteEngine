@@ -182,6 +182,9 @@
     <ClCompile Include="Sources\Render\SceneRenderer.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Render\DeferredShadingSceneRenderer.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -324,13 +327,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\ForwardLitCommon.sh">
+    <None Include="Shaders\BasePassCommon.sh">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\ForwardLitPixelShader.sf">
+    <None Include="Shaders\BasePassPixelShader.sf">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\ForwardLitVertexShader.sf">
+    <None Include="Shaders\BasePassVertexShader.sf">
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shaders\BillboardCommon.sh">

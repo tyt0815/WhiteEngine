@@ -37,6 +37,7 @@
     <ClCompile Include="Sources\Render\CubeRenderTarget.cpp" />
     <ClCompile Include="Sources\Render\CubeSkyRenderer.cpp" />
     <ClCompile Include="Sources\Render\DDSTextureLoader.cpp" />
+    <ClCompile Include="Sources\Render\DeferredShadingSceneRenderer.cpp" />
     <ClCompile Include="Sources\Render\GeometryGenerator.cpp" />
     <ClCompile Include="Sources\Render\Material.cpp" />
     <ClCompile Include="Sources\Render\MeshGeometry.cpp" />
@@ -113,13 +114,13 @@
     <None Include="Shaders\SkyIrradianceCubeMapVertexShader.sf" />
     <None Include="Shaders\SkyCubeMapPixelShader.sf" />
     <None Include="Shaders\SkyCubeMapVertexShader.sf" />
-    <None Include="Shaders\ForwardLitCommon.sh">
+    <None Include="Shaders\BasePassCommon.sh">
       <FileType>Document</FileType>
     </None>
-    <None Include="Shaders\ForwardLitPixelShader.sf">
+    <None Include="Shaders\BasePassPixelShader.sf">
       <FileType>Document</FileType>
     </None>
-    <None Include="Shaders\ForwardLitVertexShader.sf">
+    <None Include="Shaders\BasePassVertexShader.sf">
       <FileType>Document</FileType>
     </None>
     <None Include="Shaders\Material.sh" />

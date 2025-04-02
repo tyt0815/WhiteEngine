@@ -5,21 +5,93 @@
 #include <unordered_map>
 #include <wrl.h>
 #include "Material.h"
+#include "UploadBuffer.h"
 #include "Utility/Class.h"
 #include "Utility/String.h"
 
 extern const int gFrameResourcesNum;
 constexpr int FRAME_RESOURCES_NUM = 3;
 
+constexpr int DIR_LIGHTS_NUM = 32;
+// CosntantBuffer
+constexpr int MESH_CB_NUM = 512;
+constexpr int SUBMESH_CB_NUM = 1024;
+
+struct FDirectionalLight
+{
+    XMFLOAT3 Direction;
+    UINT Pad1;
+    XMFLOAT3 Color;
+    UINT Pad2;
+};
+
+// register(b0)
+struct FPassConstantBuffer
+{
+    DirectX::XMFLOAT4X4 View = FDXMath::Identity4x4();
+    DirectX::XMFLOAT4X4 InvView = FDXMath::Identity4x4();
+    DirectX::XMFLOAT4X4 Proj = FDXMath::Identity4x4();
+    DirectX::XMFLOAT4X4 InvProj = FDXMath::Identity4x4();
+    DirectX::XMFLOAT4X4 ViewProj = FDXMath::Identity4x4();
+    DirectX::XMFLOAT4X4 InvViewProj = FDXMath::Identity4x4();
+    DirectX::XMFLOAT3 EyePosW = { 0.0f, 0.0f, 0.0f };
+    UINT IndirectSpecularIntegralTextureIndex;
+    DirectX::XMFLOAT2 RenderTargetSize = { 0.0f, 0.0f };
+    DirectX::XMFLOAT2 InvRenderTargetSize = { 0.0f, 0.0f };
+    float NearZ = 0.0f;
+    float FarZ = 0.0f;
+    float TotalTime = 0.0f;
+    float DeltaTime = 0.0f;
+
+    // Fog Info
+    DirectX::XMFLOAT4 FogColor;
+    float FogStart;
+    float FogRange;
+    UINT DirLightNum;
+    UINT Pad1;
+};
+
+// register(b1)
+struct FMeshConstantBuffer
+{
+    DirectX::XMFLOAT4X4 World = FDXMath::Identity4x4();
+    DirectX::XMFLOAT4X4 InvTransposeWorld;
+};
+
+// register(b2)
+struct FSubmeshConstantBuffer
+{
+    UINT MaterialIndex;
+    UINT SkyIrradianceCubeMapIndex;
+    UINT SkySpecularCubeMapIndex;
+    UINT Pad1;
+};
+
+// register(t0, space1)
+struct FMaterialStructuredBuffer
+{
+    UINT AbeldoTextureIndex;
+    UINT MetallicTextureIndex;
+    UINT RoughnessTextureIndex;
+    UINT NormalTextureIndex;
+    DirectX::XMFLOAT4X4 MatTransform = FDXMath::Identity4x4();
+};
+
 class FFrameResource : FNoncopyable
 {
 public:
-    FFrameResource();
+    FFrameResource(ID3D12Device* Device);
+    FFrameResource() = delete;
     virtual ~FFrameResource();
     void Flush();
 
 private:
     Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mCommandAllocator;
+    std::unique_ptr<TUploadBuffer<FPassConstantBuffer>> mPassConstantBuffer;
+    std::unique_ptr<TUploadBuffer<FMeshConstantBuffer>> mMeshConstantBuffer;
+    std::unique_ptr<TUploadBuffer<FSubmeshConstantBuffer>> mSubmeshConstantBuffer;
+    std::unique_ptr<TUploadBuffer<FMaterialStructuredBuffer>> mMaterialStructuredBuffer;
+    std::unique_ptr<TUploadBuffer<FDirectionalLight>> mDirectionalLightStructuredBuffer;
     UINT64 mFenceCount;
 
 public:
@@ -35,6 +107,31 @@ public:
     {
         mFenceCount = FenceCount;
     }
+    inline TUploadBuffer<FPassConstantBuffer>* GetPassCB() const
+    {
+        return mPassConstantBuffer.get();
+    }
+    inline TUploadBuffer<FMeshConstantBuffer>* GetMeshCB() const
+    {
+        return mMeshConstantBuffer.get();
+    }
+    inline TUploadBuffer<FSubmeshConstantBuffer>* GetSubmeshCB() const
+    {
+        return mSubmeshConstantBuffer.get();
+    }
+    inline TUploadBuffer<FMaterialStructuredBuffer>* GetMaterialSB() const
+    {
+        return mMaterialStructuredBuffer.get();
+    }
+    inline TUploadBuffer<FDirectionalLight>* GetDirectionalLightSB() const
+    {
+        return mDirectionalLightStructuredBuffer.get();
+    }
+};
+
+struct FRenderingData
+{
+
 };
 
 class FSceneRenderer : FNoncopyable
@@ -42,19 +139,26 @@ class FSceneRenderer : FNoncopyable
 public:
 	FSceneRenderer();
 	~FSceneRenderer() = default;
+    virtual void Initialize(
+        ID3D12Device* Device,
+        ID3D12CommandQueue* CommandQueue,
+        ID3D12GraphicsCommandList* CommandList
+    );
     virtual void Render();
     virtual void Destroy();
 
 protected:
-    virtual void CreateFrameResources() = 0;
-    virtual void BuildRootSignature() = 0;
     virtual void BuildShadersAndInputLayouts() = 0;
     virtual void BuildPipelineStates() = 0;
-    virtual void UpdateFrameBuffers(FFrameResource* FrameResource) = 0;
-    
+    virtual void CreateFrameResources();
+    virtual void BuildRootSignature();
+    virtual void UpdateFrameBuffers(FFrameResource* FrameResource);
 
     Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
     Microsoft::WRL::ComPtr<ID3D12PipelineState> mWireFramePipelineState;
+    ID3D12Device* mDevice;
+    ID3D12CommandQueue* mCommandQueue;
+    ID3D12GraphicsCommandList* mCommandList;
     std::array<std::unique_ptr<FFrameResource>, FRAME_RESOURCES_NUM> mFrameResources;
     std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3DBlob>> mShaders;
     std::unordered_map<std::string, std::vector<D3D12_INPUT_ELEMENT_DESC>> mInputLayouts;
@@ -65,6 +169,11 @@ protected:
 private:
     void UpdateTargetFrameResource();
     void SwitchToNextFrameResource();
+    void UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuffer);
+    void UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConstantBuffer);
+    void UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshConstantBuffer);
+    void UpdateMaterialSB(TUploadBuffer<FMaterialStructuredBuffer>* MaterialStructuredBuffer);
+    void UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLight>* DirectionalLightStructuredBuffer);
 
 public:
     inline FFrameResource* GetTargetFrameResource() const

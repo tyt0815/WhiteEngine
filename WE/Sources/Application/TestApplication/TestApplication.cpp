@@ -23,6 +23,7 @@ int FTestApplication::Run()
 	FDXResourceManager* DXManager = FDXResourceManager::GetInstance();
 
 	FForwardShadingSceneRenderer Renderer;
+	Renderer.Initialize(DXManager->GetDevicePtr(), DXManager->GetCommandQueuePtr(), DXManager->GetCommandListPtr());
 	while (msg.message != WM_QUIT)
 	{
 		// If there are Window messages then process them.

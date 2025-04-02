@@ -1,4 +1,4 @@
-    #include "ForwardLitCommon.sh"
+#include "BasePassCommon.sh"
 
 FVSOutput MainVS(FVSInput VIn)
 {
