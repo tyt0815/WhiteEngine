@@ -12,21 +12,24 @@
 
 class FForwardShadingSceneRenderer final : public FSceneRenderer
 {
+private:
     typedef FSceneRenderer Super;
+    struct FFrameResource : public FFrameResourceBase
+    {
+
+    };
 public:
-    virtual void Initialize(
-        ID3D12Device* Device,
-        ID3D12CommandQueue* CommandQueue,
-        ID3D12GraphicsCommandList* CommandList
-    ) override;
-	virtual void Render();
+    virtual void Initialize(ID3D12Device* Device) override;
+	virtual void Render(const FRenderingData& RenderingData);
 
 protected:
     virtual void BuildShadersAndInputLayouts() override;
-    virtual void BuildPipelineStates() override;
+    virtual void BuildPipelineStates(ID3D12Device* Device) override;
+    virtual void CreateFrameResources(ID3D12Device* Device) override;
+    virtual void BuildRootSignature() override;
 private:
 	void DrawRenderItems(
-        FFrameResource* FrameResource,
+        FFrameResourceBase* FrameResource,
         ID3D12GraphicsCommandList* CommandList,
         const TPool<FRenderItemInfo>& RenderItems
     );

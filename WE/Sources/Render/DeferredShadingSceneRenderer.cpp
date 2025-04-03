@@ -1,9 +1,9 @@
 #include "DeferredShadingSceneRenderer.h"
 #include "DirectX/DXResourceManager.h"
 
-void FDeferredShadingSceneRenderer::Render()
+void FDeferredShadingSceneRenderer::Render(const FRenderingData& RenderingData)
 {
-	Super::Render();
+	Super::Render(RenderingData);
 
 	ID3D12Device* Device = GetDXResourceManagerPtr()->GetDevicePtr();
 	
@@ -13,21 +13,19 @@ void FDeferredShadingSceneRenderer::BuildShadersAndInputLayouts()
 {
 }
 
-void FDeferredShadingSceneRenderer::BuildPipelineStates()
+void FDeferredShadingSceneRenderer::BuildPipelineStates(ID3D12Device* Device)
 {
 }
 
-void FDeferredShadingSceneRenderer::CreateFrameResources()
+void FDeferredShadingSceneRenderer::CreateFrameResources(ID3D12Device* Device)
 {
-	Super::CreateFrameResources();
 }
 
 void FDeferredShadingSceneRenderer::BuildRootSignature()
 {
-	Super::BuildRootSignature();
 }
 
-void FDeferredShadingSceneRenderer::UpdateFrameBuffers(FFrameResource* FrameResource)
+void FDeferredShadingSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* FrameResource)
 {
 	Super::UpdateFrameBuffers(FrameResource);
 }

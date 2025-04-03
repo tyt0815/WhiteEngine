@@ -9,7 +9,7 @@
 
 const int gFrameResourcesNum = FRAME_RESOURCES_NUM;
 
-FFrameResource::FFrameResource(ID3D12Device* Device)
+FFrameResourceBase::FFrameResourceBase(ID3D12Device* Device)
 {
 	THROW_IF_FAILED(
 		Device->CreateCommandAllocator(
@@ -24,11 +24,11 @@ FFrameResource::FFrameResource(ID3D12Device* Device)
 	mDirectionalLightStructuredBuffer = std::make_unique<TUploadBuffer<FDirectionalLight>>(Device, DIR_LIGHTS_NUM, false);
 }
 
-FFrameResource::~FFrameResource()
+FFrameResourceBase::~FFrameResourceBase()
 {
 }
 
-void FFrameResource::Flush()
+void FFrameResourceBase::Flush()
 {
 	ID3D12Fence* Fence = GetDXResourceManagerPtr()->GetFencePtr();
 	if (mFenceCount != 0 && Fence->GetCompletedValue() < mFenceCount)
@@ -48,22 +48,15 @@ FSceneRenderer::FSceneRenderer()
 	
 }
 
-void FSceneRenderer::Initialize(
-	ID3D12Device* Device,
-	ID3D12CommandQueue* CommandQueue,
-	ID3D12GraphicsCommandList* CommandList
-)
+void FSceneRenderer::Initialize(ID3D12Device* Device)
 {
-	mDevice = Device;
-	mCommandQueue = CommandQueue;
-	mCommandList = CommandList;
-	CreateFrameResources();
+	CreateFrameResources(Device);
 	BuildRootSignature();
 	BuildShadersAndInputLayouts();
-	BuildPipelineStates();
+	BuildPipelineStates(Device);
 }
 
-void FSceneRenderer::Render()
+void FSceneRenderer::Render(const FRenderingData& RenderingData)
 {
 	UpdateTargetFrameResource();
 	
@@ -77,34 +70,7 @@ void FSceneRenderer::Destroy()
 	SwitchToNextFrameResource();
 }
 
-void FSceneRenderer::CreateFrameResources()
-{
-	for (int i = 0; i < mFrameResources.size(); ++i)
-	{
-		mFrameResources[i] = std::make_unique<FFrameResource>(mDevice);
-	}
-}
-
-void FSceneRenderer::BuildRootSignature()
-{
-	D3D12_DESCRIPTOR_RANGE TextureTable = GetTextureManager()->GetTexture2DDescriptorRange();
-	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
-
-	// Tip: 자주 사용되는 것일수록 작은 인덱스에 보관하는게 퍼포먼스가 좋음
-	constexpr UINT ROOT_PARAMETERs_NUM = 7;
-	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERs_NUM];
-	RootParameter[0].InitAsConstantBufferView(0);	// PassCB
-	RootParameter[1].InitAsConstantBufferView(1);	// MeshCB
-	RootParameter[2].InitAsConstantBufferView(2);	// SubmeshCB
-	RootParameter[3].InitAsShaderResourceView(0, 2);	// MaterialSB
-	RootParameter[4].InitAsShaderResourceView(0, 3);	// DirLightSB
-	RootParameter[5].InitAsDescriptorTable(1, &TextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// TextureTable
-	RootParameter[6].InitAsDescriptorTable(1, &CubeTextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// CubeTextureTable
-
-	FDXUtility::BuildRootSignature(RootParameter, ROOT_PARAMETERs_NUM, mRootSignature.GetAddressOf());
-}
-
-void FSceneRenderer::UpdateFrameBuffers(FFrameResource* FrameResource)
+void FSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* FrameResource)
 {
 	UpdatePassCB(FrameResource->GetPassCB());
 	UpdateMeshCB(FrameResource->GetMeshCB());

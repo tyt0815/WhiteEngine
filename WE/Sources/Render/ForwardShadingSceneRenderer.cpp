@@ -11,72 +11,69 @@
 #include "DirectX/DXUtility.h"
 #include "RenderItemManager.h"
 
-void FForwardShadingSceneRenderer::Initialize(
-	ID3D12Device* Device,
-	ID3D12CommandQueue* CommandQueue,
-	ID3D12GraphicsCommandList* CommandList
-)
+void FForwardShadingSceneRenderer::Initialize(ID3D12Device* Device)
 {
-	Super::Initialize(Device, CommandQueue, CommandList);
+	Super::Initialize(Device);
 	mSkyCubeMapRenderer = std::make_unique<FCubeSkyRenderer>(std::string("Snow"));
 }
 
-void FForwardShadingSceneRenderer::Render()
+void FForwardShadingSceneRenderer::Render(const FRenderingData& RenderingData)
 {
-	Super::Render();
+	Super::Render(RenderingData);
 
-	FFrameResource* TargetFrameResource = GetTargetFrameResource();
+	ID3D12GraphicsCommandList* CommandList = RenderingData.CommandList;
+	FFrameResourceBase* TargetFrameResource = GetTargetFrameResource();
 	ID3D12CommandAllocator* TargetCommandAllocator = TargetFrameResource->GetCommandAllocatorPtr();
 
 	ID3D12Resource* RenderTarget = GetDXResourceManagerPtr()->GetCurrentBackBufferPtr();
 
 	THROW_IF_FAILED(TargetCommandAllocator->Reset());
-	THROW_IF_FAILED(mCommandList->Reset(TargetCommandAllocator, nullptr));
+	THROW_IF_FAILED(CommandList->Reset(TargetCommandAllocator, nullptr));
 
 	D3D12_VIEWPORT Viewport = GetDXResourceManagerPtr()->GetScreenViewport();
 	D3D12_RECT ScissorRect = GetDXResourceManagerPtr()->GetScissorRect();
-	mCommandList->RSSetViewports(1, &Viewport);
-	mCommandList->RSSetScissorRects(1, &ScissorRect);
+	CommandList->RSSetViewports(1, &Viewport);
+	CommandList->RSSetScissorRects(1, &ScissorRect);
 
 	D3D12_RESOURCE_BARRIER ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
 		RenderTarget,
 		D3D12_RESOURCE_STATE_PRESENT,
 		D3D12_RESOURCE_STATE_RENDER_TARGET
 	);
-	mCommandList->ResourceBarrier(1, &ResourceBarrier);
+	CommandList->ResourceBarrier(1, &ResourceBarrier);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE RenderTargetView = GetDXResourceManagerPtr()->GetCurrentBackBufferView();
 	D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView = GetDXResourceManagerPtr()->GetDepthStencilView();
-	mCommandList->ClearRenderTargetView(
+	CommandList->ClearRenderTargetView(
 		RenderTargetView,
 		Colors::LightSkyBlue,
 		0,
 		nullptr
 	);
-	mCommandList->ClearDepthStencilView(DepthStencilView, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+	CommandList->ClearDepthStencilView(DepthStencilView, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
-	mCommandList->OMSetRenderTargets(1, &RenderTargetView, true, &DepthStencilView);
+	CommandList->OMSetRenderTargets(1, &RenderTargetView, true, &DepthStencilView);
 
 	////////////////////////////////////////////////////////////////////////////////
 
 	// Render
 
 	// Pass Constantbuffer
-	mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
+	CommandList->SetGraphicsRootSignature(mRootSignatures["ForwardShading"].Get());
 	FTextureManager* TexManager = GetTextureManager();
 	ID3D12DescriptorHeap* descriptorHeaps[] = { TexManager->GetSRVHeapPtr() };
-	mCommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
 
 	ID3D12Resource* PassConstantBuffer = TargetFrameResource->GetPassCB()->Resource();
 	D3D12_GPU_VIRTUAL_ADDRESS PassConstantBufferAdress = PassConstantBuffer->GetGPUVirtualAddress();
-	mCommandList->SetGraphicsRootConstantBufferView(0, PassConstantBufferAdress);
+	CommandList->SetGraphicsRootConstantBufferView(0, PassConstantBufferAdress);
 	ID3D12Resource* MaterialSB = TargetFrameResource->GetMaterialSB()->Resource();
 	ID3D12Resource* DirLightSB = TargetFrameResource->GetDirectionalLightSB()->Resource();
-	mCommandList->SetGraphicsRootShaderResourceView(3, MaterialSB->GetGPUVirtualAddress());
-	mCommandList->SetGraphicsRootShaderResourceView(4, DirLightSB->GetGPUVirtualAddress());
-	mCommandList->SetGraphicsRootDescriptorTable(5, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
-	mCommandList->SetGraphicsRootDescriptorTable(6, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
+	CommandList->SetGraphicsRootShaderResourceView(3, MaterialSB->GetGPUVirtualAddress());
+	CommandList->SetGraphicsRootShaderResourceView(4, DirLightSB->GetGPUVirtualAddress());
+	CommandList->SetGraphicsRootDescriptorTable(5, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
+	CommandList->SetGraphicsRootDescriptorTable(6, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
 	if (bWireFrame)
 	{
 		// TODO
@@ -89,13 +86,13 @@ void FForwardShadingSceneRenderer::Render()
 			for (size_t j = 0; j < EBM_None; ++j)
 			{
 				EBlendMode BlendMode = static_cast<EBlendMode>(j);
-				mCommandList->SetPipelineState(mPipelineStates[i][j].Get());
-				DrawRenderItems(TargetFrameResource, mCommandList, GetRenderItemManager()->GetRenderItems(ShadingModel, BlendMode));
+				CommandList->SetPipelineState(mPipelineStates["ForwardShading_Opaque"].Get());
+				DrawRenderItems(TargetFrameResource, CommandList, GetRenderItemManager()->GetRenderItems(ShadingModel, BlendMode));
 			}
 		}
 	}
 	
-	mSkyCubeMapRenderer->Render(mCommandList);
+	mSkyCubeMapRenderer->Render(CommandList);
 	////////////////////////////////////////////////////////////////////////////////
 
 	ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
@@ -103,12 +100,7 @@ void FForwardShadingSceneRenderer::Render()
 		D3D12_RESOURCE_STATE_RENDER_TARGET,
 		D3D12_RESOURCE_STATE_PRESENT
 	);
-	mCommandList->ResourceBarrier(1, &ResourceBarrier);
-
-	THROW_IF_FAILED(mCommandList->Close());
-
-	ID3D12CommandList* CommandLists[] = { mCommandList };
-	mCommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
+	CommandList->ResourceBarrier(1, &ResourceBarrier);
 }
 
 void FForwardShadingSceneRenderer::BuildShadersAndInputLayouts()
@@ -140,13 +132,12 @@ void FForwardShadingSceneRenderer::BuildShadersAndInputLayouts()
 	};
 }
 
-void FForwardShadingSceneRenderer::BuildPipelineStates()
+void FForwardShadingSceneRenderer::BuildPipelineStates(ID3D12Device* Device)
 {
-	ID3D12Device* Device = GetDXResourceManagerPtr()->GetDevicePtr();
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC ForwardLitPipelineStateDesc;
 	ZeroMemory(&ForwardLitPipelineStateDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 	ForwardLitPipelineStateDesc.InputLayout = { mInputLayouts["ForwardShading"].data(), (UINT)mInputLayouts["ForwardShading"].size() };
-	ForwardLitPipelineStateDesc.pRootSignature = mRootSignature.Get();
+	ForwardLitPipelineStateDesc.pRootSignature = mRootSignatures["ForwardShading"].Get();
 	ForwardLitPipelineStateDesc.VS =
 	{
 		reinterpret_cast<BYTE*>(mShaders["BasePassVertexShader"]->GetBufferPointer()),
@@ -170,7 +161,7 @@ void FForwardShadingSceneRenderer::BuildPipelineStates()
 	THROW_IF_FAILED(
 		Device->CreateGraphicsPipelineState(
 			&ForwardLitPipelineStateDesc,
-			IID_PPV_ARGS(mPipelineStates[ESM_DefaultLit][EBM_Opaque].GetAddressOf())
+			IID_PPV_ARGS(mPipelineStates["ForwardShading_Opaque"].GetAddressOf())
 		)
 	);
 
@@ -179,14 +170,41 @@ void FForwardShadingSceneRenderer::BuildPipelineStates()
 		WireFramePipelineStateDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 		THROW_IF_FAILED(
 			Device->CreateGraphicsPipelineState(
-				&WireFramePipelineStateDesc, IID_PPV_ARGS(mWireFramePipelineState.GetAddressOf())
+				&WireFramePipelineStateDesc, IID_PPV_ARGS(mPipelineStates["WireFrame"].GetAddressOf())
 			)
 		);
 	}
 }
 
+void FForwardShadingSceneRenderer::CreateFrameResources(ID3D12Device* Device)
+{
+	for (int i = 0; i < mFrameResources.size(); ++i)
+	{
+		mFrameResources[i] = std::make_unique<FFrameResourceBase>(Device);
+	}
+}
+
+void FForwardShadingSceneRenderer::BuildRootSignature()
+{
+	D3D12_DESCRIPTOR_RANGE TextureTable = GetTextureManager()->GetTexture2DDescriptorRange();
+	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
+
+	// Tip: 자주 사용되는 것일수록 작은 인덱스에 보관하는게 퍼포먼스가 좋음
+	constexpr UINT ROOT_PARAMETERs_NUM = 7;
+	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERs_NUM];
+	RootParameter[0].InitAsConstantBufferView(0);	// PassCB
+	RootParameter[1].InitAsConstantBufferView(1);	// MeshCB
+	RootParameter[2].InitAsConstantBufferView(2);	// SubmeshCB
+	RootParameter[3].InitAsShaderResourceView(0, 2);	// MaterialSB
+	RootParameter[4].InitAsShaderResourceView(0, 3);	// DirLightSB
+	RootParameter[5].InitAsDescriptorTable(1, &TextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// TextureTable
+	RootParameter[6].InitAsDescriptorTable(1, &CubeTextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// CubeTextureTable
+
+	FDXUtility::BuildRootSignature(RootParameter, ROOT_PARAMETERs_NUM, mRootSignatures["ForwardShading"].GetAddressOf());
+}
+
 void FForwardShadingSceneRenderer::DrawRenderItems(
-	FFrameResource* FrameResource,
+	FFrameResourceBase* FrameResource,
 	ID3D12GraphicsCommandList* CommandList,
 	const TPool<FRenderItemInfo>& RenderItems
 )

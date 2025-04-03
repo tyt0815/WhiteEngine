@@ -77,12 +77,12 @@ struct FMaterialStructuredBuffer
     DirectX::XMFLOAT4X4 MatTransform = FDXMath::Identity4x4();
 };
 
-class FFrameResource : FNoncopyable
+class FFrameResourceBase : FNoncopyable
 {
 public:
-    FFrameResource(ID3D12Device* Device);
-    FFrameResource() = delete;
-    virtual ~FFrameResource();
+    FFrameResourceBase(ID3D12Device* Device);
+    FFrameResourceBase() = delete;
+    virtual ~FFrameResourceBase();
     void Flush();
 
 private:
@@ -131,7 +131,7 @@ public:
 
 struct FRenderingData
 {
-
+    ID3D12GraphicsCommandList* CommandList;
 };
 
 class FSceneRenderer : FNoncopyable
@@ -140,29 +140,23 @@ public:
 	FSceneRenderer();
 	~FSceneRenderer() = default;
     virtual void Initialize(
-        ID3D12Device* Device,
-        ID3D12CommandQueue* CommandQueue,
-        ID3D12GraphicsCommandList* CommandList
+        ID3D12Device* Device
     );
-    virtual void Render();
+    virtual void Render(const FRenderingData& RenderingData);
     virtual void Destroy();
 
 protected:
     virtual void BuildShadersAndInputLayouts() = 0;
-    virtual void BuildPipelineStates() = 0;
-    virtual void CreateFrameResources();
-    virtual void BuildRootSignature();
-    virtual void UpdateFrameBuffers(FFrameResource* FrameResource);
+    virtual void BuildPipelineStates(ID3D12Device* Device) = 0;
+    virtual void CreateFrameResources(ID3D12Device* Device) = 0;
+    virtual void BuildRootSignature() = 0;
+    virtual void UpdateFrameBuffers(FFrameResourceBase* FrameResource);
 
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature;
-    Microsoft::WRL::ComPtr<ID3D12PipelineState> mWireFramePipelineState;
-    ID3D12Device* mDevice;
-    ID3D12CommandQueue* mCommandQueue;
-    ID3D12GraphicsCommandList* mCommandList;
-    std::array<std::unique_ptr<FFrameResource>, FRAME_RESOURCES_NUM> mFrameResources;
+    std::array<std::unique_ptr<FFrameResourceBase>, FRAME_RESOURCES_NUM> mFrameResources;
+    std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D12RootSignature>> mRootSignatures;
     std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3DBlob>> mShaders;
+    std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D12PipelineState>> mPipelineStates;
     std::unordered_map<std::string, std::vector<D3D12_INPUT_ELEMENT_DESC>> mInputLayouts;
-    std::array<std::array<Microsoft::WRL::ComPtr<ID3D12PipelineState>, EBM_None>, ESM_None> mPipelineStates;
     int mTargetFrameResourceIndex = 0;
     bool bWireFrame = false;
 
@@ -176,7 +170,7 @@ private:
     void UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLight>* DirectionalLightStructuredBuffer);
 
 public:
-    inline FFrameResource* GetTargetFrameResource() const
+    inline FFrameResourceBase* GetTargetFrameResource() const
     {
         return mFrameResources[mTargetFrameResourceIndex].get();
     }

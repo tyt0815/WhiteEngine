@@ -23,7 +23,7 @@ int FTestApplication::Run()
 	FDXResourceManager* DXManager = FDXResourceManager::GetInstance();
 
 	FForwardShadingSceneRenderer Renderer;
-	Renderer.Initialize(DXManager->GetDevicePtr(), DXManager->GetCommandQueuePtr(), DXManager->GetCommandListPtr());
+	Renderer.Initialize(DXManager->GetDevicePtr());
 	while (msg.message != WM_QUIT)
 	{
 		// If there are Window messages then process them.
@@ -44,7 +44,17 @@ int FTestApplication::Run()
 				//ProcessInput();
 				GetInputSystemManager()->Tick();
 				GetWObjectManager()->Tick(GetAppTimer()->GetDeltaTime());
-				Renderer.Render();
+				
+				FRenderingData RenderingData;
+				ID3D12GraphicsCommandList* CommandList = GetDXResourceManagerPtr()->GetCommandListPtr();
+				RenderingData.CommandList = CommandList;
+
+				Renderer.Render(RenderingData);
+
+				ID3D12CommandQueue* CommandQueue = GetDXResourceManagerPtr()->GetCommandQueuePtr();
+				THROW_IF_FAILED(CommandList->Close());
+				ID3D12CommandList* CommandLists[] = { CommandList };
+				CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
 				DXManager->PresentAndSwapBuffer();
 			}
 			else
