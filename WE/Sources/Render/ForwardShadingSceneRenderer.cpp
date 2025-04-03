@@ -28,7 +28,7 @@ void FForwardShadingSceneRenderer::Render(
 	D3D12_CPU_DESCRIPTOR_HANDLE RenderTargetView = GetDXResourceManagerPtr()->GetCurrentBackBufferView();
 	D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView = GetDXResourceManagerPtr()->GetDepthStencilView();
 
-	ReadyRednerTarget(
+	ReadyRenderTarget(
 		CommandList,
 		RenderTarget,
 		RenderTargetView,
@@ -42,13 +42,12 @@ void FForwardShadingSceneRenderer::Render(
 
 	// Render
 
-	// Pass Constantbuffer
 	CommandList->SetGraphicsRootSignature(mRootSignatures["ForwardShadingPass"].Get());
 	FTextureManager* TexManager = GetTextureManager();
 	ID3D12DescriptorHeap* descriptorHeaps[] = { TexManager->GetSRVHeapPtr() };
 	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-
+	// Pass Constantbuffer
 	ID3D12Resource* PassConstantBuffer = FrameResource->GetPassCB()->Resource();
 	D3D12_GPU_VIRTUAL_ADDRESS PassConstantBufferAdress = PassConstantBuffer->GetGPUVirtualAddress();
 	CommandList->SetGraphicsRootConstantBufferView(0, PassConstantBufferAdress);
@@ -84,6 +83,7 @@ void FForwardShadingSceneRenderer::Render(
 
 void FForwardShadingSceneRenderer::BuildShadersAndInputLayouts()
 {
+	Super::BuildShadersAndInputLayouts();
 	D3D_SHADER_MACRO Defines[] = {
 		//{"FOG", "1"},
 		{"FORWARDSHADING", "1"},
@@ -113,6 +113,8 @@ void FForwardShadingSceneRenderer::BuildShadersAndInputLayouts()
 
 void FForwardShadingSceneRenderer::BuildPipelineStates(ID3D12Device* Device)
 {
+	Super::BuildPipelineStates(Device);
+
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC ForwardLitPipelineStateDesc;
 	ZeroMemory(&ForwardLitPipelineStateDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 	ForwardLitPipelineStateDesc.InputLayout = { mInputLayouts["ForwardShadingPass"].data(), (UINT)mInputLayouts["ForwardShadingPass"].size() };
@@ -162,6 +164,7 @@ void FForwardShadingSceneRenderer::CreateFrameResources(ID3D12Device* Device)
 
 void FForwardShadingSceneRenderer::BuildRootSignature()
 {
+	Super::BuildRootSignature();
 	D3D12_DESCRIPTOR_RANGE TextureTable = GetTextureManager()->GetTexture2DDescriptorRange();
 	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
 

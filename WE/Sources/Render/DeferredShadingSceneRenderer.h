@@ -24,6 +24,8 @@ private:
     void BuildDeferredShadingPassShaders();
     void BuildGBufferPassShaders();
     virtual void BuildPipelineStates(ID3D12Device* Device) override;
+    void BuildDeferredShadingPassPipelineState(ID3D12Device* Device);
+    void BuildGBufferPassPipelineState(ID3D12Device* Device);
     virtual void UpdateFrameBuffers(FFrameResourceBase* FrameResource) override;
     virtual void Render(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource) override;
 

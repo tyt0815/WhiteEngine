@@ -1,5 +1,6 @@
 #include "DeferredShadingSceneRenderer.h"
 #include "DirectX/DXResourceManager.h"
+#include "ShapeDrawer.h"
 
 FDeferredShadingSceneRenderer::FFrameResource::FFrameResource(ID3D12Device* Device) :
 	FFrameResourceBase(Device)
@@ -30,6 +31,7 @@ void FDeferredShadingSceneRenderer::CreateFrameResources(ID3D12Device* Device)
 
 void FDeferredShadingSceneRenderer::BuildRootSignature()
 {
+	Super::BuildRootSignature();
 	BuildGBufferRootSignature();
 	BuildDeferredShadingPassRootSignature();
 }
@@ -66,9 +68,7 @@ void FDeferredShadingSceneRenderer::BuildGBufferRootSignature()
 
 void FDeferredShadingSceneRenderer::BuildShadersAndInputLayouts()
 {
-	D3D_SHADER_MACRO Defines[] = {
-		{NULL, NULL}
-	};
+	Super::BuildShadersAndInputLayouts();
 
 	BuildGBufferPassShaders();
 	BuildDeferredShadingPassShaders();
@@ -115,6 +115,48 @@ void FDeferredShadingSceneRenderer::BuildGBufferPassShaders()
 
 void FDeferredShadingSceneRenderer::BuildPipelineStates(ID3D12Device* Device)
 {
+	Super::BuildPipelineStates(Device);
+	BuildGBufferPassPipelineState(Device);
+	BuildDeferredShadingPassPipelineState(Device);
+}
+
+void FDeferredShadingSceneRenderer::BuildDeferredShadingPassPipelineState(ID3D12Device* Device)
+{
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC DeferredShadingPassPipelineStateDesc;
+	ZeroMemory(&DeferredShadingPassPipelineStateDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+	std::vector<D3D12_INPUT_ELEMENT_DESC> InputLayout = GetDrawingRectInputLayouts();
+	DeferredShadingPassPipelineStateDesc.InputLayout = { InputLayout.data(), (UINT)InputLayout.size() };
+	DeferredShadingPassPipelineStateDesc.pRootSignature = mRootSignatures["DeferredShadingPass"].Get();
+	DeferredShadingPassPipelineStateDesc.VS =
+	{
+		reinterpret_cast<BYTE*>(mShaders["DeferredShadingPassVertexShader"]->GetBufferPointer()),
+		mShaders["DeferredShadingPassVertexShader"]->GetBufferSize()
+	};
+	DeferredShadingPassPipelineStateDesc.PS =
+	{
+		reinterpret_cast<BYTE*>(mShaders["DeferredShadingPassPixelShader"]->GetBufferPointer()),
+		mShaders["DeferredShadingPassPixelShader"]->GetBufferSize()
+	};
+	DeferredShadingPassPipelineStateDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	DeferredShadingPassPipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	DeferredShadingPassPipelineStateDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	DeferredShadingPassPipelineStateDesc.SampleMask = UINT_MAX;
+	DeferredShadingPassPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	DeferredShadingPassPipelineStateDesc.NumRenderTargets = 1;
+	DeferredShadingPassPipelineStateDesc.RTVFormats[0] = GetDXResourceManagerPtr()->GetBackbufferFormat();
+	DeferredShadingPassPipelineStateDesc.SampleDesc.Count = 1;
+	DeferredShadingPassPipelineStateDesc.SampleDesc.Quality = 0;
+	DeferredShadingPassPipelineStateDesc.DSVFormat = GetDXResourceManagerPtr()->GetDepthStencilFormat();
+	THROW_IF_FAILED(
+		Device->CreateGraphicsPipelineState(
+			&DeferredShadingPassPipelineStateDesc,
+			IID_PPV_ARGS(mPipelineStates["DeferredShadingPass"].GetAddressOf())
+		)
+	);
+}
+
+void FDeferredShadingSceneRenderer::BuildGBufferPassPipelineState(ID3D12Device* Device)
+{
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC GBufferPassPipelineStateDesc;
 	ZeroMemory(&GBufferPassPipelineStateDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 	GBufferPassPipelineStateDesc.InputLayout = { mInputLayouts["MeshPass"].data(), (UINT)mInputLayouts["MeshPass"].size() };
@@ -154,13 +196,46 @@ void FDeferredShadingSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* Frame
 
 void FDeferredShadingSceneRenderer::Render(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource)
 {
+	{
+		ID3D12Resource* GBuffers = mGBuffers->GetResource();
+		D3D12_CPU_DESCRIPTOR_HANDLE GBufferARtv = mGBuffers->GetRTV(0);
+		D3D12_CPU_DESCRIPTOR_HANDLE GBufferDsv = mGBuffers->GetDSVHeap()->GetCPUDescriptorHandleForHeapStart();
+		D3D12_VIEWPORT GBffuerViewport = mGBuffers->GetViewport();
+		D3D12_RECT GBufferScissoreRect = mGBuffers->GetScissorRect();
+		ReadyRenderTarget(
+			CommandList,
+			GBuffers,
+			GBufferARtv,
+			GBufferDsv,
+			GBffuerViewport,
+			GBufferScissoreRect
+		);
+
+		CommandList->OMSetRenderTargets(1, &GBufferARtv, false, &GBufferDsv);
+		CommandList->SetPipelineState(mPipelineStates["GBufferPass"].Get());
+		CommandList->SetGraphicsRootSignature(mRootSignatures["GBufferPass"].Get());
+		ID3D12DescriptorHeap* DescriptorHeaps[] = { GetTextureManager()->GetSRVHeapPtr() };
+		CommandList->SetDescriptorHeaps(_countof(DescriptorHeaps), DescriptorHeaps);
+		ID3D12Resource* PassCB = FrameResource->GetPassCB()->Resource();
+		CommandList->SetGraphicsRootConstantBufferView(0, PassCB->GetGPUVirtualAddress());
+		// 1 : Mesh, 2 : Submesh »ý·«
+		ID3D12Resource* MaterialSB = FrameResource->GetMaterialSB()->Resource();
+		CommandList->SetGraphicsRootShaderResourceView(3, MaterialSB->GetGPUVirtualAddress());
+		CommandList->SetGraphicsRootDescriptorTable(4, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
+		CommandList->SetGraphicsRootDescriptorTable(5, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
+
+		DrawRenderItems(FrameResource, CommandList, GetRenderItemManager()->GetRenderItems(ESM_DefaultLit, EBM_Opaque));
+
+		FinishRenderTarget(CommandList, GBuffers);
+	}
+
 	ID3D12Resource* BackBuffer = GetDXResourceManagerPtr()->GetCurrentBackBufferPtr();
 	D3D12_CPU_DESCRIPTOR_HANDLE BackBufferView = GetDXResourceManagerPtr()->GetCurrentBackBufferView();
 	D3D12_CPU_DESCRIPTOR_HANDLE BackBufferDsv = GetDXResourceManagerPtr()->GetDepthStencilView();
 	D3D12_VIEWPORT BackBufferViewport = GetDXResourceManagerPtr()->GetScreenViewport();
 	D3D12_RECT BackBufferScissorRect = GetDXResourceManagerPtr()->GetScissorRect();
 
-	ReadyRednerTarget(
+	ReadyRenderTarget(
 		CommandList,
 		BackBuffer,
 		BackBufferView,
@@ -168,8 +243,26 @@ void FDeferredShadingSceneRenderer::Render(ID3D12GraphicsCommandList* CommandLis
 		BackBufferViewport,
 		BackBufferScissorRect
 	);
+	CommandList->OMSetRenderTargets(1, &BackBufferView, true, &BackBufferDsv);
 
-	
+	D3D12_VIEWPORT SecondQuadrantViewport = BackBufferViewport;
+	SecondQuadrantViewport.Width /= 2.0f;
+	SecondQuadrantViewport.Height /= 2.0f;
+	D3D12_VIEWPORT FirstQuadrantViewport = SecondQuadrantViewport;
+	FirstQuadrantViewport.TopLeftX = FirstQuadrantViewport.Width;
+
+	CommandList->RSSetViewports(1, &SecondQuadrantViewport);
+	CommandList->SetPipelineState(mPipelineStates["DeferredShadingPass"].Get());
+	DrawRect(CommandList);
+
+	CommandList->RSSetViewports(1, &FirstQuadrantViewport);
+	CommandList->SetPipelineState(mPipelineStates["DrawRectPass"].Get());
+	CommandList->SetGraphicsRootSignature(mRootSignatures["DrawRectPass"].Get());
+	UINT TextureIndex = mGBuffers->GetTexture()->SRVHeapIndex;
+	CommandList->SetGraphicsRoot32BitConstants(0, 1, &TextureIndex, 0);
+	CommandList->SetGraphicsRootDescriptorTable(1, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
+	CommandList->SetGraphicsRootDescriptorTable(2, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
+	DrawRect(CommandList);
 
 	FinishRenderTarget(
 		CommandList,

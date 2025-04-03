@@ -53,6 +53,7 @@
     <ClCompile Include="Sources\Window\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Shaders\DrawRectPassCommon.sh" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\IceFieldGird.h" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\RustedIron2Sphere.h" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\ScuffedGoldBox.h" />
@@ -118,6 +119,8 @@
     <Image Include="Resources\Textures\White.dds" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\DrawRectPassPixelShader.sf" />
+    <None Include="Shaders\DrawRectPassVertexShader.sf" />
     <None Include="Shaders\ForwardShadingPassCommon.sh" />
     <None Include="Shaders\ForwardShadingPassPixelShader.sf" />
     <None Include="Shaders\ForwardShadingPassVertexShader.sf" />

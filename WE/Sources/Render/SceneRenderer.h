@@ -143,9 +143,9 @@ protected:
     virtual void CreateFrameResources(ID3D12Device* Device) = 0;
     template<typename T>
     void CreateFrameResources_Internal(ID3D12Device* Device);
-    virtual void BuildRootSignature() = 0;
-    virtual void BuildShadersAndInputLayouts() = 0;
-    virtual void BuildPipelineStates(ID3D12Device* Device) = 0;
+    virtual void BuildRootSignature();
+    virtual void BuildShadersAndInputLayouts();
+    virtual void BuildPipelineStates(ID3D12Device* Device);
     virtual void UpdateFrameBuffers(FFrameResourceBase* FrameResource);
     virtual void Render(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource) = 0;
     void DrawRenderItems(
@@ -178,7 +178,7 @@ public:
     }
 };
 
-void ReadyRednerTarget(
+void ReadyRenderTarget(
     ID3D12GraphicsCommandList* CommandList,
     ID3D12Resource* RenderTarget,
     D3D12_CPU_DESCRIPTOR_HANDLE Rtv,

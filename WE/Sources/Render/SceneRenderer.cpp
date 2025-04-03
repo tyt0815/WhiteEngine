@@ -1,6 +1,7 @@
 #include "SceneRenderer.h"
 #include <DirectXColors.h>
 #include "RenderItemManager.h"
+#include "ShapeDrawer.h"
 #include "DirectX/DXResourceManager.h"
 #include "GameFramework/Object/Component/CameraComponent.h"
 #include "GameFramework/Object/World/World.h"
@@ -80,6 +81,72 @@ void FSceneRenderer::Destroy()
 	SwitchToNextFrameResource();
 	SwitchToNextFrameResource();
 	SwitchToNextFrameResource();
+}
+
+void FSceneRenderer::BuildRootSignature()
+{
+	D3D12_DESCRIPTOR_RANGE TextureTable = GetTextureManager()->GetTexture2DDescriptorRange();
+	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
+
+	// Tip: 자주 사용되는 것일수록 작은 인덱스에 보관하는게 퍼포먼스가 좋음
+	constexpr UINT ROOT_PARAMETERs_NUM = 3;
+	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERs_NUM];
+	RootParameter[0].InitAsConstants(4, 0);	// IndexCB
+	RootParameter[1].InitAsDescriptorTable(1, &TextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// TextureTable
+	RootParameter[2].InitAsDescriptorTable(1, &CubeTextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// CubeTextureTable
+
+	FDXUtility::BuildRootSignature(RootParameter, ROOT_PARAMETERs_NUM, mRootSignatures["DrawRectPass"].GetAddressOf());
+}
+
+void FSceneRenderer::BuildShadersAndInputLayouts()
+{
+	mShaders["DrawRectPassVertexShader"] = FDXUtility::CompileShader(
+		L"Shaders\\DrawRectPassVertexShader.sf",
+		nullptr,
+		"MainVS",
+		"vs_5_1"
+	);
+	mShaders["DrawRectPassPixelShader"] = FDXUtility::CompileShader(
+		L"Shaders\\DrawRectPassPixelShader.sf",
+		nullptr,
+		"MainPS",
+		"ps_5_1"
+	);
+}
+
+void FSceneRenderer::BuildPipelineStates(ID3D12Device* Device)
+{
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC DrawRectPassPipelineState;
+	ZeroMemory(&DrawRectPassPipelineState, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+	std::vector<D3D12_INPUT_ELEMENT_DESC> InputLayout = GetDrawingRectInputLayouts();
+	DrawRectPassPipelineState.InputLayout = { InputLayout.data(), (UINT)InputLayout.size()};
+	DrawRectPassPipelineState.pRootSignature = mRootSignatures["DrawRectPass"].Get();
+	DrawRectPassPipelineState.VS =
+	{
+		reinterpret_cast<BYTE*>(mShaders["DrawRectPassVertexShader"]->GetBufferPointer()),
+		mShaders["DrawRectPassVertexShader"]->GetBufferSize()
+	};
+	DrawRectPassPipelineState.PS =
+	{
+		reinterpret_cast<BYTE*>(mShaders["DrawRectPassPixelShader"]->GetBufferPointer()),
+		mShaders["DrawRectPassPixelShader"]->GetBufferSize()
+	};
+	DrawRectPassPipelineState.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	DrawRectPassPipelineState.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	DrawRectPassPipelineState.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	DrawRectPassPipelineState.SampleMask = UINT_MAX;
+	DrawRectPassPipelineState.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	DrawRectPassPipelineState.NumRenderTargets = 1;
+	DrawRectPassPipelineState.RTVFormats[0] = GetDXResourceManagerPtr()->GetBackbufferFormat();
+	DrawRectPassPipelineState.SampleDesc.Count = 1;
+	DrawRectPassPipelineState.SampleDesc.Quality = 0;
+	DrawRectPassPipelineState.DSVFormat = GetDXResourceManagerPtr()->GetDepthStencilFormat();
+	THROW_IF_FAILED(
+		Device->CreateGraphicsPipelineState(
+			&DrawRectPassPipelineState,
+			IID_PPV_ARGS(mPipelineStates["DrawRectPass"].GetAddressOf())
+		)
+	);
 }
 
 void FSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* FrameResource)
@@ -272,7 +339,7 @@ void FSceneRenderer::SwitchToNextFrameResource()
 	GetTargetFrameResource()->Flush();
 }
 
-void ReadyRednerTarget(
+void ReadyRenderTarget(
 	ID3D12GraphicsCommandList* CommandList,
 	ID3D12Resource* RenderTarget,
 	D3D12_CPU_DESCRIPTOR_HANDLE Rtv,
