@@ -16,7 +16,7 @@ public:
 
 	// Unique material name for lookup.
 	std::string Name;
-	UINT SRVHeapIndex;
+	UINT SRVHeapIndex = -1;
 	Microsoft::WRL::ComPtr<ID3D12Resource> Resource = nullptr;
 	Microsoft::WRL::ComPtr<ID3D12Resource> UploadHeap = nullptr;
 };
@@ -69,17 +69,13 @@ public:
 	{
 		return mSRVHeap.Get();
 	}
-	inline FTexture* GetTexture2D(std::string Name) const
+	inline FTexture* GetTexture2D(std::string Name)
 	{
-		return (*mTexture2Ds.find(Name)).second.get();
+		return mTexture2Ds[Name].get();
 	}
-	inline std::uint16_t GetTexture2DSRVHeapIndex(std::string Name) const
+	inline FTexture* GetTextureCube(std::string Name)
 	{
-		return (*mTexture2Ds.find(Name)).second->SRVHeapIndex;
-	}
-	inline FTexture* GetTextureCube(std::string Name) const
-	{
-		return (*mTextureCubes.find(Name)).second.get();
+		return mTextureCubes[Name].get();
 	}
 };
 

@@ -1,4 +1,4 @@
-#include "BasePassCommon.sh"
+#include "ForwardShadingPassCommon.sh"
 
 FVSOutput MainVS(FVSInput VIn)
 {

@@ -12,7 +12,26 @@ FTextureManager::FTextureManager()
 
 FTextureManager::~FTextureManager()
 {
-
+	//for (auto& Item : mTexture2Ds)
+	//{
+	//	auto& Texture = Item.second;
+	//	if (Texture && Texture->Resource)
+	//	{
+	//		Texture->Resource->Release();
+	//	}
+	//	Texture.reset();
+	//}
+	//for (auto& Item : mTextureCubes)
+	//{
+	//	auto& Texture = Item.second;
+	//	if (Texture && Texture->Resource)
+	//	{
+	//		Texture->Resource->Release();
+	//	}
+	//	Texture.reset();
+	//}
+	mTexture2Ds.clear();
+	mTextureCubes.clear();
 }
 
 void FTextureManager::RegisterTexture2D(std::unique_ptr<FTexture> Texture2D)

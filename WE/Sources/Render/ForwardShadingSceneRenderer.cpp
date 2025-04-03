@@ -43,7 +43,7 @@ void FForwardShadingSceneRenderer::Render(
 	// Render
 
 	// Pass Constantbuffer
-	CommandList->SetGraphicsRootSignature(mRootSignatures["ForwardShading"].Get());
+	CommandList->SetGraphicsRootSignature(mRootSignatures["ForwardShadingPass"].Get());
 	FTextureManager* TexManager = GetTextureManager();
 	ID3D12DescriptorHeap* descriptorHeaps[] = { TexManager->GetSRVHeapPtr() };
 	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
@@ -70,7 +70,7 @@ void FForwardShadingSceneRenderer::Render(
 			for (size_t j = 0; j < EBM_None; ++j)
 			{
 				EBlendMode BlendMode = static_cast<EBlendMode>(j);
-				CommandList->SetPipelineState(mPipelineStates["ForwardShading_Opaque"].Get());
+				CommandList->SetPipelineState(mPipelineStates["ForwardShadingPass_Opaque"].Get());
 				DrawRenderItems(FrameResource, CommandList, GetRenderItemManager()->GetRenderItems(ShadingModel, BlendMode));
 			}
 		}
@@ -90,20 +90,20 @@ void FForwardShadingSceneRenderer::BuildShadersAndInputLayouts()
 		{NULL, NULL}
 	};
 
-	mShaders["BasePassVertexShader"] = FDXUtility::CompileShader(
-		L"Shaders\\BasePassVertexShader.sf",
+	mShaders["ForwardShadingPassVertexShader"] = FDXUtility::CompileShader(
+		L"Shaders\\ForwardShadingPassVertexShader.sf",
 		nullptr,
 		"MainVS",
 		"vs_5_1"
 	);
-	mShaders["BasePassPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\BasePassPixelShader.sf",
+	mShaders["ForwardShadingPassPixelShader"] = FDXUtility::CompileShader(
+		L"Shaders\\ForwardShadingPassPixelShader.sf",
 		Defines,
 		"MainPS",
 		"ps_5_1"
 	);
 
-	mInputLayouts["ForwardShading"] =
+	mInputLayouts["ForwardShadingPass"] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -115,17 +115,17 @@ void FForwardShadingSceneRenderer::BuildPipelineStates(ID3D12Device* Device)
 {
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC ForwardLitPipelineStateDesc;
 	ZeroMemory(&ForwardLitPipelineStateDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
-	ForwardLitPipelineStateDesc.InputLayout = { mInputLayouts["ForwardShading"].data(), (UINT)mInputLayouts["ForwardShading"].size() };
-	ForwardLitPipelineStateDesc.pRootSignature = mRootSignatures["ForwardShading"].Get();
+	ForwardLitPipelineStateDesc.InputLayout = { mInputLayouts["ForwardShadingPass"].data(), (UINT)mInputLayouts["ForwardShadingPass"].size() };
+	ForwardLitPipelineStateDesc.pRootSignature = mRootSignatures["ForwardShadingPass"].Get();
 	ForwardLitPipelineStateDesc.VS =
 	{
-		reinterpret_cast<BYTE*>(mShaders["BasePassVertexShader"]->GetBufferPointer()),
-		mShaders["BasePassVertexShader"]->GetBufferSize()
+		reinterpret_cast<BYTE*>(mShaders["ForwardShadingPassVertexShader"]->GetBufferPointer()),
+		mShaders["ForwardShadingPassVertexShader"]->GetBufferSize()
 	};
 	ForwardLitPipelineStateDesc.PS =
 	{
-		reinterpret_cast<BYTE*>(mShaders["BasePassPixelShader"]->GetBufferPointer()),
-		mShaders["BasePassPixelShader"]->GetBufferSize()
+		reinterpret_cast<BYTE*>(mShaders["ForwardShadingPassPixelShader"]->GetBufferPointer()),
+		mShaders["ForwardShadingPassPixelShader"]->GetBufferSize()
 	};
 	ForwardLitPipelineStateDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 	ForwardLitPipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
@@ -140,7 +140,7 @@ void FForwardShadingSceneRenderer::BuildPipelineStates(ID3D12Device* Device)
 	THROW_IF_FAILED(
 		Device->CreateGraphicsPipelineState(
 			&ForwardLitPipelineStateDesc,
-			IID_PPV_ARGS(mPipelineStates["ForwardShading_Opaque"].GetAddressOf())
+			IID_PPV_ARGS(mPipelineStates["ForwardShadingPass_Opaque"].GetAddressOf())
 		)
 	);
 
@@ -149,7 +149,7 @@ void FForwardShadingSceneRenderer::BuildPipelineStates(ID3D12Device* Device)
 		WireFramePipelineStateDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 		THROW_IF_FAILED(
 			Device->CreateGraphicsPipelineState(
-				&WireFramePipelineStateDesc, IID_PPV_ARGS(mPipelineStates["WireFrame"].GetAddressOf())
+				&WireFramePipelineStateDesc, IID_PPV_ARGS(mPipelineStates["WireFramePass"].GetAddressOf())
 			)
 		);
 	}
@@ -157,10 +157,7 @@ void FForwardShadingSceneRenderer::BuildPipelineStates(ID3D12Device* Device)
 
 void FForwardShadingSceneRenderer::CreateFrameResources(ID3D12Device* Device)
 {
-	for (int i = 0; i < mFrameResources.size(); ++i)
-	{
-		mFrameResources[i] = std::make_unique<FFrameResourceBase>(Device);
-	}
+	CreateFrameResources_Internal<FFSFrameResource>(Device);
 }
 
 void FForwardShadingSceneRenderer::BuildRootSignature()
@@ -179,5 +176,10 @@ void FForwardShadingSceneRenderer::BuildRootSignature()
 	RootParameter[5].InitAsDescriptorTable(1, &TextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// TextureTable
 	RootParameter[6].InitAsDescriptorTable(1, &CubeTextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// CubeTextureTable
 
-	FDXUtility::BuildRootSignature(RootParameter, ROOT_PARAMETERs_NUM, mRootSignatures["ForwardShading"].GetAddressOf());
+	FDXUtility::BuildRootSignature(RootParameter, ROOT_PARAMETERs_NUM, mRootSignatures["ForwardShadingPass"].GetAddressOf());
+}
+
+FForwardShadingSceneRenderer::FFSFrameResource::FFSFrameResource(ID3D12Device* Device) :
+	FFrameResourceBase(Device)
+{
 }

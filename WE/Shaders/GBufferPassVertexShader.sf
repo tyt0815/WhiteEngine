@@ -1,0 +1,17 @@
+#include "GBufferPassCommon.sh"
+
+void MainVS(
+    in float3 InPosL : POSITION,
+    in float3 InNormalL : NORMAL,
+    in float2 InTexC : TEXCOORD,
+    out float4 OutPosH : SV_Position,
+    out float3 OutNormalW : NORMAL,
+    out float2 OutTexC : TEXCOORD
+)
+{
+    FMaterialSB MaterialInfo = gMaterialData[gMaterialIndex];
+    float4 PosW = mul(float4(InPosL, 1.0f), gWorld);
+    OutPosH = mul(PosW, gViewProj);
+    OutNormalW = mul(InNormalL, (float3x3) gInvTransposeWorld);
+    OutTexC = mul(float4(InTexC, 0.0f, 1.0f), MaterialInfo.MatTransform).xy;
+}

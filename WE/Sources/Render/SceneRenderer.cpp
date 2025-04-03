@@ -169,7 +169,8 @@ void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConsta
 	PassConstants.FarZ = Camera->GetFarZ();
 	PassConstants.TotalTime = Timer->GetTotalTime();
 	PassConstants.DeltaTime = Timer->GetDeltaTime();
-	PassConstants.IndirectSpecularIntegralTextureIndex = GetTextureManager()->GetTexture2DSRVHeapIndex("IndirectSpecularIntegral");
+	FTexture* SpecularIntegral = GetTextureManager()->GetTexture2D("IndirectSpecularIntegral");
+	PassConstants.IndirectSpecularIntegralTextureIndex = SpecularIntegral ? SpecularIntegral->SRVHeapIndex : -1;
 
 	PassConstants.FogColor = XMFLOAT4(Colors::LightSkyBlue);
 	PassConstants.FogStart = 200.0f;
@@ -290,7 +291,7 @@ void ReadyRednerTarget(
 	CommandList->ResourceBarrier(1, &ResourceBarrier);
 	CommandList->ClearRenderTargetView(
 		Rtv,
-		Colors::LightSkyBlue,
+		Colors::Black,
 		0,
 		nullptr
 	);

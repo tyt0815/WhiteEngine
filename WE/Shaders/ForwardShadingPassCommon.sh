@@ -1,5 +1,5 @@
-#ifndef FORWARDLITCOMMON_SH
-#define FORWARDLITCOMMON_SH
+#ifndef FORWARDSHADINGPASSCOMMON_SH
+#define FORWARDSHADINGPASSCOMMON_SH
 #include "Common.sh"
 #include "Light.sh"
 

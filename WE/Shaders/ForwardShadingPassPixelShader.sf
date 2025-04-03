@@ -1,4 +1,4 @@
-#include "BasePassCommon.sh"
+#include "ForwardShadingPassCommon.sh"
 
 float4 MainPS(FVSOutput PIn) : SV_Target
 {

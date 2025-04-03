@@ -1,0 +1,10 @@
+#include "GBufferPassCommon.sh"
+
+float4 MainPS(
+    in float4 PosH : SV_Position,
+    in float3 NormalW : NORMAL,
+    in float2 TexC : TEXCOORD
+): SV_Target
+{
+    return float4(NormalW, 1.0f);
+}

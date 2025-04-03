@@ -108,10 +108,10 @@ void FMaterialManager::BuildMaterial(
 		Type,
 		ShadingModel,
 		BlendMode,
-		GetTextureManager()->GetTexture2DSRVHeapIndex(AlbedoTexture),
-		GetTextureManager()->GetTexture2DSRVHeapIndex(MetallicTexture),
-		GetTextureManager()->GetTexture2DSRVHeapIndex(NormalTexture),
-		GetTextureManager()->GetTexture2DSRVHeapIndex(RoughnessTexture),
+		GetTextureManager()->GetTexture2D(AlbedoTexture)->SRVHeapIndex,
+		GetTextureManager()->GetTexture2D(MetallicTexture)->SRVHeapIndex,
+		GetTextureManager()->GetTexture2D(NormalTexture)->SRVHeapIndex,
+		GetTextureManager()->GetTexture2D(RoughnessTexture)->SRVHeapIndex,
 		MatTransform
 	);
 }

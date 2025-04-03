@@ -93,7 +93,7 @@ private:
     std::unique_ptr<TUploadBuffer<FSubmeshConstantBuffer>> mSubmeshConstantBuffer;
     std::unique_ptr<TUploadBuffer<FMaterialStructuredBuffer>> mMaterialStructuredBuffer;
     std::unique_ptr<TUploadBuffer<FDirectionalLight>> mDirectionalLightStructuredBuffer;
-    UINT64 mFenceCount;
+    UINT64 mFenceCount = 0;
 
 public:
     inline ID3D12CommandAllocator* GetCommandAllocatorPtr() const
@@ -134,18 +134,18 @@ class FSceneRenderer : FNoncopyable
 {
 public:
 	FSceneRenderer();
-	~FSceneRenderer() = default;
-    virtual void Initialize(
-        ID3D12Device* Device
-    );
+	virtual ~FSceneRenderer() = default;
+    virtual void Initialize(ID3D12Device* Device);
     void Tick();
     virtual void Destroy();
 
 protected:
+    virtual void CreateFrameResources(ID3D12Device* Device) = 0;
+    template<typename T>
+    void CreateFrameResources_Internal(ID3D12Device* Device);
+    virtual void BuildRootSignature() = 0;
     virtual void BuildShadersAndInputLayouts() = 0;
     virtual void BuildPipelineStates(ID3D12Device* Device) = 0;
-    virtual void CreateFrameResources(ID3D12Device* Device) = 0;
-    virtual void BuildRootSignature() = 0;
     virtual void UpdateFrameBuffers(FFrameResourceBase* FrameResource);
     virtual void Render(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource) = 0;
     void DrawRenderItems(
@@ -188,3 +188,12 @@ void ReadyRednerTarget(
 );
 
 void FinishRenderTarget(ID3D12GraphicsCommandList* CommandList, ID3D12Resource* RenderTarget);
+
+template<typename T>
+inline void FSceneRenderer::CreateFrameResources_Internal(ID3D12Device* Device)
+{
+    for (int i = 0; i < mFrameResources.size(); ++i)
+    {
+        mFrameResources[i] = std::make_unique<T>(Device);
+    }
+}

@@ -6,6 +6,7 @@
 #include "GameFramework/InputSystem/InputSystem.h"
 #include "World/TestWorld.h"
 #include "Render/ForwardShadingSceneRenderer.h"
+#include "Render/DeferredShadingSceneRenderer.h"
 #include "Render/RenderItemManager.h"
 #include "Render/Texture.h"
 #include "Utility/Class.h"

@@ -183,7 +183,10 @@
       <Filter>Sources\Render</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Render\DeferredShadingSceneRenderer.cpp">
-      <Filter>Sources</Filter>
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Shaders\DeferredShadingPassPixelShader.sf">
+      <Filter>Shaders</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -388,6 +391,21 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shaders\IndirectSpecularIntegralPixelShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GBufferPassCommon.sh">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GBufferPassPixelShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GBufferPassVertexShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\DeferredShadingPassCommon.sh">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\DeferredShadingPassVertexShader.sf">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

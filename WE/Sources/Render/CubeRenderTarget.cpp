@@ -102,6 +102,14 @@ D3D12_RECT FCubeRenderTarget::GetScissorRectMipLevel(int i) const
 	return ScissorRect;
 }
 
+FCubeRenderTarget::~FCubeRenderTarget()
+{
+	mRTVHeap = nullptr;
+	mDSVHeap = nullptr;
+	mCubeMapResource = nullptr;
+	mDepthStencilResource = nullptr;
+}
+
 void FCubeRenderTarget::OnResize(UINT Width, UINT Height)
 {
 	if ((mWidth != Width) || (mHeight != Height))

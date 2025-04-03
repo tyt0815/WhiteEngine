@@ -19,6 +19,8 @@ public:
 		DXGI_FORMAT Format = DXGI_FORMAT_R8G8B8A8_UNORM,
 		DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT
 	);
+	FRenderTarget() = delete;
+	virtual ~FRenderTarget();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetRTV(int MipLevel) const;
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHeap() const;
 	D3D12_VIEWPORT GetViewportMipLevel(int i) const;

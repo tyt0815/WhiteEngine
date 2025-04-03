@@ -25,6 +25,10 @@ FRenderTarget::FRenderTarget(
 	Initialize();
 }
 
+FRenderTarget::~FRenderTarget()
+{
+}
+
 D3D12_CPU_DESCRIPTOR_HANDLE FRenderTarget::GetRTV(int MipLevel) const
 {
 	return CD3DX12_CPU_DESCRIPTOR_HANDLE(

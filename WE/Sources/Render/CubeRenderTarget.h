@@ -36,6 +36,7 @@ public:
 		DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT
 	);
 	FCubeRenderTarget() = delete;
+	~FCubeRenderTarget();
 	void OnResize(UINT Width, UINT Height);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetRTV(int FaceIndex, int MipLevel) const;
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCubeMapCPUDescriptorHeap() const;
@@ -53,7 +54,7 @@ private:
 private:
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRTVHeap;
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mDSVHeap;
-	Microsoft::WRL::ComPtr<ID3D12Resource> mCubeMapResource = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12Resource> mCubeMapResource;
 	Microsoft::WRL::ComPtr<ID3D12Resource> mDepthStencilResource;
 
 	std::string mName;

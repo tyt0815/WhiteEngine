@@ -53,8 +53,6 @@
     <ClCompile Include="Sources\Window\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Shaders\IndirectSpecularIntegralCommon.sh" />
-    <ClInclude Include="Shaders\Light.sh" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\IceFieldGird.h" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\RustedIron2Sphere.h" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\ScuffedGoldBox.h" />
@@ -101,35 +99,6 @@
     <ClInclude Include="Sources\Window\Window.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\BillboardCommon.sh" />
-    <None Include="Shaders\BillboardGeometryShader.sf" />
-    <None Include="Shaders\BillboardPixelShader.sf" />
-    <None Include="Shaders\BillboardVertexShader.sf" />
-    <None Include="Shaders\Common.sh" />
-    <None Include="Shaders\IndirectSpecularIntegralPixelShader.sf" />
-    <None Include="Shaders\IndirectSpecularIntegralVertexShader.sf" />
-    <None Include="Shaders\SkyCubeMapCommon.sh" />
-    <None Include="Shaders\SkyIrradianceCubeMapCommon.sh" />
-    <None Include="Shaders\SkyIrradianceCubeMapPixelShader.sf" />
-    <None Include="Shaders\SkyIrradianceCubeMapVertexShader.sf" />
-    <None Include="Shaders\SkyCubeMapPixelShader.sf" />
-    <None Include="Shaders\SkyCubeMapVertexShader.sf" />
-    <None Include="Shaders\BasePassCommon.sh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Shaders\BasePassPixelShader.sf">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Shaders\BasePassVertexShader.sf">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Shaders\Material.sh" />
-    <None Include="Shaders\Math.sh" />
-    <None Include="Shaders\PreFilteredSkyCubeMapCommon.sh" />
-    <None Include="Shaders\PreFilteredSkyCubeMapPixelShader.sf" />
-    <None Include="Shaders\PreFilteredSkyCubeMapVertexShader.sf" />
-  </ItemGroup>
-  <ItemGroup>
     <Image Include="Resources\Textures\Default.dds" />
     <Image Include="Resources\Textures\IceField_AO.dds" />
     <Image Include="Resources\Textures\IceField_BaseColor.dds" />
@@ -147,6 +116,37 @@
     <Image Include="Resources\Textures\ScuffedGold_Normal.dds" />
     <Image Include="Resources\Textures\ScuffedGold_Roughness.dds" />
     <Image Include="Resources\Textures\White.dds" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\ForwardShadingPassCommon.sh" />
+    <None Include="Shaders\ForwardShadingPassPixelShader.sf" />
+    <None Include="Shaders\ForwardShadingPassVertexShader.sf" />
+    <None Include="Shaders\BillboardCommon.sh" />
+    <None Include="Shaders\BillboardGeometryShader.sf" />
+    <None Include="Shaders\BillboardPixelShader.sf" />
+    <None Include="Shaders\BillboardVertexShader.sf" />
+    <None Include="Shaders\Common.sh" />
+    <None Include="Shaders\DeferredShadingPassCommon.sh" />
+    <None Include="Shaders\DeferredShadingPassPixelShader.sf" />
+    <None Include="Shaders\DeferredShadingPassVertexShader.sf" />
+    <None Include="Shaders\GBufferPassCommon.sh" />
+    <None Include="Shaders\GBufferPassPixelShader.sf" />
+    <None Include="Shaders\GBufferPassVertexShader.sf" />
+    <None Include="Shaders\IndirectSpecularIntegralCommon.sh" />
+    <None Include="Shaders\IndirectSpecularIntegralPixelShader.sf" />
+    <None Include="Shaders\IndirectSpecularIntegralVertexShader.sf" />
+    <None Include="Shaders\Light.sh" />
+    <None Include="Shaders\Material.sh" />
+    <None Include="Shaders\Math.sh" />
+    <None Include="Shaders\PreFilteredSkyCubeMapCommon.sh" />
+    <None Include="Shaders\PreFilteredSkyCubeMapPixelShader.sf" />
+    <None Include="Shaders\PreFilteredSkyCubeMapVertexShader.sf" />
+    <None Include="Shaders\SkyCubeMapCommon.sh" />
+    <None Include="Shaders\SkyCubeMapPixelShader.sf" />
+    <None Include="Shaders\SkyCubeMapVertexShader.sf" />
+    <None Include="Shaders\SkyIrradianceCubeMapCommon.sh" />
+    <None Include="Shaders\SkyIrradianceCubeMapPixelShader.sf" />
+    <None Include="Shaders\SkyIrradianceCubeMapVertexShader.sf" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

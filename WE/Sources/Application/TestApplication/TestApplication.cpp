@@ -22,8 +22,9 @@ int FTestApplication::Run()
 	MSG msg = { 0 };
 	FDXResourceManager* DXManager = FDXResourceManager::GetInstance();
 
-	FForwardShadingSceneRenderer Renderer;
-	Renderer.Initialize(DXManager->GetDevicePtr());
+	std::unique_ptr<FSceneRenderer> Renderer = std::make_unique<FDeferredShadingSceneRenderer>();
+	// std::unique_ptr<FSceneRenderer> Renderer = std::make_unique<FForwardShadingSceneRenderer>();
+	Renderer->Initialize(DXManager->GetDevicePtr());
 	while (msg.message != WM_QUIT)
 	{
 		// If there are Window messages then process them.
@@ -45,7 +46,7 @@ int FTestApplication::Run()
 				GetInputSystemManager()->Tick();
 				GetWObjectManager()->Tick(GetAppTimer()->GetDeltaTime());
 				
-				Renderer.Tick();
+				Renderer->Tick();
 				
 			}
 			else
@@ -55,8 +56,9 @@ int FTestApplication::Run()
 			}
 		}
 	}
-	Renderer.Destroy();
 	// GPU 의 명령이 끝나고 Com객체들을 해제해야 정상적인 해제 가능
+	Renderer->Destroy();
+	GetDXResourceManagerPtr()->FlushCommandQueue();
 	return (int)msg.wParam;
 }
 
