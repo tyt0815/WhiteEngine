@@ -56,10 +56,22 @@ void FSceneRenderer::Initialize(ID3D12Device* Device)
 	BuildPipelineStates(Device);
 }
 
-void FSceneRenderer::Render(const FRenderingData& RenderingData)
+void FSceneRenderer::Tick()
 {
 	UpdateTargetFrameResource();
-	
+	FFrameResourceBase* FrameResource = GetTargetFrameResource();
+	ID3D12GraphicsCommandList* CommandList = GetDXResourceManagerPtr()->GetCommandListPtr();
+	ID3D12CommandAllocator* CommandAllocator = FrameResource->GetCommandAllocatorPtr();
+	THROW_IF_FAILED(CommandAllocator->Reset());
+	THROW_IF_FAILED(CommandList->Reset(CommandAllocator, nullptr));
+
+	Render(CommandList, FrameResource);
+
+	THROW_IF_FAILED(CommandList->Close());
+	ID3D12CommandList* CommandLists[] = { CommandList };
+	ID3D12CommandQueue* CommandQueue = GetDXResourceManagerPtr()->GetCommandQueuePtr();
+	CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
+	GetDXResourceManagerPtr()->PresentAndSwapBuffer();
 }
 
 void FSceneRenderer::Destroy()
@@ -77,6 +89,47 @@ void FSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* FrameResource)
 	UpdateSubmeshCB(FrameResource->GetSubmeshCB());
 	UpdateMaterialSB(FrameResource->GetMaterialSB());
 	UpdateDirectionalLightSB(FrameResource->GetDirectionalLightSB());
+}
+
+void FSceneRenderer::DrawRenderItems(FFrameResourceBase* FrameResource, ID3D12GraphicsCommandList* CommandList, const TPool<FRenderItemInfo>& RenderItems)
+{
+	ID3D12Resource* MeshConstantBuffer = FrameResource->GetMeshCB()->Resource();
+	ID3D12Resource* SubmeshConstantBuffer = FrameResource->GetSubmeshCB()->Resource();
+
+	UINT ObjectConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FMeshConstantBuffer));
+	UINT SubmeshConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FSubmeshConstantBuffer));
+	UINT CBVSRVUAVDescriptorSize = FDXResourceManager::GetInstance()->GetCBVSRVUAVDescriptorSize();
+
+	for (int i = 0; i < RenderItems.GetPoolSize(); ++i)
+	{
+		if (RenderItems.IsUsed(i))
+		{
+			const FRenderItemInfo& DrawArgs = RenderItems.GetItem(i);
+			FMaterial* Material = DrawArgs.Material;
+
+			// MeshConstantBuffer
+			auto ObjectConstantBufferAddress = MeshConstantBuffer->GetGPUVirtualAddress() + DrawArgs.MeshCBIndex * ObjectConstantBufferByteSize;
+			CommandList->SetGraphicsRootConstantBufferView(1, ObjectConstantBufferAddress);
+
+			// SubmeshConstantBuffer
+			auto SubmeshConstantBufferAddress = SubmeshConstantBuffer->GetGPUVirtualAddress() + DrawArgs.SubmeshCBIndex * SubmeshConstantBufferByteSize;
+			CommandList->SetGraphicsRootConstantBufferView(2, SubmeshConstantBufferAddress);
+
+			D3D12_VERTEX_BUFFER_VIEW VertexBufferView = DrawArgs.MeshGeometry->VertexBufferView();
+			D3D12_INDEX_BUFFER_VIEW IndexBufferView = DrawArgs.MeshGeometry->IndexBufferView();
+			CommandList->IASetVertexBuffers(0, 1, &VertexBufferView);
+			CommandList->IASetIndexBuffer(&IndexBufferView);
+			CommandList->IASetPrimitiveTopology(DrawArgs.MeshGeometry->PrimitiveType);
+
+			CommandList->DrawIndexedInstanced(
+				DrawArgs.IndexCount,
+				1,
+				DrawArgs.StartIndexLocation,
+				DrawArgs.BaseVertexLocation,
+				0
+			);
+		}
+	}
 }
 
 void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuffer)
@@ -216,4 +269,47 @@ void FSceneRenderer::SwitchToNextFrameResource()
 	GetTargetFrameResource()->SetFenceCount(DXResourceManager->GetCurrentFence());
 	mTargetFrameResourceIndex = (mTargetFrameResourceIndex + 1) % gFrameResourcesNum;
 	GetTargetFrameResource()->Flush();
+}
+
+void ReadyRednerTarget(
+	ID3D12GraphicsCommandList* CommandList,
+	ID3D12Resource* RenderTarget,
+	D3D12_CPU_DESCRIPTOR_HANDLE Rtv,
+	D3D12_CPU_DESCRIPTOR_HANDLE Dsv,
+	D3D12_VIEWPORT Viewport,
+	D3D12_RECT ScissorRect
+)
+{
+	CommandList->RSSetViewports(1, &Viewport);
+	CommandList->RSSetScissorRects(1, &ScissorRect);
+	D3D12_RESOURCE_BARRIER ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+		RenderTarget,
+		D3D12_RESOURCE_STATE_COMMON,
+		D3D12_RESOURCE_STATE_RENDER_TARGET
+	);
+	CommandList->ResourceBarrier(1, &ResourceBarrier);
+	CommandList->ClearRenderTargetView(
+		Rtv,
+		Colors::LightSkyBlue,
+		0,
+		nullptr
+	);
+	CommandList->ClearDepthStencilView(
+		Dsv,
+		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
+		1.0f,
+		0,
+		0,
+		nullptr
+	);
+}
+
+void FinishRenderTarget(ID3D12GraphicsCommandList* CommandList, ID3D12Resource* RenderTarget)
+{
+	D3D12_RESOURCE_BARRIER ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+		RenderTarget,
+		D3D12_RESOURCE_STATE_RENDER_TARGET,
+		D3D12_RESOURCE_STATE_COMMON
+	);
+	CommandList->ResourceBarrier(1, &ResourceBarrier);
 }

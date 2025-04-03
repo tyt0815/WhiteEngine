@@ -3,58 +3,12 @@
 #include "Common.sh"
 #include "Light.sh"
 
-struct FMaterialSB
-{
-    uint AlbedoTextureIndex;
-    uint MetallicTextureIndex;
-    uint RoughneesTextureIndex;
-    uint NormalTextureIndex;
-    float4x4 MatTransform;
-};
-StructuredBuffer<FMaterialSB> gMaterialData : register(t0, space2);
 StructuredBuffer<FDirectionalLight> gDirectionalLights : register(t0, space3);
 
-
-cbuffer ConstantBufferPerPass : register(b0)
-{
-    float4x4 gView;
-    float4x4 gInvView;
-    float4x4 gProj;
-    float4x4 gInvProj;
-    float4x4 gViewProj;
-    float4x4 gInvViewProj;
-    float3 gEyePosW;
-    uint gIndirectSpecularIntegralTextureIndex;
-    float2 gRenderTargetSize;
-    float2 gInvRenderTargetSize;
-    float gNearZ;
-    float gFarZ;
-    float gTotalTime;
-    float gDeltaTime;
-    
-    
-    // Fog Info
-    float4 gFogColor;
-    float gFogStart;
-    float gFogRange;
-    uint gDirLightNum;
-    uint PassCBPad1;
-};
-
-cbuffer ConstantBufferPerObject : register(b1)
-{
-    float4x4 gWorld;
-    float4x4 gInvTransposeWorld;
-};
-
-cbuffer SubmeshCB : register(b2)
-{
-    uint gMaterialIndex;
-    uint gSkyIrradianceCubeMapIndex;
-    uint gPrefilteredSkyCubeMapIndex;
-    uint gPadOfSubmeshCB1;
-};
-
+DECLARE_MATERIAL_SB(t0, space2);
+DECLARE_PASS_CB(b0);
+DECLARE_MESH_CB(b1);
+DECLARE_SUBMESH_CB(b2);
 
 struct FVSInput
 {

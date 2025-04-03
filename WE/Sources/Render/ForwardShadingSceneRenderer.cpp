@@ -17,41 +17,25 @@ void FForwardShadingSceneRenderer::Initialize(ID3D12Device* Device)
 	mSkyCubeMapRenderer = std::make_unique<FCubeSkyRenderer>(std::string("Snow"));
 }
 
-void FForwardShadingSceneRenderer::Render(const FRenderingData& RenderingData)
+void FForwardShadingSceneRenderer::Render(
+	ID3D12GraphicsCommandList* CommandList,
+	FFrameResourceBase* FrameResource
+)
 {
-	Super::Render(RenderingData);
-
-	ID3D12GraphicsCommandList* CommandList = RenderingData.CommandList;
-	FFrameResourceBase* TargetFrameResource = GetTargetFrameResource();
-	ID3D12CommandAllocator* TargetCommandAllocator = TargetFrameResource->GetCommandAllocatorPtr();
-
 	ID3D12Resource* RenderTarget = GetDXResourceManagerPtr()->GetCurrentBackBufferPtr();
-
-	THROW_IF_FAILED(TargetCommandAllocator->Reset());
-	THROW_IF_FAILED(CommandList->Reset(TargetCommandAllocator, nullptr));
-
 	D3D12_VIEWPORT Viewport = GetDXResourceManagerPtr()->GetScreenViewport();
 	D3D12_RECT ScissorRect = GetDXResourceManagerPtr()->GetScissorRect();
-	CommandList->RSSetViewports(1, &Viewport);
-	CommandList->RSSetScissorRects(1, &ScissorRect);
-
-	D3D12_RESOURCE_BARRIER ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		RenderTarget,
-		D3D12_RESOURCE_STATE_PRESENT,
-		D3D12_RESOURCE_STATE_RENDER_TARGET
-	);
-	CommandList->ResourceBarrier(1, &ResourceBarrier);
-
 	D3D12_CPU_DESCRIPTOR_HANDLE RenderTargetView = GetDXResourceManagerPtr()->GetCurrentBackBufferView();
 	D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView = GetDXResourceManagerPtr()->GetDepthStencilView();
-	CommandList->ClearRenderTargetView(
-		RenderTargetView,
-		Colors::LightSkyBlue,
-		0,
-		nullptr
-	);
-	CommandList->ClearDepthStencilView(DepthStencilView, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
+	ReadyRednerTarget(
+		CommandList,
+		RenderTarget,
+		RenderTargetView,
+		DepthStencilView,
+		Viewport,
+		ScissorRect
+	);
 	CommandList->OMSetRenderTargets(1, &RenderTargetView, true, &DepthStencilView);
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -65,11 +49,11 @@ void FForwardShadingSceneRenderer::Render(const FRenderingData& RenderingData)
 	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
 
-	ID3D12Resource* PassConstantBuffer = TargetFrameResource->GetPassCB()->Resource();
+	ID3D12Resource* PassConstantBuffer = FrameResource->GetPassCB()->Resource();
 	D3D12_GPU_VIRTUAL_ADDRESS PassConstantBufferAdress = PassConstantBuffer->GetGPUVirtualAddress();
 	CommandList->SetGraphicsRootConstantBufferView(0, PassConstantBufferAdress);
-	ID3D12Resource* MaterialSB = TargetFrameResource->GetMaterialSB()->Resource();
-	ID3D12Resource* DirLightSB = TargetFrameResource->GetDirectionalLightSB()->Resource();
+	ID3D12Resource* MaterialSB = FrameResource->GetMaterialSB()->Resource();
+	ID3D12Resource* DirLightSB = FrameResource->GetDirectionalLightSB()->Resource();
 	CommandList->SetGraphicsRootShaderResourceView(3, MaterialSB->GetGPUVirtualAddress());
 	CommandList->SetGraphicsRootShaderResourceView(4, DirLightSB->GetGPUVirtualAddress());
 	CommandList->SetGraphicsRootDescriptorTable(5, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
@@ -87,7 +71,7 @@ void FForwardShadingSceneRenderer::Render(const FRenderingData& RenderingData)
 			{
 				EBlendMode BlendMode = static_cast<EBlendMode>(j);
 				CommandList->SetPipelineState(mPipelineStates["ForwardShading_Opaque"].Get());
-				DrawRenderItems(TargetFrameResource, CommandList, GetRenderItemManager()->GetRenderItems(ShadingModel, BlendMode));
+				DrawRenderItems(FrameResource, CommandList, GetRenderItemManager()->GetRenderItems(ShadingModel, BlendMode));
 			}
 		}
 	}
@@ -95,12 +79,7 @@ void FForwardShadingSceneRenderer::Render(const FRenderingData& RenderingData)
 	mSkyCubeMapRenderer->Render(CommandList);
 	////////////////////////////////////////////////////////////////////////////////
 
-	ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		RenderTarget,
-		D3D12_RESOURCE_STATE_RENDER_TARGET,
-		D3D12_RESOURCE_STATE_PRESENT
-	);
-	CommandList->ResourceBarrier(1, &ResourceBarrier);
+	FinishRenderTarget(CommandList, RenderTarget);
 }
 
 void FForwardShadingSceneRenderer::BuildShadersAndInputLayouts()
@@ -201,49 +180,4 @@ void FForwardShadingSceneRenderer::BuildRootSignature()
 	RootParameter[6].InitAsDescriptorTable(1, &CubeTextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// CubeTextureTable
 
 	FDXUtility::BuildRootSignature(RootParameter, ROOT_PARAMETERs_NUM, mRootSignatures["ForwardShading"].GetAddressOf());
-}
-
-void FForwardShadingSceneRenderer::DrawRenderItems(
-	FFrameResourceBase* FrameResource,
-	ID3D12GraphicsCommandList* CommandList,
-	const TPool<FRenderItemInfo>& RenderItems
-)
-{
-	ID3D12Resource* MeshConstantBuffer = FrameResource->GetMeshCB()->Resource();
-	ID3D12Resource* SubmeshConstantBuffer = FrameResource->GetSubmeshCB()->Resource();
-
-	UINT ObjectConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FMeshConstantBuffer));
-	UINT SubmeshConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FSubmeshConstantBuffer));
-	UINT CBVSRVUAVDescriptorSize = FDXResourceManager::GetInstance()->GetCBVSRVUAVDescriptorSize();
-
-	for (int i = 0; i < RenderItems.GetPoolSize(); ++i)
-	{
-		if (RenderItems.IsUsed(i))
-		{
-			const FRenderItemInfo& DrawArgs = RenderItems.GetItem(i);
-			FMaterial* Material = DrawArgs.Material;
-
-			// MeshConstantBuffer
-			auto ObjectConstantBufferAddress = MeshConstantBuffer->GetGPUVirtualAddress() + DrawArgs.MeshCBIndex * ObjectConstantBufferByteSize;
-			CommandList->SetGraphicsRootConstantBufferView(1, ObjectConstantBufferAddress);
-
-			// SubmeshConstantBuffer
-			auto SubmeshConstantBufferAddress = SubmeshConstantBuffer->GetGPUVirtualAddress() + DrawArgs.SubmeshCBIndex * SubmeshConstantBufferByteSize;
-			CommandList->SetGraphicsRootConstantBufferView(2, SubmeshConstantBufferAddress);
-
-			D3D12_VERTEX_BUFFER_VIEW VertexBufferView = DrawArgs.MeshGeometry->VertexBufferView();
-			D3D12_INDEX_BUFFER_VIEW IndexBufferView = DrawArgs.MeshGeometry->IndexBufferView();
-			CommandList->IASetVertexBuffers(0, 1, &VertexBufferView);
-			CommandList->IASetIndexBuffer(&IndexBufferView);
-			CommandList->IASetPrimitiveTopology(DrawArgs.MeshGeometry->PrimitiveType);
-
-			CommandList->DrawIndexedInstanced(
-				DrawArgs.IndexCount,
-				1,
-				DrawArgs.StartIndexLocation,
-				DrawArgs.BaseVertexLocation,
-				0
-			);
-		}
-	}
 }

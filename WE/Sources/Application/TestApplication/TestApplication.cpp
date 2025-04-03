@@ -45,17 +45,8 @@ int FTestApplication::Run()
 				GetInputSystemManager()->Tick();
 				GetWObjectManager()->Tick(GetAppTimer()->GetDeltaTime());
 				
-				FRenderingData RenderingData;
-				ID3D12GraphicsCommandList* CommandList = GetDXResourceManagerPtr()->GetCommandListPtr();
-				RenderingData.CommandList = CommandList;
-
-				Renderer.Render(RenderingData);
-
-				ID3D12CommandQueue* CommandQueue = GetDXResourceManagerPtr()->GetCommandQueuePtr();
-				THROW_IF_FAILED(CommandList->Close());
-				ID3D12CommandList* CommandLists[] = { CommandList };
-				CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
-				DXManager->PresentAndSwapBuffer();
+				Renderer.Tick();
+				
 			}
 			else
 			{

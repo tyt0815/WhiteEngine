@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <wrl.h>
 #include "Material.h"
+#include "RenderItemManager.h"
 #include "UploadBuffer.h"
 #include "Utility/Class.h"
 #include "Utility/String.h"
@@ -129,11 +130,6 @@ public:
     }
 };
 
-struct FRenderingData
-{
-    ID3D12GraphicsCommandList* CommandList;
-};
-
 class FSceneRenderer : FNoncopyable
 {
 public:
@@ -142,7 +138,7 @@ public:
     virtual void Initialize(
         ID3D12Device* Device
     );
-    virtual void Render(const FRenderingData& RenderingData);
+    void Tick();
     virtual void Destroy();
 
 protected:
@@ -151,6 +147,12 @@ protected:
     virtual void CreateFrameResources(ID3D12Device* Device) = 0;
     virtual void BuildRootSignature() = 0;
     virtual void UpdateFrameBuffers(FFrameResourceBase* FrameResource);
+    virtual void Render(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource) = 0;
+    void DrawRenderItems(
+        FFrameResourceBase* FrameResource,
+        ID3D12GraphicsCommandList* CommandList,
+        const TPool<FRenderItemInfo>& RenderItems
+    );
 
     std::array<std::unique_ptr<FFrameResourceBase>, FRAME_RESOURCES_NUM> mFrameResources;
     std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D12RootSignature>> mRootSignatures;
@@ -175,3 +177,14 @@ public:
         return mFrameResources[mTargetFrameResourceIndex].get();
     }
 };
+
+void ReadyRednerTarget(
+    ID3D12GraphicsCommandList* CommandList,
+    ID3D12Resource* RenderTarget,
+    D3D12_CPU_DESCRIPTOR_HANDLE Rtv,
+    D3D12_CPU_DESCRIPTOR_HANDLE Dsv,
+    D3D12_VIEWPORT Viewport,
+    D3D12_RECT ScissorRect
+);
+
+void FinishRenderTarget(ID3D12GraphicsCommandList* CommandList, ID3D12Resource* RenderTarget);

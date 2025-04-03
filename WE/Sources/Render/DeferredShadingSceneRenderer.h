@@ -5,7 +5,6 @@ class FDeferredShadingSceneRenderer final : public FSceneRenderer
 {
     typedef FSceneRenderer Super;
 public:
-    virtual void Render(const FRenderingData& RenderingData) override;
 
 protected:
     virtual void BuildShadersAndInputLayouts() override;
@@ -13,4 +12,5 @@ protected:
     virtual void CreateFrameResources(ID3D12Device* Device) override;
     virtual void BuildRootSignature() override;
     virtual void UpdateFrameBuffers(FFrameResourceBase* FrameResource) override;
+    virtual void Render(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource) override;
 };
