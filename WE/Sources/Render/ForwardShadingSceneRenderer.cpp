@@ -22,25 +22,11 @@ void FForwardShadingSceneRenderer::Render(
 	FFrameResourceBase* FrameResource
 )
 {
-	ID3D12Resource* RenderTarget = GetDXResourceManagerPtr()->GetCurrentBackBufferPtr();
-	D3D12_VIEWPORT Viewport = GetDXResourceManagerPtr()->GetScreenViewport();
-	D3D12_RECT ScissorRect = GetDXResourceManagerPtr()->GetScissorRect();
+	ReadyBackBuffer(CommandList);
+
 	D3D12_CPU_DESCRIPTOR_HANDLE RenderTargetView = GetDXResourceManagerPtr()->GetCurrentBackBufferView();
 	D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView = GetDXResourceManagerPtr()->GetDepthStencilView();
-
-	ReadyRenderTarget(
-		CommandList,
-		RenderTarget,
-		RenderTargetView,
-		DepthStencilView,
-		Viewport,
-		ScissorRect
-	);
 	CommandList->OMSetRenderTargets(1, &RenderTargetView, true, &DepthStencilView);
-
-	////////////////////////////////////////////////////////////////////////////////
-
-	// Render
 
 	CommandList->SetGraphicsRootSignature(mRootSignatures["ForwardShadingPass"].Get());
 	FTextureManager* TexManager = GetTextureManager();
@@ -76,9 +62,8 @@ void FForwardShadingSceneRenderer::Render(
 	}
 	
 	mSkyCubeMapRenderer->Render(CommandList);
-	////////////////////////////////////////////////////////////////////////////////
 
-	FinishRenderTarget(CommandList, RenderTarget);
+	FinishBackBuffer(CommandList);
 }
 
 void FForwardShadingSceneRenderer::BuildShadersAndInputLayouts()

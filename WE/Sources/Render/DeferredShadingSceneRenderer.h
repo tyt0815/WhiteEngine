@@ -29,5 +29,7 @@ private:
     virtual void UpdateFrameBuffers(FFrameResourceBase* FrameResource) override;
     virtual void Render(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource) override;
 
+    void DrawGBuffers(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource);
+
     std::unique_ptr<FRenderTarget> mGBuffers;
 };

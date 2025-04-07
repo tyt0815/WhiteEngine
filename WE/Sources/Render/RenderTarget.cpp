@@ -4,43 +4,76 @@
 #include "Texture.h"
 
 FRenderTarget::FRenderTarget(
-	std::string Name,
+	std::vector<std::string> Names,
 	UINT Width,
 	UINT Height,
-	UINT ArraySize, 
 	UINT MipLevels,
 	DXGI_FORMAT Format,
 	DXGI_FORMAT DepthStencilFormat
 ) :
-	mName(Name),
 	mWidth(Width),
 	mHeight(Height),
-	mArraySize(ArraySize),
 	mMipLevels(MipLevels),
 	mFormat(Format),
 	mDepthStencilFormat(DepthStencilFormat),
 	mViewport({ 0.0f, 0.0f, (float)Width, (float)Height, 0.0f, 1.0f }),
 	mScissorRect({ 0, 0, (int)Width, (int)Height })
 {
-	Initialize();
+	Initialize(Names);
 }
 
 FRenderTarget::~FRenderTarget()
 {
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE FRenderTarget::GetRTV(int MipLevel) const
+void FRenderTarget::TransitResourceBarrier(
+	ID3D12GraphicsCommandList* CommandList,
+	std::string Name,
+	D3D12_RESOURCE_STATES ResourceState
+)
+{
+	FResourceInfo& ResourceInfo = mResourceMap[Name];
+	if (ResourceState != ResourceInfo.ResourceState)
+	{
+		D3D12_RESOURCE_BARRIER ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+			ResourceInfo.Texture->Resource.Get(),
+			ResourceInfo.ResourceState,
+			ResourceState
+		);
+		CommandList->ResourceBarrier(1, &ResourceBarrier);
+		ResourceInfo.ResourceState = ResourceState;
+	}
+}
+
+void FRenderTarget::TransitDepthStencilResourceBarrier(
+	ID3D12GraphicsCommandList* CommandList,
+	D3D12_RESOURCE_STATES ResourceState
+)
+{
+	if (ResourceState != mDepthStencilState)
+	{
+		D3D12_RESOURCE_BARRIER ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+			mDepthStencilResource.Get(),
+			mDepthStencilState,
+			ResourceState
+		);
+		CommandList->ResourceBarrier(1, &ResourceBarrier);
+		mDepthStencilState = ResourceState;
+	}
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE FRenderTarget::GetRTV(std::string Name, int MipLevel)
 {
 	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
 		mRTVHeap->GetCPUDescriptorHandleForHeapStart(),
-		MipLevel,
+		(int)mResourceMap[Name].Index + (int)mResourceMap.size() * MipLevel,
 		GetDXResourceManagerPtr()->GetRTVDescriptorSize()
 	);
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE FRenderTarget::GetCPUDescriptorHeap() const
+D3D12_CPU_DESCRIPTOR_HANDLE FRenderTarget::GetCPUDescriptorHeap(std::string Name)
 {
-	return GetTextureManager()->GetTexture2DCPUDescriptorHandle(mTexture->SRVHeapIndex);
+	return GetTextureManager()->GetTexture2DCPUDescriptorHandle(mResourceMap[Name].Texture->SRVHeapIndex);
 }
 
 D3D12_VIEWPORT FRenderTarget::GetViewportMipLevel(int i) const
@@ -59,14 +92,14 @@ D3D12_RECT FRenderTarget::GetScissorRectMipLevel(int i) const
 	return ScissorRect;
 }
 
-void FRenderTarget::Initialize()
+void FRenderTarget::Initialize(std::vector<std::string> Names)
 {
-	BuildResource();
-	BuildRTVAndDSV();
+	BuildResource(Names);
+	BuildRTHeapAndDSVHeap();
 	BuildDescriptors();
 }
 
-void FRenderTarget::BuildResource()
+void FRenderTarget::BuildResource(std::vector<std::string> Names)
 {
 	// Note, compressed formats cannot be used for UAV.  We get error like:
 	// ERROR: ID3D11Device::CreateTexture2D: The format (0x4d, BC3_UNORM) 
@@ -80,7 +113,7 @@ void FRenderTarget::BuildResource()
 	TextureDesc.Alignment = 0;
 	TextureDesc.Width = mWidth;
 	TextureDesc.Height = mHeight;
-	TextureDesc.DepthOrArraySize = mArraySize;
+	TextureDesc.DepthOrArraySize = 1;
 	TextureDesc.MipLevels = mMipLevels;
 	TextureDesc.Format = mFormat;
 	TextureDesc.SampleDesc.Count = 1;
@@ -98,22 +131,28 @@ void FRenderTarget::BuildResource()
 	OptClear.Color[1] = 0.0f;
 	OptClear.Color[2] = 0.0f;
 	OptClear.Color[3] = 1.0f;
-	THROW_IF_FAILED(
-		Device->CreateCommittedResource(
-			&DefaultHeapProperties,
-			D3D12_HEAP_FLAG_NONE,
-			&TextureDesc,
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			&OptClear,
-			IID_PPV_ARGS(&mResource)
-		)
-	);
+
 	FTextureManager* TexManager = GetTextureManager();
-	std::unique_ptr<FTexture> Texture = std::make_unique<FTexture>();
-	mTexture = Texture.get();
-	Texture->Name = mName;
-	Texture->Resource = mResource;
-	TexManager->RegisterTexture2D(std::move(Texture));
+	for (int i = 0; i < Names.size(); ++i)
+	{
+		std::unique_ptr<FTexture> Texture = std::make_unique<FTexture>();
+		THROW_IF_FAILED(
+			Device->CreateCommittedResource(
+				&DefaultHeapProperties,
+				D3D12_HEAP_FLAG_NONE,
+				&TextureDesc,
+				D3D12_RESOURCE_STATE_COMMON,
+				&OptClear,
+				IID_PPV_ARGS(Texture->Resource.GetAddressOf())
+			)
+		);
+		Texture->Name = Names[i];
+		mResourceMap[Names[i]].Texture = Texture.get();
+		mResourceMap[Names[i]].Index = i;
+		mResourceMap[Names[i]].ResourceState = D3D12_RESOURCE_STATE_COMMON;
+		TexManager->RegisterTexture2D(std::move(Texture));
+	}
+	
 
 	// Build Depth Stencil Buffer
 	D3D12_RESOURCE_DESC DepthStencilDesc;
@@ -143,15 +182,16 @@ void FRenderTarget::BuildResource()
 			IID_PPV_ARGS(mDepthStencilResource.GetAddressOf())
 		)
 	);
+	mDepthStencilState = D3D12_RESOURCE_STATE_COMMON;
 }
 
-void FRenderTarget::BuildRTVAndDSV()
+void FRenderTarget::BuildRTHeapAndDSVHeap()
 {
 	FDXResourceManager* DXManager = GetDXResourceManagerPtr();
 	ID3D12Device* Device = DXManager->GetDevicePtr();
 	// RTVHeap
 	D3D12_DESCRIPTOR_HEAP_DESC RTVHeapDesc;
-	RTVHeapDesc.NumDescriptors = mMipLevels;
+	RTVHeapDesc.NumDescriptors = (UINT)mResourceMap.size() * mMipLevels;
 	RTVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 	RTVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	RTVHeapDesc.NodeMask = 0;
@@ -186,11 +226,15 @@ void FRenderTarget::BuildDescriptors()
 	RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 	RTVDesc.Format = mFormat;
 	RTVDesc.Texture2D.PlaneSlice = 0;
-	for (UINT i = 0; i < mMipLevels; ++i)
+	for (auto& MapData : mResourceMap)
 	{
-		// Render target to ith element, jth mipmap.
-		RTVDesc.Texture2D.MipSlice = i;
-		Device->CreateRenderTargetView(mResource.Get(), &RTVDesc, GetRTV(i));
+		FTexture* Texture = MapData.second.Texture;
+		ID3D12Resource* Resource = Texture->Resource.Get();
+		for (UINT i = 0; i < mMipLevels; ++i)
+		{
+			RTVDesc.Texture2D.MipSlice = i;
+			Device->CreateRenderTargetView(Resource, &RTVDesc, GetRTV(Texture->Name, i));
+		}
 	}
 
 	Device->CreateDepthStencilView(

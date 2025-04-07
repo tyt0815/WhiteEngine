@@ -1,10 +1,16 @@
 #include "GBufferPassCommon.sh"
 
-float4 MainPS(
+void MainPS(
     in float4 PosH : SV_Position,
     in float3 NormalW : NORMAL,
-    in float2 TexC : TEXCOORD
-): SV_Target
+    in float2 TexC : TEXCOORD,
+    out float4 GBufferA : SV_Target0,
+    out float4 GBufferB : SV_Target1,
+    out float4 GBufferC : SV_Target2
+)
 {
-    return float4(NormalW, 1.0f);
+    GBufferA = float4(NormalW, 1.0f);
+    GBufferB = float4(TexC, 1.0f, 1.0f);
+    GBufferC = float4(PosH.xyz, 1.0f);
+
 }

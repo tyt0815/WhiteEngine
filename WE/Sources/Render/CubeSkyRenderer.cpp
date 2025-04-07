@@ -572,15 +572,17 @@ void FCubeSkyRenderer::CreatePreFilteredSkyCubeMap()
 
 void FCubeSkyRenderer::CreateIndirectSpecularIntegral()
 {
+	std::vector<std::string> Names;
 	mIndirectSpecularIntegralTextureName = "IndirectSpecularIntegral";
+	Names.push_back(mIndirectSpecularIntegralTextureName);
 	mIndirectSpecularIntegralRenderTarget = std::make_unique<FRenderTarget>(
-		mIndirectSpecularIntegralTextureName,
+		Names,
 		512u,
 		512u
 	);
-	mIndirectSpecularIntegralTextureSRVHeapIndex = mIndirectSpecularIntegralRenderTarget->GetTexture()->SRVHeapIndex;
+	mIndirectSpecularIntegralTextureSRVHeapIndex = mIndirectSpecularIntegralRenderTarget->GetTexture(mIndirectSpecularIntegralTextureName)->SRVHeapIndex;
 	FIndirectSpecularIntegralRenderer Renderer(mIndirectSpecularIntegralRenderTarget.get());
-	Renderer.Render(mSkyTextureCube);
+	Renderer.Render(mSkyTextureCube, mIndirectSpecularIntegralTextureName);
 }
 
 void FCubeSkyRenderer::UpdateCBs()
@@ -607,9 +609,10 @@ FIndirectSpecularIntegralRenderer::FIndirectSpecularIntegralRenderer(FRenderTarg
 	BuildPipelineState();
 }
 
-void FIndirectSpecularIntegralRenderer::Render(FTexture* SkyTextureCube)
+void FIndirectSpecularIntegralRenderer::Render(FTexture* SkyTextureCube, std::string IntegralTextureName)
 {
 	mSkyTextureCube = SkyTextureCube;
+	mIntegralTextureName = IntegralTextureName;
 	UpdateCBs();
 	GetDXResourceManagerPtr()->ExecuteAndFlushCommand(&FIndirectSpecularIntegralRenderer::Internal_Render, this);
 }
@@ -725,8 +728,9 @@ void FIndirectSpecularIntegralRenderer::Internal_Render(ID3D12Device* Device, ID
 		&ResourceBarrier
 	);
 
+	ID3D12Resource* IntegralTexResource = mRenderTarget->GetTexture(mIntegralTextureName)->Resource.Get();
 	ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		mRenderTarget->GetResource(),
+		IntegralTexResource,
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		D3D12_RESOURCE_STATE_RENDER_TARGET
 	);
@@ -744,7 +748,7 @@ void FIndirectSpecularIntegralRenderer::Internal_Render(ID3D12Device* Device, ID
 	CommandList->RSSetViewports(1, &Viewport);
 	CommandList->RSSetScissorRects(1, &ScissorRect);
 
-	D3D12_CPU_DESCRIPTOR_HANDLE RTV = mRenderTarget->GetRTV(0);
+	D3D12_CPU_DESCRIPTOR_HANDLE RTV = mRenderTarget->GetRTV(mIntegralTextureName, 0);
 	D3D12_CPU_DESCRIPTOR_HANDLE DSV = mRenderTarget->GetDSVHeap()->GetCPUDescriptorHandleForHeapStart();
 	CommandList->OMSetRenderTargets(1, &RTV, true, &DSV);
 	CommandList->ClearRenderTargetView(
@@ -765,7 +769,7 @@ void FIndirectSpecularIntegralRenderer::Internal_Render(ID3D12Device* Device, ID
 	
 
 	ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		mRenderTarget->GetResource(),
+		IntegralTexResource,
 		D3D12_RESOURCE_STATE_RENDER_TARGET,
 		D3D12_RESOURCE_STATE_GENERIC_READ
 	);

@@ -143,6 +143,10 @@ public:
 	{
 		return RTVDescriptorSize;
 	}
+	inline ID3D12Resource* GetDepthStencilBuffer() const
+	{
+		return DepthStencilBuffer.Get();
+	}
 };
 
 inline FDXResourceManager* GetDXResourceManagerPtr()

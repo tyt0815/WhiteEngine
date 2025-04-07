@@ -153,6 +153,11 @@ protected:
         ID3D12GraphicsCommandList* CommandList,
         const TPool<FRenderItemInfo>& RenderItems
     );
+    // BackBuffer와 DepthStencilBuffer를 쓰기 가능한 상태로 전이하고, Clear한다.
+    void ReadyBackBuffer(ID3D12GraphicsCommandList* CommandList);
+
+    // BackBuffer와 DepthStencilBuffer를 Present하기 위한 상태로 전이한다.
+    void FinishBackBuffer(ID3D12GraphicsCommandList* CommandList);
 
     std::array<std::unique_ptr<FFrameResourceBase>, FRAME_RESOURCES_NUM> mFrameResources;
     std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D12RootSignature>> mRootSignatures;
@@ -177,17 +182,6 @@ public:
         return mFrameResources[mTargetFrameResourceIndex].get();
     }
 };
-
-void ReadyRenderTarget(
-    ID3D12GraphicsCommandList* CommandList,
-    ID3D12Resource* RenderTarget,
-    D3D12_CPU_DESCRIPTOR_HANDLE Rtv,
-    D3D12_CPU_DESCRIPTOR_HANDLE Dsv,
-    D3D12_VIEWPORT Viewport,
-    D3D12_RECT ScissorRect
-);
-
-void FinishRenderTarget(ID3D12GraphicsCommandList* CommandList, ID3D12Resource* RenderTarget);
 
 template<typename T>
 inline void FSceneRenderer::CreateFrameResources_Internal(ID3D12Device* Device)

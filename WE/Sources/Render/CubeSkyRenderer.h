@@ -88,7 +88,7 @@ class FIndirectSpecularIntegralRenderer : FNoncopyable
 public:
 	FIndirectSpecularIntegralRenderer(FRenderTarget* RenderTarget);
 	FIndirectSpecularIntegralRenderer() = delete;
-	void Render(FTexture* SkyTextureCube);
+	void Render(FTexture* SkyTextureCube, std::string IntegralTextureName);
 
 private:
 	void BuildCB();
@@ -107,6 +107,7 @@ private:
 	std::unique_ptr<TUploadBuffer<FConstantBuffers>> mCB;
 	FRenderTarget* mRenderTarget;
 	FTexture* mSkyTextureCube = nullptr;
+	std::string mIntegralTextureName;
 };
 
 class FCubeSkyRenderer : FNoncopyable

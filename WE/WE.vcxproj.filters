@@ -185,8 +185,8 @@
     <ClCompile Include="Sources\Render\DeferredShadingSceneRenderer.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
-    <ClCompile Include="Shaders\DeferredShadingPassPixelShader.sf">
-      <Filter>Shaders</Filter>
+    <ClCompile Include="Sources\DirectX\Resource.cpp">
+      <Filter>Sources\DirectX</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -295,9 +295,6 @@
     <ClInclude Include="Sources\Application\TestApplication\Actor\IceFieldGird.h">
       <Filter>Sources\Application\TestApplication\Actor</Filter>
     </ClInclude>
-    <ClInclude Include="Shaders\Light.sh">
-      <Filter>Shaders</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\Render\CubeSkyRenderer.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
@@ -313,9 +310,6 @@
     <ClInclude Include="Sources\Render\RenderTarget.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Shaders\IndirectSpecularIntegralCommon.sh">
-      <Filter>Shaders</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\Application\TestApplication\Actor\ScuffedGoldBox.h">
       <Filter>Sources\Application\TestApplication\Actor</Filter>
     </ClInclude>
@@ -328,17 +322,14 @@
     <ClInclude Include="Sources\Render\SceneRenderer.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
+    <ClInclude Include="Shaders\DrawRectPassCommon.sh">
+      <Filter>Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\DirectX\Resource.h">
+      <Filter>Sources\DirectX</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\BasePassCommon.sh">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\BasePassPixelShader.sf">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\BasePassVertexShader.sf">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="Shaders\BillboardCommon.sh">
       <Filter>Shaders</Filter>
     </None>
@@ -406,6 +397,30 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shaders\DeferredShadingPassVertexShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\DeferredShadingPassPixelShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\DrawRectPassPixelShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\DrawRectPassVertexShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\ForwardShadingPassCommon.sh">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\ForwardShadingPassPixelShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\ForwardShadingPassVertexShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\IndirectSpecularIntegralCommon.sh">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Light.sh">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
