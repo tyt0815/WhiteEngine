@@ -287,13 +287,14 @@ void FDeferredShadingSceneRenderer::DrawGBuffers(ID3D12GraphicsCommandList* Comm
 	mGBuffers->TransitResourceBarrier(CommandList, "GBufferB", D3D12_RESOURCE_STATE_RENDER_TARGET);
 	mGBuffers->TransitResourceBarrier(CommandList, "GBufferC", D3D12_RESOURCE_STATE_RENDER_TARGET);
 	mGBuffers->TransitDepthStencilResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	mGBuffers->ClearRenderTarget(CommandList, "GBufferA");
+	mGBuffers->ClearRenderTarget(CommandList, "GBufferB");
+	mGBuffers->ClearRenderTarget(CommandList, "GBufferC");
+	mGBuffers->ClearDepthStencil(CommandList);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GBufferARtv = mGBuffers->GetRTV("GBufferA", 0);
-	D3D12_CPU_DESCRIPTOR_HANDLE GBufferBRtv = mGBuffers->GetRTV("GBufferB", 0);
-	D3D12_CPU_DESCRIPTOR_HANDLE GBufferCRtv = mGBuffers->GetRTV("GBufferC", 0);
-	D3D12_CPU_DESCRIPTOR_HANDLE Rtvs[] = { GBufferARtv, GBufferBRtv, GBufferCRtv };
 	D3D12_CPU_DESCRIPTOR_HANDLE GBufferDsv = mGBuffers->GetDSVHeap()->GetCPUDescriptorHandleForHeapStart();
-	CommandList->OMSetRenderTargets(_countof(Rtvs), Rtvs, false, &GBufferDsv);
+	CommandList->OMSetRenderTargets(3, &GBufferARtv, true, &GBufferDsv);
 
 	D3D12_VIEWPORT GBffuerViewport = mGBuffers->GetViewport();
 	D3D12_RECT GBufferScissoreRect = mGBuffers->GetScissorRect();

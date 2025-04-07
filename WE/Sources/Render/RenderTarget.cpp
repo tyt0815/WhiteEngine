@@ -3,6 +3,8 @@
 #include "DirectX/DXResourceManager.h"
 #include "Texture.h"
 
+float FRenderTarget::sClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
 FRenderTarget::FRenderTarget(
 	std::vector<std::string> Names,
 	UINT Width,
@@ -60,6 +62,28 @@ void FRenderTarget::TransitDepthStencilResourceBarrier(
 		CommandList->ResourceBarrier(1, &ResourceBarrier);
 		mDepthStencilState = ResourceState;
 	}
+}
+
+void FRenderTarget::ClearRenderTarget(ID3D12GraphicsCommandList* CommandList, std::string Name, int MipLevel)
+{
+	CommandList->ClearRenderTargetView(
+		GetRTV(Name, MipLevel),
+		sClearColor,
+		0,
+		nullptr
+	);
+}
+
+void FRenderTarget::ClearDepthStencil(ID3D12GraphicsCommandList* CommandList)
+{
+	CommandList->ClearDepthStencilView(
+		GetDSV(),
+		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
+		1.0f,
+		0,
+		0,
+		nullptr
+	);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE FRenderTarget::GetRTV(std::string Name, int MipLevel)
@@ -127,10 +151,10 @@ void FRenderTarget::BuildResource(std::vector<std::string> Names)
 
 	D3D12_CLEAR_VALUE OptClear;
 	OptClear.Format = mFormat;
-	OptClear.Color[0] = 0.0f;
-	OptClear.Color[1] = 0.0f;
-	OptClear.Color[2] = 0.0f;
-	OptClear.Color[3] = 1.0f;
+	OptClear.Color[0] = sClearColor[0];
+	OptClear.Color[1] = sClearColor[1];
+	OptClear.Color[2] = sClearColor[2];
+	OptClear.Color[3] = sClearColor[3];
 
 	FTextureManager* TexManager = GetTextureManager();
 	for (int i = 0; i < Names.size(); ++i)

@@ -29,6 +29,8 @@ public:
 	virtual ~FRenderTarget();
 	void TransitResourceBarrier(ID3D12GraphicsCommandList* CommandList, std::string Name, D3D12_RESOURCE_STATES ResourceState);
 	void TransitDepthStencilResourceBarrier(ID3D12GraphicsCommandList* CommandList, D3D12_RESOURCE_STATES ResourceState);
+	void ClearRenderTarget(ID3D12GraphicsCommandList* CommandList, std::string Name, int MipLevel = 0);
+	void ClearDepthStencil(ID3D12GraphicsCommandList* CommandList);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetRTV(std::string Name, int MipLevel);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHeap(std::string Name);
 	D3D12_VIEWPORT GetViewportMipLevel(int i) const;
@@ -36,6 +38,8 @@ public:
 	
 
 private:
+	static float sClearColor[4];
+
 	void Initialize(std::vector<std::string> Names);
 	void BuildResource(std::vector<std::string> Names);
 	void BuildRTHeapAndDSVHeap();
@@ -84,5 +88,9 @@ public:
 	inline DXGI_FORMAT GetDepthStencilFormat() const
 	{
 		return mDepthStencilFormat;
+	}
+	inline D3D12_CPU_DESCRIPTOR_HANDLE GetDSV() const
+	{
+		return mDSVHeap->GetCPUDescriptorHandleForHeapStart();
 	}
 };
