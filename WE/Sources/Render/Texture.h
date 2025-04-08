@@ -27,6 +27,7 @@ class FTextureManager
 public:
 	void RegisterTexture2D(std::unique_ptr<FTexture> Texture2D);
 	void RegisterTextureCube(std::unique_ptr<FTexture> TextureCube);
+	void RegisterDepthStencilTexture2D(std::unique_ptr<FTexture> Texture);
 	void UpdateTexture2D(std::string Name);
 	void UpdateTextureCube(std::string Name);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetTexture2DCPUSRVForHeapStart() const;

@@ -58,6 +58,32 @@ void FTextureManager::RegisterTextureCube(std::unique_ptr<FTexture> TextureCube)
 	UpdateTextureCube(Name);
 }
 
+void FTextureManager::RegisterDepthStencilTexture2D(std::unique_ptr<FTexture> Texture)
+{
+	if (mTexture2Ds.size() >= TEXTURE2D_NUM)
+	{
+		throw L"최대 텍스처수 초과";
+	}
+	Texture->SRVHeapIndex = (UINT)mTexture2Ds.size();
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
+	SRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	SRVDesc.Texture2D.MostDetailedMip = 0;
+	SRVDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+	ID3D12Resource* TextureBuffer = Texture->Resource.Get();
+	SRVDesc.Texture2D.MipLevels = TextureBuffer->GetDesc().MipLevels;
+	SRVDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+
+	GetDXResourceManagerPtr()->GetDevicePtr()->CreateShaderResourceView(
+		TextureBuffer,
+		&SRVDesc,
+		GetTexture2DCPUDescriptorHandle(Texture->SRVHeapIndex)
+	);
+
+	mTexture2Ds[Texture->Name] = std::move(Texture);
+}
+
 void FTextureManager::UpdateTexture2D(std::string Name)
 {
 	FTexture* Texture = mTexture2Ds[Name].get();

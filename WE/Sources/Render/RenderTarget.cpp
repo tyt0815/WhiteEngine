@@ -54,7 +54,7 @@ void FRenderTarget::TransitDepthStencilResourceBarrier(
 	if (ResourceState != mDepthStencilState)
 	{
 		D3D12_RESOURCE_BARRIER ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-			mDepthStencilResource.Get(),
+			mDepthStencilTexture->Resource.Get(),
 			mDepthStencilState,
 			ResourceState
 		);
@@ -195,6 +195,9 @@ void FRenderTarget::BuildResource(std::vector<std::string> Names)
 	OptClear.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	OptClear.DepthStencil.Depth = 1.0f;
 	OptClear.DepthStencil.Stencil = 0;
+	std::unique_ptr<FTexture> Texture = std::make_unique<FTexture>();
+	mDepthStencilTexture = Texture.get();
+	Texture->Name = std::string("RenderTargetDepth_") + std::to_string(sRenderTargetCount);
 	THROW_IF_FAILED(
 		Device->CreateCommittedResource(
 			&DefaultHeapProperties,
@@ -202,15 +205,11 @@ void FRenderTarget::BuildResource(std::vector<std::string> Names)
 			&DepthStencilDesc,
 			D3D12_RESOURCE_STATE_COMMON,
 			&OptClear,
-			IID_PPV_ARGS(mDepthStencilResource.GetAddressOf())
+			IID_PPV_ARGS(Texture->Resource.GetAddressOf())
 		)
 	);
-	mDepthStencilTextureName = std::string("RenderTargetDepth_") + std::to_string(sRenderTargetCount);
-	//std::unique_ptr<FTexture> Texture = std::make_unique<FTexture>();
-	//Texture->Name = mDepthStencilTextureName;
-	//Texture->Resource = mDepthStencilResource;
-	//GetTextureManager()->RegisterTexture2D(std::move(Texture));
 	mDepthStencilState = D3D12_RESOURCE_STATE_COMMON;
+	GetTextureManager()->RegisterDepthStencilTexture2D(std::move(Texture));
 }
 
 void FRenderTarget::BuildRTHeapAndDSVHeap()
@@ -273,7 +272,7 @@ void FRenderTarget::BuildDescriptors()
 	DepthStencilViewDesc.Texture2D.MipSlice = 0;
 
 	Device->CreateDepthStencilView(
-		mDepthStencilResource.Get(),
+		mDepthStencilTexture->Resource.Get(),
 		&DepthStencilViewDesc,
 		mDSVHeap->GetCPUDescriptorHandleForHeapStart()
 	);

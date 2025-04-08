@@ -46,9 +46,8 @@ private:
 	void BuildDescriptors();
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRTVHeap;
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mDSVHeap;
-	Microsoft::WRL::ComPtr<ID3D12Resource> mDepthStencilResource;
+	FTexture* mDepthStencilTexture;
 	std::unordered_map<std::string, FResourceInfo> mResourceMap;
-	std::string mDepthStencilTextureName;
 	D3D12_RESOURCE_STATES mDepthStencilState;
 	D3D12_VIEWPORT mViewport;
 	D3D12_RECT mScissorRect;
@@ -65,9 +64,9 @@ public:
 	{
 		return mResourceMap[Name].Texture;
 	}
-	inline ID3D12Resource* GetDepthStencilResource() const
+	inline FTexture* GetDepthStencilTexture() const
 	{
-		return mDepthStencilResource.Get();
+		return mDepthStencilTexture;
 	}
 	inline D3D12_VIEWPORT GetViewport() const
 	{
