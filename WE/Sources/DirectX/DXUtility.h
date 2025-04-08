@@ -36,6 +36,8 @@ public:
         UINT RootParameterNum,
         ID3D12RootSignature** RootSignature
     );
+    static D3D12_VIEWPORT GetQuadrantViewport(D3D12_VIEWPORT Viewport, int n);
+    static D3D12_RECT MakeScissorRectFromViewport(const D3D12_VIEWPORT& Viewport);
     inline static UINT CalcConstantBufferByteSize(UINT byteSize)
     {
         // Constant buffers must be a multiple of the minimum hardware

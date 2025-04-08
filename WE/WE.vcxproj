@@ -121,6 +121,7 @@
     <Image Include="Resources\Textures\White.dds" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\DepthDebugPassPixelShader.sf" />
     <None Include="Shaders\DrawRectPassPixelShader.sf" />
     <None Include="Shaders\DrawRectPassVertexShader.sf" />
     <None Include="Shaders\ForwardShadingPassCommon.sh" />

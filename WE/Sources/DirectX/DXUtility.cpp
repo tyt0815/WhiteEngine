@@ -225,3 +225,34 @@ void FDXUtility::BuildRootSignature(
         )
     );
 }
+
+D3D12_VIEWPORT FDXUtility::GetQuadrantViewport(D3D12_VIEWPORT Viewport, int n)
+{
+    // 2»çºÐ¸é
+    Viewport.Width /= 2.0f;
+    Viewport.Height /= 2.0f;
+    if (n == 1)
+    {
+        Viewport.TopLeftX += Viewport.Width;
+    }
+    else if (n == 3)
+    {
+        Viewport.TopLeftY += Viewport.Height;
+    }
+    else if (n == 4)
+    {
+        Viewport.TopLeftX += Viewport.Width;
+        Viewport.TopLeftY += Viewport.Height;
+    }
+    return Viewport;
+}
+
+D3D12_RECT FDXUtility::MakeScissorRectFromViewport(const D3D12_VIEWPORT& Viewport)
+{
+    D3D12_RECT ScissorRect;
+    ScissorRect.left = (long)Viewport.TopLeftX;
+    ScissorRect.right = ScissorRect.left + (long)Viewport.Width;
+    ScissorRect.top = (long)Viewport.TopLeftY;
+    ScissorRect.bottom = ScissorRect.top + (long)Viewport.Height;
+    return ScissorRect;
+}

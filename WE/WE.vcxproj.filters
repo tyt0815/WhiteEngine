@@ -423,6 +423,9 @@
     <None Include="Shaders\Light.sh">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Shaders\DepthDebugPassPixelShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\Default.dds">
