@@ -12,7 +12,7 @@ cbuffer GBufferInfo : register(b1)
     uint gGBufferATextureIndex;
     uint gGBufferBTextureIndex;
     uint gGBufferCTextureIndex;
-    uint Pad1;
+    uint gDepthTextureIndex;
 }
 
 #endif

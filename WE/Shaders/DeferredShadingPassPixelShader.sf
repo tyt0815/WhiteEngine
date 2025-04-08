@@ -12,7 +12,8 @@ float4 MainPS(
     float Specular = gTexture[gGBufferBTextureIndex].Sample(gsamLinearWrap, TexC).r;    // 현재 0.04f값이 고정적으로 들어옴
     
     float3 WorldNormal = normalize(gTexture[gGBufferATextureIndex].Sample(gsamLinearWrap, TexC).rgb);
-    float3 V = normalize(gEyePosW - pos;
+    // TODO: WorldPosition를 역산해서 V벡터를 구한다.
+    // float3 V = normalize(gEyePosW - pos;
     
     float3 F0 = CalculateF0(Specular, Material.Albedo, Material.Metallic);
     
@@ -21,7 +22,7 @@ float4 MainPS(
     // Directional light 계산
     for (uint i = 0; i < gDirLightNum; ++i)
     {
-        Lo += ComputeDirectionalLight(gDirectionalLights[i], Material, V, WorldNormal, F0);
+        // Lo += ComputeDirectionalLight(gDirectionalLights[i], Material, V, WorldNormal, F0);
     }
     
     // float3 F = FresnelSchlickRoughness(max(dot(WorldNormal, V), 0.0f), F0, Material.Roughness);
@@ -37,8 +38,7 @@ float4 MainPS(
     Color = Color / (Color + (float3) 1.0f);
     // gamma correct
     Color = pow(Color, (float3) (1.0f / 2.2f));
-    
-    return float4(V, 1.0f);
+    return float4((float3) (gTexture[gDepthTextureIndex].Sample(gsamLinearWrap, TexC)).r, 1.0f);
     return float4(Color, 1.0f);
 
 }

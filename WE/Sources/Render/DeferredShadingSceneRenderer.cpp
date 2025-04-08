@@ -215,6 +215,7 @@ void FDeferredShadingSceneRenderer::UpdateGBufferInfoCB(TUploadBuffer<FGBufferIn
 	GBufferCB.GBufferAIndex = mGBuffers->GetTexture("GBufferA")->SRVHeapIndex;
 	GBufferCB.GBufferBIndex = mGBuffers->GetTexture("GBufferB")->SRVHeapIndex;
 	GBufferCB.GBufferCIndex = mGBuffers->GetTexture("GBufferC")->SRVHeapIndex;
+	GBufferCB.DepthBufferIndex = mGBuffers->GetDepthStencilTexture()->SRVHeapIndex;
 	GBufferInfoCB->CopyData(0, GBufferCB);
 }
 

@@ -9,7 +9,7 @@ class FDeferredShadingSceneRenderer final : public FSceneRenderer
         UINT GBufferAIndex;
         UINT GBufferBIndex;
         UINT GBufferCIndex;
-        UINT Pad1;
+        UINT DepthBufferIndex;
     };
 private:
     typedef FSceneRenderer Super;
