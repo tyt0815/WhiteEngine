@@ -22,7 +22,7 @@ int FTestApplication::Run()
 	MSG msg = { 0 };
 	FDXResourceManager* DXManager = FDXResourceManager::GetInstance();
 
-	std::unique_ptr<FSceneRenderer> Renderer = std::make_unique<FDeferredShadingSceneRenderer>();
+	std::unique_ptr<FSceneRenderer> Renderer = std::make_unique<FForwardShadingSceneRenderer>();
 	// std::unique_ptr<FSceneRenderer> Renderer = std::make_unique<FForwardShadingSceneRenderer>();
 	Renderer->Initialize(DXManager->GetDevicePtr());
 	while (msg.message != WM_QUIT)

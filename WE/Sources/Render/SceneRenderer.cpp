@@ -165,7 +165,6 @@ void FSceneRenderer::DrawRenderItems(FFrameResourceBase* FrameResource, ID3D12Gr
 
 	UINT ObjectConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FMeshConstantBuffer));
 	UINT SubmeshConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FSubmeshConstantBuffer));
-	UINT CBVSRVUAVDescriptorSize = FDXResourceManager::GetInstance()->GetCBVSRVUAVDescriptorSize();
 
 	for (int i = 0; i < RenderItems.GetPoolSize(); ++i)
 	{

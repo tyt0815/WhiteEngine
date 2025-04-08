@@ -68,7 +68,7 @@ float3 ComputeLight(
     // Ambient = (kD * Diffuse);
     
     // 디버깅용. BRDF만 적용
-    // Ambient = (float3) 0.03f * Material.Albedo;
+    Ambient = (float3) 0.03f * Material.Albedo;
     
     
     float3 Color = Ambient + Lo;

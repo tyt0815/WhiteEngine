@@ -132,25 +132,8 @@ void FCubeSkyIrradianceMapRenderer::BuildCB()
 
 void FCubeSkyIrradianceMapRenderer::Internal_Render(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
 {
-	D3D12_RESOURCE_BARRIER ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		mCubeRenderTarget->GetDepthStencilResource(),
-		D3D12_RESOURCE_STATE_COMMON,
-		D3D12_RESOURCE_STATE_DEPTH_WRITE
-	);
-	CommandList->ResourceBarrier(
-		1,
-		&ResourceBarrier
-	);
-
-	ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		mCubeRenderTarget->GetCubeMapResource(),
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		D3D12_RESOURCE_STATE_RENDER_TARGET
-	);
-	CommandList->ResourceBarrier(
-		1,
-		&ResourceBarrier
-	);
+	mCubeRenderTarget->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	mCubeRenderTarget->TransitDepthStencilResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
 	D3D12_VIEWPORT Viewport = mCubeRenderTarget->GetViewport();
 	D3D12_RECT ScissorRect = mCubeRenderTarget->GetScissorRect();
@@ -196,26 +179,8 @@ void FCubeSkyIrradianceMapRenderer::Internal_Render(ID3D12Device* Device, ID3D12
 		}
 	}
 
-	ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		mCubeRenderTarget->GetCubeMapResource(),
-		D3D12_RESOURCE_STATE_RENDER_TARGET,
-		D3D12_RESOURCE_STATE_GENERIC_READ
-	);
-	CommandList->ResourceBarrier(
-		1,
-		&ResourceBarrier
-	);
-
-
-	ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		mCubeRenderTarget->GetDepthStencilResource(),
-		D3D12_RESOURCE_STATE_DEPTH_WRITE,
-		D3D12_RESOURCE_STATE_COMMON
-	);
-	CommandList->ResourceBarrier(
-		1,
-		&ResourceBarrier
-	);
+	mCubeRenderTarget->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
+	mCubeRenderTarget->TransitDepthStencilResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
 }
 
 FPreFilteredSkyCubeMapRenderer::FPreFilteredSkyCubeMapRenderer(FCubeRenderTarget* CubeRenderTarget) :
@@ -347,25 +312,8 @@ void FPreFilteredSkyCubeMapRenderer::UpdateCBs()
 
 void FPreFilteredSkyCubeMapRenderer::Internal_Render(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
 {
-	D3D12_RESOURCE_BARRIER ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		mCubeRenderTarget->GetDepthStencilResource(),
-		D3D12_RESOURCE_STATE_COMMON,
-		D3D12_RESOURCE_STATE_DEPTH_WRITE
-	);
-	CommandList->ResourceBarrier(
-		1,
-		&ResourceBarrier
-	);
-
-	ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		mCubeRenderTarget->GetCubeMapResource(),
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		D3D12_RESOURCE_STATE_RENDER_TARGET
-	);
-	CommandList->ResourceBarrier(
-		1,
-		&ResourceBarrier
-	);
+	mCubeRenderTarget->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	mCubeRenderTarget->TransitDepthStencilResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
 	CommandList->SetPipelineState(mPipelineState.Get());
 
@@ -413,26 +361,8 @@ void FPreFilteredSkyCubeMapRenderer::Internal_Render(ID3D12Device* Device, ID3D1
 		}
 	}
 
-	ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		mCubeRenderTarget->GetCubeMapResource(),
-		D3D12_RESOURCE_STATE_RENDER_TARGET,
-		D3D12_RESOURCE_STATE_GENERIC_READ
-	);
-	CommandList->ResourceBarrier(
-		1,
-		&ResourceBarrier
-	);
-
-
-	ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		mCubeRenderTarget->GetDepthStencilResource(),
-		D3D12_RESOURCE_STATE_DEPTH_WRITE,
-		D3D12_RESOURCE_STATE_COMMON
-	);
-	CommandList->ResourceBarrier(
-		1,
-		&ResourceBarrier
-	);
+	mCubeRenderTarget->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
+	mCubeRenderTarget->TransitDepthStencilResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
 }
 
 FCubeSkyRenderer::FCubeSkyRenderer(std::string SkyCubeMapName):
@@ -718,26 +648,8 @@ void FIndirectSpecularIntegralRenderer::UpdateCBs()
 
 void FIndirectSpecularIntegralRenderer::Internal_Render(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
 {
-	D3D12_RESOURCE_BARRIER ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		mRenderTarget->GetDepthStencilResource(),
-		D3D12_RESOURCE_STATE_COMMON,
-		D3D12_RESOURCE_STATE_DEPTH_WRITE
-	);
-	CommandList->ResourceBarrier(
-		1,
-		&ResourceBarrier
-	);
-
-	ID3D12Resource* IntegralTexResource = mRenderTarget->GetTexture(mIntegralTextureName)->Resource.Get();
-	ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		IntegralTexResource,
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		D3D12_RESOURCE_STATE_RENDER_TARGET
-	);
-	CommandList->ResourceBarrier(
-		1,
-		&ResourceBarrier
-	);
+	mRenderTarget->TransitResourceBarrier(CommandList, mIntegralTextureName, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	mRenderTarget->TransitDepthStencilResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
 	CommandList->SetPipelineState(mPipelineState.Get());
 
@@ -768,24 +680,6 @@ void FIndirectSpecularIntegralRenderer::Internal_Render(ID3D12Device* Device, ID
 	DrawRect(CommandList);
 	
 
-	ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		IntegralTexResource,
-		D3D12_RESOURCE_STATE_RENDER_TARGET,
-		D3D12_RESOURCE_STATE_GENERIC_READ
-	);
-	CommandList->ResourceBarrier(
-		1,
-		&ResourceBarrier
-	);
-
-
-	ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		mRenderTarget->GetDepthStencilResource(),
-		D3D12_RESOURCE_STATE_DEPTH_WRITE,
-		D3D12_RESOURCE_STATE_COMMON
-	);
-	CommandList->ResourceBarrier(
-		1,
-		&ResourceBarrier
-	);
+	mRenderTarget->TransitResourceBarrier(CommandList, mIntegralTextureName, D3D12_RESOURCE_STATE_GENERIC_READ);
+	mRenderTarget->TransitDepthStencilResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
 }

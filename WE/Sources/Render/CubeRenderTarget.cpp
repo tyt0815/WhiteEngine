@@ -102,6 +102,42 @@ D3D12_RECT FCubeRenderTarget::GetScissorRectMipLevel(int i) const
 	return ScissorRect;
 }
 
+void FCubeRenderTarget::TransitResourceBarrier(
+	ID3D12GraphicsCommandList* CommandList,
+	D3D12_RESOURCE_STATES ResourceState
+)
+{
+	if (ResourceState != mCubeMapState)
+	{
+		D3D12_RESOURCE_BARRIER ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+			mCubeMapResource.Get(),
+			mCubeMapState,
+			ResourceState
+		);
+		CommandList->ResourceBarrier(1, &ResourceBarrier);
+
+		mCubeMapState = ResourceState;
+	}
+}
+
+void FCubeRenderTarget::TransitDepthStencilResourceBarrier(
+	ID3D12GraphicsCommandList* CommandList,
+	D3D12_RESOURCE_STATES ResourceState
+)
+{
+	if (ResourceState != mDepthStencilState)
+	{
+		D3D12_RESOURCE_BARRIER ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+			mDepthStencilResource.Get(),
+			mDepthStencilState,
+			ResourceState
+		);
+		CommandList->ResourceBarrier(1, &ResourceBarrier);
+
+		mDepthStencilState = ResourceState;
+	}
+}
+
 FCubeRenderTarget::~FCubeRenderTarget()
 {
 	mRTVHeap = nullptr;
@@ -238,6 +274,8 @@ void FCubeRenderTarget::BuildResource()
 			IID_PPV_ARGS(&mCubeMapResource)
 		)
 	);
+	mCubeMapState = D3D12_RESOURCE_STATE_GENERIC_READ;
+
 	FTextureManager* TexManager = GetTextureManager();
 	std::unique_ptr<FTexture> Texture = std::make_unique<FTexture>();
 	mTexture = Texture.get();
@@ -273,4 +311,5 @@ void FCubeRenderTarget::BuildResource()
 			IID_PPV_ARGS(mDepthStencilResource.GetAddressOf())
 		)
 	);
+	mDepthStencilState = D3D12_RESOURCE_STATE_COMMON;
 }

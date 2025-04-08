@@ -7,7 +7,7 @@
 FDeferredShadingSceneRenderer::FFrameResource::FFrameResource(ID3D12Device* Device) :
 	FFrameResourceBase(Device)
 {
-
+	mGBufferInfoCB = std::make_unique<TUploadBuffer<FGBufferInfoConstantBuffer>>(Device, 1, true);
 }
 
 FDeferredShadingSceneRenderer::FDeferredShadingSceneRenderer()
@@ -26,6 +26,12 @@ FDeferredShadingSceneRenderer::FDeferredShadingSceneRenderer()
 void FDeferredShadingSceneRenderer::Initialize(ID3D12Device* Device)
 {
 	Super::Initialize(Device);
+	
+	for (int i = 0; i < mFrameResources.size(); ++i)
+	{
+		FFrameResource* FrameResource = dynamic_cast<FFrameResource*>(mFrameResources[i].get());
+		UpdateGBufferInfoCB(FrameResource->GetGBufferInfoCB());
+	}
 }
 
 void FDeferredShadingSceneRenderer::CreateFrameResources(ID3D12Device* Device)
@@ -44,10 +50,13 @@ void FDeferredShadingSceneRenderer::BuildDeferredShadingPassRootSignature()
 {
 	D3D12_DESCRIPTOR_RANGE TextureTable = GetTextureManager()->GetTexture2DDescriptorRange();
 	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
-	constexpr UINT ROOT_PARAMETERS_NUM = 2;
+	constexpr UINT ROOT_PARAMETERS_NUM = 5;
 	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERS_NUM];
 	RootParameter[0].InitAsDescriptorTable(1, &TextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// TextureTable
 	RootParameter[1].InitAsDescriptorTable(1, &CubeTextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// CubeTextureTable
+	RootParameter[2].InitAsConstantBufferView(0);	// Pass CB
+	RootParameter[3].InitAsConstantBufferView(1);			// GBufferIndices
+	RootParameter[4].InitAsShaderResourceView(0, 3);	// DirLightSB
 
 	FDXUtility::BuildRootSignature(RootParameter, ROOT_PARAMETERS_NUM, mRootSignatures["DeferredShadingPass"].GetAddressOf());
 }
@@ -200,8 +209,19 @@ void FDeferredShadingSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* Frame
 	Super::UpdateFrameBuffers(FrameResource);
 }
 
-void FDeferredShadingSceneRenderer::Render(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource)
+void FDeferredShadingSceneRenderer::UpdateGBufferInfoCB(TUploadBuffer<FGBufferInfoConstantBuffer>* GBufferInfoCB)
 {
+	FGBufferInfoConstantBuffer GBufferCB;
+	GBufferCB.GBufferAIndex = mGBuffers->GetTexture("GBufferA")->SRVHeapIndex;
+	GBufferCB.GBufferBIndex = mGBuffers->GetTexture("GBufferB")->SRVHeapIndex;
+	GBufferCB.GBufferCIndex = mGBuffers->GetTexture("GBufferC")->SRVHeapIndex;
+	GBufferInfoCB->CopyData(0, GBufferCB);
+}
+
+void FDeferredShadingSceneRenderer::Render(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResourceBase)
+{
+	FFrameResource* FrameResource = dynamic_cast<FFrameResource*>(FrameResourceBase);
+
 	DrawGBuffers(CommandList, FrameResource);
 
 	ReadyBackBuffer(CommandList);
@@ -225,7 +245,14 @@ void FDeferredShadingSceneRenderer::Render(ID3D12GraphicsCommandList* CommandLis
 
 	CommandList->SetGraphicsRootDescriptorTable(0, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
 	CommandList->SetGraphicsRootDescriptorTable(1, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
+	CommandList->SetGraphicsRootConstantBufferView(2, FrameResource->GetPassCB()->Resource()->GetGPUVirtualAddress());
+	CommandList->SetGraphicsRootConstantBufferView(3, FrameResource->GetGBufferInfoCB()->Resource()->GetGPUVirtualAddress());
+	CommandList->SetGraphicsRootShaderResourceView(4, FrameResource->GetDirectionalLightSB()->Resource()->GetGPUVirtualAddress());
 	DrawRect(CommandList);
+
+	UINT GBufferATextureIndex = mGBuffers->GetTexture("GBufferA")->SRVHeapIndex;
+	UINT GBufferBTextureIndex = mGBuffers->GetTexture("GBufferB")->SRVHeapIndex;
+	UINT GBufferCTextureIndex = mGBuffers->GetTexture("GBufferC")->SRVHeapIndex;
 
 	// 1»çºÐ¸é->GBufferA
 	D3D12_VIEWPORT FirstQuadrantViewport = SecondQuadrantViewport;
@@ -236,8 +263,7 @@ void FDeferredShadingSceneRenderer::Render(ID3D12GraphicsCommandList* CommandLis
 
 	CommandList->SetGraphicsRootSignature(mRootSignatures["DrawRectPass"].Get());
 
-	UINT IndexA = mGBuffers->GetTexture("GBufferA")->SRVHeapIndex;
-	CommandList->SetGraphicsRoot32BitConstants(0, 1, &IndexA, 0);
+	CommandList->SetGraphicsRoot32BitConstants(0, 1, &GBufferATextureIndex, 0);
 	CommandList->SetGraphicsRootDescriptorTable(1, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
 	CommandList->SetGraphicsRootDescriptorTable(2, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
 
@@ -252,8 +278,7 @@ void FDeferredShadingSceneRenderer::Render(ID3D12GraphicsCommandList* CommandLis
 
 	CommandList->SetGraphicsRootSignature(mRootSignatures["DrawRectPass"].Get());
 
-	UINT IndexB = mGBuffers->GetTexture("GBufferB")->SRVHeapIndex;
-	CommandList->SetGraphicsRoot32BitConstants(0, 1, &IndexB, 0);
+	CommandList->SetGraphicsRoot32BitConstants(0, 1, &GBufferBTextureIndex, 0);
 	CommandList->SetGraphicsRootDescriptorTable(1, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
 	CommandList->SetGraphicsRootDescriptorTable(2, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
 
@@ -268,9 +293,8 @@ void FDeferredShadingSceneRenderer::Render(ID3D12GraphicsCommandList* CommandLis
 	CommandList->SetPipelineState(mPipelineStates["DrawRectPass"].Get());
 
 	CommandList->SetGraphicsRootSignature(mRootSignatures["DrawRectPass"].Get());
-
-	UINT IndexC = mGBuffers->GetTexture("GBufferC")->SRVHeapIndex;
-	CommandList->SetGraphicsRoot32BitConstants(0, 1, &IndexC, 0);
+	
+	CommandList->SetGraphicsRoot32BitConstants(0, 1, &GBufferCTextureIndex, 0);
 	CommandList->SetGraphicsRootDescriptorTable(1, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
 	CommandList->SetGraphicsRootDescriptorTable(2, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
 
@@ -281,7 +305,7 @@ void FDeferredShadingSceneRenderer::Render(ID3D12GraphicsCommandList* CommandLis
 	FinishBackBuffer(CommandList);
 }
 
-void FDeferredShadingSceneRenderer::DrawGBuffers(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource)
+void FDeferredShadingSceneRenderer::DrawGBuffers(ID3D12GraphicsCommandList* CommandList, FFrameResource* FrameResource)
 {
 	mGBuffers->TransitResourceBarrier(CommandList, "GBufferA", D3D12_RESOURCE_STATE_RENDER_TARGET);
 	mGBuffers->TransitResourceBarrier(CommandList, "GBufferB", D3D12_RESOURCE_STATE_RENDER_TARGET);

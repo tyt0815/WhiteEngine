@@ -69,6 +69,11 @@ float GeometrySmith(float3 N, float3 V, float3 L, float Roughness)
     return ggx1 * ggx2;
 }
 
+float3 CalculateF0(float Specular, float3 Albedo, float Metallic)
+{
+    return lerp((float3) Specular, Albedo, Metallic);
+}
+
 float3 ComputeDirectionalLight(
     FDirectionalLight Light,
     FMaterial Material,

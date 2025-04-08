@@ -4,6 +4,7 @@ void MainVS(
     float2 InPosition : POSITION,
     float2 InTexC : TEXC,
     out float4 OutPosition : SV_Position,
+    out float3 OutWorldPosition : POSITION,
     out float2 OutTexC : TEXCOORD
 )
 {

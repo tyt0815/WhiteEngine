@@ -22,8 +22,7 @@ public:
 		UINT Width,
 		UINT Height,
 		UINT MipLevels = 1,
-		DXGI_FORMAT Format = DXGI_FORMAT_R8G8B8A8_UNORM,
-		DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT
+		DXGI_FORMAT Format = DXGI_FORMAT_R8G8B8A8_UNORM
 	);
 	FRenderTarget() = delete;
 	virtual ~FRenderTarget();
@@ -39,6 +38,7 @@ public:
 
 private:
 	static float sClearColor[4];
+	static int sRenderTargetCount;
 
 	void Initialize(std::vector<std::string> Names);
 	void BuildResource(std::vector<std::string> Names);
@@ -48,11 +48,11 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mDSVHeap;
 	Microsoft::WRL::ComPtr<ID3D12Resource> mDepthStencilResource;
 	std::unordered_map<std::string, FResourceInfo> mResourceMap;
+	std::string mDepthStencilTextureName;
 	D3D12_RESOURCE_STATES mDepthStencilState;
 	D3D12_VIEWPORT mViewport;
 	D3D12_RECT mScissorRect;
 	DXGI_FORMAT mFormat;
-	DXGI_FORMAT mDepthStencilFormat;
 	UINT mWidth = 0;
 	UINT mHeight = 0;
 	UINT mMipLevels;
@@ -87,7 +87,7 @@ public:
 	}
 	inline DXGI_FORMAT GetDepthStencilFormat() const
 	{
-		return mDepthStencilFormat;
+		return DXGI_FORMAT_D24_UNORM_S8_UINT;
 	}
 	inline D3D12_CPU_DESCRIPTOR_HANDLE GetDSV() const
 	{

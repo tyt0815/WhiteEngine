@@ -4,20 +4,19 @@
 #include "Texture.h"
 
 float FRenderTarget::sClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+int FRenderTarget::sRenderTargetCount = 0;
 
 FRenderTarget::FRenderTarget(
 	std::vector<std::string> Names,
 	UINT Width,
 	UINT Height,
 	UINT MipLevels,
-	DXGI_FORMAT Format,
-	DXGI_FORMAT DepthStencilFormat
+	DXGI_FORMAT Format
 ) :
 	mWidth(Width),
 	mHeight(Height),
 	mMipLevels(MipLevels),
 	mFormat(Format),
-	mDepthStencilFormat(DepthStencilFormat),
 	mViewport({ 0.0f, 0.0f, (float)Width, (float)Height, 0.0f, 1.0f }),
 	mScissorRect({ 0, 0, (int)Width, (int)Height })
 {
@@ -187,13 +186,13 @@ void FRenderTarget::BuildResource(std::vector<std::string> Names)
 	DepthStencilDesc.Height = mHeight;
 	DepthStencilDesc.DepthOrArraySize = 1;
 	DepthStencilDesc.MipLevels = 1;
-	DepthStencilDesc.Format = mDepthStencilFormat;
+	DepthStencilDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
 	DepthStencilDesc.SampleDesc.Count = 1;
 	DepthStencilDesc.SampleDesc.Quality = 0;
 	DepthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	DepthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
-	OptClear.Format = mDepthStencilFormat;
+	OptClear.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	OptClear.DepthStencil.Depth = 1.0f;
 	OptClear.DepthStencil.Stencil = 0;
 	THROW_IF_FAILED(
@@ -206,6 +205,11 @@ void FRenderTarget::BuildResource(std::vector<std::string> Names)
 			IID_PPV_ARGS(mDepthStencilResource.GetAddressOf())
 		)
 	);
+	mDepthStencilTextureName = std::string("RenderTargetDepth_") + std::to_string(sRenderTargetCount);
+	//std::unique_ptr<FTexture> Texture = std::make_unique<FTexture>();
+	//Texture->Name = mDepthStencilTextureName;
+	//Texture->Resource = mDepthStencilResource;
+	//GetTextureManager()->RegisterTexture2D(std::move(Texture));
 	mDepthStencilState = D3D12_RESOURCE_STATE_COMMON;
 }
 
@@ -261,9 +265,16 @@ void FRenderTarget::BuildDescriptors()
 		}
 	}
 
+	D3D12_DEPTH_STENCIL_VIEW_DESC DepthStencilViewDesc;
+	ZeroMemory(&DepthStencilViewDesc, sizeof(D3D12_DEPTH_STENCIL_VIEW_DESC));
+	DepthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	DepthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+	DepthStencilViewDesc.Flags = D3D12_DSV_FLAG_NONE;
+	DepthStencilViewDesc.Texture2D.MipSlice = 0;
+
 	Device->CreateDepthStencilView(
 		mDepthStencilResource.Get(),
-		nullptr,
+		&DepthStencilViewDesc,
 		mDSVHeap->GetCPUDescriptorHandleForHeapStart()
 	);
 }

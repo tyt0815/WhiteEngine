@@ -43,6 +43,8 @@ public:
 	D3D12_GPU_DESCRIPTOR_HANDLE GetCubeMapGPUDescriptorHeap() const;
 	D3D12_VIEWPORT GetViewportMipLevel(int i) const;
 	D3D12_RECT GetScissorRectMipLevel(int i) const;
+	void TransitResourceBarrier(ID3D12GraphicsCommandList* CommandList, D3D12_RESOURCE_STATES ResourceState);
+	void TransitDepthStencilResourceBarrier(ID3D12GraphicsCommandList* CommandList, D3D12_RESOURCE_STATES ResourceState);
 
 	FTexture* mTexture;
 private:
@@ -58,6 +60,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> mDepthStencilResource;
 
 	std::string mName;
+	D3D12_RESOURCE_STATES mCubeMapState;
+	D3D12_RESOURCE_STATES mDepthStencilState;
 	D3D12_VIEWPORT mViewport;
 	D3D12_RECT mScissorRect;
 	DXGI_FORMAT mFormat;

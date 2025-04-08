@@ -147,7 +147,7 @@ void FDXResourceManager::Resize(UINT Width, UINT Height)
 			&DepthStencilHeapProperties,
 			D3D12_HEAP_FLAG_NONE,
 			&depthStencilDesc,
-			D3D12_RESOURCE_STATE_COMMON,
+			D3D12_RESOURCE_STATE_DEPTH_READ,
 			&optClear,
 			IID_PPV_ARGS(DepthStencilBuffer.GetAddressOf())
 		)
@@ -160,14 +160,6 @@ void FDXResourceManager::Resize(UINT Width, UINT Height)
 	dsvDesc.Format = DepthStencilFormat;
 	dsvDesc.Texture2D.MipSlice = 0;
 	Device->CreateDepthStencilView(DepthStencilBuffer.Get(), &dsvDesc, GetDepthStencilView());
-
-	// Transition the resource from its initial state to be used as a depth buffer.
-	CD3DX12_RESOURCE_BARRIER ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		DepthStencilBuffer.Get(),
-		D3D12_RESOURCE_STATE_COMMON,
-		D3D12_RESOURCE_STATE_DEPTH_WRITE
-	);
-	CommandList->ResourceBarrier(1, &ResourceBarrier);
 
 	// Execute the resize commands.
 	THROW_IF_FAILED(CommandList->Close());
