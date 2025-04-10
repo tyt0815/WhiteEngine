@@ -128,8 +128,8 @@ void FDeferredShadingSceneRenderer::BuildGBufferPassShaders()
 
 void FDeferredShadingSceneRenderer::BuildDebugPassShaders()
 {
-	mShaders["DepthDebugPassPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\DepthDebugPassPixelShader.sf",
+	mShaders["DebugDepthPassPixelShader"] = FDXUtility::CompileShader(
+		L"Shaders\\DebugDepthPassPixelShader.sf",
 		nullptr,
 		"MainPS",
 		"ps_5_1"
@@ -217,35 +217,35 @@ void FDeferredShadingSceneRenderer::BuildGBufferPassPipelineState(ID3D12Device* 
 
 void FDeferredShadingSceneRenderer::BuildDebugPassPipelineStates(ID3D12Device* Device)
 {
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC DepthDebugPassPipelineState;
-	ZeroMemory(&DepthDebugPassPipelineState, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC DebugDepthPassPipelineState;
+	ZeroMemory(&DebugDepthPassPipelineState, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 	std::vector<D3D12_INPUT_ELEMENT_DESC> InputLayout = GetDrawingRectInputLayouts();
-	DepthDebugPassPipelineState.InputLayout = { InputLayout.data(), (UINT)InputLayout.size() };
-	DepthDebugPassPipelineState.pRootSignature = mRootSignatures["DrawRectPass"].Get();
-	DepthDebugPassPipelineState.VS =
+	DebugDepthPassPipelineState.InputLayout = { InputLayout.data(), (UINT)InputLayout.size() };
+	DebugDepthPassPipelineState.pRootSignature = mRootSignatures["DrawRectPass"].Get();
+	DebugDepthPassPipelineState.VS =
 	{
 		reinterpret_cast<BYTE*>(mShaders["DrawRectPassVertexShader"]->GetBufferPointer()),
 		mShaders["DrawRectPassVertexShader"]->GetBufferSize()
 	};
-	DepthDebugPassPipelineState.PS =
+	DebugDepthPassPipelineState.PS =
 	{
-		reinterpret_cast<BYTE*>(mShaders["DepthDebugPassPixelShader"]->GetBufferPointer()),
-		mShaders["DepthDebugPassPixelShader"]->GetBufferSize()
+		reinterpret_cast<BYTE*>(mShaders["DebugDepthPassPixelShader"]->GetBufferPointer()),
+		mShaders["DebugDepthPassPixelShader"]->GetBufferSize()
 	};
-	DepthDebugPassPipelineState.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	DepthDebugPassPipelineState.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	DepthDebugPassPipelineState.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-	DepthDebugPassPipelineState.SampleMask = UINT_MAX;
-	DepthDebugPassPipelineState.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	DepthDebugPassPipelineState.NumRenderTargets = 1;
-	DepthDebugPassPipelineState.RTVFormats[0] = GetDXResourceManagerPtr()->GetBackbufferFormat();
-	DepthDebugPassPipelineState.SampleDesc.Count = 1;
-	DepthDebugPassPipelineState.SampleDesc.Quality = 0;
-	DepthDebugPassPipelineState.DSVFormat = GetDXResourceManagerPtr()->GetDepthStencilFormat();
+	DebugDepthPassPipelineState.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	DebugDepthPassPipelineState.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	DebugDepthPassPipelineState.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	DebugDepthPassPipelineState.SampleMask = UINT_MAX;
+	DebugDepthPassPipelineState.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	DebugDepthPassPipelineState.NumRenderTargets = 1;
+	DebugDepthPassPipelineState.RTVFormats[0] = GetDXResourceManagerPtr()->GetBackbufferFormat();
+	DebugDepthPassPipelineState.SampleDesc.Count = 1;
+	DebugDepthPassPipelineState.SampleDesc.Quality = 0;
+	DebugDepthPassPipelineState.DSVFormat = GetDXResourceManagerPtr()->GetDepthStencilFormat();
 	THROW_IF_FAILED(
 		Device->CreateGraphicsPipelineState(
-			&DepthDebugPassPipelineState,
-			IID_PPV_ARGS(mPipelineStates["DepthDebugPass"].GetAddressOf())
+			&DebugDepthPassPipelineState,
+			IID_PPV_ARGS(mPipelineStates["DebugDepthPass"].GetAddressOf())
 		)
 	);
 }
@@ -370,7 +370,7 @@ void FDeferredShadingSceneRenderer::DrawDebugScreen(
 	D3D12_VIEWPORT ForthQuadrantViewport = FDXUtility::GetQuadrantViewport(Viewport, 4);
 	CommandList->RSSetViewports(1, &ForthQuadrantViewport);
 
-	CommandList->SetPipelineState(mPipelineStates["DepthDebugPass"].Get());
+	CommandList->SetPipelineState(mPipelineStates["DebugDepthPass"].Get());
 
 	CommandList->SetGraphicsRootSignature(mRootSignatures["DrawRectPass"].Get());
 

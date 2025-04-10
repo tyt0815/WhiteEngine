@@ -77,4 +77,46 @@ void DrawRect(in float2 InPosition, in float2 InTexC, out float4 OutPosition, ou
     OutTexC = InTexC;
 }
 
+float CalcNDCDepthToViewDepth(float z, float4x4 Proj)
+{
+    float ViewZ = Proj[3][4] / (z - Proj[2][2]);
+    return ViewZ;
+}
+
+// ScreenÁÂÇ¥ -> View ÁÂÇ¥°è
+float3 TransformScreenToView(in float2 TexC, float Depth, in float4x4 InvProj)
+{
+    float4 NDCPosition = float4(TexC * 2 - 1.0f, Depth, 1.0f);
+    NDCPosition.y *= -1;
+    float4 ViewPosition = mul(NDCPosition, InvProj);
+    ViewPosition /= ViewPosition.w;
+    return ViewPosition.xyz;
+}
+
+// View ÁÂÇ¥°è -> World ÁÂÇ¥°è
+float3 TransformViewToWorld(in float3 ViewPosition, in float4x4 InvView)
+{
+    float4 WorldPosition = mul(float4(ViewPosition, 1.0f), InvView);
+    return WorldPosition.xyz;
+}
+
+// ScreenÁÂÇ¥°è -> World ÁÂÇ¥°è
+float3 TransformScreenToWorld(in float2 TexC, float Depth, in float4x4 InvProj, in float4x4 InvView)
+{
+    float3 ViewPosition = TransformScreenToView(TexC, Depth, InvProj);
+    return TransformViewToWorld(ViewPosition, InvView);
+}
+
+// º¤ÅÍ¸¦ normalizeÇÏ°í 0 ~ 1°ªÀ¸·Î ÀÎÄÚµù
+float3 EncodeVector(float3 Vector)
+{
+    return (normalize(Vector) + 1.0f) / 2.0f;
+}
+
+// 0 ~ 1·Î ÀÎÄÚµùµÈ º¤ÅÍ¸¦ -1 ~ 1·Î µðÄÚµù
+float3 DecodeVector(float3 EncodedVector)
+{
+    return EncodedVector * 2 - 1.0f;
+}
+
 #endif

@@ -43,32 +43,32 @@ float3 ComputeLight(
     }
     
     
-    float3 F = FresnelSchlickRoughness(max(dot(N, V), 0.0f), F0, Material.Roughness);
-    float3 kS = F;
-    float3 kD = 1.0f - kS;
-    kD *= 1.0f - Material.Metallic;
-    
-    // IBL Diffuse
-    float3 Irradiance = gTextureCube[gSkyIrradianceCubeMapIndex].Sample(gsamLinearWrap, N).rgb;
-    float3 Diffuse = Irradiance * Material.Albedo;
-    // Diffuse = pow(Diffuse, 3.0f);
-    // return float4(Diffuse * Diffuse, 1.0f);
-    
-    // IBL Specular
-    float3 R = reflect(-V, N);
-    const float MAX_REFLECTION_LOD = 5.0;
-    float3 prefilteredColor = gTextureCube[gPrefilteredSkyCubeMapIndex].SampleLevel(gsamLinearWrap, R, Material.Roughness * MAX_REFLECTION_LOD).rgb;
-    float2 envBRDF = gTexture[gIndirectSpecularIntegralTextureIndex].Sample(gsamLinearWrap, float2(max(dot(N, V), 0.0), Material.Roughness)).rg;
-    float3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
+//    float3 F = FresnelSchlickRoughness(max(dot(N, V), 0.0f), F0, Material.Roughness);
+//    float3 kS = F;
+//    float3 kD = 1.0f - kS;
+//    kD *= 1.0f - Material.Metallic;
+//    
+//    // IBL Diffuse
+//    float3 Irradiance = gTextureCube[gSkyIrradianceCubeMapIndex].Sample(gsamLinearWrap, N).rgb;
+//    float3 Diffuse = Irradiance * Material.Albedo;
+//    // Diffuse = pow(Diffuse, 3.0f);
+//    // return float4(Diffuse * Diffuse, 1.0f);
+//    
+//    // IBL Specular
+//    float3 R = reflect(-V, N);
+//    const float MAX_REFLECTION_LOD = 5.0;
+//    float3 prefilteredColor = gTextureCube[gPrefilteredSkyCubeMapIndex].SampleLevel(gsamLinearWrap, R, Material.Roughness * MAX_REFLECTION_LOD).rgb;
+//    float2 envBRDF = gTexture[gIndirectSpecularIntegralTextureIndex].Sample(gsamLinearWrap, float2(max(dot(N, V), 0.0), Material.Roughness)).rg;
+//    float3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
     
     // TODO: AO 적용. float3(1.0f)를 AO로 변경
-    float3 Ambient = (kD * Diffuse + specular) * (float3) 1.0f;
+    //float3 Ambient = (kD * Diffuse + specular) * (float3) 1.0f;
     
     // 디버깅용. IBL Diffuse까지 적용
     // Ambient = (kD * Diffuse);
     
     // 디버깅용. BRDF만 적용
-    Ambient = (float3) 0.03f * Material.Albedo;
+    float3 Ambient = (float3) 0.03f * Material.Albedo;
     
     
     float3 Color = Ambient + Lo;

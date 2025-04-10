@@ -1,28 +1,31 @@
 #include "DeferredShadingPassCommon.sh"
 
 float4 MainPS(
-    float4 Position : SV_Position,
+    float4 ViewportPosition : SV_Position,
     float2 TexC : TEXCOORD
 ) : SV_Target
 {
+    float Depth = gTexture[gDepthTextureIndex].Sample(gsamLinearClamp, TexC).r;
+    clip(0.99 - Depth);
     FMaterial Material;
-    Material.Albedo = gTexture[gGBufferCTextureIndex].Sample(gsamLinearWrap, TexC).rgb; // 감마 보정이 없는 값
-    Material.Metallic = gTexture[gGBufferBTextureIndex].Sample(gsamLinearWrap, TexC).g;
-    Material.Roughness = gTexture[gGBufferBTextureIndex].Sample(gsamLinearWrap, TexC).b;
+    Material.Albedo = pow(gTexture[gGBufferCTextureIndex].Sample(gsamLinearWrap, TexC).rgb, (float3) 2.2f); // 감마 보정이 없는 값
+    Material.Roughness = gTexture[gGBufferBTextureIndex].Sample(gsamLinearWrap, TexC).g;
+    Material.Metallic = gTexture[gGBufferBTextureIndex].Sample(gsamLinearWrap, TexC).b;
     float Specular = gTexture[gGBufferBTextureIndex].Sample(gsamLinearWrap, TexC).r;    // 현재 0.04f값이 고정적으로 들어옴
-    
-    float3 WorldNormal = normalize(gTexture[gGBufferATextureIndex].Sample(gsamLinearWrap, TexC).rgb);
-    // TODO: WorldPosition를 역산해서 V벡터를 구한다.
-    // float3 V = normalize(gEyePosW - pos;
+
+    float3 WorldNormal = gTexture[gGBufferATextureIndex].Sample(gsamLinearWrap, TexC).rgb;
+    WorldNormal = DecodeVector(WorldNormal);
+    float3 WorldPosition = TransformScreenToWorld(TexC, Depth, gInvProj, gInvView);
     
     float3 F0 = CalculateF0(Specular, Material.Albedo, Material.Metallic);
+    float3 V = normalize(gEyePosW - WorldPosition);
     
     float3 Lo = (float3) 0.0f;
     
     // Directional light 계산
     for (uint i = 0; i < gDirLightNum; ++i)
     {
-        // Lo += ComputeDirectionalLight(gDirectionalLights[i], Material, V, WorldNormal, F0);
+         Lo += ComputeDirectionalLight(gDirectionalLights[i], Material, V, WorldNormal, F0);
     }
     
     // float3 F = FresnelSchlickRoughness(max(dot(WorldNormal, V), 0.0f), F0, Material.Roughness);
@@ -38,7 +41,7 @@ float4 MainPS(
     Color = Color / (Color + (float3) 1.0f);
     // gamma correct
     Color = pow(Color, (float3) (1.0f / 2.2f));
-    return float4((float3) (gTexture[gDepthTextureIndex].Sample(gsamLinearWrap, TexC)).r, 1.0f);
+    
+   
     return float4(Color, 1.0f);
-
 }

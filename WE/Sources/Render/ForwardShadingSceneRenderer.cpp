@@ -61,7 +61,7 @@ void FForwardShadingSceneRenderer::Render(
 		}
 	}
 	
-	mSkyCubeMapRenderer->Render(CommandList);
+	// mSkyCubeMapRenderer->Render(CommandList);
 
 	FinishBackBuffer(CommandList);
 }

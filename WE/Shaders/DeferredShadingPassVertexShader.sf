@@ -1,11 +1,11 @@
 #include "DeferredShadingPassCommon.sh"
 
 void MainVS(
-    float2 InPosition : POSITION,
+    float2 InPos : POSITION,
     float2 InTexC : TEXC,
-    out float4 OutPosition : SV_Position,
+    out float4 OutPosH : SV_Position,
     out float2 OutTexC : TEXCOORD
 )
 {
-    DrawRect(InPosition, InTexC, OutPosition, OutTexC);
+    DrawRect(InPos, InTexC, OutPosH, OutTexC);
 }

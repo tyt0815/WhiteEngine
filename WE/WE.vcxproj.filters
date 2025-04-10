@@ -423,7 +423,7 @@
     <None Include="Shaders\Light.sh">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\DepthDebugPassPixelShader.sf">
+    <None Include="Shaders\DebugDepthPassPixelShader.sf">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
