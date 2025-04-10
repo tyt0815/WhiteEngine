@@ -7,19 +7,24 @@ float4 MainPS(
 {
     float Depth = gTexture[gDepthTextureIndex].Sample(gsamLinearClamp, TexC).r;
     clip(0.99 - Depth);
+    
+    // GBuffer에서 데이터 추출
+    float4 GBufferA = gTexture[gGBufferATextureIndex].Sample(gsamPointWrap, TexC);  // WorldNormal
+    float3 WorldNormal = GBufferA.rgb;
+    
     FMaterial Material;
-    Material.Albedo = pow(gTexture[gGBufferCTextureIndex].Sample(gsamLinearWrap, TexC).rgb, (float3) 2.2f); // 감마 보정이 없는 값
-    Material.Roughness = gTexture[gGBufferBTextureIndex].Sample(gsamLinearWrap, TexC).g;
-    Material.Metallic = gTexture[gGBufferBTextureIndex].Sample(gsamLinearWrap, TexC).b;
-    float Specular = gTexture[gGBufferBTextureIndex].Sample(gsamLinearWrap, TexC).r;    // 현재 0.04f값이 고정적으로 들어옴
-
-    float3 WorldNormal = gTexture[gGBufferATextureIndex].Sample(gsamLinearWrap, TexC).rgb;
-    WorldNormal = DecodeVector(WorldNormal);
+    float4 GBufferB = gTexture[gGBufferBTextureIndex].Sample(gsamPointWrap, TexC);  // Specular, Roughness, Metallic
+    float Specular = GBufferB.r; // 현재 0.04f값이 고정적으로 들어옴
+    Material.Roughness = GBufferB.g;
+    Material.Metallic = GBufferB.b;
+    
+    float4 GBufferC = gTexture[gGBufferCTextureIndex].Sample(gsamPointWrap, TexC);  // Albedo
+    Material.Albedo = pow(GBufferC.rgb, (float3) 2.2f);
+    
     float3 WorldPosition = TransformScreenToWorld(TexC, Depth, gInvProj, gInvView);
     
     float3 F0 = CalculateF0(Specular, Material.Albedo, Material.Metallic);
     float3 V = normalize(gEyePosW - WorldPosition);
-    
     float3 Lo = (float3) 0.0f;
     
     // Directional light 계산

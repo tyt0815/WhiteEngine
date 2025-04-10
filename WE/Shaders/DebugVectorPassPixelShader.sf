@@ -1,0 +1,16 @@
+#include "DrawRectPassCommon.sh"
+
+/*
+DrawRectPass와 같이 기본적으로 텍스처를 샘플링해서 드로우하는 것은 동일하다.
+다만 Normal벡터와 같이 normalize기준 -1 ~ 1 값을 갖는 벡터의 경우 0 ~ 1로 매핑할 필요가 있기 때문에 
+벡터값을 -1 ~ 1값을 0 ~ 1값으로 매핑후 렌더링하는 함수를 따로 작성한다.
+*/
+
+float4 MainPS(
+    float4 Position : SV_Position,
+    float2 TexC : TEXCOORD
+) : SV_Target
+{
+    float3 NormalizedVector = normalize(gTexture[gTextureIndex].SampleLevel(gsamLinearWrap, TexC, 0).rgb);
+    return float4(EncodeVector(NormalizedVector), 1.0f);
+}

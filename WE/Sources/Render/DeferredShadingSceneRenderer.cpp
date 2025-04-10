@@ -18,7 +18,9 @@ FDeferredShadingSceneRenderer::FDeferredShadingSceneRenderer()
 	mGBuffers = std::make_unique<FRenderTarget>(
 		Names,
 		(UINT)GetDXResourceManagerPtr()->GetScreenViewport().Width,
-		(UINT)GetDXResourceManagerPtr()->GetScreenViewport().Height
+		(UINT)GetDXResourceManagerPtr()->GetScreenViewport().Height,
+		1,
+		DXGI_FORMAT_R16G16B16A16_FLOAT
 	);
 }
 
@@ -134,6 +136,13 @@ void FDeferredShadingSceneRenderer::BuildDebugPassShaders()
 		"MainPS",
 		"ps_5_1"
 	);
+
+	mShaders["DebugVectorPassPixelShader"] = FDXUtility::CompileShader(
+		L"Shaders\\DebugVectorPassPixelShader.sf",
+		nullptr,
+		"MainPS",
+		"ps_5_1"
+	);
 }
 
 void FDeferredShadingSceneRenderer::BuildPipelineStates(ID3D12Device* Device)
@@ -217,35 +226,50 @@ void FDeferredShadingSceneRenderer::BuildGBufferPassPipelineState(ID3D12Device* 
 
 void FDeferredShadingSceneRenderer::BuildDebugPassPipelineStates(ID3D12Device* Device)
 {
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC DebugDepthPassPipelineState;
-	ZeroMemory(&DebugDepthPassPipelineState, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC DebugPassPipelineStateBase;
+	ZeroMemory(&DebugPassPipelineStateBase, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 	std::vector<D3D12_INPUT_ELEMENT_DESC> InputLayout = GetDrawingRectInputLayouts();
-	DebugDepthPassPipelineState.InputLayout = { InputLayout.data(), (UINT)InputLayout.size() };
-	DebugDepthPassPipelineState.pRootSignature = mRootSignatures["DrawRectPass"].Get();
-	DebugDepthPassPipelineState.VS =
+	DebugPassPipelineStateBase.InputLayout = { InputLayout.data(), (UINT)InputLayout.size() };
+	DebugPassPipelineStateBase.pRootSignature = mRootSignatures["DrawRectPass"].Get();
+	DebugPassPipelineStateBase.VS =
 	{
 		reinterpret_cast<BYTE*>(mShaders["DrawRectPassVertexShader"]->GetBufferPointer()),
 		mShaders["DrawRectPassVertexShader"]->GetBufferSize()
 	};
-	DebugDepthPassPipelineState.PS =
+	DebugPassPipelineStateBase.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	DebugPassPipelineStateBase.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	DebugPassPipelineStateBase.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	DebugPassPipelineStateBase.SampleMask = UINT_MAX;
+	DebugPassPipelineStateBase.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	DebugPassPipelineStateBase.NumRenderTargets = 1;
+	DebugPassPipelineStateBase.RTVFormats[0] = GetDXResourceManagerPtr()->GetBackbufferFormat();
+	DebugPassPipelineStateBase.SampleDesc.Count = 1;
+	DebugPassPipelineStateBase.SampleDesc.Quality = 0;
+	DebugPassPipelineStateBase.DSVFormat = GetDXResourceManagerPtr()->GetDepthStencilFormat();
+
+	// DebugDepthPassPixelShader
+	DebugPassPipelineStateBase.PS =
 	{
 		reinterpret_cast<BYTE*>(mShaders["DebugDepthPassPixelShader"]->GetBufferPointer()),
 		mShaders["DebugDepthPassPixelShader"]->GetBufferSize()
 	};
-	DebugDepthPassPipelineState.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	DebugDepthPassPipelineState.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	DebugDepthPassPipelineState.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-	DebugDepthPassPipelineState.SampleMask = UINT_MAX;
-	DebugDepthPassPipelineState.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	DebugDepthPassPipelineState.NumRenderTargets = 1;
-	DebugDepthPassPipelineState.RTVFormats[0] = GetDXResourceManagerPtr()->GetBackbufferFormat();
-	DebugDepthPassPipelineState.SampleDesc.Count = 1;
-	DebugDepthPassPipelineState.SampleDesc.Quality = 0;
-	DebugDepthPassPipelineState.DSVFormat = GetDXResourceManagerPtr()->GetDepthStencilFormat();
 	THROW_IF_FAILED(
 		Device->CreateGraphicsPipelineState(
-			&DebugDepthPassPipelineState,
+			&DebugPassPipelineStateBase,
 			IID_PPV_ARGS(mPipelineStates["DebugDepthPass"].GetAddressOf())
+		)
+	);
+
+	// DebugVectorPassPixelShader
+	DebugPassPipelineStateBase.PS =
+	{
+		reinterpret_cast<BYTE*>(mShaders["DebugVectorPassPixelShader"]->GetBufferPointer()),
+		mShaders["DebugVectorPassPixelShader"]->GetBufferSize()
+	};
+	THROW_IF_FAILED(
+		Device->CreateGraphicsPipelineState(
+			&DebugPassPipelineStateBase,
+			IID_PPV_ARGS(mPipelineStates["DebugVectorPass"].GetAddressOf())
 		)
 	);
 }
@@ -290,12 +314,20 @@ void FDeferredShadingSceneRenderer::Render(ID3D12GraphicsCommandList* CommandLis
 
 	D3D12_VIEWPORT DebugScreenViewport = FDXUtility::GetQuadrantViewport(BackBufferViewport, 2);
 	DebugScreenViewport = FDXUtility::GetQuadrantViewport(DebugScreenViewport, 2);
-	DrawDebugScreen(CommandList, BackBufferView, BackBufferDsv, DebugScreenViewport);
+	DrawDebugGBuffers(CommandList, BackBufferView, BackBufferDsv, DebugScreenViewport);
+	DrawRectPass(
+		CommandList,
+		mGBuffers->GetDepthStencilTexture()->SRVHeapIndex,
+		BackBufferView,
+		BackBufferDsv,
+		FDXUtility::GetQuadrantViewport(DebugScreenViewport, 4),
+		"DebugDepthPass"
+	);
 
 	FinishBackBuffer(CommandList);
 }
 
-void FDeferredShadingSceneRenderer::DrawDebugScreen(
+void FDeferredShadingSceneRenderer::DrawDebugGBuffers(
 	ID3D12GraphicsCommandList* CommandList,
 	D3D12_CPU_DESCRIPTOR_HANDLE Rtv,
 	D3D12_CPU_DESCRIPTOR_HANDLE Dsv,
@@ -321,65 +353,31 @@ void FDeferredShadingSceneRenderer::DrawDebugScreen(
 	);
 	CommandList->OMSetRenderTargets(1, &Rtv, false, &Dsv);
 
-	// 1사분면->GBufferA
-	D3D12_VIEWPORT FirstQuadrantViewport = FDXUtility::GetQuadrantViewport(Viewport, 1);
-	CommandList->RSSetViewports(1, &FirstQuadrantViewport);
-
-	CommandList->SetPipelineState(mPipelineStates["DrawRectPass"].Get());
-
-	CommandList->SetGraphicsRootSignature(mRootSignatures["DrawRectPass"].Get());
-
-	UINT GBufferATextureIndex = mGBuffers->GetTexture("GBufferA")->SRVHeapIndex;
-	CommandList->SetGraphicsRoot32BitConstants(0, 1, &GBufferATextureIndex, 0);
-	CommandList->SetGraphicsRootDescriptorTable(1, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
-	CommandList->SetGraphicsRootDescriptorTable(2, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
-
-	DrawRect(CommandList);
-
-	// 2사분면->GBufferB
-	D3D12_VIEWPORT SecondQuadrantViewport = FDXUtility::GetQuadrantViewport(Viewport, 2);
-	CommandList->RSSetViewports(1, &SecondQuadrantViewport);
-
-	CommandList->SetPipelineState(mPipelineStates["DrawRectPass"].Get());
-
-	CommandList->SetGraphicsRootSignature(mRootSignatures["DrawRectPass"].Get());
-
-	UINT GBufferBTextureIndex = mGBuffers->GetTexture("GBufferB")->SRVHeapIndex;
-	CommandList->SetGraphicsRoot32BitConstants(0, 1, &GBufferBTextureIndex, 0);
-	CommandList->SetGraphicsRootDescriptorTable(1, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
-	CommandList->SetGraphicsRootDescriptorTable(2, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
-
-	DrawRect(CommandList);
-
-	// 3사분면->GBufferC
-	D3D12_VIEWPORT ThirdQuadrantViewport = FDXUtility::GetQuadrantViewport(Viewport, 3);
-	CommandList->RSSetViewports(1, &ThirdQuadrantViewport);
-
-	CommandList->SetPipelineState(mPipelineStates["DrawRectPass"].Get());
-
-	CommandList->SetGraphicsRootSignature(mRootSignatures["DrawRectPass"].Get());
-
-	UINT GBufferCTextureIndex = mGBuffers->GetTexture("GBufferC")->SRVHeapIndex;
-	CommandList->SetGraphicsRoot32BitConstants(0, 1, &GBufferCTextureIndex, 0);
-	CommandList->SetGraphicsRootDescriptorTable(1, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
-	CommandList->SetGraphicsRootDescriptorTable(2, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
-
-	DrawRect(CommandList);
-
-	// 4사분면->Depth
-	D3D12_VIEWPORT ForthQuadrantViewport = FDXUtility::GetQuadrantViewport(Viewport, 4);
-	CommandList->RSSetViewports(1, &ForthQuadrantViewport);
-
-	CommandList->SetPipelineState(mPipelineStates["DebugDepthPass"].Get());
-
-	CommandList->SetGraphicsRootSignature(mRootSignatures["DrawRectPass"].Get());
-
-	UINT DepthBufferIndex = mGBuffers->GetDepthStencilTexture()->SRVHeapIndex;
-	CommandList->SetGraphicsRoot32BitConstants(0, 1, &DepthBufferIndex, 0);
-	CommandList->SetGraphicsRootDescriptorTable(1, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
-	CommandList->SetGraphicsRootDescriptorTable(2, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
-
-	DrawRect(CommandList);
+	// 1사분면: GBufferA	
+	DrawRectPass(
+		CommandList,
+		mGBuffers->GetTexture("GBufferA")->SRVHeapIndex,
+		Rtv,
+		Dsv,
+		FDXUtility::GetQuadrantViewport(Viewport, 1),
+		"DebugVectorPass"
+	);
+	// 2사분면: GBufferB
+	DrawRectPass(
+		CommandList,
+		mGBuffers->GetTexture("GBufferB")->SRVHeapIndex,
+		Rtv,
+		Dsv,
+		FDXUtility::GetQuadrantViewport(Viewport, 2)
+	);
+	// 3사분면: GBufferC
+	DrawRectPass(
+		CommandList,
+		mGBuffers->GetTexture("GBufferC")->SRVHeapIndex,
+		Rtv,
+		Dsv,
+		FDXUtility::GetQuadrantViewport(Viewport, 3)
+	);
 }
 
 void FDeferredShadingSceneRenderer::DrawDeferredShadingPass(

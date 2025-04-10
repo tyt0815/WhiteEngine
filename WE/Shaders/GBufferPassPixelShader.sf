@@ -11,8 +11,9 @@ void MainPS(
 {
     FMaterialSB MaterialData = gMaterialData[gMaterialIndex];
     
-    float3 EncodedNormalW = EncodeVector(NormalW);
-    GBufferA = float4(EncodedNormalW, 1.0f);
+    // float3 EncodedNormalW = EncodeVector(NormalW);
+    // GBufferA = float4(EncodedNormalW, 1.0f);
+    GBufferA = float4(normalize(NormalW), 1.0f);
     
     float Specular = 0.04f;
     float Roughness = gTexture[MaterialData.RoughneesTextureIndex].Sample(gsamLinearWrap, TexC).r;

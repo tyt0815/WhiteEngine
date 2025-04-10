@@ -426,6 +426,9 @@
     <None Include="Shaders\DebugDepthPassPixelShader.sf">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Shaders\DebugVectorPassPixelShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\Default.dds">

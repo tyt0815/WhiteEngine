@@ -158,6 +158,56 @@ void FSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* FrameResource)
 	UpdateDirectionalLightSB(FrameResource->GetDirectionalLightSB());
 }
 
+void FSceneRenderer::DrawRectPass(
+	ID3D12GraphicsCommandList* CommandList,
+	UINT TextureSRVIndex,
+	D3D12_CPU_DESCRIPTOR_HANDLE Rtv,
+	D3D12_CPU_DESCRIPTOR_HANDLE Dsv,
+	const D3D12_VIEWPORT& Viewport,
+	std::string PipelineStateName
+)
+{
+	D3D12_RECT ScissorRect = FDXUtility::MakeScissorRectFromViewport(Viewport);
+	ClearRenderTargetAndDepthStencil(CommandList, Rtv, Dsv, ScissorRect);
+
+	CommandList->RSSetViewports(1, &Viewport);
+	CommandList->RSSetScissorRects(1, &ScissorRect);
+	CommandList->OMSetRenderTargets(1, &Rtv, false, &Dsv);
+
+	CommandList->SetPipelineState(mPipelineStates[PipelineStateName].Get());
+
+	CommandList->SetGraphicsRootSignature(mRootSignatures["DrawRectPass"].Get());
+
+	CommandList->SetGraphicsRoot32BitConstants(0, 1, &TextureSRVIndex, 0);
+	CommandList->SetGraphicsRootDescriptorTable(1, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
+	CommandList->SetGraphicsRootDescriptorTable(2, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
+
+	DrawRect(CommandList);
+}
+
+void FSceneRenderer::ClearRenderTargetAndDepthStencil(
+	ID3D12GraphicsCommandList* CommandList,
+	D3D12_CPU_DESCRIPTOR_HANDLE& Rtv,
+	D3D12_CPU_DESCRIPTOR_HANDLE& Dsv,
+	const D3D12_RECT& ScissorRect
+)
+{
+	CommandList->ClearRenderTargetView(
+		Rtv,
+		DirectX::Colors::Black,
+		1,
+		&ScissorRect
+	);
+	CommandList->ClearDepthStencilView(
+		Dsv,
+		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
+		1.0f,
+		0,
+		1,
+		&ScissorRect
+	);
+}
+
 void FSceneRenderer::DrawRenderItems(FFrameResourceBase* FrameResource, ID3D12GraphicsCommandList* CommandList, const TPool<FRenderItemInfo>& RenderItems)
 {
 	ID3D12Resource* MeshConstantBuffer = FrameResource->GetMeshCB()->Resource();

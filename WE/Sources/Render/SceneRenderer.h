@@ -148,6 +148,24 @@ protected:
     virtual void BuildPipelineStates(ID3D12Device* Device);
     virtual void UpdateFrameBuffers(FFrameResourceBase* FrameResource);
     virtual void Render(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource) = 0;
+
+    void DrawRectPass(
+        ID3D12GraphicsCommandList* CommandList,
+        UINT TextureSRVIndex,
+        D3D12_CPU_DESCRIPTOR_HANDLE Rtv,
+        D3D12_CPU_DESCRIPTOR_HANDLE Dsv,
+        const D3D12_VIEWPORT& Viewport,
+        std::string PipelineStateName = "DrawRectPass"
+    );
+    
+
+    void ClearRenderTargetAndDepthStencil(
+        ID3D12GraphicsCommandList* CommandList,
+        D3D12_CPU_DESCRIPTOR_HANDLE& Rtv,
+        D3D12_CPU_DESCRIPTOR_HANDLE& Dsv,
+        const D3D12_RECT& ScissorRect
+    );
+
     void DrawRenderItems(
         FFrameResourceBase* FrameResource,
         ID3D12GraphicsCommandList* CommandList,

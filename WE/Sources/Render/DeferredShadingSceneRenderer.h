@@ -48,7 +48,7 @@ private:
     void UpdateGBufferInfoCB(TUploadBuffer<FGBufferInfoConstantBuffer>* GBufferInfoCB);
     virtual void Render(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResourceBase) override;
 
-    void DrawDebugScreen(
+    void DrawDebugGBuffers(
         ID3D12GraphicsCommandList* CommandList,
         D3D12_CPU_DESCRIPTOR_HANDLE Rtv,
         D3D12_CPU_DESCRIPTOR_HANDLE Dsv,
