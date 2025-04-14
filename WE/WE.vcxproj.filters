@@ -188,6 +188,9 @@
     <ClCompile Include="Sources\DirectX\Resource.cpp">
       <Filter>Sources\DirectX</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Application\TestApplication\Actor\LaminateFloorBrown.cpp">
+      <Filter>Sources\Application\TestApplication\Actor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -327,6 +330,9 @@
     </ClInclude>
     <ClInclude Include="Sources\DirectX\Resource.h">
       <Filter>Sources\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Application\TestApplication\Actor\LaminateFloorBrown.h">
+      <Filter>Sources\Application\TestApplication\Actor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
