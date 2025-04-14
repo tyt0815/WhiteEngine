@@ -25,11 +25,6 @@
     <ClCompile Include="Sources\DirectX\DXMath.cpp" />
     <ClCompile Include="Sources\DirectX\DXUtility.cpp" />
     <ClCompile Include="Sources\DirectX\Resource.cpp" />
-    <ClCompile Include="Sources\DXRHelper\nv_helpers_dx12\BottomLevelASGenerator.cpp" />
-    <ClCompile Include="Sources\DXRHelper\nv_helpers_dx12\RaytracingPipelineGenerator.cpp" />
-    <ClCompile Include="Sources\DXRHelper\nv_helpers_dx12\RootSignatureGenerator.cpp" />
-    <ClCompile Include="Sources\DXRHelper\nv_helpers_dx12\ShaderBindingTableGenerator.cpp" />
-    <ClCompile Include="Sources\DXRHelper\nv_helpers_dx12\TopLevelASGenerator.cpp" />
     <ClCompile Include="Sources\GameFramework\InputSystem\InputSystem.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Actor\Actor.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\ActorComponent.cpp" />
@@ -76,12 +71,6 @@
     <ClInclude Include="Sources\DirectX\DXMath.h" />
     <ClInclude Include="Sources\DirectX\DXUtility.h" />
     <ClInclude Include="Sources\DirectX\Resource.h" />
-    <ClInclude Include="Sources\DXRHelper\DXRHelper.h" />
-    <ClInclude Include="Sources\DXRHelper\nv_helpers_dx12\BottomLevelASGenerator.h" />
-    <ClInclude Include="Sources\DXRHelper\nv_helpers_dx12\RaytracingPipelineGenerator.h" />
-    <ClInclude Include="Sources\DXRHelper\nv_helpers_dx12\RootSignatureGenerator.h" />
-    <ClInclude Include="Sources\DXRHelper\nv_helpers_dx12\ShaderBindingTableGenerator.h" />
-    <ClInclude Include="Sources\DXRHelper\nv_helpers_dx12\TopLevelASGenerator.h" />
     <ClInclude Include="Sources\GameFramework\InputSystem\InputSystem.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\Actor.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\ActorComponent.h" />
