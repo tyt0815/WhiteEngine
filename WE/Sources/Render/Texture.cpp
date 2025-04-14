@@ -228,6 +228,14 @@ void FTextureManager::BuildTextures(ID3D12Device* Device, ID3D12GraphicsCommandL
 	
 	BuildTexture("SpecularIntegral", L"SpecularIntegral.dds", Device, CommandList);
 
+	BuildTexture("LaminateFlooringBrown_Albedo", L"LaminateFlooringBrown_Albedo.dds", Device, CommandList);
+	BuildTexture("LaminateFlooringBrown_AO", L"LaminateFlooringBrown_AO.dds", Device, CommandList);
+	BuildTexture("LaminateFlooringBrown_Height", L"LaminateFlooringBrown_Height.dds", Device, CommandList);
+	BuildTexture("LaminateFlooringBrown_Metallic", L"LaminateFlooringBrown_Metallic.dds", Device, CommandList);
+	BuildTexture("LaminateFlooringBrown_Normal", L"LaminateFlooringBrown_Normal.dds", Device, CommandList);
+	BuildTexture("LaminateFlooringBrown_Roughness", L"LaminateFlooringBrown_Roughness.dds", Device, CommandList);
+
+
 	BuildCubeTexture("Snow", L"SnowCube.dds", Device, CommandList);
 	BuildCubeTexture("Desert", L"DesertCube.dds", Device, CommandList);
 }

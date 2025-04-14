@@ -23,6 +23,7 @@ void FMeshGeometryManager::BuildMeshGeometries(ID3D12Device* Device, ID3D12Graph
 	BuildMeshGeometryFromMeshData("Grid", GeoGen.CreateGrid(500.0f, 500.0f, 60, 40), Device, CommandList);
 	BuildMeshGeometryFromMeshData("Sphere", GeoGen.CreateSphere(0.5f, 20, 20), Device, CommandList);
 	BuildMeshGeometryFromMeshData("Cylinder", GeoGen.CreateCylinder(0.5f, 0.3f, 3.0f, 20, 20), Device, CommandList);
+	BuildMeshGeometryFromMeshData("Floor", GeoGen.CreateGrid(50.0f, 50.0f, 2, 2), Device, CommandList);
 	BuildSkullMeshGeometry(Device, CommandList);
 	BuildBillboardPoints(Device, CommandList);
 	BuildRectangle(Device, CommandList);

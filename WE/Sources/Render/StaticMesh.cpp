@@ -20,6 +20,7 @@ void FStaticMeshManager::BuildStaticMeshs()
 	BuildStaticMesh(ESMT_IceFieldGrid, "Grid", EMT_IceField);
 	BuildStaticMesh(ESMT_ThickMortarStonework, "Sphere", EMT_ThickMortarStonework);
 	BuildStaticMesh(ESMT_ScuffedGoldBox, "Box", EMT_ScuffedGold);
+	BuildStaticMesh(ESMT_LaminateFloorBrown, "Floor", EMT_LaminateFlooringBrown);
 }
 
 void FStaticMeshManager::BuildStaticMesh(EStaticMeshType Type, std::string MeshName, EMaterialType MaterialType)

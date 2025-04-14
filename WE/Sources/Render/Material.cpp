@@ -67,6 +67,17 @@ void FMaterialManager::BuildMaterials()
 		"ThickMortarStonework_Roughness",
 		FDXMath::Identity4x4()
 	);
+
+	BuildMaterial(
+		EMT_LaminateFlooringBrown,
+		ESM_DefaultLit,
+		EBM_Opaque,
+		"LaminateFlooringBrown_Albedo",
+		"LaminateFlooringBrown_Metallic",
+		"LaminateFlooringBrown_Normal",
+		"LaminateFlooringBrown_Roughness",
+		FDXMath::Identity4x4()
+	);
 }
 
 void FMaterialManager::Internal_BuildMaterial(

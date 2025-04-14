@@ -30,6 +30,7 @@ enum EMaterialType : UINT16
 	EMT_ScuffedGold,
 	EMT_IceField,
 	EMT_ThickMortarStonework,
+	EMT_LaminateFlooringBrown,
 	EMT_None
 };
 

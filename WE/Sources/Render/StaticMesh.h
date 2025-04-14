@@ -16,6 +16,7 @@ enum EStaticMeshType : std::uint16_t
 	ESMT_IceFieldGrid,
 	ESMT_ThickMortarStonework,
 	ESMT_ScuffedGoldBox,
+	ESMT_LaminateFloorBrown,
 	ESMT_None
 };
 

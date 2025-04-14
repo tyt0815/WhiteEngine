@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Application\TestApplication\Actor\IceFieldGird.cpp" />
+    <ClCompile Include="Sources\Application\TestApplication\Actor\LaminateFloorBrown.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\Actor\RustedIron2Sphere.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\Actor\ScuffedGoldBox.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\Actor\ScuffedGoldSphere.cpp" />
@@ -56,6 +57,7 @@
   <ItemGroup>
     <ClInclude Include="Shaders\DrawRectPassCommon.sh" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\IceFieldGird.h" />
+    <ClInclude Include="Sources\Application\TestApplication\Actor\LaminateFloorBrown.h" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\RustedIron2Sphere.h" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\ScuffedGoldBox.h" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\ScuffedGoldSphere.h" />
