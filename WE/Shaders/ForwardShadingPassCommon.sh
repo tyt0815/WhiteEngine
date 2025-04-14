@@ -10,13 +10,6 @@ DECLARE_PASS_CB(b0);
 DECLARE_MESH_CB(b1);
 DECLARE_SUBMESH_CB(b2);
 
-struct FVSInput
-{
-    float3 PosL : POSITION;
-    float3 NormalL : NORMAL;
-    float2 TexC : TEXCOORD;
-};
-
 struct FVSOutput
 {
     float4 PosH : SV_Position;

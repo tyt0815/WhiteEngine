@@ -1,6 +1,6 @@
 #ifndef COMMON_SH
 #define COMMON_SH
-#include "Math.sh"    
+#include "Math.sh"
 
 Texture2D gTexture[1024] : register(t0, space0);
 TextureCube gTextureCube[1024] : register(t0, space1);
@@ -65,6 +65,14 @@ cbuffer SubmeshCB : register(b)\
     uint gPadOfSubmeshCB1;\
 };\
 
+struct FVertexInput
+{
+    float3 LocalPosition : POSITION;
+    float3 LocalNormal : NORMAL;
+    float2 TexC : TEXCOORD;
+    float3 TangentU : TANGENT;
+};
+
 void DrawSphere(in float3 InPosL, in float4x4 ViewProj, out float3 OutPosL, out float4 OutPosH)
 {
     OutPosL = InPosL;
@@ -117,6 +125,19 @@ float3 EncodeVector(float3 Vector)
 float3 DecodeVector(float3 EncodedVector)
 {
     return EncodedVector * 2 - 1.0f;
+}
+
+float3 NormalSampleToWorldSpace(float3 NormalMapSample, float3 UnitNormal, float3 TangentW)
+{
+    float3 NormalT = DecodeVector(NormalMapSample);
+
+    float3 N = UnitNormal;
+    float3 T = normalize(TangentW - dot(TangentW, N) * N);
+    float3 B = cross(N, T);
+    
+    float3x3 TBN = float3x3(T, B, N);
+    float3 WorldNormal = mul(NormalT, TBN);
+    return WorldNormal;
 }
 
 #endif

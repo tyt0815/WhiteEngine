@@ -87,13 +87,6 @@ void FForwardShadingSceneRenderer::BuildShadersAndInputLayouts()
 		"MainPS",
 		"ps_5_1"
 	);
-
-	mInputLayouts["ForwardShadingPass"] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-	};
 }
 
 void FForwardShadingSceneRenderer::BuildPipelineStates(ID3D12Device* Device)
@@ -102,7 +95,7 @@ void FForwardShadingSceneRenderer::BuildPipelineStates(ID3D12Device* Device)
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC ForwardLitPipelineStateDesc;
 	ZeroMemory(&ForwardLitPipelineStateDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
-	ForwardLitPipelineStateDesc.InputLayout = { mInputLayouts["ForwardShadingPass"].data(), (UINT)mInputLayouts["ForwardShadingPass"].size() };
+	ForwardLitPipelineStateDesc.InputLayout = { mInputLayouts["MeshGeometryPass"].data(), (UINT)mInputLayouts["MeshGeometryPass"].size() };
 	ForwardLitPipelineStateDesc.pRootSignature = mRootSignatures["ForwardShadingPass"].Get();
 	ForwardLitPipelineStateDesc.VS =
 	{

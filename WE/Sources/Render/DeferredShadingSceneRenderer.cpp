@@ -87,13 +87,6 @@ void FDeferredShadingSceneRenderer::BuildShadersAndInputLayouts()
 	BuildGBufferPassShaders();
 	BuildDeferredShadingPassShaders();
 	BuildDebugPassShaders();
-
-	mInputLayouts["MeshPass"] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-	};
 }
 
 void FDeferredShadingSceneRenderer::BuildDeferredShadingPassShaders()
@@ -192,7 +185,7 @@ void FDeferredShadingSceneRenderer::BuildGBufferPassPipelineState(ID3D12Device* 
 {
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC GBufferPassPipelineStateDesc;
 	ZeroMemory(&GBufferPassPipelineStateDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
-	GBufferPassPipelineStateDesc.InputLayout = { mInputLayouts["MeshPass"].data(), (UINT)mInputLayouts["MeshPass"].size() };
+	GBufferPassPipelineStateDesc.InputLayout = { mInputLayouts["MeshGeometryPass"].data(), (UINT)mInputLayouts["MeshGeometryPass"].size() };
 	GBufferPassPipelineStateDesc.pRootSignature = mRootSignatures["GBufferPass"].Get();
 	GBufferPassPipelineStateDesc.VS =
 	{

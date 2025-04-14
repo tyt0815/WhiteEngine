@@ -1,9 +1,10 @@
 #include "GBufferPassCommon.sh"
 
 void MainPS(
-    in float4 PosH : SV_Position,
-    in float3 NormalW : NORMAL,
+    in float4 ScreenPosition : SV_Position,
+    in float3 WorldNormal : NORMAL,
     in float2 TexC : TEXCOORD,
+    in float3 WorldTangent : TANGENT,
     out float4 GBufferA : SV_Target0,
     out float4 GBufferB : SV_Target1,
     out float4 GBufferC : SV_Target2
@@ -11,9 +12,9 @@ void MainPS(
 {
     FMaterialSB MaterialData = gMaterialData[gMaterialIndex];
     
-    // float3 EncodedNormalW = EncodeVector(NormalW);
-    // GBufferA = float4(EncodedNormalW, 1.0f);
-    GBufferA = float4(normalize(NormalW), 1.0f);
+    float3 NormalMapSample = gTexture[MaterialData.NormalTextureIndex].Sample(gsamLinearWrap, TexC).rgb;
+    WorldNormal = NormalSampleToWorldSpace(NormalMapSample, normalize(WorldNormal), WorldTangent);
+    GBufferA = float4(WorldNormal, 1.0f);
     
     float Specular = 0.04f;
     float Roughness = gTexture[MaterialData.RoughneesTextureIndex].Sample(gsamLinearWrap, TexC).r;

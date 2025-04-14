@@ -43,9 +43,11 @@ void FMeshGeometryManager::BuildMeshGeometryFromMeshData(
 	std::vector<FVertex> Vertices(MeshData.Vertices.size());
 	for (size_t i = 0; i < MeshData.Vertices.size(); ++i)
 	{
+
 		Vertices[i].Pos = MeshData.Vertices[i].Position;
 		Vertices[i].Normal = MeshData.Vertices[i].Normal;
 		Vertices[i].TexC = MeshData.Vertices[i].TexC;
+		Vertices[i].TangentU = MeshData.Vertices[i].TangentU;
 	}
 	std::vector<std::uint32_t> Indices;
 	Indices.insert(Indices.end(), std::begin(MeshData.Indices32), std::end(MeshData.Indices32));
