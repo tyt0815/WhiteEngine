@@ -1,6 +1,7 @@
 #pragma once
 #include "SceneRenderer.h"
 #include "RenderTarget.h"
+#include "DepthStencil.h"
 
 class FDeferredShadingSceneRenderer final : public FSceneRenderer
 {
@@ -65,5 +66,8 @@ private:
 
     void DrawGBuffers(ID3D12GraphicsCommandList* CommandList, FFrameResource* FrameResource);
 
-    std::unique_ptr<FRenderTarget> mGBuffers;
+    std::unique_ptr<FRenderTarget> mGBufferA;
+    std::unique_ptr<FRenderTarget> mGBufferB;
+    std::unique_ptr<FRenderTarget> mGBufferC;
+    std::unique_ptr<FDepthStencil> mGBufferDepthStencil;
 };

@@ -24,5 +24,5 @@ protected:
     virtual void CreateFrameResources(ID3D12Device* Device) override;
 	virtual void Render(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource) override;
 private:
-	std::unique_ptr<FCubeSkyRenderer> mSkyCubeMapRenderer;
+	// std::unique_ptr<FCubeSkyRenderer> mSkyCubeMapRenderer;
 };

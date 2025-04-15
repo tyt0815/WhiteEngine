@@ -6,6 +6,7 @@
 #include "GameFramework/Object/Component/CameraComponent.h"
 #include "GameFramework/Object/World/World.h"
 #include "Utility/Timer.h"
+#include "DirectX/SRVHeap.h"
 
 
 const int gFrameResourcesNum = FRAME_RESOURCES_NUM;
@@ -186,9 +187,13 @@ void FSceneRenderer::DrawRectPass(
 
 	CommandList->SetGraphicsRootSignature(mRootSignatures["DrawRectPass"].Get());
 
+	FSRVHeap* SRVHeap = GetSRVHeap();
+	ID3D12DescriptorHeap* DescriptorHeaps[] = { SRVHeap->Get() };
+	CommandList->SetDescriptorHeaps(_countof(DescriptorHeaps), DescriptorHeaps);
+
 	CommandList->SetGraphicsRoot32BitConstants(0, 1, &TextureSRVIndex, 0);
-	CommandList->SetGraphicsRootDescriptorTable(1, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
-	CommandList->SetGraphicsRootDescriptorTable(2, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
+	CommandList->SetGraphicsRootDescriptorTable(1, SRVHeap->GetTexture2DSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(2, SRVHeap->GetTextureCubeSRVStart());
 
 	DrawRect(CommandList);
 }
@@ -353,8 +358,8 @@ void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConsta
 	PassConstants.FarZ = Camera->GetFarZ();
 	PassConstants.TotalTime = Timer->GetTotalTime();
 	PassConstants.DeltaTime = Timer->GetDeltaTime();
-	FTexture* SpecularIntegral = GetTextureManager()->GetTexture2D("IndirectSpecularIntegral");
-	PassConstants.IndirectSpecularIntegralTextureIndex = SpecularIntegral ? SpecularIntegral->SRVHeapIndex : -1;
+	FTexture* SpecularIntegral = nullptr;
+	PassConstants.IndirectSpecularIntegralTextureIndex = -1;
 
 	PassConstants.FogColor = XMFLOAT4(Colors::LightSkyBlue);
 	PassConstants.FogStart = 200.0f;

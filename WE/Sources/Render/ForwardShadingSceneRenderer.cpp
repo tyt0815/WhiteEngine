@@ -3,18 +3,18 @@
 #include <DirectXColors.h>
 
 #include "MeshGeometry.h"
-#include "CubeSkyRenderer.h"
 #include "Texture.h"
 #include "Material.h"
 #include "DirectX/DXResourceManager.h"
 #include "DirectX/DXException.h"
 #include "DirectX/DXUtility.h"
+#include "DirectX/SRVHeap.h"
 #include "RenderItemManager.h"
 
 void FForwardShadingSceneRenderer::Initialize(ID3D12Device* Device)
 {
 	Super::Initialize(Device);
-	mSkyCubeMapRenderer = std::make_unique<FCubeSkyRenderer>(std::string("Snow"));
+	// mSkyCubeMapRenderer = std::make_unique<FCubeSkyRenderer>(std::string("Snow"));
 }
 
 void FForwardShadingSceneRenderer::Render(
@@ -30,7 +30,8 @@ void FForwardShadingSceneRenderer::Render(
 
 	CommandList->SetGraphicsRootSignature(mRootSignatures["ForwardShadingPass"].Get());
 	FTextureManager* TexManager = GetTextureManager();
-	ID3D12DescriptorHeap* descriptorHeaps[] = { TexManager->GetSRVHeapPtr() };
+	FSRVHeap* SRVHeap = GetSRVHeap();
+	ID3D12DescriptorHeap* descriptorHeaps[] = { SRVHeap->Get()};
 	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
 	// Pass Constantbuffer
@@ -41,8 +42,8 @@ void FForwardShadingSceneRenderer::Render(
 	ID3D12Resource* DirLightSB = FrameResource->GetDirectionalLightSB()->Resource();
 	CommandList->SetGraphicsRootShaderResourceView(3, MaterialSB->GetGPUVirtualAddress());
 	CommandList->SetGraphicsRootShaderResourceView(4, DirLightSB->GetGPUVirtualAddress());
-	CommandList->SetGraphicsRootDescriptorTable(5, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
-	CommandList->SetGraphicsRootDescriptorTable(6, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
+	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTexture2DSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(6, SRVHeap->GetTextureCubeSRVStart());
 	if (bWireFrame)
 	{
 		// TODO

@@ -3,187 +3,36 @@
 #include "DDSTextureLoader.h"
 #include "DirectX/DXException.h"
 #include "DirectX/DXResourceManager.h"
+#include "DirectX/SRVHeap.h"
+
+D3D12_GPU_DESCRIPTOR_HANDLE FTexture::GetSRV() const
+{
+	return mSRVHeap->GetGPUDescriptorHandle(mSRVHeapIndex);
+}
+
+FTexture::FTexture():
+	mSRVHeap(GetSRVHeap())
+{
+}
+
+void FTexture::CreateTexture2DSRV(const D3D12_SHADER_RESOURCE_VIEW_DESC& SRVDesc)
+{
+	mSRVHeapIndex = mSRVHeap->CreateTexture2DSRV(mResource.Get(), SRVDesc);
+}
+
+void FTexture::CreateTextureCubeSRV(const D3D12_SHADER_RESOURCE_VIEW_DESC& SRVDesc)
+{
+	mSRVHeapIndex = mSRVHeap->CreateTextureCubeSRV(mResource.Get(), SRVDesc);
+}
 
 FTextureManager::FTextureManager()
 {
-	BuildShaderResourceDescriptorHeap();
-	GetDXResourceManagerPtr()->ExecuteAndFlushCommand(&FTextureManager::BuildTextures, this);
+	GetDXResourceManagerPtr()->ExecuteAndFlushCommand(&FTextureManager::LoadTextures, this);
 }
 
 FTextureManager::~FTextureManager()
 {
-	//for (auto& Item : mTexture2Ds)
-	//{
-	//	auto& Texture = Item.second;
-	//	if (Texture && Texture->Resource)
-	//	{
-	//		Texture->Resource->Release();
-	//	}
-	//	Texture.reset();
-	//}
-	//for (auto& Item : mTextureCubes)
-	//{
-	//	auto& Texture = Item.second;
-	//	if (Texture && Texture->Resource)
-	//	{
-	//		Texture->Resource->Release();
-	//	}
-	//	Texture.reset();
-	//}
-	mTexture2Ds.clear();
-	mTextureCubes.clear();
-}
-
-void FTextureManager::RegisterTexture2D(std::unique_ptr<FTexture> Texture2D)
-{
-	if (mTexture2Ds.size() >= TEXTURE2D_NUM)
-	{
-		throw L"최대 텍스처수 초과";
-	}
-	std::string Name = Texture2D->Name;
-	Texture2D->SRVHeapIndex = (UINT)mTexture2Ds.size();
-	mTexture2Ds[Name] = std::move(Texture2D);
-	UpdateTexture2D(Name);	
-}
-
-void FTextureManager::RegisterTextureCube(std::unique_ptr<FTexture> TextureCube)
-{
-	if (mTextureCubes.size() >= TEXTURECUBE_NUM)
-	{
-		throw L"최대 텍스처수 초과";
-	}
-	std::string Name = TextureCube->Name;
-	TextureCube->SRVHeapIndex = (UINT)mTextureCubes.size();
-	mTextureCubes[Name] = std::move(TextureCube);
-	UpdateTextureCube(Name);
-}
-
-void FTextureManager::RegisterDepthStencilTexture2D(std::unique_ptr<FTexture> Texture)
-{
-	if (mTexture2Ds.size() >= TEXTURE2D_NUM)
-	{
-		throw L"최대 텍스처수 초과";
-	}
-	Texture->SRVHeapIndex = (UINT)mTexture2Ds.size();
-
-	D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
-	SRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	SRVDesc.Texture2D.MostDetailedMip = 0;
-	SRVDesc.Texture2D.ResourceMinLODClamp = 0.0f;
-	ID3D12Resource* TextureBuffer = Texture->Resource.Get();
-	SRVDesc.Texture2D.MipLevels = TextureBuffer->GetDesc().MipLevels;
-	SRVDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-
-	GetDXResourceManagerPtr()->GetDevicePtr()->CreateShaderResourceView(
-		TextureBuffer,
-		&SRVDesc,
-		GetTexture2DCPUDescriptorHandle(Texture->SRVHeapIndex)
-	);
-
-	mTexture2Ds[Texture->Name] = std::move(Texture);
-}
-
-void FTextureManager::UpdateTexture2D(std::string Name)
-{
-	FTexture* Texture = mTexture2Ds[Name].get();
-	D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
-	SRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	SRVDesc.Texture2D.MostDetailedMip = 0;
-	SRVDesc.Texture2D.ResourceMinLODClamp = 0.0f;
-	ID3D12Resource* TextureBuffer = Texture->Resource.Get();
-	SRVDesc.Texture2D.MipLevels = TextureBuffer->GetDesc().MipLevels;
-	SRVDesc.Format = TextureBuffer->GetDesc().Format;
-
-	GetDXResourceManagerPtr()->GetDevicePtr()->CreateShaderResourceView(
-		TextureBuffer,
-		&SRVDesc,
-		GetTexture2DCPUDescriptorHandle(Texture->SRVHeapIndex)
-	);
-}
-
-void FTextureManager::UpdateTextureCube(std::string Name)
-{
-	FTexture* Texture = mTextureCubes[Name].get();
-	D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
-	SRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
-	SRVDesc.Texture2D.MostDetailedMip = 0;
-	SRVDesc.Texture2D.ResourceMinLODClamp = 0.0f;
-	ID3D12Resource* TextureBuffer = Texture->Resource.Get();
-	SRVDesc.Texture2D.MipLevels = TextureBuffer->GetDesc().MipLevels;
-	SRVDesc.Format = TextureBuffer->GetDesc().Format;
-
-	GetDXResourceManagerPtr()->GetDevicePtr()->CreateShaderResourceView(
-		TextureBuffer,
-		&SRVDesc,
-		GetTextureCubeCPUDescriptorHandle(Texture->SRVHeapIndex)
-	);
-}
-
-D3D12_CPU_DESCRIPTOR_HANDLE FTextureManager::GetTexture2DCPUSRVForHeapStart() const
-{
-	return mSRVHeap->GetCPUDescriptorHandleForHeapStart();
-}
-
-D3D12_CPU_DESCRIPTOR_HANDLE FTextureManager::GetTextureCubeCPUSRVForHeapStart() const
-{
-	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
-		GetTexture2DCPUSRVForHeapStart(),
-		TEXTURE2D_NUM,
-		GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()
-		);
-}
-
-D3D12_GPU_DESCRIPTOR_HANDLE FTextureManager::GetTexture2DGPUSRVForHeapStart() const
-{
-	return mSRVHeap->GetGPUDescriptorHandleForHeapStart();
-}
-
-D3D12_GPU_DESCRIPTOR_HANDLE FTextureManager::GetTextureCubeGPUSRVForHeapStart() const
-{
-	return CD3DX12_GPU_DESCRIPTOR_HANDLE(
-		GetTexture2DGPUSRVForHeapStart(),
-		TEXTURE2D_NUM, 
-		GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()
-	);
-}
-
-D3D12_CPU_DESCRIPTOR_HANDLE FTextureManager::GetTexture2DCPUDescriptorHandle(int i) const
-{
-	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
-		GetTexture2DCPUSRVForHeapStart(),
-		i,
-		GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()
-	);
-}
-
-D3D12_CPU_DESCRIPTOR_HANDLE FTextureManager::GetTextureCubeCPUDescriptorHandle(int i) const
-{
-	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
-		GetTextureCubeCPUSRVForHeapStart(),
-		i,
-		GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()
-	);
-}
-
-D3D12_GPU_DESCRIPTOR_HANDLE FTextureManager::GetTexture2DGPUDescriptorHandle(int i) const
-{
-	return CD3DX12_GPU_DESCRIPTOR_HANDLE(
-		GetTexture2DGPUSRVForHeapStart(),
-		i,
-		GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()
-	);
-}
-
-D3D12_GPU_DESCRIPTOR_HANDLE FTextureManager::GetTextureCubeGPUDescriptorHandle(int i) const
-{
-	return CD3DX12_GPU_DESCRIPTOR_HANDLE(
-		GetTextureCubeGPUSRVForHeapStart(),
-		i,
-		GetDXResourceManagerPtr()->GetCBVSRVUAVDescriptorSize()
-	);
+	
 }
 
 D3D12_DESCRIPTOR_RANGE FTextureManager::GetTexture2DDescriptorRange() const
@@ -200,91 +49,101 @@ D3D12_DESCRIPTOR_RANGE FTextureManager::GetTextureCubeDescriptorRange() const
 	return CubeTextureTable;
 }
 
-void FTextureManager::BuildTextures(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
+FTexture* FTextureManager::GetTexture(std::string Name)
 {
-	BuildTexture("Default", L"Default.dds", Device, CommandList);
-	BuildTexture("White", L"White.dds", Device, CommandList);
-	BuildTexture("Black", L"Black.dds", Device, CommandList);
-
-	BuildTexture("RustedIron2_BaseColor", L"RustedIron2_BaseColor.dds", Device, CommandList);
-	BuildTexture("RustedIron2_Normal", L"RustedIron2_Normal.dds", Device, CommandList);
-	BuildTexture("RustedIron2_Metallic", L"RustedIron2_Metallic.dds", Device, CommandList);
-	BuildTexture("RustedIron2_Roughness", L"RustedIron2_Roughness.dds", Device, CommandList);
-
-	BuildTexture("ScuffedGold_BaseColor", L"ScuffedGold_BaseColor.dds", Device, CommandList);
-	BuildTexture("ScuffedGold_Normal", L"ScuffedGold_Normal.dds", Device, CommandList);
-	BuildTexture("ScuffedGold_Metallic", L"ScuffedGold_Metallic.dds", Device, CommandList);
-	BuildTexture("ScuffedGold_Roughness", L"ScuffedGold_Roughness.dds", Device, CommandList);
-
-	BuildTexture("IceField_BaseColor", L"IceField_BaseColor.dds", Device, CommandList);
-	BuildTexture("IceField_Normal", L"IceField_Normal.dds", Device, CommandList);
-	BuildTexture("IceField_Metallic", L"IceField_Metallic.dds", Device, CommandList);
-	BuildTexture("IceField_Roughness", L"IceField_Roughness.dds", Device, CommandList);
-
-	BuildTexture("ThickMortarStonework_Albedo", L"ThickMortarStonework_Albedo.dds", Device, CommandList);
-	BuildTexture("ThickMortarStonework_Normal", L"IceField_Normal.dds", Device, CommandList);
-	BuildTexture("ThickMortarStonework_Metallic", L"IceField_Metallic.dds", Device, CommandList);
-	BuildTexture("ThickMortarStonework_Roughness", L"IceField_Roughness.dds", Device, CommandList);
-	
-	BuildTexture("SpecularIntegral", L"SpecularIntegral.dds", Device, CommandList);
-
-	BuildTexture("LaminateFlooringBrown_Albedo", L"LaminateFlooringBrown_Albedo.dds", Device, CommandList);
-	BuildTexture("LaminateFlooringBrown_AO", L"LaminateFlooringBrown_AO.dds", Device, CommandList);
-	BuildTexture("LaminateFlooringBrown_Height", L"LaminateFlooringBrown_Height.dds", Device, CommandList);
-	BuildTexture("LaminateFlooringBrown_Metallic", L"LaminateFlooringBrown_Metallic.dds", Device, CommandList);
-	BuildTexture("LaminateFlooringBrown_Normal", L"LaminateFlooringBrown_Normal.dds", Device, CommandList);
-	BuildTexture("LaminateFlooringBrown_Roughness", L"LaminateFlooringBrown_Roughness.dds", Device, CommandList);
-
-
-	BuildCubeTexture("Snow", L"SnowCube.dds", Device, CommandList);
-	BuildCubeTexture("Desert", L"DesertCube.dds", Device, CommandList);
+	if (IsExist(Name))
+	{
+		return mTextures[Name].get();
+	}
+	return nullptr;
 }
 
-std::unique_ptr<FTexture> FTextureManager::LoadTexture(
-	std::string Name,
-	std::wstring Filename,
-	ID3D12Device* Device,
-	ID3D12GraphicsCommandList* CommandList
-)
+void FTextureManager::LoadTextures(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
+{
+	LoadTexture("Default", Device, CommandList);
+	LoadTexture("White", Device, CommandList);
+	LoadTexture("Black", Device, CommandList);
+
+	LoadTexture("RustedIron2_Albedo", Device, CommandList);
+	LoadTexture("RustedIron2_Normal", Device, CommandList);
+	LoadTexture("RustedIron2_Metallic", Device, CommandList);
+	LoadTexture("RustedIron2_Roughness", Device, CommandList);
+
+	LoadTexture("ScuffedGold_Albedo", Device, CommandList);
+	LoadTexture("ScuffedGold_Normal", Device, CommandList);
+	LoadTexture("ScuffedGold_Metallic", Device, CommandList);
+	LoadTexture("ScuffedGold_Roughness", Device, CommandList);
+
+	LoadTexture("IceField_Albedo", Device, CommandList);
+	LoadTexture("IceField_Normal", Device, CommandList);
+	LoadTexture("IceField_Metallic", Device, CommandList);
+	LoadTexture("IceField_Roughness", Device, CommandList);
+
+	LoadTexture("ThickMortarStonework_Albedo", Device, CommandList);
+	LoadTexture("ThickMortarStonework_Normal", Device, CommandList);
+	LoadTexture("ThickMortarStonework_Metallic", Device, CommandList);
+	LoadTexture("ThickMortarStonework_Roughness", Device, CommandList);
+
+	LoadTexture("LaminateFlooringBrown_Albedo", Device, CommandList);
+	LoadTexture("LaminateFlooringBrown_AO", Device, CommandList);
+	LoadTexture("LaminateFlooringBrown_Height", Device, CommandList);
+	LoadTexture("LaminateFlooringBrown_Metallic", Device, CommandList);
+	LoadTexture("LaminateFlooringBrown_Normal", Device, CommandList);
+	LoadTexture("LaminateFlooringBrown_Roughness",Device, CommandList);
+
+	LoadTexture("SpecularIntegral", Device, CommandList);
+
+	LoadTexture("SnowCube", Device, CommandList);
+	LoadTexture("DesertCube", Device, CommandList);
+}
+
+void FTextureManager::LoadTexture(std::string Name, ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
+{
+	mTextures[Name] = std::make_unique<FTexture>(Name, Device, CommandList);
+}
+
+FTexture::FTexture(std::string Name, ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList) :
+	mName(Name),
+	mSRVHeap(GetSRVHeap())
 {
 	static std::wstring Path = L"./Resources/Textures/";
-	std::unique_ptr<FTexture> Texture = std::make_unique<FTexture>();
-	Texture->Name = Name;
+	std::wstring FileName = std::wstring(mName.begin(), mName.end()) + L".dds";
 	THROW_IF_FAILED(
 		DirectX::CreateDDSTextureFromFile12(
 			Device,
 			CommandList,
-			(Path + Filename).c_str(),
-			Texture->Resource,
-			Texture->UploadHeap
+			(Path + FileName).c_str(),
+			mResource,
+			mUploadHeap
 		)
 	);
-	return std::move(Texture);
-}
 
-void FTextureManager::BuildTexture(std::string Name, std::wstring Filename, ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
-{
-	RegisterTexture2D(LoadTexture(Name, Filename, Device, CommandList));
-}
+	
+	D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc;
+	ZeroMemory(&SRVDesc, sizeof(D3D12_SHADER_RESOURCE_VIEW_DESC));
+	SRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	SRVDesc.Texture2D.MostDetailedMip = 0;
+	SRVDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+	D3D12_RESOURCE_DESC ResourceDesc = mResource->GetDesc();
+	SRVDesc.Texture2D.MipLevels = ResourceDesc.MipLevels;
+	SRVDesc.Format = ResourceDesc.Format;
 
-void FTextureManager::BuildCubeTexture(std::string Name, std::wstring Filename, ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
-{
-	RegisterTextureCube(LoadTexture(Name, Filename, Device, CommandList));
-}
+	switch (ResourceDesc.DepthOrArraySize)
+	{
+		// Texture2D
+	case 1:
+		SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		CreateTexture2DSRV(SRVDesc);
+		break;
 
-void FTextureManager::BuildShaderResourceDescriptorHeap()
-{
-	FDXResourceManager* DRM = GetDXResourceManagerPtr();
-	ID3D12Device* Device = DRM->GetDevicePtr();
-	D3D12_DESCRIPTOR_HEAP_DESC SRVHeapDesc;
-	ZeroMemory(&SRVHeapDesc, sizeof(D3D12_DESCRIPTOR_HEAP_DESC));
-	SRVHeapDesc.NumDescriptors = TEXTURE2D_NUM + TEXTURECUBE_NUM;
-	SRVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	SRVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	THROW_IF_FAILED(
-		Device->CreateDescriptorHeap(
-			&SRVHeapDesc,
-			IID_PPV_ARGS(mSRVHeap.GetAddressOf())
-		)
-	);
+		// TextureCube
+	case 6:
+		SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+		CreateTextureCubeSRV(SRVDesc);
+		break;
+
+	default:
+		throw L"Undefined TextureType";
+	}
+	
 }

@@ -1,6 +1,7 @@
 #include "DeferredShadingSceneRenderer.h"
 #include "DirectXColors.h"
 #include "DirectX/DXResourceManager.h"
+#include "DirectX/SRVHeap.h"
 #include "ShapeDrawer.h"
 
 FDeferredShadingSceneRenderer::FFrameResource::FFrameResource(ID3D12Device* Device) :
@@ -11,16 +12,23 @@ FDeferredShadingSceneRenderer::FFrameResource::FFrameResource(ID3D12Device* Devi
 
 FDeferredShadingSceneRenderer::FDeferredShadingSceneRenderer()
 {
-	std::vector<std::string> Names;
-	Names.push_back("GBufferA");
-	Names.push_back("GBufferB");
-	Names.push_back("GBufferC");
-	mGBuffers = std::make_unique<FRenderTarget>(
-		Names,
+	mGBufferA = std::make_unique<FRenderTarget>(
 		(UINT)GetDXResourceManagerPtr()->GetScreenViewport().Width,
 		(UINT)GetDXResourceManagerPtr()->GetScreenViewport().Height,
 		1,
 		DXGI_FORMAT_R16G16B16A16_FLOAT
+	);
+	mGBufferB = std::make_unique<FRenderTarget>(
+		(UINT)GetDXResourceManagerPtr()->GetScreenViewport().Width,
+		(UINT)GetDXResourceManagerPtr()->GetScreenViewport().Height
+	);
+	mGBufferC = std::make_unique<FRenderTarget>(
+		(UINT)GetDXResourceManagerPtr()->GetScreenViewport().Width,
+		(UINT)GetDXResourceManagerPtr()->GetScreenViewport().Height
+	);
+	mGBufferDepthStencil = std::make_unique<FDepthStencil>(
+		(UINT)GetDXResourceManagerPtr()->GetScreenViewport().Width,
+		(UINT)GetDXResourceManagerPtr()->GetScreenViewport().Height
 	);
 }
 
@@ -56,7 +64,7 @@ void FDeferredShadingSceneRenderer::BuildDeferredShadingPassRootSignature()
 	RootParameter[0].InitAsDescriptorTable(1, &TextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// TextureTable
 	RootParameter[1].InitAsDescriptorTable(1, &CubeTextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// CubeTextureTable
 	RootParameter[2].InitAsConstantBufferView(0);	// Pass CB
-	RootParameter[3].InitAsConstantBufferView(1);			// GBufferIndices
+	RootParameter[3].InitAsConstantBufferView(1);		// GBufferIndices
 	RootParameter[4].InitAsShaderResourceView(0, 3);	// DirLightSB
 
 	FDXUtility::BuildRootSignature(RootParameter, ROOT_PARAMETERS_NUM, mRootSignatures["DeferredShadingPass"].GetAddressOf());
@@ -203,12 +211,12 @@ void FDeferredShadingSceneRenderer::BuildGBufferPassPipelineState(ID3D12Device* 
 	GBufferPassPipelineStateDesc.SampleMask = UINT_MAX;
 	GBufferPassPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	GBufferPassPipelineStateDesc.NumRenderTargets = 3;
-	GBufferPassPipelineStateDesc.RTVFormats[0] = mGBuffers->GetFormat();
-	GBufferPassPipelineStateDesc.RTVFormats[1] = mGBuffers->GetFormat();
-	GBufferPassPipelineStateDesc.RTVFormats[2] = mGBuffers->GetFormat();
+	GBufferPassPipelineStateDesc.RTVFormats[0] = mGBufferA->GetFormat();
+	GBufferPassPipelineStateDesc.RTVFormats[1] = mGBufferB->GetFormat();
+	GBufferPassPipelineStateDesc.RTVFormats[2] = mGBufferC->GetFormat();
 	GBufferPassPipelineStateDesc.SampleDesc.Count = 1;
 	GBufferPassPipelineStateDesc.SampleDesc.Quality = 0;
-	GBufferPassPipelineStateDesc.DSVFormat = mGBuffers->GetDepthStencilFormat();
+	GBufferPassPipelineStateDesc.DSVFormat = mGBufferDepthStencil->GetFormat();
 	THROW_IF_FAILED(
 		Device->CreateGraphicsPipelineState(
 			&GBufferPassPipelineStateDesc,
@@ -275,10 +283,10 @@ void FDeferredShadingSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* Frame
 void FDeferredShadingSceneRenderer::UpdateGBufferInfoCB(TUploadBuffer<FGBufferInfoConstantBuffer>* GBufferInfoCB)
 {
 	FGBufferInfoConstantBuffer GBufferCB;
-	GBufferCB.GBufferAIndex = mGBuffers->GetTexture("GBufferA")->SRVHeapIndex;
-	GBufferCB.GBufferBIndex = mGBuffers->GetTexture("GBufferB")->SRVHeapIndex;
-	GBufferCB.GBufferCIndex = mGBuffers->GetTexture("GBufferC")->SRVHeapIndex;
-	GBufferCB.DepthBufferIndex = mGBuffers->GetDepthStencilTexture()->SRVHeapIndex;
+	GBufferCB.GBufferAIndex = mGBufferA->GetSRVHeapIndex();
+	GBufferCB.GBufferBIndex = mGBufferB->GetSRVHeapIndex();
+	GBufferCB.GBufferCIndex = mGBufferC->GetSRVHeapIndex();
+	GBufferCB.DepthBufferIndex = mGBufferDepthStencil->GetSRVHeapIndex();
 	GBufferInfoCB->CopyData(0, GBufferCB);
 }
 
@@ -310,7 +318,7 @@ void FDeferredShadingSceneRenderer::Render(ID3D12GraphicsCommandList* CommandLis
 	DrawDebugGBuffers(CommandList, BackBufferView, BackBufferDsv, DebugScreenViewport);
 	DrawRectPass(
 		CommandList,
-		mGBuffers->GetDepthStencilTexture()->SRVHeapIndex,
+		mGBufferDepthStencil->GetSRVHeapIndex(),
 		BackBufferView,
 		BackBufferDsv,
 		FDXUtility::GetQuadrantViewport(DebugScreenViewport, 4),
@@ -349,7 +357,7 @@ void FDeferredShadingSceneRenderer::DrawDebugGBuffers(
 	// 1사분면: GBufferA	
 	DrawRectPass(
 		CommandList,
-		mGBuffers->GetTexture("GBufferA")->SRVHeapIndex,
+		mGBufferA->GetSRVHeapIndex(),
 		Rtv,
 		Dsv,
 		FDXUtility::GetQuadrantViewport(Viewport, 1),
@@ -358,7 +366,7 @@ void FDeferredShadingSceneRenderer::DrawDebugGBuffers(
 	// 2사분면: GBufferB
 	DrawRectPass(
 		CommandList,
-		mGBuffers->GetTexture("GBufferB")->SRVHeapIndex,
+		mGBufferB->GetSRVHeapIndex(),
 		Rtv,
 		Dsv,
 		FDXUtility::GetQuadrantViewport(Viewport, 2)
@@ -366,7 +374,7 @@ void FDeferredShadingSceneRenderer::DrawDebugGBuffers(
 	// 3사분면: GBufferC
 	DrawRectPass(
 		CommandList,
-		mGBuffers->GetTexture("GBufferC")->SRVHeapIndex,
+		mGBufferC->GetSRVHeapIndex(),
 		Rtv,
 		Dsv,
 		FDXUtility::GetQuadrantViewport(Viewport, 3)
@@ -405,8 +413,9 @@ void FDeferredShadingSceneRenderer::DrawDeferredShadingPass(
 
 	CommandList->SetGraphicsRootSignature(mRootSignatures["DeferredShadingPass"].Get());
 
-	CommandList->SetGraphicsRootDescriptorTable(0, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
-	CommandList->SetGraphicsRootDescriptorTable(1, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
+	FSRVHeap* SRVHeap = GetSRVHeap();
+	CommandList->SetGraphicsRootDescriptorTable(0, SRVHeap->GetTexture2DSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(1, SRVHeap->GetTextureCubeSRVStart());
 	CommandList->SetGraphicsRootConstantBufferView(2, FrameResource->GetPassCB()->Resource()->GetGPUVirtualAddress());
 	CommandList->SetGraphicsRootConstantBufferView(3, FrameResource->GetGBufferInfoCB()->Resource()->GetGPUVirtualAddress());
 	CommandList->SetGraphicsRootShaderResourceView(4, FrameResource->GetDirectionalLightSB()->Resource()->GetGPUVirtualAddress());
@@ -415,21 +424,24 @@ void FDeferredShadingSceneRenderer::DrawDeferredShadingPass(
 
 void FDeferredShadingSceneRenderer::DrawGBuffers(ID3D12GraphicsCommandList* CommandList, FFrameResource* FrameResource)
 {
-	mGBuffers->TransitResourceBarrier(CommandList, "GBufferA", D3D12_RESOURCE_STATE_RENDER_TARGET);
-	mGBuffers->TransitResourceBarrier(CommandList, "GBufferB", D3D12_RESOURCE_STATE_RENDER_TARGET);
-	mGBuffers->TransitResourceBarrier(CommandList, "GBufferC", D3D12_RESOURCE_STATE_RENDER_TARGET);
-	mGBuffers->TransitDepthStencilResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-	mGBuffers->ClearRenderTarget(CommandList, "GBufferA");
-	mGBuffers->ClearRenderTarget(CommandList, "GBufferB");
-	mGBuffers->ClearRenderTarget(CommandList, "GBufferC");
-	mGBuffers->ClearDepthStencil(CommandList);
+	mGBufferA->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	mGBufferB->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	mGBufferC->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	mGBufferDepthStencil->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	mGBufferA->Clear(CommandList);
+	mGBufferB->Clear(CommandList);
+	mGBufferC->Clear(CommandList);
+	mGBufferDepthStencil->Clear(CommandList);
 
-	D3D12_CPU_DESCRIPTOR_HANDLE GBufferARtv = mGBuffers->GetRTV("GBufferA", 0);
-	D3D12_CPU_DESCRIPTOR_HANDLE GBufferDsv = mGBuffers->GetDSVHeap()->GetCPUDescriptorHandleForHeapStart();
-	CommandList->OMSetRenderTargets(3, &GBufferARtv, true, &GBufferDsv);
+	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> GBufferRTVs;
+	GBufferRTVs.push_back(mGBufferA->GetRTV(0));
+	GBufferRTVs.push_back(mGBufferB->GetRTV(0));
+	GBufferRTVs.push_back(mGBufferC->GetRTV(0));
+	D3D12_CPU_DESCRIPTOR_HANDLE GBufferDsv = mGBufferDepthStencil->GetDSV();
+	CommandList->OMSetRenderTargets(3, GBufferRTVs.data(), false, &GBufferDsv);
 
-	D3D12_VIEWPORT GBffuerViewport = mGBuffers->GetViewport();
-	D3D12_RECT GBufferScissoreRect = mGBuffers->GetScissorRect();
+	D3D12_VIEWPORT GBffuerViewport = mGBufferA->GetViewport();
+	D3D12_RECT GBufferScissoreRect = mGBufferA->GetScissorRect();
 	CommandList->RSSetViewports(1, &GBffuerViewport);
 	CommandList->RSSetScissorRects(1, &GBufferScissoreRect);
 
@@ -437,7 +449,8 @@ void FDeferredShadingSceneRenderer::DrawGBuffers(ID3D12GraphicsCommandList* Comm
 
 	CommandList->SetGraphicsRootSignature(mRootSignatures["GBufferPass"].Get());
 
-	ID3D12DescriptorHeap* DescriptorHeaps[] = { GetTextureManager()->GetSRVHeapPtr() };
+	FSRVHeap* SRVHeap = GetSRVHeap();
+	ID3D12DescriptorHeap* DescriptorHeaps[] = { SRVHeap->Get() };
 	CommandList->SetDescriptorHeaps(_countof(DescriptorHeaps), DescriptorHeaps);
 
 	ID3D12Resource* PassCB = FrameResource->GetPassCB()->Resource();
@@ -445,13 +458,13 @@ void FDeferredShadingSceneRenderer::DrawGBuffers(ID3D12GraphicsCommandList* Comm
 	// 1 : Mesh, 2 : Submesh 생략. DrawRenderItems에서 설정됨.
 	ID3D12Resource* MaterialSB = FrameResource->GetMaterialSB()->Resource();
 	CommandList->SetGraphicsRootShaderResourceView(3, MaterialSB->GetGPUVirtualAddress());
-	CommandList->SetGraphicsRootDescriptorTable(4, GetTextureManager()->GetTexture2DGPUSRVForHeapStart());
-	CommandList->SetGraphicsRootDescriptorTable(5, GetTextureManager()->GetTextureCubeGPUSRVForHeapStart());
+	CommandList->SetGraphicsRootDescriptorTable(4, SRVHeap->GetTexture2DSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTextureCubeSRVStart());
 
 	DrawRenderItems(FrameResource, CommandList, GetRenderItemManager()->GetRenderItems(ESM_DefaultLit, EBM_Opaque));
 
-	mGBuffers->TransitResourceBarrier(CommandList, "GBufferA", D3D12_RESOURCE_STATE_GENERIC_READ);
-	mGBuffers->TransitResourceBarrier(CommandList, "GBufferB", D3D12_RESOURCE_STATE_GENERIC_READ);
-	mGBuffers->TransitResourceBarrier(CommandList, "GBufferC", D3D12_RESOURCE_STATE_GENERIC_READ);
-	mGBuffers->TransitDepthStencilResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
+	mGBufferA->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
+	mGBufferB->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
+	mGBufferC->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
+	mGBufferDepthStencil->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
 }
