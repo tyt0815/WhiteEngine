@@ -8,7 +8,6 @@
 #include "Utility/Timer.h"
 #include "DirectX/SRVHeap.h"
 
-
 const int gFrameResourcesNum = FRAME_RESOURCES_NUM;
 
 FFrameResourceBase::FFrameResourceBase(ID3D12Device* Device)
@@ -23,8 +22,9 @@ FFrameResourceBase::FFrameResourceBase(ID3D12Device* Device)
 	mMeshConstantBuffer = std::make_unique<TUploadBuffer<FMeshConstantBuffer>>(Device, MESH_CB_NUM, true);
 	mSubmeshConstantBuffer = std::make_unique<TUploadBuffer<FSubmeshConstantBuffer>>(Device, SUBMESH_CB_NUM, true);
 	mLightInfoConstantBuffer = std::make_unique<TUploadBuffer<FLightInfoConstantBuffer>>(Device, 1, true);
+	mShadowMapCB = std::make_unique<TUploadBuffer<FShadowMapConstantBuffer>>(Device, 1, true);
 	mMaterialStructuredBuffer = std::make_unique<TUploadBuffer<FMaterialStructuredBuffer>>(Device, EMT_None, false);
-	mDirectionalLightStructuredBuffer = std::make_unique<TUploadBuffer<FDirectionalLight>>(Device, DIR_LIGHTS_NUM, false);
+	mDirectionalLightStructuredBuffer = std::make_unique<TUploadBuffer<FDirectionalLightSB>>(Device, DIR_LIGHTS_NUM, false);
 }
 
 FFrameResourceBase::~FFrameResourceBase()
@@ -48,7 +48,7 @@ void FFrameResourceBase::Flush()
 
 FSceneRenderer::FSceneRenderer()
 {
-	
+	mShadowMap = std::make_unique<FDepthStencil>(1920 * 2, 1080 * 2);
 }
 
 void FSceneRenderer::Initialize(ID3D12Device* Device)
@@ -98,6 +98,26 @@ void FSceneRenderer::BuildRootSignature()
 	RootParameter[2].InitAsDescriptorTable(1, &CubeTextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// CubeTextureTable
 
 	FDXUtility::BuildRootSignature(RootParameter, ROOT_PARAMETERs_NUM, mRootSignatures["DrawRectPass"].GetAddressOf());
+
+	BuildShadowMapPassRootSignature();
+}
+
+void FSceneRenderer::BuildShadowMapPassRootSignature()
+{
+	D3D12_DESCRIPTOR_RANGE TextureTable = GetTextureManager()->GetTexture2DDescriptorRange();
+	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
+
+	// Tip: 자주 사용되는 것일수록 작은 인덱스에 보관하는게 퍼포먼스가 좋음
+	constexpr UINT ROOT_PARAMETERs_NUM = 6;
+	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERs_NUM];
+	RootParameter[0].InitAsConstantBufferView(0);		// ShadowMapCB
+	RootParameter[1].InitAsConstantBufferView(1);		// MeshCB
+	RootParameter[2].InitAsConstantBufferView(2);		// SubmeshCB
+	RootParameter[3].InitAsShaderResourceView(0, 2);		// MaterialSB
+	RootParameter[4].InitAsDescriptorTable(1, &TextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// TextureTable
+	RootParameter[5].InitAsDescriptorTable(1, &CubeTextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// CubeTextureTable
+
+	FDXUtility::BuildRootSignature(RootParameter, ROOT_PARAMETERs_NUM, mRootSignatures["ShadowMapPass"].GetAddressOf());
 }
 
 void FSceneRenderer::BuildShadersAndInputLayouts()
@@ -122,6 +142,18 @@ void FSceneRenderer::BuildShadersAndInputLayouts()
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 32, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 	};
+
+	BuildShadowMapShaders();
+}
+
+void FSceneRenderer::BuildShadowMapShaders()
+{
+	mShaders["ShadowMapPassVertexShader"] = FDXUtility::CompileShader(
+		L"Shaders\\ShadowMapPassVertexShader.sf",
+		nullptr,
+		"MainVS",
+		"vs_5_1"
+	);\
 }
 
 void FSceneRenderer::BuildPipelineStates(ID3D12Device* Device)
@@ -157,6 +189,35 @@ void FSceneRenderer::BuildPipelineStates(ID3D12Device* Device)
 			IID_PPV_ARGS(mPipelineStates["DrawRectPass"].GetAddressOf())
 		)
 	);
+
+	BuildShadowMapPassPipelineStates(Device);
+}
+
+void FSceneRenderer::BuildShadowMapPassPipelineStates(ID3D12Device* Device)
+{
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC ShadowMapPassPipelineState;
+	ZeroMemory(&ShadowMapPassPipelineState, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+	ShadowMapPassPipelineState.InputLayout = { mInputLayouts["MeshGeometryPass"].data(), (UINT)mInputLayouts["MeshGeometryPass"].size()};
+	ShadowMapPassPipelineState.pRootSignature = mRootSignatures["ShadowMapPass"].Get();
+	ShadowMapPassPipelineState.VS =
+	{
+		reinterpret_cast<BYTE*>(mShaders["ShadowMapPassVertexShader"]->GetBufferPointer()),
+		mShaders["ShadowMapPassVertexShader"]->GetBufferSize()
+	};
+	ShadowMapPassPipelineState.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	ShadowMapPassPipelineState.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	ShadowMapPassPipelineState.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	ShadowMapPassPipelineState.SampleMask = UINT_MAX;
+	ShadowMapPassPipelineState.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	ShadowMapPassPipelineState.SampleDesc.Count = 1;
+	ShadowMapPassPipelineState.SampleDesc.Quality = 0;
+	ShadowMapPassPipelineState.DSVFormat = mShadowMap->GetFormat();
+	THROW_IF_FAILED(
+		Device->CreateGraphicsPipelineState(
+			&ShadowMapPassPipelineState,
+			IID_PPV_ARGS(mPipelineStates["ShadowMapPass"].GetAddressOf())
+		)
+	);
 }
 
 void FSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* FrameResource)
@@ -165,6 +226,7 @@ void FSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* FrameResource)
 	UpdateMeshCB(FrameResource->GetMeshCB());
 	UpdateSubmeshCB(FrameResource->GetSubmeshCB());
 	UpdateLightInfoCB(FrameResource->GetLightInfoCB());
+	UpdateShadowMapCB(FrameResource->GetShadowMapCB());
 	UpdateMaterialSB(FrameResource->GetMaterialSB());
 	UpdateDirectionalLightSB(FrameResource->GetDirectionalLightSB());
 }
@@ -198,6 +260,35 @@ void FSceneRenderer::DrawRectPass(
 	CommandList->SetGraphicsRootDescriptorTable(2, SRVHeap->GetTextureCubeSRVStart());
 
 	DrawRect(CommandList);
+}
+
+void FSceneRenderer::DrawShadowMap(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource)
+{
+	mShadowMap->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	mShadowMap->Clear(CommandList);
+	D3D12_CPU_DESCRIPTOR_HANDLE Dsv = mShadowMap->GetDSV();
+	CommandList->OMSetRenderTargets(0, nullptr, false, &Dsv);
+
+	D3D12_VIEWPORT Viewport = mShadowMap->GetViewport();
+	D3D12_RECT ScissorRect = mShadowMap->GetScissorRect();
+	CommandList->RSSetViewports(1, &Viewport);
+	CommandList->RSSetScissorRects(1, &ScissorRect);
+
+	CommandList->SetPipelineState(mPipelineStates["ShadowMapPass"].Get());
+
+	FSRVHeap* SRVHeap = GetSRVHeap();
+	ID3D12DescriptorHeap* DescriptorHeaps[] = { SRVHeap->Get() };
+	CommandList->SetDescriptorHeaps(_countof(DescriptorHeaps), DescriptorHeaps);
+
+	CommandList->SetGraphicsRootSignature(mRootSignatures["ShadowMapPass"].Get());
+	CommandList->SetGraphicsRootConstantBufferView(0, FrameResource->GetShadowMapCB()->Resource()->GetGPUVirtualAddress());
+	CommandList->SetGraphicsRootShaderResourceView(3, FrameResource->GetMaterialSB()->Resource()->GetGPUVirtualAddress());
+	CommandList->SetGraphicsRootDescriptorTable(4, SRVHeap->GetTexture2DSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTextureCubeSRVStart());
+
+	DrawRenderItems(FrameResource, CommandList, GetRenderItemManager()->GetRenderItems(ESM_DefaultLit, EBM_Opaque));
+
+	mShadowMap->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
 }
 
 void FSceneRenderer::ClearRenderTargetAndDepthStencil(
@@ -420,9 +511,52 @@ void FSceneRenderer::UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* Subm
 void FSceneRenderer::UpdateLightInfoCB(TUploadBuffer<FLightInfoConstantBuffer>* LightInfoConstantBuffer)
 {
 	FLightInfoConstantBuffer LightInfoCB;
-	LightInfoCB.DirectionalLightNum = 1;
+	LightInfoCB.DirectionalLightNum = min(1, DIR_LIGHTS_NUM);
 
 	LightInfoConstantBuffer->CopyData(0, LightInfoCB);
+}
+
+void FSceneRenderer::UpdateShadowMapCB(TUploadBuffer<FShadowMapConstantBuffer>* ShadowMapConstantBuffer)
+{
+	// TODO: 하드코딩됨
+
+	float SphereRadius = sqrtf(10 * 10 + 15 * 15);
+	// 첫번째 광원만 그림자를 드리운다.
+	XMVECTOR LightDirection = XMVectorSet(0.57735f, -0.57735f, 0.57735f, 0);
+	XMVECTOR LightPosition = -2.0f * SphereRadius * LightDirection;
+	XMVECTOR TargetPosition = XMVectorSet(0, 0, 0, 0);
+	XMVECTOR LightUp = XMVectorSet(0, 1, 0, 0);
+	XMMATRIX LightView = XMMatrixLookAtLH(LightPosition, TargetPosition, LightUp);
+	
+	// 경계구를 광원 공간으로 변환한다.
+	XMFLOAT3 SphereCenterLS;
+	XMStoreFloat3(&SphereCenterLS, XMVector3TransformCoord(TargetPosition, LightView));
+
+	// 장면을 감싸는 광원 공간 직교투영 시야 입체
+	float l = SphereCenterLS.x - SphereRadius;
+	float b = SphereCenterLS.y - SphereRadius;
+	float n = SphereCenterLS.z - SphereRadius;
+	float r = SphereCenterLS.x + SphereRadius;
+	float t = SphereCenterLS.y + SphereRadius;
+	float f = SphereCenterLS.z + SphereRadius;
+
+	XMMATRIX LightProj = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
+
+	XMMATRIX T(
+		0.5f, 0.0f, 0.0f, 0.0f,
+		0.0f, -0.5f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.5f, 0.5f, 0.0f, 1.0f
+	);
+
+	XMMATRIX S = LightView * LightProj * T;
+
+
+
+	FShadowMapConstantBuffer ShadowMapCB;
+	XMStoreFloat4x4(&ShadowMapCB.ViewProj, XMMatrixTranspose(LightView * LightProj));
+	XMStoreFloat4x4(&ShadowMapCB.ShadowTransform, XMMatrixTranspose(S));
+	ShadowMapConstantBuffer->CopyData(0, ShadowMapCB);
 }
 
 void FSceneRenderer::UpdateMaterialSB(TUploadBuffer<FMaterialStructuredBuffer>* MaterialStructuredBuffer)
@@ -446,10 +580,10 @@ void FSceneRenderer::UpdateMaterialSB(TUploadBuffer<FMaterialStructuredBuffer>* 
 	}
 }
 
-void FSceneRenderer::UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLight>* DirectionalLightStructuredBuffer)
+void FSceneRenderer::UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightSB>* DirectionalLightStructuredBuffer)
 {
 	// TODO: 임시코드.
-	FDirectionalLight DirectionalLight;
+	FDirectionalLightSB DirectionalLight;
 	DirectionalLight.Direction = { 0.57735f, -0.57735f, 0.57735f };
 	DirectionalLight.Color = { 1.0f, 1.0f, 1.0f };
 	DirectionalLightStructuredBuffer->CopyData(0, DirectionalLight);

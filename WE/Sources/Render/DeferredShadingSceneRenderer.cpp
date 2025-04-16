@@ -279,6 +279,8 @@ void FDeferredShadingSceneRenderer::BuildDebugPassPipelineStates(ID3D12Device* D
 void FDeferredShadingSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* FrameResource)
 {
 	Super::UpdateFrameBuffers(FrameResource);
+
+	FFrameResource* Fr = dynamic_cast<FFrameResource*>(FrameResource);
 }
 
 void FDeferredShadingSceneRenderer::UpdateGBufferInfoCB(TUploadBuffer<FGBufferInfoConstantBuffer>* GBufferInfoCB)
@@ -296,6 +298,7 @@ void FDeferredShadingSceneRenderer::Render(ID3D12GraphicsCommandList* CommandLis
 	FFrameResource* FrameResource = dynamic_cast<FFrameResource*>(FrameResourceBase);
 
 	DrawGBuffers(CommandList, FrameResource);
+	DrawShadowMap(CommandList, FrameResource);
 
 	ReadyBackBuffer(CommandList);
 	D3D12_CPU_DESCRIPTOR_HANDLE BackBufferView = GetDXResourceManagerPtr()->GetCurrentBackBufferView();
@@ -323,6 +326,15 @@ void FDeferredShadingSceneRenderer::Render(ID3D12GraphicsCommandList* CommandLis
 		BackBufferView,
 		BackBufferDsv,
 		FDXUtility::GetQuadrantViewport(DebugScreenViewport, 4),
+		"DebugDepthPass"
+	);
+
+	DrawRectPass(
+		CommandList,
+		mShadowMap->GetSRVHeapIndex(),
+		BackBufferView,
+		BackBufferDsv,
+		FDXUtility::GetQuadrantViewport(FDXUtility::GetQuadrantViewport(BackBufferViewport, 4), 4),
 		"DebugDepthPass"
 	);
 

@@ -203,9 +203,6 @@
     <ClCompile Include="Sources\Render\DepthStencil.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Render\ShadowMapRenderer.cpp">
-      <Filter>Sources\Render</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -361,9 +358,6 @@
     <ClInclude Include="Sources\DirectX\RTVHeap.h">
       <Filter>Sources\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Render\ShadowMapRenderer.h">
-      <Filter>Sources\Render</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\BillboardCommon.sh">
@@ -463,6 +457,12 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shaders\DebugVectorPassPixelShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\ShadowMapPassCommon.sh">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\ShadowMapPassVertexShader.sf">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

@@ -12,6 +12,7 @@ class FDeferredShadingSceneRenderer final : public FSceneRenderer
         UINT GBufferCIndex;
         UINT DepthBufferIndex;
     };
+
 private:
     typedef FSceneRenderer Super;
     class FFrameResource : public FFrameResourceBase

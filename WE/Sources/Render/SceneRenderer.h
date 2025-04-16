@@ -9,16 +9,17 @@
 #include "UploadBuffer.h"
 #include "Utility/Class.h"
 #include "Utility/String.h"
+#include "DepthStencil.h"
 
 extern const int gFrameResourcesNum;
 constexpr int FRAME_RESOURCES_NUM = 3;
 
-constexpr int DIR_LIGHTS_NUM = 32;
+constexpr int DIR_LIGHTS_NUM = 3;
 // CosntantBuffer
 constexpr int MESH_CB_NUM = 512;
 constexpr int SUBMESH_CB_NUM = 1024;
 
-struct FDirectionalLight
+struct FDirectionalLightSB
 {
     XMFLOAT3 Direction;
     UINT Pad1;
@@ -87,6 +88,12 @@ struct FMaterialStructuredBuffer
     DirectX::XMFLOAT4X4 MatTransform = FDXMath::Identity4x4();
 };
 
+struct FShadowMapConstantBuffer
+{
+    XMFLOAT4X4 ViewProj;
+    XMFLOAT4X4 ShadowTransform;
+};
+
 class FFrameResourceBase : FNoncopyable
 {
 public:
@@ -101,8 +108,9 @@ private:
     std::unique_ptr<TUploadBuffer<FMeshConstantBuffer>> mMeshConstantBuffer;
     std::unique_ptr<TUploadBuffer<FSubmeshConstantBuffer>> mSubmeshConstantBuffer;
     std::unique_ptr<TUploadBuffer<FLightInfoConstantBuffer>> mLightInfoConstantBuffer;
+    std::unique_ptr<TUploadBuffer<FShadowMapConstantBuffer>> mShadowMapCB;
     std::unique_ptr<TUploadBuffer<FMaterialStructuredBuffer>> mMaterialStructuredBuffer;
-    std::unique_ptr<TUploadBuffer<FDirectionalLight>> mDirectionalLightStructuredBuffer;
+    std::unique_ptr<TUploadBuffer<FDirectionalLightSB>> mDirectionalLightStructuredBuffer;
     UINT64 mFenceCount = 0;
 
 public:
@@ -134,11 +142,15 @@ public:
     {
         return mLightInfoConstantBuffer.get();
     }
+    inline TUploadBuffer<FShadowMapConstantBuffer>* GetShadowMapCB() const
+    {
+        return mShadowMapCB.get();
+    }
     inline TUploadBuffer<FMaterialStructuredBuffer>* GetMaterialSB() const
     {
         return mMaterialStructuredBuffer.get();
     }
-    inline TUploadBuffer<FDirectionalLight>* GetDirectionalLightSB() const
+    inline TUploadBuffer<FDirectionalLightSB>* GetDirectionalLightSB() const
     {
         return mDirectionalLightStructuredBuffer.get();
     }
@@ -158,8 +170,11 @@ protected:
     template<typename T>
     void CreateFrameResources_Internal(ID3D12Device* Device);
     virtual void BuildRootSignature();
+    void BuildShadowMapPassRootSignature();
     virtual void BuildShadersAndInputLayouts();
+    void BuildShadowMapShaders();
     virtual void BuildPipelineStates(ID3D12Device* Device);
+    void BuildShadowMapPassPipelineStates(ID3D12Device* Device);
     virtual void UpdateFrameBuffers(FFrameResourceBase* FrameResource);
     virtual void Render(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource) = 0;
 
@@ -172,6 +187,7 @@ protected:
         std::string PipelineStateName = "DrawRectPass"
     );
     
+    void DrawShadowMap(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource);
 
     void ClearRenderTargetAndDepthStencil(
         ID3D12GraphicsCommandList* CommandList,
@@ -191,6 +207,7 @@ protected:
     // BackBuffer와 DepthStencilBuffer를 Present하기 위한 상태로 전이한다.
     void FinishBackBuffer(ID3D12GraphicsCommandList* CommandList);
 
+    std::unique_ptr<FDepthStencil> mShadowMap;
     std::array<std::unique_ptr<FFrameResourceBase>, FRAME_RESOURCES_NUM> mFrameResources;
     std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D12RootSignature>> mRootSignatures;
     std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3DBlob>> mShaders;
@@ -206,8 +223,9 @@ private:
     void UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConstantBuffer);
     void UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshConstantBuffer);
     void UpdateLightInfoCB(TUploadBuffer<FLightInfoConstantBuffer>* LightInfoConstantBuffer);
+    void UpdateShadowMapCB(TUploadBuffer<FShadowMapConstantBuffer>* ShadowMapConstantBuffer);
     void UpdateMaterialSB(TUploadBuffer<FMaterialStructuredBuffer>* MaterialStructuredBuffer);
-    void UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLight>* DirectionalLightStructuredBuffer);
+    void UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightSB>* DirectionalLightStructuredBuffer);
 
 public:
     inline FFrameResourceBase* GetTargetFrameResource() const

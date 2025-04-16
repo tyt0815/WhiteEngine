@@ -65,6 +65,13 @@ cbuffer LightInfoCB : register(b)\
     uint gLightInfoPad1;\
 };
 
+#define DECLARE_SHADOWMAP_CB(b)\
+cbuffer ShadowMapCB : register(b)\
+{\
+    float4x4 gLightViewProj;\
+    float4x4 gShadowTransform;\
+};
+
 #define DECLARE_SUBMESH_CB(b)\
 cbuffer SubmeshCB : register(b)\
 {\
