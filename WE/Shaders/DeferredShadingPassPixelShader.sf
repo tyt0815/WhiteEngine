@@ -28,7 +28,7 @@ float4 MainPS(
     float3 Lo = (float3) 0.0f;
     
     // Directional light °è»ê
-    for (uint i = 0; i < gDirLightNum; ++i)
+    for (uint i = 0; i < gDirectionalLightNum; ++i)
     {
          Lo += ComputeDirectionalLight(gDirectionalLights[i], Material, V, WorldNormal, F0);
     }

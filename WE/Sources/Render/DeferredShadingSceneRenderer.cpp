@@ -59,13 +59,14 @@ void FDeferredShadingSceneRenderer::BuildDeferredShadingPassRootSignature()
 {
 	D3D12_DESCRIPTOR_RANGE TextureTable = GetTextureManager()->GetTexture2DDescriptorRange();
 	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
-	constexpr UINT ROOT_PARAMETERS_NUM = 5;
+	constexpr UINT ROOT_PARAMETERS_NUM = 6;
 	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERS_NUM];
 	RootParameter[0].InitAsDescriptorTable(1, &TextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// TextureTable
 	RootParameter[1].InitAsDescriptorTable(1, &CubeTextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// CubeTextureTable
 	RootParameter[2].InitAsConstantBufferView(0);	// Pass CB
-	RootParameter[3].InitAsConstantBufferView(1);		// GBufferIndices
-	RootParameter[4].InitAsShaderResourceView(0, 3);	// DirLightSB
+	RootParameter[3].InitAsConstantBufferView(1);		// LightInfoCB
+	RootParameter[4].InitAsConstantBufferView(2);		// GBufferIndices
+	RootParameter[5].InitAsShaderResourceView(0, 3);	// DirLightSB
 
 	FDXUtility::BuildRootSignature(RootParameter, ROOT_PARAMETERS_NUM, mRootSignatures["DeferredShadingPass"].GetAddressOf());
 }
@@ -417,8 +418,9 @@ void FDeferredShadingSceneRenderer::DrawDeferredShadingPass(
 	CommandList->SetGraphicsRootDescriptorTable(0, SRVHeap->GetTexture2DSRVStart());
 	CommandList->SetGraphicsRootDescriptorTable(1, SRVHeap->GetTextureCubeSRVStart());
 	CommandList->SetGraphicsRootConstantBufferView(2, FrameResource->GetPassCB()->Resource()->GetGPUVirtualAddress());
-	CommandList->SetGraphicsRootConstantBufferView(3, FrameResource->GetGBufferInfoCB()->Resource()->GetGPUVirtualAddress());
-	CommandList->SetGraphicsRootShaderResourceView(4, FrameResource->GetDirectionalLightSB()->Resource()->GetGPUVirtualAddress());
+	CommandList->SetGraphicsRootConstantBufferView(3, FrameResource->GetLightInfoCB()->Resource()->GetGPUVirtualAddress());
+	CommandList->SetGraphicsRootConstantBufferView(4, FrameResource->GetGBufferInfoCB()->Resource()->GetGPUVirtualAddress());
+	CommandList->SetGraphicsRootShaderResourceView(5, FrameResource->GetDirectionalLightSB()->Resource()->GetGPUVirtualAddress());
 	DrawRect(CommandList);
 }
 

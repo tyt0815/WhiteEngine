@@ -22,6 +22,7 @@ FFrameResourceBase::FFrameResourceBase(ID3D12Device* Device)
 	mPassConstantBuffer = std::make_unique<TUploadBuffer<FPassConstantBuffer>>(Device, 1, true);
 	mMeshConstantBuffer = std::make_unique<TUploadBuffer<FMeshConstantBuffer>>(Device, MESH_CB_NUM, true);
 	mSubmeshConstantBuffer = std::make_unique<TUploadBuffer<FSubmeshConstantBuffer>>(Device, SUBMESH_CB_NUM, true);
+	mLightInfoConstantBuffer = std::make_unique<TUploadBuffer<FLightInfoConstantBuffer>>(Device, 1, true);
 	mMaterialStructuredBuffer = std::make_unique<TUploadBuffer<FMaterialStructuredBuffer>>(Device, EMT_None, false);
 	mDirectionalLightStructuredBuffer = std::make_unique<TUploadBuffer<FDirectionalLight>>(Device, DIR_LIGHTS_NUM, false);
 }
@@ -163,6 +164,7 @@ void FSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* FrameResource)
 	UpdatePassCB(FrameResource->GetPassCB());
 	UpdateMeshCB(FrameResource->GetMeshCB());
 	UpdateSubmeshCB(FrameResource->GetSubmeshCB());
+	UpdateLightInfoCB(FrameResource->GetLightInfoCB());
 	UpdateMaterialSB(FrameResource->GetMaterialSB());
 	UpdateDirectionalLightSB(FrameResource->GetDirectionalLightSB());
 }
@@ -364,7 +366,6 @@ void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConsta
 	PassConstants.FogColor = XMFLOAT4(Colors::LightSkyBlue);
 	PassConstants.FogStart = 200.0f;
 	PassConstants.FogRange = 100.0f;
-	PassConstants.DirLightNum = 1;
 
 	PassConstantBuffer->CopyData(0, PassConstants);
 }
@@ -414,6 +415,14 @@ void FSceneRenderer::UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* Subm
 			}
 		}
 	}
+}
+
+void FSceneRenderer::UpdateLightInfoCB(TUploadBuffer<FLightInfoConstantBuffer>* LightInfoConstantBuffer)
+{
+	FLightInfoConstantBuffer LightInfoCB;
+	LightInfoCB.DirectionalLightNum = 1;
+
+	LightInfoConstantBuffer->CopyData(0, LightInfoCB);
 }
 
 void FSceneRenderer::UpdateMaterialSB(TUploadBuffer<FMaterialStructuredBuffer>* MaterialStructuredBuffer)

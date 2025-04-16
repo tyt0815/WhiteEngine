@@ -48,8 +48,8 @@ struct FPassConstantBuffer
     DirectX::XMFLOAT4 FogColor;
     float FogStart;
     float FogRange;
-    UINT DirLightNum;
     UINT Pad1;
+    UINT Pad2;
 };
 
 // register(b1)
@@ -65,6 +65,15 @@ struct FSubmeshConstantBuffer
     UINT MaterialIndex;
     UINT SkyIrradianceCubeMapIndex;
     UINT SkySpecularCubeMapIndex;
+    UINT Pad1;
+};
+
+// register(b3)
+struct FLightInfoConstantBuffer
+{
+    UINT DirectionalLightNum;
+    UINT PointLightNum;
+    UINT SpotLightNum;
     UINT Pad1;
 };
 
@@ -91,6 +100,7 @@ private:
     std::unique_ptr<TUploadBuffer<FPassConstantBuffer>> mPassConstantBuffer;
     std::unique_ptr<TUploadBuffer<FMeshConstantBuffer>> mMeshConstantBuffer;
     std::unique_ptr<TUploadBuffer<FSubmeshConstantBuffer>> mSubmeshConstantBuffer;
+    std::unique_ptr<TUploadBuffer<FLightInfoConstantBuffer>> mLightInfoConstantBuffer;
     std::unique_ptr<TUploadBuffer<FMaterialStructuredBuffer>> mMaterialStructuredBuffer;
     std::unique_ptr<TUploadBuffer<FDirectionalLight>> mDirectionalLightStructuredBuffer;
     UINT64 mFenceCount = 0;
@@ -119,6 +129,10 @@ public:
     inline TUploadBuffer<FSubmeshConstantBuffer>* GetSubmeshCB() const
     {
         return mSubmeshConstantBuffer.get();
+    }
+    inline TUploadBuffer<FLightInfoConstantBuffer>* GetLightInfoCB() const
+    {
+        return mLightInfoConstantBuffer.get();
     }
     inline TUploadBuffer<FMaterialStructuredBuffer>* GetMaterialSB() const
     {
@@ -191,6 +205,7 @@ private:
     void UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuffer);
     void UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConstantBuffer);
     void UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshConstantBuffer);
+    void UpdateLightInfoCB(TUploadBuffer<FLightInfoConstantBuffer>* LightInfoConstantBuffer);
     void UpdateMaterialSB(TUploadBuffer<FMaterialStructuredBuffer>* MaterialStructuredBuffer);
     void UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLight>* DirectionalLightStructuredBuffer);
 

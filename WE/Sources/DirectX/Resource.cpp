@@ -24,7 +24,7 @@ D3D12_VIEWPORT FResource::GetViewport() const
 	D3D12_RESOURCE_DESC Desc = GetDesc();
 	Viewport.Width = static_cast<float>(Desc.Width);
 	Viewport.Height = static_cast<float>(Desc.Height);
-	Viewport.MaxDepth = 1.0f;
+	Viewport.MaxDepth = 1.0f; 
 	return Viewport;
 }
 

@@ -45,8 +45,8 @@ cbuffer PassCB : register(b)\
     float4 gFogColor;\
     float gFogStart;\
     float gFogRange;\
-    uint gDirLightNum;\
     uint PassCBPad1;\
+    uint PassCBPad2;\
 };\
 
 #define DECLARE_MESH_CB(b)\
@@ -54,6 +54,15 @@ cbuffer MeshCB : register(b)\
 {\
     float4x4 gWorld;\
     float4x4 gInvTransposeWorld;\
+};
+
+#define DECLARE_LIGHTINFO_CB(b)\
+cbuffer LightInfoCB : register(b)\
+{\
+    uint gDirectionalLightNum;\
+    uint gPointLightNum;\
+    uint gSpotLightNum;\
+    uint gLightInfoPad1;\
 };
 
 #define DECLARE_SUBMESH_CB(b)\

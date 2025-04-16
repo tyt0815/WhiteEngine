@@ -51,6 +51,7 @@
     <ClCompile Include="Sources\Render\RenderItemManager.cpp" />
     <ClCompile Include="Sources\Render\RenderTarget.cpp" />
     <ClCompile Include="Sources\Render\SceneRenderer.cpp" />
+    <ClCompile Include="Sources\Render\ShadowMapRenderer.cpp" />
     <ClCompile Include="Sources\Render\ShapeDrawer.cpp" />
     <ClCompile Include="Sources\Render\StaticMesh.cpp" />
     <ClCompile Include="Sources\Render\Texture.cpp" />
@@ -100,6 +101,7 @@
     <ClInclude Include="Sources\Render\RenderItemManager.h" />
     <ClInclude Include="Sources\Render\RenderTarget.h" />
     <ClInclude Include="Sources\Render\SceneRenderer.h" />
+    <ClInclude Include="Sources\Render\ShadowMapRenderer.h" />
     <ClInclude Include="Sources\Render\ShapeDrawer.h" />
     <ClInclude Include="Sources\Render\StaticMesh.h" />
     <ClInclude Include="Sources\Render\Texture.h" />

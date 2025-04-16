@@ -6,8 +6,9 @@
 StructuredBuffer<FDirectionalLight> gDirectionalLights : register(t0, space3);
 
 DECLARE_PASS_CB(b0);
+DECLARE_LIGHTINFO_CB(b1);
 
-cbuffer GBufferInfo : register(b1)
+cbuffer GBufferInfo : register(b2)
 {
     uint gGBufferATextureIndex;
     uint gGBufferBTextureIndex;
