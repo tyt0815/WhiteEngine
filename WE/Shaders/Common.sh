@@ -2,8 +2,11 @@
 #define COMMON_SH
 #include "Math.sh"
 
+#ifndef TEXTURES
+#define TEXTURES
 Texture2D gTexture[1024] : register(t0, space0);
 TextureCube gTextureCube[1024] : register(t0, space1);
+#endif
 
 SamplerState gsamPointWrap : register(s0);
 SamplerState gsamPointClamp : register(s1);
@@ -56,6 +59,15 @@ cbuffer MeshCB : register(b)\
     float4x4 gInvTransposeWorld;\
 };
 
+#define DECLARE_SUBMESH_CB(b)\
+cbuffer SubmeshCB : register(b)\
+{\
+    uint gMaterialIndex;\
+    uint gSkyIrradianceCubeMapIndex;\
+    uint gPrefilteredSkyCubeMapIndex;\
+    uint gPadOfSubmeshCB1;\
+};\
+
 #define DECLARE_LIGHTINFO_CB(b)\
 cbuffer LightInfoCB : register(b)\
 {\
@@ -71,15 +83,6 @@ cbuffer ShadowMapCB : register(b)\
     float4x4 gLightViewProj;\
     float4x4 gShadowTransform;\
 };
-
-#define DECLARE_SUBMESH_CB(b)\
-cbuffer SubmeshCB : register(b)\
-{\
-    uint gMaterialIndex;\
-    uint gSkyIrradianceCubeMapIndex;\
-    uint gPrefilteredSkyCubeMapIndex;\
-    uint gPadOfSubmeshCB1;\
-};\
 
 struct FVertexInput
 {

@@ -22,7 +22,7 @@ constexpr int SUBMESH_CB_NUM = 1024;
 struct FDirectionalLightSB
 {
     XMFLOAT3 Direction;
-    UINT Pad1;
+    UINT ShadowMapIndex;
     XMFLOAT3 Color;
     UINT Pad2;
 };

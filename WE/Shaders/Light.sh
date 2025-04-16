@@ -16,10 +16,18 @@
 #define SPOT_LIGHTS_NUM 0
 #endif
 
+#ifndef TEXTURES
+#define TEXTURES
+Texture2D gTexture[1024] : register(t0, space0);
+TextureCube gTextureCube[1024] : register(t0, space1);
+#endif
+
+SamplerComparisonState gsamShadowMap : register(s6);
+
 struct FDirectionalLight
 {
     float3 Direction;
-    uint Pad1;
+    uint ShadowMapIndex;
     float3 Color;
     uint Pad2;
 };
@@ -59,6 +67,34 @@ float GeometrySchlickGGX(float NdotV, float Roughness)
     return Num / Denom;
 }
 
+float CalculateShadowFactor(float4 ShadowPositionH, in Texture2D ShadowMap)
+{
+    ShadowPositionH.xyz /= ShadowPositionH.w;
+    float Depth = ShadowPositionH.z;
+    
+    uint Width;
+    uint Height;
+    uint NumMips;
+    ShadowMap.GetDimensions(0, Width, Height, NumMips);
+    
+    float dx = 1.0f / Width;
+    float PercentLit = 0.0f;
+    const float2 Offsets[9] =
+    {
+        float2(-dx, -dx), float2(0.0f, -dx), float2(dx, -dx),
+        float2(-dx, 0.0f), float2(0.0f, 0.0f), float2(dx, 0.0f),
+        float2(-dx, dx), float2(0.0f, dx), float2(dx, dx)
+    };
+    
+    [unroll]
+    for (int i = 0; i < 9; ++i)
+    {
+        PercentLit += ShadowMap.SampleCmpLevelZero(gsamShadowMap, ShadowPositionH.xy + Offsets[i], Depth).r;
+    }
+    
+    return PercentLit / 9.0f;
+}
+
 float GeometrySmith(float3 N, float3 V, float3 L, float Roughness)
 {
     float NdotV = max(dot(N, V), 0.0);
@@ -82,6 +118,7 @@ float3 ComputeDirectionalLight(
     float3 F0
 )
 {
+    
     float3 L = normalize(-Light.Direction);
     float3 H = normalize(V + L);
     

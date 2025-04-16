@@ -16,4 +16,6 @@ cbuffer GBufferInfo : register(b2)
     uint gDepthTextureIndex;
 }
 
+DECLARE_SHADOWMAP_CB(b3);
+
 #endif

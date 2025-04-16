@@ -30,7 +30,9 @@ float4 MainPS(
     // Directional light °è»ê
     for (uint i = 0; i < gDirectionalLightNum; ++i)
     {
-         Lo += ComputeDirectionalLight(gDirectionalLights[i], Material, V, WorldNormal, F0);
+        float4 ShadowPosH = mul(float4(WorldPosition, 1.0f), gShadowTransform);
+        float ShadowFactor = CalculateShadowFactor(ShadowPosH, gTexture[gDirectionalLights[i].ShadowMapIndex]);
+        Lo += ShadowFactor * ComputeDirectionalLight(gDirectionalLights[i], Material, V, WorldNormal, F0);
     }
     
     // float3 F = FresnelSchlickRoughness(max(dot(WorldNormal, V), 0.0f), F0, Material.Roughness);

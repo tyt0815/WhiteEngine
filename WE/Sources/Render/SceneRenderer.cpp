@@ -205,6 +205,9 @@ void FSceneRenderer::BuildShadowMapPassPipelineStates(ID3D12Device* Device)
 		mShaders["ShadowMapPassVertexShader"]->GetBufferSize()
 	};
 	ShadowMapPassPipelineState.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	ShadowMapPassPipelineState.RasterizerState.DepthBias = 10000;
+	ShadowMapPassPipelineState.RasterizerState.DepthBiasClamp = 0.0f;
+	ShadowMapPassPipelineState.RasterizerState.SlopeScaledDepthBias = 1.0f;
 	ShadowMapPassPipelineState.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	ShadowMapPassPipelineState.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 	ShadowMapPassPipelineState.SampleMask = UINT_MAX;
@@ -520,7 +523,7 @@ void FSceneRenderer::UpdateShadowMapCB(TUploadBuffer<FShadowMapConstantBuffer>* 
 {
 	// TODO: 하드코딩됨
 
-	float SphereRadius = sqrtf(10 * 10 + 15 * 15);
+	float SphereRadius = sqrtf(100 * 100);
 	// 첫번째 광원만 그림자를 드리운다.
 	XMVECTOR LightDirection = XMVectorSet(0.57735f, -0.57735f, 0.57735f, 0);
 	XMVECTOR LightPosition = -2.0f * SphereRadius * LightDirection;
@@ -550,8 +553,6 @@ void FSceneRenderer::UpdateShadowMapCB(TUploadBuffer<FShadowMapConstantBuffer>* 
 	);
 
 	XMMATRIX S = LightView * LightProj * T;
-
-
 
 	FShadowMapConstantBuffer ShadowMapCB;
 	XMStoreFloat4x4(&ShadowMapCB.ViewProj, XMMatrixTranspose(LightView * LightProj));
@@ -586,6 +587,7 @@ void FSceneRenderer::UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightSB>
 	FDirectionalLightSB DirectionalLight;
 	DirectionalLight.Direction = { 0.57735f, -0.57735f, 0.57735f };
 	DirectionalLight.Color = { 1.0f, 1.0f, 1.0f };
+	DirectionalLight.ShadowMapIndex = mShadowMap->GetSRVHeapIndex();
 	DirectionalLightStructuredBuffer->CopyData(0, DirectionalLight);
 }
 
