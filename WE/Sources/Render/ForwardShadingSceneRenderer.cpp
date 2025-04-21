@@ -42,8 +42,8 @@ void FForwardShadingSceneRenderer::Render(
 	ID3D12Resource* DirLightSB = FrameResource->GetDirectionalLightSB()->Resource();
 	CommandList->SetGraphicsRootShaderResourceView(3, MaterialSB->GetGPUVirtualAddress());
 	CommandList->SetGraphicsRootShaderResourceView(4, DirLightSB->GetGPUVirtualAddress());
-	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTexture2DSRVStart());
-	CommandList->SetGraphicsRootDescriptorTable(6, SRVHeap->GetTextureCubeSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTexture2DGPUSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(6, SRVHeap->GetTextureCubeGPUSRVStart());
 	if (bWireFrame)
 	{
 		// TODO

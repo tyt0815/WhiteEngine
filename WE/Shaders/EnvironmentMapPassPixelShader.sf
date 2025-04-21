@@ -1,4 +1,4 @@
-#include "SkyCubeMapCommon.sh"
+#include "EnvironmentMapPassCommon.sh"
 
 float4 MainPS(
     float3 PosL : POSITION0,

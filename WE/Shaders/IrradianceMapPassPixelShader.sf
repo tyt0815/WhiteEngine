@@ -1,4 +1,4 @@
-#include "SkyIrradianceCubeMapCommon.sh"
+#include "IrradianceMapPassCommon.sh"
 
 float4 MainPS(
     float3 OutPosL : POSITION0,

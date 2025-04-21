@@ -1,5 +1,5 @@
-#ifndef SKYCUBEMAPCOMMON_SH
-#define SKYCUBEMAPCOMMON_SH
+#ifndef ENVIRONMENTMAPPASSCOMMON_SH
+#define ENVIRONMENTMAPPASSCOMMON_SH
 #include "Common.sh"
 
 cbuffer ConstantBuffers : register(b0)

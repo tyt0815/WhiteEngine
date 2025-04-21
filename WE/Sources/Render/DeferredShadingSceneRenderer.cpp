@@ -7,7 +7,7 @@
 FDeferredShadingSceneRenderer::FFrameResource::FFrameResource(ID3D12Device* Device) :
 	FFrameResourceBase(Device)
 {
-	mGBufferInfoCB = std::make_unique<TUploadBuffer<FGBufferInfoConstantBuffer>>(Device, 1, true);
+	mDeferredShadingPassCB = std::make_unique<TUploadBuffer<FDeferredShadingPassConstantBuffer>>(Device, 1, true);
 }
 
 FDeferredShadingSceneRenderer::FDeferredShadingSceneRenderer()
@@ -30,6 +30,8 @@ FDeferredShadingSceneRenderer::FDeferredShadingSceneRenderer()
 		(UINT)GetDXResourceManagerPtr()->GetScreenViewport().Width,
 		(UINT)GetDXResourceManagerPtr()->GetScreenViewport().Height
 	);
+
+	mEnvironmentMapRenderer = std::make_unique<FEnvironmentMapRenderer>(GetTextureManager()->GetTexture("SnowCube"));
 }
 
 void FDeferredShadingSceneRenderer::Initialize(ID3D12Device* Device)
@@ -39,7 +41,7 @@ void FDeferredShadingSceneRenderer::Initialize(ID3D12Device* Device)
 	for (int i = 0; i < mFrameResources.size(); ++i)
 	{
 		FFrameResource* FrameResource = dynamic_cast<FFrameResource*>(mFrameResources[i].get());
-		UpdateGBufferInfoCB(FrameResource->GetGBufferInfoCB());
+		UpdateDeferredShadingPassCB(FrameResource->GetDeferredShadingPassCB());
 	}
 }
 
@@ -100,6 +102,10 @@ void FDeferredShadingSceneRenderer::BuildShadersAndInputLayouts()
 
 void FDeferredShadingSceneRenderer::BuildDeferredShadingPassShaders()
 {
+	D3D_SHADER_MACRO Defines[] = {
+		{"IBL", "1"},
+		{NULL, NULL}
+	};
 	mShaders["DeferredShadingPassVertexShader"] = FDXUtility::CompileShader(
 		L"Shaders\\DeferredShadingPassVertexShader.sf",
 		nullptr,
@@ -108,7 +114,7 @@ void FDeferredShadingSceneRenderer::BuildDeferredShadingPassShaders()
 	);
 	mShaders["DeferredShadingPassPixelShader"] = FDXUtility::CompileShader(
 		L"Shaders\\DeferredShadingPassPixelShader.sf",
-		nullptr,
+		Defines,
 		"MainPS",
 		"ps_5_1"
 	);
@@ -283,14 +289,17 @@ void FDeferredShadingSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* Frame
 	FFrameResource* Fr = dynamic_cast<FFrameResource*>(FrameResource);
 }
 
-void FDeferredShadingSceneRenderer::UpdateGBufferInfoCB(TUploadBuffer<FGBufferInfoConstantBuffer>* GBufferInfoCB)
+void FDeferredShadingSceneRenderer::UpdateDeferredShadingPassCB(TUploadBuffer<FDeferredShadingPassConstantBuffer>* DeferredShadingPassCB)
 {
-	FGBufferInfoConstantBuffer GBufferCB;
-	GBufferCB.GBufferAIndex = mGBufferA->GetSRVHeapIndex();
-	GBufferCB.GBufferBIndex = mGBufferB->GetSRVHeapIndex();
-	GBufferCB.GBufferCIndex = mGBufferC->GetSRVHeapIndex();
-	GBufferCB.DepthBufferIndex = mGBufferDepthStencil->GetSRVHeapIndex();
-	GBufferInfoCB->CopyData(0, GBufferCB);
+	FDeferredShadingPassConstantBuffer CB;
+	CB.GBufferAIndex = mGBufferA->GetSRVHeapIndex();
+	CB.GBufferBIndex = mGBufferB->GetSRVHeapIndex();
+	CB.GBufferCIndex = mGBufferC->GetSRVHeapIndex();
+	CB.DepthBufferIndex = mGBufferDepthStencil->GetSRVHeapIndex();
+	CB.PrefilteredMapIndex = mEnvironmentMapRenderer->GetPrefilteredMapRenderTarget()->GetSRVHeapIndex();
+	CB.IrradianceMapIndex = mEnvironmentMapRenderer->GetIrradianceMapRenderTarget()->GetSRVHeapIndex();
+	CB.BRDFLUTIndex = mEnvironmentMapRenderer->GetBRDFLUTRenderTarget()->GetSRVHeapIndex();
+	DeferredShadingPassCB->CopyData(0, CB);
 }
 
 void FDeferredShadingSceneRenderer::Render(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResourceBase)
@@ -316,6 +325,8 @@ void FDeferredShadingSceneRenderer::Render(ID3D12GraphicsCommandList* CommandLis
 		BackBufferViewport,
 		FrameResource
 	);
+
+	mEnvironmentMapRenderer->Render(CommandList, BackBufferView, BackBufferDsv, BackBufferViewport);
 
 	D3D12_VIEWPORT DebugScreenViewport = FDXUtility::GetQuadrantViewport(BackBufferViewport, 2);
 	DebugScreenViewport = FDXUtility::GetQuadrantViewport(DebugScreenViewport, 2);
@@ -427,11 +438,11 @@ void FDeferredShadingSceneRenderer::DrawDeferredShadingPass(
 	CommandList->SetGraphicsRootSignature(mRootSignatures["DeferredShadingPass"].Get());
 
 	FSRVHeap* SRVHeap = GetSRVHeap();
-	CommandList->SetGraphicsRootDescriptorTable(0, SRVHeap->GetTexture2DSRVStart());
-	CommandList->SetGraphicsRootDescriptorTable(1, SRVHeap->GetTextureCubeSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(0, SRVHeap->GetTexture2DGPUSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(1, SRVHeap->GetTextureCubeGPUSRVStart());
 	CommandList->SetGraphicsRootConstantBufferView(2, FrameResource->GetPassCB()->Resource()->GetGPUVirtualAddress());
 	CommandList->SetGraphicsRootConstantBufferView(3, FrameResource->GetLightInfoCB()->Resource()->GetGPUVirtualAddress());
-	CommandList->SetGraphicsRootConstantBufferView(4, FrameResource->GetGBufferInfoCB()->Resource()->GetGPUVirtualAddress());
+	CommandList->SetGraphicsRootConstantBufferView(4, FrameResource->GetDeferredShadingPassCB()->Resource()->GetGPUVirtualAddress());
 	CommandList->SetGraphicsRootShaderResourceView(5, FrameResource->GetDirectionalLightSB()->Resource()->GetGPUVirtualAddress());
 	DrawRect(CommandList);
 }
@@ -472,8 +483,8 @@ void FDeferredShadingSceneRenderer::DrawGBuffers(ID3D12GraphicsCommandList* Comm
 	// 1 : Mesh, 2 : Submesh 생략. DrawRenderItems에서 설정됨.
 	ID3D12Resource* MaterialSB = FrameResource->GetMaterialSB()->Resource();
 	CommandList->SetGraphicsRootShaderResourceView(3, MaterialSB->GetGPUVirtualAddress());
-	CommandList->SetGraphicsRootDescriptorTable(4, SRVHeap->GetTexture2DSRVStart());
-	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTextureCubeSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(4, SRVHeap->GetTexture2DGPUSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTextureCubeGPUSRVStart());
 
 	DrawRenderItems(FrameResource, CommandList, GetRenderItemManager()->GetRenderItems(ESM_DefaultLit, EBM_Opaque));
 

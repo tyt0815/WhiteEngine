@@ -158,9 +158,6 @@
     <ClCompile Include="Sources\Application\TestApplication\Actor\IceFieldGird.cpp">
       <Filter>Sources\Application\TestApplication\Actor</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Render\CubeSkyRenderer.cpp">
-      <Filter>Sources\Render</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\Render\CubeRenderTarget.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
@@ -201,6 +198,9 @@
       <Filter>Sources\DirectX</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Render\DepthStencil.cpp">
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Render\EnvironmentMapRenderer.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
   </ItemGroup>
@@ -310,9 +310,6 @@
     <ClInclude Include="Sources\Application\TestApplication\Actor\IceFieldGird.h">
       <Filter>Sources\Application\TestApplication\Actor</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Render\CubeSkyRenderer.h">
-      <Filter>Sources\Render</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\Render\CubeRenderTarget.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
@@ -358,6 +355,9 @@
     <ClInclude Include="Sources\DirectX\RTVHeap.h">
       <Filter>Sources\DirectX</Filter>
     </ClInclude>
+    <ClInclude Include="Sources\Render\EnvironmentMapRenderer.h">
+      <Filter>Sources\Render</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\BillboardCommon.sh">
@@ -378,40 +378,40 @@
     <None Include="Shaders\Material.sh">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\SkyCubeMapCommon.sh">
+    <None Include="Shaders\EnvironmentMapPassCommon.sh">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\SkyCubeMapVertexShader.sf">
+    <None Include="Shaders\EnvironmentMapPassVertexShader.sf">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\SkyCubeMapPixelShader.sf">
+    <None Include="Shaders\EnvironmentMapPassPixelShader.sf">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\SkyIrradianceCubeMapCommon.sh">
+    <None Include="Shaders\IrradianceMapPassCommon.sh">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\SkyIrradianceCubeMapVertexShader.sf">
+    <None Include="Shaders\IrradianceMapPassVertexShader.sf">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\SkyIrradianceCubeMapPixelShader.sf">
+    <None Include="Shaders\IrradianceMapPassPixelShader.sf">
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shaders\Math.sh">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\PreFilteredSkyCubeMapVertexShader.sf">
+    <None Include="Shaders\PreFilteredMapPassVertexShader.sf">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\PreFilteredSkyCubeMapPixelShader.sf">
+    <None Include="Shaders\PreFilteredMapPassPixelShader.sf">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\PreFilteredSkyCubeMapCommon.sh">
+    <None Include="Shaders\PreFilteredMapPassCommon.sh">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\IndirectSpecularIntegralVertexShader.sf">
+    <None Include="Shaders\BRDFLUTPassVertexShader.sf">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\IndirectSpecularIntegralPixelShader.sf">
+    <None Include="Shaders\BRDFLUTPassPixelShader.sf">
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shaders\GBufferPassCommon.sh">
@@ -447,7 +447,7 @@
     <None Include="Shaders\ForwardShadingPassVertexShader.sf">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\IndirectSpecularIntegralCommon.sh">
+    <None Include="Shaders\BRDFLUTPassCommon.sh">
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shaders\Light.sh">

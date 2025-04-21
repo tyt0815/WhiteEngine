@@ -28,41 +28,69 @@ int FSRVHeap::CreateTexture2DSRV(ID3D12Resource* Resource, const D3D12_SHADER_RE
 {
 	assert(mTexture2DCount < TEXTURE2D_NUM);
 	int SRVHeapIndex = mTexture2DCount++;
-	mDevice->CreateShaderResourceView(Resource, &SRVDesc, GetCPUDescriptorHandle(SRVHeapIndex));
+	mDevice->CreateShaderResourceView(Resource, &SRVDesc, GetTexture2DCPUDescriptorHandle(SRVHeapIndex));
 	return SRVHeapIndex;
 }
 
 int FSRVHeap::CreateTextureCubeSRV(ID3D12Resource* Resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& SRVDesc)
 {
 	assert(mTextureCubeCount < TEXTURECUBE_NUM);
-	int SRVHeapIndex = TEXTURE2D_NUM + mTextureCubeCount++;
-	mDevice->CreateShaderResourceView(Resource, &SRVDesc, GetCPUDescriptorHandle(SRVHeapIndex));
+	int SRVHeapIndex = mTextureCubeCount++;
+	mDevice->CreateShaderResourceView(Resource, &SRVDesc, GetTextureCubeCPUDescriptorHandle(SRVHeapIndex));
 	return SRVHeapIndex;
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE FSRVHeap::GetTexture2DSRVStart() const
+D3D12_CPU_DESCRIPTOR_HANDLE FSRVHeap::GetTexture2DCPUSRVStart() const
+{
+	return mSRVHeap->GetCPUDescriptorHandleForHeapStart();
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE FSRVHeap::GetTexture2DGPUSRVStart() const
 {
 	return mSRVHeap->GetGPUDescriptorHandleForHeapStart();
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE FSRVHeap::GetTextureCubeSRVStart() const
-{
-	return GetGPUDescriptorHandle(TEXTURE2D_NUM);
-}
-
-D3D12_CPU_DESCRIPTOR_HANDLE FSRVHeap::GetCPUDescriptorHandle(int i) const
+D3D12_CPU_DESCRIPTOR_HANDLE FSRVHeap::GetTexture2DCPUDescriptorHandle(int i) const
 {
 	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
-		mSRVHeap->GetCPUDescriptorHandleForHeapStart(),
+		GetTexture2DCPUSRVStart(),
 		i,
 		mDescriptorSize
 	);
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE FSRVHeap::GetGPUDescriptorHandle(int i) const
+D3D12_GPU_DESCRIPTOR_HANDLE FSRVHeap::GetTexture2DGPUDescriptorHandle(int i) const
 {
 	return CD3DX12_GPU_DESCRIPTOR_HANDLE(
-		mSRVHeap->GetGPUDescriptorHandleForHeapStart(),
+		GetTexture2DGPUSRVStart(),
+		i,
+		mDescriptorSize
+	);
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE FSRVHeap::GetTextureCubeCPUSRVStart() const
+{
+	return GetTexture2DCPUDescriptorHandle(TEXTURE2D_NUM);
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE FSRVHeap::GetTextureCubeGPUSRVStart() const
+{
+	return GetTexture2DGPUDescriptorHandle(TEXTURE2D_NUM);
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE FSRVHeap::GetTextureCubeCPUDescriptorHandle(int i) const
+{
+	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
+		GetTextureCubeCPUSRVStart(),
+		i,
+		mDescriptorSize
+	);
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE FSRVHeap::GetTextureCubeGPUDescriptorHandle(int i) const
+{
+	return CD3DX12_GPU_DESCRIPTOR_HANDLE(
+		GetTextureCubeGPUSRVStart(),
 		i,
 		mDescriptorSize
 	);

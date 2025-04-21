@@ -1,5 +1,5 @@
-#ifndef SKYIRRADIANCECUBEMAPCOMMON_SH
-#define SKYIRRADIANCECUBEMAPCOMMON_SH
+#ifndef IRRADIANCEMAPPASSCOMMON_SH
+#define IRRADIANCEMAPPASSCOMMON_SH
 #include "Common.sh"
 
 cbuffer ConstantBuffers : register(b0)

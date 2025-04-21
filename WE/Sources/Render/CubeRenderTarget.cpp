@@ -1,4 +1,5 @@
 #include "CubeRenderTarget.h"
+#include <DirectXColors.h>
 #include "DirectX/DXResourceManager.h"
 #include "DirectX/DXMath.h"
 #include "DirectX/RTVHeap.h"
@@ -42,7 +43,8 @@ std::array<DirectX::XMFLOAT4X4, 6> FCubeRenderTarget::GetCubeMapViews()
 	};
 }
 
-FCubeRenderTarget::FCubeRenderTarget(UINT Width, UINT Height, UINT MipLevels, DXGI_FORMAT Format)
+FCubeRenderTarget::FCubeRenderTarget(UINT Width, UINT Height, UINT MipLevels, DXGI_FORMAT Format):
+	mRTVHeap(GetRTVHeap())
 {
 	// Build Resource
 	D3D12_RESOURCE_DESC TextureDesc;
@@ -94,4 +96,20 @@ FCubeRenderTarget::FCubeRenderTarget(UINT Width, UINT Height, UINT MipLevels, DX
 			mRTVHeapIndices[i][j] = mRTVHeap->CreateRenderTargetView(mResource.Get(), RTVDesc);
 		}
 	}
+}
+
+void FCubeRenderTarget::Clear(ID3D12GraphicsCommandList* CommandList, int FaceIndex, int MipLevel)
+{
+	D3D12_RECT ScissorRect = GetScissorRect();
+	CommandList->ClearRenderTargetView(
+		GetRTV(FaceIndex, MipLevel),
+		DirectX::Colors::Black,
+		1,
+		&ScissorRect
+	);
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE FCubeRenderTarget::GetRTV(int FaceIndex, int MipLevel)
+{
+	return mRTVHeap->GetCPURTV(mRTVHeapIndices[FaceIndex][MipLevel]);
 }

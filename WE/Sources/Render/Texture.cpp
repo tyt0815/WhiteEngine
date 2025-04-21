@@ -7,7 +7,7 @@
 
 D3D12_GPU_DESCRIPTOR_HANDLE FTexture::GetSRV() const
 {
-	return mSRVHeap->GetGPUDescriptorHandle(mSRVHeapIndex);
+	return mSRVHeap->GetTexture2DGPUDescriptorHandle(mSRVHeapIndex);
 }
 
 FTexture::FTexture():

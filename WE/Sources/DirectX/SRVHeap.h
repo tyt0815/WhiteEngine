@@ -13,10 +13,14 @@ class FSRVHeap final
 public:
 	int CreateTexture2DSRV(ID3D12Resource* Resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& SRVDesc);
 	int CreateTextureCubeSRV(ID3D12Resource* Resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& SRVDesc);
-	D3D12_GPU_DESCRIPTOR_HANDLE GetTexture2DSRVStart() const;
-	D3D12_GPU_DESCRIPTOR_HANDLE GetTextureCubeSRVStart() const;
-	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(int i) const;
-	D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(int i) const;
+	D3D12_CPU_DESCRIPTOR_HANDLE GetTexture2DCPUSRVStart() const;
+	D3D12_GPU_DESCRIPTOR_HANDLE GetTexture2DGPUSRVStart() const;
+	D3D12_CPU_DESCRIPTOR_HANDLE GetTexture2DCPUDescriptorHandle(int i) const;
+	D3D12_GPU_DESCRIPTOR_HANDLE GetTexture2DGPUDescriptorHandle(int i) const;
+	D3D12_CPU_DESCRIPTOR_HANDLE GetTextureCubeCPUSRVStart() const;
+	D3D12_GPU_DESCRIPTOR_HANDLE GetTextureCubeGPUSRVStart() const;
+	D3D12_CPU_DESCRIPTOR_HANDLE GetTextureCubeCPUDescriptorHandle(int i) const;
+	D3D12_GPU_DESCRIPTOR_HANDLE GetTextureCubeGPUDescriptorHandle(int i) const;
 
 private:
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSRVHeap;

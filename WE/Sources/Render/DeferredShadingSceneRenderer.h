@@ -2,15 +2,20 @@
 #include "SceneRenderer.h"
 #include "RenderTarget.h"
 #include "DepthStencil.h"
+#include "EnvironmentMapRenderer.h"
 
 class FDeferredShadingSceneRenderer final : public FSceneRenderer
 {
-    struct FGBufferInfoConstantBuffer
+    struct FDeferredShadingPassConstantBuffer
     {
         UINT GBufferAIndex;
         UINT GBufferBIndex;
         UINT GBufferCIndex;
         UINT DepthBufferIndex;
+        UINT IrradianceMapIndex;
+        UINT PrefilteredMapIndex;
+        UINT BRDFLUTIndex;
+        UINT CBPad1;
     };
 
 private:
@@ -20,11 +25,11 @@ private:
     public:
         FFrameResource(ID3D12Device* Device);
     private:
-        std::unique_ptr<TUploadBuffer<FGBufferInfoConstantBuffer>> mGBufferInfoCB;
+        std::unique_ptr<TUploadBuffer<FDeferredShadingPassConstantBuffer>> mDeferredShadingPassCB;
     public:
-        inline TUploadBuffer<FGBufferInfoConstantBuffer>* GetGBufferInfoCB() const
+        inline TUploadBuffer<FDeferredShadingPassConstantBuffer>* GetDeferredShadingPassCB() const
         {
-            return mGBufferInfoCB.get();
+            return mDeferredShadingPassCB.get();
         }
     };
 public:
@@ -47,7 +52,7 @@ private:
     virtual void UpdateFrameBuffers(FFrameResourceBase* FrameResource) override;
 
     // 해당 버퍼는 처음 실행될때 한번만 업데이트 한다.
-    void UpdateGBufferInfoCB(TUploadBuffer<FGBufferInfoConstantBuffer>* GBufferInfoCB);
+    void UpdateDeferredShadingPassCB(TUploadBuffer<FDeferredShadingPassConstantBuffer>* DeferredShadingPassCB);
     virtual void Render(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResourceBase) override;
 
     void DrawDebugGBuffers(
@@ -71,4 +76,5 @@ private:
     std::unique_ptr<FRenderTarget> mGBufferB;
     std::unique_ptr<FRenderTarget> mGBufferC;
     std::unique_ptr<FDepthStencil> mGBufferDepthStencil;
+    std::unique_ptr<FEnvironmentMapRenderer> mEnvironmentMapRenderer;
 };

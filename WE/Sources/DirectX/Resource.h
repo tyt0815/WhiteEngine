@@ -50,4 +50,8 @@ public:
 	{
 		return GetDesc().Format;
 	}
+	inline UINT16 GetMipLevels() const
+	{
+		return GetDesc().MipLevels;
+	}
 };

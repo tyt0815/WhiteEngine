@@ -2,7 +2,6 @@
 #include "SceneRenderer.h"
 #include "GameFramework/Object/Actor/Actor.h"
 #include "Utility/Class.h"
-#include "CubeSkyRenderer.h"
 #include "UploadBuffer.h"
 
 class FForwardShadingSceneRenderer final : public FSceneRenderer

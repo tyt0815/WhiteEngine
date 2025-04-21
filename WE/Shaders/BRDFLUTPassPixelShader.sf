@@ -1,4 +1,4 @@
-#include "IndirectSpecularIntegralCommon.sh"
+#include "BRDFLUTPassCommon.sh"
 #include "Light.sh"
 
 float4 MainPS(

@@ -258,8 +258,8 @@ void FSceneRenderer::DrawRectPass(
 	CommandList->SetDescriptorHeaps(_countof(DescriptorHeaps), DescriptorHeaps);
 
 	CommandList->SetGraphicsRoot32BitConstants(0, 1, &TextureSRVIndex, 0);
-	CommandList->SetGraphicsRootDescriptorTable(1, SRVHeap->GetTexture2DSRVStart());
-	CommandList->SetGraphicsRootDescriptorTable(2, SRVHeap->GetTextureCubeSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(1, SRVHeap->GetTexture2DGPUSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(2, SRVHeap->GetTextureCubeGPUSRVStart());
 
 	DrawRect(CommandList);
 }
@@ -286,8 +286,8 @@ void FSceneRenderer::DrawShadowMap(ID3D12GraphicsCommandList* CommandList, FFram
 	CommandList->SetGraphicsRoot32BitConstant(0, 0, 0);
 	CommandList->SetGraphicsRootShaderResourceView(3, FrameResource->GetMaterialSB()->Resource()->GetGPUVirtualAddress());
 	CommandList->SetGraphicsRootShaderResourceView(4, FrameResource->GetDirectionalLightSB()->Resource()->GetGPUVirtualAddress());
-	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTexture2DSRVStart());
-	CommandList->SetGraphicsRootDescriptorTable(6, SRVHeap->GetTextureCubeSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTexture2DGPUSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(6, SRVHeap->GetTextureCubeGPUSRVStart());
 
 	DrawRenderItems(FrameResource, CommandList, GetRenderItemManager()->GetRenderItems(ESM_DefaultLit, EBM_Opaque));
 

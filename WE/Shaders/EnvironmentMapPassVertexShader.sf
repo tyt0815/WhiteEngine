@@ -1,4 +1,4 @@
-#include "SkyCubeMapCommon.sh"
+#include "EnvironmentMapPassCommon.sh"
 
 #define SCALE_VALUE 5000
 

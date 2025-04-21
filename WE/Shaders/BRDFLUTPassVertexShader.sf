@@ -1,4 +1,4 @@
-#include "IndirectSpecularIntegralCommon.sh"
+#include "BRDFLUTPassCommon.sh"
 
 void MainVS(
     float2 InPosition : POSITION,
