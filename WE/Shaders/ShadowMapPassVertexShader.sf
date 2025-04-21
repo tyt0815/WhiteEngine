@@ -5,7 +5,8 @@ void MainVS(
     out float4 ClipPosition : SV_Position
 )
 {
+    FDirectionalLight DirLight = gDirectionalLights[gDirLightIndex];
     float4 WorldPosition = mul(float4(Vin.LocalPosition, 1.0f), gWorld);
     
-    ClipPosition = mul(WorldPosition, gLightViewProj);
+    ClipPosition = mul(WorldPosition, DirLight.LightViewProj);
 };

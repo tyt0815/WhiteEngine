@@ -22,7 +22,6 @@ FFrameResourceBase::FFrameResourceBase(ID3D12Device* Device)
 	mMeshConstantBuffer = std::make_unique<TUploadBuffer<FMeshConstantBuffer>>(Device, MESH_CB_NUM, true);
 	mSubmeshConstantBuffer = std::make_unique<TUploadBuffer<FSubmeshConstantBuffer>>(Device, SUBMESH_CB_NUM, true);
 	mLightInfoConstantBuffer = std::make_unique<TUploadBuffer<FLightInfoConstantBuffer>>(Device, 1, true);
-	mShadowMapCB = std::make_unique<TUploadBuffer<FShadowMapConstantBuffer>>(Device, 1, true);
 	mMaterialStructuredBuffer = std::make_unique<TUploadBuffer<FMaterialStructuredBuffer>>(Device, EMT_None, false);
 	mDirectionalLightStructuredBuffer = std::make_unique<TUploadBuffer<FDirectionalLightSB>>(Device, DIR_LIGHTS_NUM, false);
 }
@@ -108,14 +107,15 @@ void FSceneRenderer::BuildShadowMapPassRootSignature()
 	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
 
 	// Tip: 자주 사용되는 것일수록 작은 인덱스에 보관하는게 퍼포먼스가 좋음
-	constexpr UINT ROOT_PARAMETERs_NUM = 6;
+	constexpr UINT ROOT_PARAMETERs_NUM = 7;
 	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERs_NUM];
-	RootParameter[0].InitAsConstantBufferView(0);		// ShadowMapCB
-	RootParameter[1].InitAsConstantBufferView(1);		// MeshCB
+	RootParameter[0].InitAsConstants(4, 3);		// ShadowMapCB
+	RootParameter[1].InitAsConstantBufferView(1);		// MeshSB
 	RootParameter[2].InitAsConstantBufferView(2);		// SubmeshCB
 	RootParameter[3].InitAsShaderResourceView(0, 2);		// MaterialSB
-	RootParameter[4].InitAsDescriptorTable(1, &TextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// TextureTable
-	RootParameter[5].InitAsDescriptorTable(1, &CubeTextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// CubeTextureTable
+	RootParameter[4].InitAsShaderResourceView(0, 3);		// LightSB
+	RootParameter[5].InitAsDescriptorTable(1, &TextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// TextureTable
+	RootParameter[6].InitAsDescriptorTable(1, &CubeTextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// CubeTextureTable
 
 	FDXUtility::BuildRootSignature(RootParameter, ROOT_PARAMETERs_NUM, mRootSignatures["ShadowMapPass"].GetAddressOf());
 }
@@ -229,7 +229,6 @@ void FSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* FrameResource)
 	UpdateMeshCB(FrameResource->GetMeshCB());
 	UpdateSubmeshCB(FrameResource->GetSubmeshCB());
 	UpdateLightInfoCB(FrameResource->GetLightInfoCB());
-	UpdateShadowMapCB(FrameResource->GetShadowMapCB());
 	UpdateMaterialSB(FrameResource->GetMaterialSB());
 	UpdateDirectionalLightSB(FrameResource->GetDirectionalLightSB());
 }
@@ -284,10 +283,11 @@ void FSceneRenderer::DrawShadowMap(ID3D12GraphicsCommandList* CommandList, FFram
 	CommandList->SetDescriptorHeaps(_countof(DescriptorHeaps), DescriptorHeaps);
 
 	CommandList->SetGraphicsRootSignature(mRootSignatures["ShadowMapPass"].Get());
-	CommandList->SetGraphicsRootConstantBufferView(0, FrameResource->GetShadowMapCB()->Resource()->GetGPUVirtualAddress());
+	CommandList->SetGraphicsRoot32BitConstant(0, 0, 0);
 	CommandList->SetGraphicsRootShaderResourceView(3, FrameResource->GetMaterialSB()->Resource()->GetGPUVirtualAddress());
-	CommandList->SetGraphicsRootDescriptorTable(4, SRVHeap->GetTexture2DSRVStart());
-	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTextureCubeSRVStart());
+	CommandList->SetGraphicsRootShaderResourceView(4, FrameResource->GetDirectionalLightSB()->Resource()->GetGPUVirtualAddress());
+	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTexture2DSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(6, SRVHeap->GetTextureCubeSRVStart());
 
 	DrawRenderItems(FrameResource, CommandList, GetRenderItemManager()->GetRenderItems(ESM_DefaultLit, EBM_Opaque));
 
@@ -519,47 +519,6 @@ void FSceneRenderer::UpdateLightInfoCB(TUploadBuffer<FLightInfoConstantBuffer>* 
 	LightInfoConstantBuffer->CopyData(0, LightInfoCB);
 }
 
-void FSceneRenderer::UpdateShadowMapCB(TUploadBuffer<FShadowMapConstantBuffer>* ShadowMapConstantBuffer)
-{
-	// TODO: 하드코딩됨
-
-	float SphereRadius = sqrtf(100 * 100);
-	// 첫번째 광원만 그림자를 드리운다.
-	XMVECTOR LightDirection = XMVectorSet(0.57735f, -0.57735f, 0.57735f, 0);
-	XMVECTOR LightPosition = -2.0f * SphereRadius * LightDirection;
-	XMVECTOR TargetPosition = XMVectorSet(0, 0, 0, 0);
-	XMVECTOR LightUp = XMVectorSet(0, 1, 0, 0);
-	XMMATRIX LightView = XMMatrixLookAtLH(LightPosition, TargetPosition, LightUp);
-	
-	// 경계구를 광원 공간으로 변환한다.
-	XMFLOAT3 SphereCenterLS;
-	XMStoreFloat3(&SphereCenterLS, XMVector3TransformCoord(TargetPosition, LightView));
-
-	// 장면을 감싸는 광원 공간 직교투영 시야 입체
-	float l = SphereCenterLS.x - SphereRadius;
-	float b = SphereCenterLS.y - SphereRadius;
-	float n = SphereCenterLS.z - SphereRadius;
-	float r = SphereCenterLS.x + SphereRadius;
-	float t = SphereCenterLS.y + SphereRadius;
-	float f = SphereCenterLS.z + SphereRadius;
-
-	XMMATRIX LightProj = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
-
-	XMMATRIX T(
-		0.5f, 0.0f, 0.0f, 0.0f,
-		0.0f, -0.5f, 0.0f, 0.0f,
-		0.0f, 0.0f, 1.0f, 0.0f,
-		0.5f, 0.5f, 0.0f, 1.0f
-	);
-
-	XMMATRIX S = LightView * LightProj * T;
-
-	FShadowMapConstantBuffer ShadowMapCB;
-	XMStoreFloat4x4(&ShadowMapCB.ViewProj, XMMatrixTranspose(LightView * LightProj));
-	XMStoreFloat4x4(&ShadowMapCB.ShadowTransform, XMMatrixTranspose(S));
-	ShadowMapConstantBuffer->CopyData(0, ShadowMapCB);
-}
-
 void FSceneRenderer::UpdateMaterialSB(TUploadBuffer<FMaterialStructuredBuffer>* MaterialStructuredBuffer)
 {
 	for (std::uint16_t i = 0; i < EMT_None; ++i)
@@ -588,6 +547,42 @@ void FSceneRenderer::UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightSB>
 	DirectionalLight.Direction = { 0.57735f, -0.57735f, 0.57735f };
 	DirectionalLight.Color = { 1.0f, 1.0f, 1.0f };
 	DirectionalLight.ShadowMapIndex = mShadowMap->GetSRVHeapIndex();
+
+	// TODO: 하드코딩됨
+	float SphereRadius = sqrtf(100 * 100);
+	// 첫번째 광원만 그림자를 드리운다.
+	XMVECTOR LightDirection = XMLoadFloat3(&DirectionalLight.Direction);
+	XMVECTOR LightPosition = -2.0f * SphereRadius * LightDirection;
+	XMVECTOR TargetPosition = XMVectorSet(0, 0, 0, 0);
+	XMVECTOR LightUp = XMVectorSet(0, 1, 0, 0);
+	XMMATRIX LightView = XMMatrixLookAtLH(LightPosition, TargetPosition, LightUp);
+
+	// 경계구를 광원 공간으로 변환한다.
+	XMFLOAT3 SphereCenterLS;
+	XMStoreFloat3(&SphereCenterLS, XMVector3TransformCoord(TargetPosition, LightView));
+
+	// 장면을 감싸는 광원 공간 직교투영 시야 입체
+	float l = SphereCenterLS.x - SphereRadius;
+	float b = SphereCenterLS.y - SphereRadius;
+	float n = SphereCenterLS.z - SphereRadius;
+	float r = SphereCenterLS.x + SphereRadius;
+	float t = SphereCenterLS.y + SphereRadius;
+	float f = SphereCenterLS.z + SphereRadius;
+
+	XMMATRIX LightProj = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
+
+	XMMATRIX T(
+		0.5f, 0.0f, 0.0f, 0.0f,
+		0.0f, -0.5f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.5f, 0.5f, 0.0f, 1.0f
+	);
+
+	XMMATRIX S = LightView * LightProj * T;
+
+	XMStoreFloat4x4(&DirectionalLight.LightViewProj, XMMatrixTranspose(LightView * LightProj));
+	XMStoreFloat4x4(&DirectionalLight.ShadowTransform, XMMatrixTranspose(S));
+
 	DirectionalLightStructuredBuffer->CopyData(0, DirectionalLight);
 }
 

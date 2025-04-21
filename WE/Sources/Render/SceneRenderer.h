@@ -21,6 +21,8 @@ constexpr int SUBMESH_CB_NUM = 1024;
 
 struct FDirectionalLightSB
 {
+    XMFLOAT4X4 LightViewProj;
+    XMFLOAT4X4 ShadowTransform;
     XMFLOAT3 Direction;
     UINT ShadowMapIndex;
     XMFLOAT3 Color;
@@ -88,12 +90,6 @@ struct FMaterialStructuredBuffer
     DirectX::XMFLOAT4X4 MatTransform = FDXMath::Identity4x4();
 };
 
-struct FShadowMapConstantBuffer
-{
-    XMFLOAT4X4 ViewProj;
-    XMFLOAT4X4 ShadowTransform;
-};
-
 class FFrameResourceBase : FNoncopyable
 {
 public:
@@ -108,7 +104,6 @@ private:
     std::unique_ptr<TUploadBuffer<FMeshConstantBuffer>> mMeshConstantBuffer;
     std::unique_ptr<TUploadBuffer<FSubmeshConstantBuffer>> mSubmeshConstantBuffer;
     std::unique_ptr<TUploadBuffer<FLightInfoConstantBuffer>> mLightInfoConstantBuffer;
-    std::unique_ptr<TUploadBuffer<FShadowMapConstantBuffer>> mShadowMapCB;
     std::unique_ptr<TUploadBuffer<FMaterialStructuredBuffer>> mMaterialStructuredBuffer;
     std::unique_ptr<TUploadBuffer<FDirectionalLightSB>> mDirectionalLightStructuredBuffer;
     UINT64 mFenceCount = 0;
@@ -141,10 +136,6 @@ public:
     inline TUploadBuffer<FLightInfoConstantBuffer>* GetLightInfoCB() const
     {
         return mLightInfoConstantBuffer.get();
-    }
-    inline TUploadBuffer<FShadowMapConstantBuffer>* GetShadowMapCB() const
-    {
-        return mShadowMapCB.get();
     }
     inline TUploadBuffer<FMaterialStructuredBuffer>* GetMaterialSB() const
     {
@@ -223,7 +214,6 @@ private:
     void UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConstantBuffer);
     void UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshConstantBuffer);
     void UpdateLightInfoCB(TUploadBuffer<FLightInfoConstantBuffer>* LightInfoConstantBuffer);
-    void UpdateShadowMapCB(TUploadBuffer<FShadowMapConstantBuffer>* ShadowMapConstantBuffer);
     void UpdateMaterialSB(TUploadBuffer<FMaterialStructuredBuffer>* MaterialStructuredBuffer);
     void UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightSB>* DirectionalLightStructuredBuffer);
 

@@ -77,13 +77,6 @@ cbuffer LightInfoCB : register(b)\
     uint gLightInfoPad1;\
 };
 
-#define DECLARE_SHADOWMAP_CB(b)\
-cbuffer ShadowMapCB : register(b)\
-{\
-    float4x4 gLightViewProj;\
-    float4x4 gShadowTransform;\
-};
-
 struct FVertexInput
 {
     float3 LocalPosition : POSITION;

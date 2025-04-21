@@ -30,8 +30,9 @@ float4 MainPS(
     // Directional light °è»ê
     for (uint i = 0; i < gDirectionalLightNum; ++i)
     {
-        float4 ShadowPosH = mul(float4(WorldPosition, 1.0f), gShadowTransform);
-        float ShadowFactor = CalculateShadowFactor(ShadowPosH, gTexture[gDirectionalLights[i].ShadowMapIndex]);
+        FDirectionalLight DirLight = gDirectionalLights[i];
+        float4 ShadowPosH = mul(float4(WorldPosition, 1.0f), DirLight.ShadowTransform);
+        float ShadowFactor = CalculateShadowFactor(ShadowPosH, gTexture[DirLight.ShadowMapIndex]);
         Lo += ShadowFactor * ComputeDirectionalLight(gDirectionalLights[i], Material, V, WorldNormal, F0);
     }
     

@@ -3,8 +3,7 @@
 #include "Common.sh"
 #include "Light.sh"
 
-StructuredBuffer<FDirectionalLight> gDirectionalLights : register(t0, space3);
-
+DECLARE_LIGHT_SB(t0, space3);
 DECLARE_PASS_CB(b0);
 DECLARE_LIGHTINFO_CB(b1);
 
@@ -15,7 +14,5 @@ cbuffer GBufferInfo : register(b2)
     uint gGBufferCTextureIndex;
     uint gDepthTextureIndex;
 }
-
-DECLARE_SHADOWMAP_CB(b3);
 
 #endif

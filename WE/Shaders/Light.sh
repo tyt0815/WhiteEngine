@@ -26,11 +26,16 @@ SamplerComparisonState gsamShadowMap : register(s6);
 
 struct FDirectionalLight
 {
+    float4x4 LightViewProj;
+    float4x4 ShadowTransform;
     float3 Direction;
     uint ShadowMapIndex;
     float3 Color;
     uint Pad2;
 };
+
+#define DECLARE_LIGHT_SB(t, s)\
+StructuredBuffer<FDirectionalLight> gDirectionalLights : register(t, s);
 
 float3 FresnelSchlick(float cosTheta, float3 F0)
 {
