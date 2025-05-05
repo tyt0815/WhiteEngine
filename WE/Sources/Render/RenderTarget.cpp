@@ -20,7 +20,7 @@ FRenderTarget::FRenderTarget(UINT Width, UINT Height, UINT MipLevels, DXGI_FORMA
 	TextureDesc.SampleDesc.Count = 1;
 	TextureDesc.SampleDesc.Quality = 0;
 	TextureDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	TextureDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+	TextureDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
 	D3D12_CLEAR_VALUE OptClear;
 	OptClear.Format = Format;

@@ -1,6 +1,5 @@
 #include "DepthStencil.h"
 #include "DirectX/DSVHeap.h"
-#include "DirectX/SRVHeap.h"
 #include "DirectX/DXResourceManager.h"
 
 FDepthStencil::FDepthStencil(UINT Width, UINT Height):

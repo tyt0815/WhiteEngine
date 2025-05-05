@@ -27,7 +27,7 @@
     <ClCompile Include="Sources\DirectX\DXUtility.cpp" />
     <ClCompile Include="Sources\DirectX\Resource.cpp" />
     <ClCompile Include="Sources\DirectX\RTVHeap.cpp" />
-    <ClCompile Include="Sources\DirectX\SRVHeap.cpp" />
+    <ClCompile Include="Sources\DirectX\CBVSRVUAVHeap.cpp" />
     <ClCompile Include="Sources\GameFramework\InputSystem\InputSystem.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Actor\Actor.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\ActorComponent.cpp" />
@@ -44,6 +44,7 @@
     <ClCompile Include="Sources\Render\DeferredShadingSceneRenderer.cpp" />
     <ClCompile Include="Sources\Render\DepthStencil.cpp" />
     <ClCompile Include="Sources\Render\EnvironmentMapRenderer.cpp" />
+    <ClCompile Include="Sources\Render\GausiaanBlurFilter.cpp" />
     <ClCompile Include="Sources\Render\GeometryGenerator.cpp" />
     <ClCompile Include="Sources\Render\Material.cpp" />
     <ClCompile Include="Sources\Render\MeshGeometry.cpp" />
@@ -77,7 +78,7 @@
     <ClInclude Include="Sources\DirectX\DXUtility.h" />
     <ClInclude Include="Sources\DirectX\Resource.h" />
     <ClInclude Include="Sources\DirectX\RTVHeap.h" />
-    <ClInclude Include="Sources\DirectX\SRVHeap.h" />
+    <ClInclude Include="Sources\DirectX\CBVSRVUAVHeap.h" />
     <ClInclude Include="Sources\GameFramework\InputSystem\InputSystem.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\Actor.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\ActorComponent.h" />
@@ -93,6 +94,7 @@
     <ClInclude Include="Sources\Render\DeferredShadingSceneRenderer.h" />
     <ClInclude Include="Sources\Render\DepthStencil.h" />
     <ClInclude Include="Sources\Render\EnvironmentMapRenderer.h" />
+    <ClInclude Include="Sources\Render\GausiaanBlurFilter.h" />
     <ClInclude Include="Sources\Render\GeometryGenerator.h" />
     <ClInclude Include="Sources\Render\Material.h" />
     <ClInclude Include="Sources\Render\MeshGeometry.h" />
@@ -146,12 +148,14 @@
     <None Include="Shaders\DeferredShadingPassCommon.sh" />
     <None Include="Shaders\DeferredShadingPassPixelShader.sf" />
     <None Include="Shaders\DeferredShadingPassVertexShader.sf" />
+    <None Include="Shaders\GaussianBlurCommon.sh" />
     <None Include="Shaders\GBufferPassCommon.sh" />
     <None Include="Shaders\GBufferPassPixelShader.sf" />
     <None Include="Shaders\GBufferPassVertexShader.sf" />
     <None Include="Shaders\BRDFLUTPassCommon.sh" />
     <None Include="Shaders\BRDFLUTPassPixelShader.sf" />
     <None Include="Shaders\BRDFLUTPassVertexShader.sf" />
+    <None Include="Shaders\HorizontalGaussianBlurComputeShader.sf" />
     <None Include="Shaders\Light.sh" />
     <None Include="Shaders\Material.sh" />
     <None Include="Shaders\Math.sh" />
@@ -166,6 +170,7 @@
     <None Include="Shaders\IrradianceMapPassCommon.sh" />
     <None Include="Shaders\IrradianceMapPassPixelShader.sf" />
     <None Include="Shaders\IrradianceMapPassVertexShader.sf" />
+    <None Include="Shaders\VerticalGaussianBlurComputeShader.sf" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

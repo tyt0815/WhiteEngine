@@ -3,26 +3,26 @@
 #include "DDSTextureLoader.h"
 #include "DirectX/DXException.h"
 #include "DirectX/DXResourceManager.h"
-#include "DirectX/SRVHeap.h"
+#include "DirectX/CBVSRVUAVHeap.h"
 
 D3D12_GPU_DESCRIPTOR_HANDLE FTexture::GetSRV() const
 {
-	return mSRVHeap->GetTexture2DGPUDescriptorHandle(mSRVHeapIndex);
+	return mCBVSRVUAVHeap->GetTexture2DGPUDescriptorHandle(mSRVHeapIndex);
 }
 
 FTexture::FTexture():
-	mSRVHeap(GetSRVHeap())
+	mCBVSRVUAVHeap(GetCBVSRVUAVHeap())
 {
 }
 
 void FTexture::CreateTexture2DSRV(const D3D12_SHADER_RESOURCE_VIEW_DESC& SRVDesc)
 {
-	mSRVHeapIndex = mSRVHeap->CreateTexture2DSRV(mResource.Get(), SRVDesc);
+	mSRVHeapIndex = mCBVSRVUAVHeap->CreateTexture2DSRV(mResource.Get(), SRVDesc);
 }
 
 void FTexture::CreateTextureCubeSRV(const D3D12_SHADER_RESOURCE_VIEW_DESC& SRVDesc)
 {
-	mSRVHeapIndex = mSRVHeap->CreateTextureCubeSRV(mResource.Get(), SRVDesc);
+	mSRVHeapIndex = mCBVSRVUAVHeap->CreateTextureCubeSRV(mResource.Get(), SRVDesc);
 }
 
 FTextureManager::FTextureManager()
@@ -38,14 +38,14 @@ FTextureManager::~FTextureManager()
 D3D12_DESCRIPTOR_RANGE FTextureManager::GetTexture2DDescriptorRange() const
 {
 	CD3DX12_DESCRIPTOR_RANGE TextureTable;
-	TextureTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, TEXTURE2D_NUM, 0, 0);
+	TextureTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, TEXTURE2D_VIEW_NUM, 0, 0);
 	return TextureTable;
 }
 
 D3D12_DESCRIPTOR_RANGE FTextureManager::GetTextureCubeDescriptorRange() const
 {
 	CD3DX12_DESCRIPTOR_RANGE CubeTextureTable;
-	CubeTextureTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, TEXTURECUBE_NUM, 0, 1);
+	CubeTextureTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, TEXTURECUBE_VIEW_NUM, 0, 1);
 	return CubeTextureTable;
 }
 
@@ -104,7 +104,7 @@ void FTextureManager::LoadTexture(std::string Name, ID3D12Device* Device, ID3D12
 
 FTexture::FTexture(std::string Name, ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList) :
 	mName(Name),
-	mSRVHeap(GetSRVHeap())
+	mCBVSRVUAVHeap(GetCBVSRVUAVHeap())
 {
 	static std::wstring Path = L"./Resources/Textures/";
 	std::wstring FileName = std::wstring(mName.begin(), mName.end()) + L".dds";

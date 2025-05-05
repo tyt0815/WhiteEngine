@@ -1,7 +1,7 @@
 #include "DeferredShadingSceneRenderer.h"
 #include "DirectXColors.h"
 #include "DirectX/DXResourceManager.h"
-#include "DirectX/SRVHeap.h"
+#include "DirectX/CBVSRVUAVHeap.h"
 #include "ShapeDrawer.h"
 
 FDeferredShadingSceneRenderer::FFrameResource::FFrameResource(ID3D12Device* Device) :
@@ -437,9 +437,9 @@ void FDeferredShadingSceneRenderer::DrawDeferredShadingPass(
 
 	CommandList->SetGraphicsRootSignature(mRootSignatures["DeferredShadingPass"].Get());
 
-	FSRVHeap* SRVHeap = GetSRVHeap();
-	CommandList->SetGraphicsRootDescriptorTable(0, SRVHeap->GetTexture2DGPUSRVStart());
-	CommandList->SetGraphicsRootDescriptorTable(1, SRVHeap->GetTextureCubeGPUSRVStart());
+	FCBVSRVUAVHeap* SRVHeap = GetCBVSRVUAVHeap();
+	CommandList->SetGraphicsRootDescriptorTable(0, SRVHeap->GetTexture2DGPUDescriptorHandleStart());
+	CommandList->SetGraphicsRootDescriptorTable(1, SRVHeap->GetTextureCubeGPUDescriptorHandleStart());
 	CommandList->SetGraphicsRootConstantBufferView(2, FrameResource->GetPassCB()->Resource()->GetGPUVirtualAddress());
 	CommandList->SetGraphicsRootConstantBufferView(3, FrameResource->GetLightInfoCB()->Resource()->GetGPUVirtualAddress());
 	CommandList->SetGraphicsRootConstantBufferView(4, FrameResource->GetDeferredShadingPassCB()->Resource()->GetGPUVirtualAddress());
@@ -474,7 +474,7 @@ void FDeferredShadingSceneRenderer::DrawGBuffers(ID3D12GraphicsCommandList* Comm
 
 	CommandList->SetGraphicsRootSignature(mRootSignatures["GBufferPass"].Get());
 
-	FSRVHeap* SRVHeap = GetSRVHeap();
+	FCBVSRVUAVHeap* SRVHeap = GetCBVSRVUAVHeap();
 	ID3D12DescriptorHeap* DescriptorHeaps[] = { SRVHeap->Get() };
 	CommandList->SetDescriptorHeaps(_countof(DescriptorHeaps), DescriptorHeaps);
 
@@ -483,8 +483,8 @@ void FDeferredShadingSceneRenderer::DrawGBuffers(ID3D12GraphicsCommandList* Comm
 	// 1 : Mesh, 2 : Submesh 생략. DrawRenderItems에서 설정됨.
 	ID3D12Resource* MaterialSB = FrameResource->GetMaterialSB()->Resource();
 	CommandList->SetGraphicsRootShaderResourceView(3, MaterialSB->GetGPUVirtualAddress());
-	CommandList->SetGraphicsRootDescriptorTable(4, SRVHeap->GetTexture2DGPUSRVStart());
-	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTextureCubeGPUSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(4, SRVHeap->GetTexture2DGPUDescriptorHandleStart());
+	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTextureCubeGPUDescriptorHandleStart());
 
 	DrawRenderItems(FrameResource, CommandList, GetRenderItemManager()->GetRenderItems(ESM_DefaultLit, EBM_Opaque));
 

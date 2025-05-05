@@ -188,7 +188,7 @@
     <ClCompile Include="Sources\Application\TestApplication\Actor\LaminateFloorBrown.cpp">
       <Filter>Sources\Application\TestApplication\Actor</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\DirectX\SRVHeap.cpp">
+    <ClCompile Include="Sources\DirectX\CBVSRVUAVHeap.cpp">
       <Filter>Sources\DirectX</Filter>
     </ClCompile>
     <ClCompile Include="Sources\DirectX\DSVHeap.cpp">
@@ -202,6 +202,9 @@
     </ClCompile>
     <ClCompile Include="Sources\Render\EnvironmentMapRenderer.cpp">
       <Filter>Sources\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Render\GausiaanBlurFilter.cpp">
+      <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -343,7 +346,7 @@
     <ClInclude Include="Sources\Application\TestApplication\Actor\LaminateFloorBrown.h">
       <Filter>Sources\Application\TestApplication\Actor</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\DirectX\SRVHeap.h">
+    <ClInclude Include="Sources\DirectX\CBVSRVUAVHeap.h">
       <Filter>Sources\DirectX</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Render\DepthStencil.h">
@@ -356,6 +359,9 @@
       <Filter>Sources\DirectX</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Render\EnvironmentMapRenderer.h">
+      <Filter>Sources\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\GausiaanBlurFilter.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
   </ItemGroup>
@@ -463,6 +469,15 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shaders\ShadowMapPassVertexShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\HorizontalGaussianBlurComputeShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\VerticalGaussianBlurComputeShader.sf">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GaussianBlurCommon.sh">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

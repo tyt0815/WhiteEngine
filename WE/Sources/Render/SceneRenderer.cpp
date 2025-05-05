@@ -6,7 +6,7 @@
 #include "GameFramework/Object/Component/CameraComponent.h"
 #include "GameFramework/Object/World/World.h"
 #include "Utility/Timer.h"
-#include "DirectX/SRVHeap.h"
+#include "DirectX/CBVSRVUAVHeap.h"
 
 const int gFrameResourcesNum = FRAME_RESOURCES_NUM;
 
@@ -253,13 +253,13 @@ void FSceneRenderer::DrawRectPass(
 
 	CommandList->SetGraphicsRootSignature(mRootSignatures["DrawRectPass"].Get());
 
-	FSRVHeap* SRVHeap = GetSRVHeap();
+	FCBVSRVUAVHeap* SRVHeap = GetCBVSRVUAVHeap();
 	ID3D12DescriptorHeap* DescriptorHeaps[] = { SRVHeap->Get() };
 	CommandList->SetDescriptorHeaps(_countof(DescriptorHeaps), DescriptorHeaps);
 
 	CommandList->SetGraphicsRoot32BitConstants(0, 1, &TextureSRVIndex, 0);
-	CommandList->SetGraphicsRootDescriptorTable(1, SRVHeap->GetTexture2DGPUSRVStart());
-	CommandList->SetGraphicsRootDescriptorTable(2, SRVHeap->GetTextureCubeGPUSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(1, SRVHeap->GetTexture2DGPUDescriptorHandleStart());
+	CommandList->SetGraphicsRootDescriptorTable(2, SRVHeap->GetTextureCubeGPUDescriptorHandleStart());
 
 	DrawRect(CommandList);
 }
@@ -278,7 +278,7 @@ void FSceneRenderer::DrawShadowMap(ID3D12GraphicsCommandList* CommandList, FFram
 
 	CommandList->SetPipelineState(mPipelineStates["ShadowMapPass"].Get());
 
-	FSRVHeap* SRVHeap = GetSRVHeap();
+	FCBVSRVUAVHeap* SRVHeap = GetCBVSRVUAVHeap();
 	ID3D12DescriptorHeap* DescriptorHeaps[] = { SRVHeap->Get() };
 	CommandList->SetDescriptorHeaps(_countof(DescriptorHeaps), DescriptorHeaps);
 
@@ -286,8 +286,8 @@ void FSceneRenderer::DrawShadowMap(ID3D12GraphicsCommandList* CommandList, FFram
 	CommandList->SetGraphicsRoot32BitConstant(0, 0, 0);
 	CommandList->SetGraphicsRootShaderResourceView(3, FrameResource->GetMaterialSB()->Resource()->GetGPUVirtualAddress());
 	CommandList->SetGraphicsRootShaderResourceView(4, FrameResource->GetDirectionalLightSB()->Resource()->GetGPUVirtualAddress());
-	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTexture2DGPUSRVStart());
-	CommandList->SetGraphicsRootDescriptorTable(6, SRVHeap->GetTextureCubeGPUSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTexture2DGPUDescriptorHandleStart());
+	CommandList->SetGraphicsRootDescriptorTable(6, SRVHeap->GetTextureCubeGPUDescriptorHandleStart());
 
 	DrawRenderItems(FrameResource, CommandList, GetRenderItemManager()->GetRenderItems(ESM_DefaultLit, EBM_Opaque));
 

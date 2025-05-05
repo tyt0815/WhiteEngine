@@ -1,7 +1,7 @@
 #include "EnvironmentMapRenderer.h"
 #include "DirectX/DXResourceManager.h"
 #include "DirectX/DXMath.h"
-#include "DirectX/SRVHeap.h"
+#include "DirectX/CBVSRVUAVHeap.h"
 #include "ShapeDrawer.h"
 #include "GameFramework/Object/World/World.h"
 #include "GameFramework/Object/Component/CameraComponent.h"
@@ -35,11 +35,11 @@ void FEnvironmentMapRenderer::Render(
 	CommandList->SetPipelineState(mPipelineStates["EnvironmentMapPass"].Get());
 
 	CommandList->SetGraphicsRootSignature(mRootSignatures["EnvironmentMapPass"].Get());
-	FSRVHeap* SRVHeap = GetSRVHeap();
+	FCBVSRVUAVHeap* SRVHeap = GetCBVSRVUAVHeap();
 	ID3D12DescriptorHeap* descriptorHeaps[] = { SRVHeap->Get() };
 	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 	CommandList->SetGraphicsRootConstantBufferView(0, mEnvironmentMapPassCB->Resource()->GetGPUVirtualAddress());
-	CommandList->SetGraphicsRootDescriptorTable(1, SRVHeap->GetTextureCubeGPUSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(1, SRVHeap->GetTextureCubeGPUDescriptorHandleStart());
 
 	DrawSphere(CommandList);
 }
@@ -421,10 +421,10 @@ void FEnvironmentMapRenderer::PreRenderIrradianceMapPass(ID3D12GraphicsCommandLi
 
 	CommandList->SetGraphicsRootSignature(mRootSignatures["IrradianceMapPass"].Get());
 
-	FSRVHeap* SRVHeap = GetSRVHeap();
+	FCBVSRVUAVHeap* SRVHeap = GetCBVSRVUAVHeap();
 	ID3D12DescriptorHeap* descriptorHeaps[] = { SRVHeap->Get()};
 	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
-	CommandList->SetGraphicsRootDescriptorTable(1, SRVHeap->GetTextureCubeGPUSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(1, SRVHeap->GetTextureCubeGPUDescriptorHandleStart());
 	for (int i = 0; i < 6; ++i)
 	{
 		mIrradianceMapRenderTarget->Clear(CommandList, i, 0);
@@ -480,10 +480,10 @@ void FEnvironmentMapRenderer::PreRenderPrefilteredMapPass(ID3D12GraphicsCommandL
 
 	CommandList->SetGraphicsRootSignature(mRootSignatures["PreFilteredMapPass"].Get());
 
-	FSRVHeap* SRVHeap = GetSRVHeap();
+	FCBVSRVUAVHeap* SRVHeap = GetCBVSRVUAVHeap();
 	ID3D12DescriptorHeap* descriptorHeaps[] = { SRVHeap->Get()};
 	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
-	CommandList->SetGraphicsRootDescriptorTable(1, SRVHeap->GetTextureCubeGPUSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(1, SRVHeap->GetTextureCubeGPUDescriptorHandleStart());
 
 	for (int i = 0; i < 6; ++i)
 	{

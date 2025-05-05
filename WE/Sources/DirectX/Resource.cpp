@@ -1,7 +1,7 @@
 #include "Resource.h"
 #include "d3dx12.h"
 #include "DXResourceManager.h"
-#include "SRVHeap.h"
+#include "CBVSRVUAVHeap.h"
 
 void FResource::TransitResourceBarrier(ID3D12GraphicsCommandList* CommandList, D3D12_RESOURCE_STATES ResourceState)
 {

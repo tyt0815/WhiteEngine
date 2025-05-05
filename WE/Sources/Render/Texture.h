@@ -8,7 +8,7 @@
 #include "Utility/Class.h"
 #include "Utility/String.h"
 
-class FSRVHeap;
+class FCBVSRVUAVHeap;
 
 class FTexture : public FResource
 {
@@ -23,7 +23,7 @@ protected:
 	void CreateTexture2DSRV(const D3D12_SHADER_RESOURCE_VIEW_DESC& SRVDesc);
 	void CreateTextureCubeSRV(const D3D12_SHADER_RESOURCE_VIEW_DESC& SRVDesc);
 
-	FSRVHeap* mSRVHeap;
+	FCBVSRVUAVHeap* mCBVSRVUAVHeap;
 	std::string mName;
 	int mSRVHeapIndex = -1;
 

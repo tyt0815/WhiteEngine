@@ -8,7 +8,7 @@
 #include "DirectX/DXResourceManager.h"
 #include "DirectX/DXException.h"
 #include "DirectX/DXUtility.h"
-#include "DirectX/SRVHeap.h"
+#include "DirectX/CBVSRVUAVHeap.h"
 #include "RenderItemManager.h"
 
 void FForwardShadingSceneRenderer::Initialize(ID3D12Device* Device)
@@ -30,7 +30,7 @@ void FForwardShadingSceneRenderer::Render(
 
 	CommandList->SetGraphicsRootSignature(mRootSignatures["ForwardShadingPass"].Get());
 	FTextureManager* TexManager = GetTextureManager();
-	FSRVHeap* SRVHeap = GetSRVHeap();
+	FCBVSRVUAVHeap* SRVHeap = GetCBVSRVUAVHeap();
 	ID3D12DescriptorHeap* descriptorHeaps[] = { SRVHeap->Get()};
 	CommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
@@ -42,8 +42,8 @@ void FForwardShadingSceneRenderer::Render(
 	ID3D12Resource* DirLightSB = FrameResource->GetDirectionalLightSB()->Resource();
 	CommandList->SetGraphicsRootShaderResourceView(3, MaterialSB->GetGPUVirtualAddress());
 	CommandList->SetGraphicsRootShaderResourceView(4, DirLightSB->GetGPUVirtualAddress());
-	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTexture2DGPUSRVStart());
-	CommandList->SetGraphicsRootDescriptorTable(6, SRVHeap->GetTextureCubeGPUSRVStart());
+	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTexture2DGPUDescriptorHandleStart());
+	CommandList->SetGraphicsRootDescriptorTable(6, SRVHeap->GetTextureCubeGPUDescriptorHandleStart());
 	if (bWireFrame)
 	{
 		// TODO
