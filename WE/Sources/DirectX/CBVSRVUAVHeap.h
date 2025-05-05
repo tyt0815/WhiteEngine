@@ -12,6 +12,7 @@ class FCBVSRVUAVHeap final
 	SINGLETON(FCBVSRVUAVHeap);
 public:
 	int CreateTexture2DSRV(ID3D12Resource* Resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& SRVDesc);
+	int CreateTexture2DUAV(ID3D12Resource* Resource, ID3D12Resource* CounterResource, const D3D12_UNORDERED_ACCESS_VIEW_DESC& Desc);
 	int CreateTextureCubeSRV(ID3D12Resource* Resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& SRVDesc);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetTexture2DCPUDescriptorHandleStart() const;
 	D3D12_GPU_DESCRIPTOR_HANDLE GetTexture2DGPUDescriptorHandleStart() const;

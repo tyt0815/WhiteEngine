@@ -19,7 +19,12 @@ void FForwardShadingSceneRenderer::Initialize(ID3D12Device* Device)
 
 void FForwardShadingSceneRenderer::Render(
 	ID3D12GraphicsCommandList* CommandList,
-	FFrameResourceBase* FrameResource
+	FFrameResourceBase* FrameResource,
+	FResource* Resource,
+	D3D12_CPU_DESCRIPTOR_HANDLE Rtv,
+	D3D12_CPU_DESCRIPTOR_HANDLE Dsv,
+	D3D12_VIEWPORT Viewport,
+	D3D12_RECT ScissorRect
 )
 {
 	ReadyBackBuffer(CommandList);

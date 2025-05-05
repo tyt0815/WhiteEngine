@@ -5,7 +5,8 @@
 #include "DirectX/RTVHeap.h"
 
 FRenderTarget::FRenderTarget(UINT Width, UINT Height, UINT MipLevels, DXGI_FORMAT Format):
-	mRTVHeap(GetRTVHeap())
+	mRTVHeap(GetRTVHeap()),
+	FTexture::FTexture(GetDXResourceManagerPtr()->GetDevicePtr())
 {
 	// BuildResource
 	D3D12_RESOURCE_DESC TextureDesc;
@@ -20,7 +21,7 @@ FRenderTarget::FRenderTarget(UINT Width, UINT Height, UINT MipLevels, DXGI_FORMA
 	TextureDesc.SampleDesc.Count = 1;
 	TextureDesc.SampleDesc.Quality = 0;
 	TextureDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	TextureDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+	TextureDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
 	D3D12_CLEAR_VALUE OptClear;
 	OptClear.Format = Format;
@@ -30,7 +31,7 @@ FRenderTarget::FRenderTarget(UINT Width, UINT Height, UINT MipLevels, DXGI_FORMA
 	OptClear.Color[3] = 1.0f;
 
 	D3D12_HEAP_PROPERTIES DefaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-	CreateCommittedResource(DefaultHeapProperties, D3D12_HEAP_FLAG_NONE, TextureDesc, OptClear);
+	CreateCommittedResource(&DefaultHeapProperties, D3D12_HEAP_FLAG_NONE, &TextureDesc, &OptClear);
 
 	// BuildSRV
 	D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc;

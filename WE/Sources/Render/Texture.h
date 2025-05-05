@@ -13,6 +13,7 @@ class FCBVSRVUAVHeap;
 class FTexture : public FResource
 {
 public:
+	FTexture(ID3D12Device* Device);
 	FTexture(std::string Name, ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 
 public:
@@ -25,14 +26,14 @@ protected:
 
 	FCBVSRVUAVHeap* mCBVSRVUAVHeap;
 	std::string mName;
-	int mSRVHeapIndex = -1;
+	int mSRVIndex = -1;
 
 private:
 
 public:
 	inline int GetSRVHeapIndex() const
 	{
-		return mSRVHeapIndex;
+		return mSRVIndex;
 	}
 };
 

@@ -7,7 +7,7 @@
 
 D3D12_GPU_DESCRIPTOR_HANDLE FTexture::GetSRV() const
 {
-	return mCBVSRVUAVHeap->GetTexture2DGPUDescriptorHandle(mSRVHeapIndex);
+	return mCBVSRVUAVHeap->GetTexture2DGPUDescriptorHandle(mSRVIndex);
 }
 
 FTexture::FTexture():
@@ -17,12 +17,12 @@ FTexture::FTexture():
 
 void FTexture::CreateTexture2DSRV(const D3D12_SHADER_RESOURCE_VIEW_DESC& SRVDesc)
 {
-	mSRVHeapIndex = mCBVSRVUAVHeap->CreateTexture2DSRV(mResource.Get(), SRVDesc);
+	mSRVIndex = mCBVSRVUAVHeap->CreateTexture2DSRV(mResource.Get(), SRVDesc);
 }
 
 void FTexture::CreateTextureCubeSRV(const D3D12_SHADER_RESOURCE_VIEW_DESC& SRVDesc)
 {
-	mSRVHeapIndex = mCBVSRVUAVHeap->CreateTextureCubeSRV(mResource.Get(), SRVDesc);
+	mSRVIndex = mCBVSRVUAVHeap->CreateTextureCubeSRV(mResource.Get(), SRVDesc);
 }
 
 FTextureManager::FTextureManager()
@@ -102,15 +102,22 @@ void FTextureManager::LoadTexture(std::string Name, ID3D12Device* Device, ID3D12
 	mTextures[Name] = std::make_unique<FTexture>(Name, Device, CommandList);
 }
 
+FTexture::FTexture(ID3D12Device* Device):
+	FResource::FResource(Device),
+	mCBVSRVUAVHeap(GetCBVSRVUAVHeap())
+{
+}
+
 FTexture::FTexture(std::string Name, ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList) :
 	mName(Name),
-	mCBVSRVUAVHeap(GetCBVSRVUAVHeap())
+	mCBVSRVUAVHeap(GetCBVSRVUAVHeap()),
+	FResource::FResource(Device)
 {
 	static std::wstring Path = L"./Resources/Textures/";
 	std::wstring FileName = std::wstring(mName.begin(), mName.end()) + L".dds";
 	THROW_IF_FAILED(
 		DirectX::CreateDDSTextureFromFile12(
-			Device,
+			mDevice,
 			CommandList,
 			(Path + FileName).c_str(),
 			mResource,

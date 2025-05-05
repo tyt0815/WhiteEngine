@@ -4,8 +4,11 @@
 #include "DirectX/DXUtility.h"
 #include "DirectX/DXException.h"
 
-FGaussianBlurFilter::FGaussianBlurFilter(ID3D12Device* Device)
+FGaussianBlurFilter::FGaussianBlurFilter(ID3D12Device* Device, UINT Width, UINT Height)
 {
+	mBlurMap0 = std::make_unique<FUnorderedAccessTexture2D>(Device, Width, Height);
+	mBlurMap1 = std::make_unique<FUnorderedAccessTexture2D>(Device, Width, Height);
+
 	BuildRootSignature();
 	BuildShaders();
 	BuildPipelineStates(Device);
@@ -19,6 +22,35 @@ void FGaussianBlurFilter::Execute(ID3D12GraphicsCommandList* CommandList, FResou
 	CommandList->SetComputeRoot32BitConstants(0, 1, &mBlurRadius, 0);
 	CommandList->SetComputeRoot32BitConstants(0, (UINT)mWeights.size(), mWeights.data(), 1);
 	InputTexture->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_COPY_SOURCE);
+	mBlurMap0->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_COPY_DEST);
+	CommandList->CopyResource(mBlurMap0->Get(), InputTexture->Get());
+
+
+	for (int i = 0; i < BlurCount; ++i)
+	{
+		mBlurMap0->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
+		mBlurMap1->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
+		CommandList->SetPipelineState(mHorizontalPipelineState.Get());
+		CommandList->SetComputeRootDescriptorTable(1, mBlurMap0->GetSRV());
+		CommandList->SetComputeRootDescriptorTable(2, mBlurMap1->GetSRV());
+
+		UINT NumGroupsX = (UINT)ceilf(mBlurMap1->GetWidth() / 256.0f);
+		CommandList->Dispatch(NumGroupsX, mBlurMap1->GetHeight(), 1);
+
+		mBlurMap0->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		mBlurMap1->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
+
+		CommandList->SetPipelineState(mVerticalPipelineState.Get());
+		CommandList->SetComputeRootDescriptorTable(1, mBlurMap1->GetSRV());
+		CommandList->SetComputeRootDescriptorTable(2, mBlurMap0->GetSRV());
+
+		UINT NumGroupsY = (UINT)ceilf(mBlurMap0->GetHeight() / 256.0f);
+		CommandList->Dispatch(mBlurMap0->GetWidth(), NumGroupsY, 1);
+	}
+
+	InputTexture->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_COPY_DEST);
+	CommandList->CopyResource(InputTexture->Get(), mBlurMap0->Get());
 }
 
 void FGaussianBlurFilter::UpdateConstantBuffers(float Sigma)

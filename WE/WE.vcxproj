@@ -55,6 +55,7 @@
     <ClCompile Include="Sources\Render\ShapeDrawer.cpp" />
     <ClCompile Include="Sources\Render\StaticMesh.cpp" />
     <ClCompile Include="Sources\Render\Texture.cpp" />
+    <ClCompile Include="Sources\Render\UnorderedAccessTexture2D.cpp" />
     <ClCompile Include="Sources\Utility\FileIO.cpp" />
     <ClCompile Include="Sources\Utility\Timer.cpp" />
     <ClCompile Include="Sources\Window\Window.cpp" />
@@ -105,6 +106,7 @@
     <ClInclude Include="Sources\Render\ShapeDrawer.h" />
     <ClInclude Include="Sources\Render\StaticMesh.h" />
     <ClInclude Include="Sources\Render\Texture.h" />
+    <ClInclude Include="Sources\Render\UnorderedAccessTexture2D.h" />
     <ClInclude Include="Sources\Render\UploadBuffer.h" />
     <ClInclude Include="Sources\Utility\Class.h" />
     <ClInclude Include="Sources\Utility\FileIO.h" />

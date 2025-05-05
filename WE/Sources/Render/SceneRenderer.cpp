@@ -48,6 +48,10 @@ void FFrameResourceBase::Flush()
 FSceneRenderer::FSceneRenderer()
 {
 	mShadowMap = std::make_unique<FDepthStencil>(1920 * 2, 1080 * 2);
+
+	FDXResourceManager* DXManager = GetDXResourceManagerPtr();
+	D3D12_VIEWPORT Viewport = DXManager->GetScreenViewport();
+	mGaussianBlurFilter = std::make_unique<FGaussianBlurFilter>(DXManager->GetDevicePtr(), (UINT)Viewport.Width, (UINT)Viewport.Height);
 }
 
 void FSceneRenderer::Initialize(ID3D12Device* Device)
@@ -67,7 +71,20 @@ void FSceneRenderer::Tick()
 	THROW_IF_FAILED(CommandAllocator->Reset());
 	THROW_IF_FAILED(CommandList->Reset(CommandAllocator, nullptr));
 
-	Render(CommandList, FrameResource);
+	FResource* BackBuffer = GetDXResourceManagerPtr()->GetCurrentBackBufferPtr();
+	D3D12_CPU_DESCRIPTOR_HANDLE Rtv = GetDXResourceManagerPtr()->GetCurrentBackBufferView();
+	D3D12_CPU_DESCRIPTOR_HANDLE Dsv = GetDXResourceManagerPtr()->GetDepthStencilView();
+	D3D12_VIEWPORT Viewport = GetDXResourceManagerPtr()->GetScreenViewport();
+	D3D12_RECT ScissorRect = GetDXResourceManagerPtr()->GetScissorRect();
+	Render(
+		CommandList,
+		FrameResource,
+		BackBuffer,
+		Rtv,
+		Dsv,
+		Viewport,
+		ScissorRect
+	);
 
 	THROW_IF_FAILED(CommandList->Close());
 	ID3D12CommandList* CommandLists[] = { CommandList };
@@ -359,22 +376,10 @@ void FSceneRenderer::DrawRenderItems(FFrameResourceBase* FrameResource, ID3D12Gr
 
 void FSceneRenderer::ReadyBackBuffer(ID3D12GraphicsCommandList* CommandList)
 {
-	std::vector<D3D12_RESOURCE_BARRIER> ResourceBarriers;
-	ID3D12Resource* BackBuffer = GetDXResourceManagerPtr()->GetCurrentBackBufferPtr();
-	ID3D12Resource* DepthStencilBuffer = GetDXResourceManagerPtr()->GetDepthStencilBuffer();
-	ResourceBarriers.resize(2);
-	ResourceBarriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(
-		BackBuffer,
-		D3D12_RESOURCE_STATE_PRESENT,
-		D3D12_RESOURCE_STATE_RENDER_TARGET
-	);
-	ResourceBarriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(
-		DepthStencilBuffer,
-		D3D12_RESOURCE_STATE_DEPTH_READ,
-		D3D12_RESOURCE_STATE_DEPTH_WRITE
-	);
-	CommandList->ResourceBarrier((UINT)ResourceBarriers.size(), ResourceBarriers.data());
-
+	FResource* BackBuffer = GetDXResourceManagerPtr()->GetCurrentBackBufferPtr();
+	FResource* DepthStencilBuffer = GetDXResourceManagerPtr()->GetDepthStencilBuffer();
+	BackBuffer->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	DepthStencilBuffer->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 	D3D12_VIEWPORT Viewport = GetDXResourceManagerPtr()->GetScreenViewport();
 	D3D12_RECT ScissorRect = GetDXResourceManagerPtr()->GetScissorRect();
 	CommandList->RSSetViewports(1, &Viewport);
@@ -400,21 +405,10 @@ void FSceneRenderer::ReadyBackBuffer(ID3D12GraphicsCommandList* CommandList)
 
 void FSceneRenderer::FinishBackBuffer(ID3D12GraphicsCommandList* CommandList)
 {
-	ID3D12Resource* BackBuffer = GetDXResourceManagerPtr()->GetCurrentBackBufferPtr();
-	ID3D12Resource* DepthStencilBuffer = GetDXResourceManagerPtr()->GetDepthStencilBuffer();
-	std::vector<D3D12_RESOURCE_BARRIER> ResourceBarriers;
-	ResourceBarriers.resize(2);
-	ResourceBarriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(
-		BackBuffer,
-		D3D12_RESOURCE_STATE_RENDER_TARGET,
-		D3D12_RESOURCE_STATE_PRESENT
-	);
-	ResourceBarriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(
-		DepthStencilBuffer,
-		D3D12_RESOURCE_STATE_DEPTH_WRITE,
-		D3D12_RESOURCE_STATE_DEPTH_READ
-	);
-	CommandList->ResourceBarrier((UINT)ResourceBarriers.size(), ResourceBarriers.data());
+	FResource* BackBuffer = GetDXResourceManagerPtr()->GetCurrentBackBufferPtr();
+	FResource* DepthStencilBuffer = GetDXResourceManagerPtr()->GetDepthStencilBuffer();
+	BackBuffer->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_PRESENT);
+	DepthStencilBuffer->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
 }
 
 void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuffer)

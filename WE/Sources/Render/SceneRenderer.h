@@ -5,11 +5,12 @@
 #include <unordered_map>
 #include <wrl.h>
 #include "Material.h"
+#include "DepthStencil.h"
+#include "GausiaanBlurFilter.h"
 #include "RenderItemManager.h"
 #include "UploadBuffer.h"
 #include "Utility/Class.h"
 #include "Utility/String.h"
-#include "DepthStencil.h"
 
 extern const int gFrameResourcesNum;
 constexpr int FRAME_RESOURCES_NUM = 3;
@@ -167,7 +168,15 @@ protected:
     virtual void BuildPipelineStates(ID3D12Device* Device);
     void BuildShadowMapPassPipelineStates(ID3D12Device* Device);
     virtual void UpdateFrameBuffers(FFrameResourceBase* FrameResource);
-    virtual void Render(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource) = 0;
+    virtual void Render(
+        ID3D12GraphicsCommandList* CommandList,
+        FFrameResourceBase* FrameResourceBase,
+        FResource* Resource,
+        D3D12_CPU_DESCRIPTOR_HANDLE Rtv,
+        D3D12_CPU_DESCRIPTOR_HANDLE Dsv,
+        D3D12_VIEWPORT Viewport,
+        D3D12_RECT ScissorRect
+    ) = 0;
 
     void DrawRectPass(
         ID3D12GraphicsCommandList* CommandList,
@@ -199,6 +208,7 @@ protected:
     void FinishBackBuffer(ID3D12GraphicsCommandList* CommandList);
 
     std::unique_ptr<FDepthStencil> mShadowMap;
+    std::unique_ptr<FGaussianBlurFilter> mGaussianBlurFilter;
     std::array<std::unique_ptr<FFrameResourceBase>, FRAME_RESOURCES_NUM> mFrameResources;
     std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D12RootSignature>> mRootSignatures;
     std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3DBlob>> mShaders;

@@ -53,7 +53,15 @@ private:
 
     // 해당 버퍼는 처음 실행될때 한번만 업데이트 한다.
     void UpdateDeferredShadingPassCB(TUploadBuffer<FDeferredShadingPassConstantBuffer>* DeferredShadingPassCB);
-    virtual void Render(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResourceBase) override;
+    virtual void Render(
+        ID3D12GraphicsCommandList* CommandList,
+        FFrameResourceBase* FrameResourceBase,
+        FResource* Resource,
+        D3D12_CPU_DESCRIPTOR_HANDLE Rtv,
+        D3D12_CPU_DESCRIPTOR_HANDLE Dsv,
+        D3D12_VIEWPORT Viewport,
+        D3D12_RECT ScissorRect
+    ) override;
 
     void DrawDebugGBuffers(
         ID3D12GraphicsCommandList* CommandList,

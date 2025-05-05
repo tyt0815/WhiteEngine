@@ -44,7 +44,8 @@ std::array<DirectX::XMFLOAT4X4, 6> FCubeRenderTarget::GetCubeMapViews()
 }
 
 FCubeRenderTarget::FCubeRenderTarget(UINT Width, UINT Height, UINT MipLevels, DXGI_FORMAT Format):
-	mRTVHeap(GetRTVHeap())
+	mRTVHeap(GetRTVHeap()),
+	FTexture::FTexture(GetDXResourceManagerPtr()->GetDevicePtr())
 {
 	// Build Resource
 	D3D12_RESOURCE_DESC TextureDesc;
@@ -67,7 +68,7 @@ FCubeRenderTarget::FCubeRenderTarget(UINT Width, UINT Height, UINT MipLevels, DX
 	OptClear.Color[3] = 1.0f;
 
 	D3D12_HEAP_PROPERTIES DefaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-	CreateCommittedResource(DefaultHeapProperties, D3D12_HEAP_FLAG_NONE, TextureDesc, OptClear);
+	CreateCommittedResource(&DefaultHeapProperties, D3D12_HEAP_FLAG_NONE, &TextureDesc, &OptClear);
 
 	// Build SRV
 	D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};

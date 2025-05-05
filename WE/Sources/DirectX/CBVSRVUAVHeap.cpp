@@ -32,6 +32,14 @@ int FCBVSRVUAVHeap::CreateTexture2DSRV(ID3D12Resource* Resource, const D3D12_SHA
 	return SRVHeapIndex;
 }
 
+int FCBVSRVUAVHeap::CreateTexture2DUAV(ID3D12Resource* Resource, ID3D12Resource* CounterResource, const D3D12_UNORDERED_ACCESS_VIEW_DESC& Desc)
+{
+	assert(mTexture2DViewCount < TEXTURE2D_VIEW_NUM);
+	int UAVIndex = mTexture2DViewCount++;
+	mDevice->CreateUnorderedAccessView(Resource, CounterResource,&Desc, GetTexture2DCPUDescriptorHandle(UAVIndex));
+	return UAVIndex;
+}
+
 int FCBVSRVUAVHeap::CreateTextureCubeSRV(ID3D12Resource* Resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& SRVDesc)
 {
 	assert(mTextureCubeViewCount < TEXTURECUBE_VIEW_NUM);

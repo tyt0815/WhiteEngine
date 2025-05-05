@@ -2,13 +2,15 @@
 
 #include <d3d12.h>
 #include <dxgi1_4.h>
+#include <memory>
 #include <wrl.h>
 #include <functional>
 #include "DXException.h"
 #include "DXUtility.h"
+#include "Resource.h"
 #include "Utility/Class.h"
 
-constexpr int SWAPCHAIN_BUFFERS_NUM = 3;
+constexpr int SWAPCHAIN_BUFFERS_NUM = 2;
 
 class FWindow;
 
@@ -42,8 +44,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> CommandList;
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> RTVHeap;
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> DSVHeap;
-	Microsoft::WRL::ComPtr<ID3D12Resource> SwapChainBuffers[SWAPCHAIN_BUFFERS_NUM];
-	Microsoft::WRL::ComPtr<ID3D12Resource> DepthStencilBuffer;
+	std::unique_ptr<FResource> SwapChainBuffers[SWAPCHAIN_BUFFERS_NUM];
+	std::unique_ptr<FResource> DepthStencilBuffer;
 	UINT64 CurrentFence = 0;
 
 	D3D12_VIEWPORT ScreenViewport = {};
@@ -78,9 +80,9 @@ public:
 	{ 
 		return DSVHeap->GetCPUDescriptorHandleForHeapStart();
 	}
-	inline ID3D12Resource* GetCurrentBackBufferPtr() const
+	inline FResource* GetCurrentBackBufferPtr() const
 	{
-		return SwapChainBuffers[CurrentBackBuffer].Get();
+		return SwapChainBuffers[CurrentBackBuffer].get();
 	}
 	inline ID3D12Device* GetDevicePtr() const 
 	{ 
@@ -143,9 +145,9 @@ public:
 	{
 		return RTVDescriptorSize;
 	}
-	inline ID3D12Resource* GetDepthStencilBuffer() const
+	inline FResource* GetDepthStencilBuffer() const
 	{
-		return DepthStencilBuffer.Get();
+		return DepthStencilBuffer.get();
 	}
 };
 

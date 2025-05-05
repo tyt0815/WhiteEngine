@@ -63,6 +63,12 @@ FDXResourceManager::FDXResourceManager()
 	LogAdapters();
 #endif
 
+	for (int i = 0; i < SWAPCHAIN_BUFFERS_NUM; ++i)
+	{
+		SwapChainBuffers[i] = std::make_unique<FResource>(Device.Get());
+	}
+	DepthStencilBuffer = std::make_unique<FResource>(Device.Get());
+
 	CreateCommandObjects();
 	CreateSwapChain();
 	CreateDescriptorHeaps();
@@ -93,8 +99,8 @@ void FDXResourceManager::Resize(UINT Width, UINT Height)
 
 	// Release the previous resources we will be recreating.
 	for (int i = 0; i < SWAPCHAIN_BUFFERS_NUM; ++i)
-		SwapChainBuffers[i].Reset();
-	DepthStencilBuffer.Reset();
+		SwapChainBuffers[i]->Reset();
+	DepthStencilBuffer->Reset();
 
 	// Resize the swap chain.
 	THROW_IF_FAILED(
@@ -111,8 +117,8 @@ void FDXResourceManager::Resize(UINT Width, UINT Height)
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(RTVHeap->GetCPUDescriptorHandleForHeapStart());
 	for (UINT i = 0; i < SWAPCHAIN_BUFFERS_NUM; i++)
 	{
-		THROW_IF_FAILED(SwapChain->GetBuffer(i, IID_PPV_ARGS(&SwapChainBuffers[i])));
-		Device->CreateRenderTargetView(SwapChainBuffers[i].Get(), nullptr, rtvHeapHandle);
+		THROW_IF_FAILED(SwapChain->GetBuffer(i, IID_PPV_ARGS(SwapChainBuffers[i]->GetAddressOf())));
+		Device->CreateRenderTargetView(SwapChainBuffers[i]->Get(), nullptr, rtvHeapHandle);
 		rtvHeapHandle.Offset(1, RTVDescriptorSize);
 	}
 
@@ -142,15 +148,11 @@ void FDXResourceManager::Resize(UINT Width, UINT Height)
 	optClear.DepthStencil.Depth = 1.0f;
 	optClear.DepthStencil.Stencil = 0;
 	CD3DX12_HEAP_PROPERTIES DepthStencilHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
-	THROW_IF_FAILED(
-		Device->CreateCommittedResource(
-			&DepthStencilHeapProperties,
-			D3D12_HEAP_FLAG_NONE,
-			&depthStencilDesc,
-			D3D12_RESOURCE_STATE_DEPTH_READ,
-			&optClear,
-			IID_PPV_ARGS(DepthStencilBuffer.GetAddressOf())
-		)
+	DepthStencilBuffer->CreateCommittedResource(
+		&DepthStencilHeapProperties,
+		D3D12_HEAP_FLAG_NONE,
+		&depthStencilDesc,
+		&optClear
 	);
 
 	// Create descriptor to mip level 0 of entire resource using the format of the resource.
@@ -159,7 +161,7 @@ void FDXResourceManager::Resize(UINT Width, UINT Height)
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 	dsvDesc.Format = DepthStencilFormat;
 	dsvDesc.Texture2D.MipSlice = 0;
-	Device->CreateDepthStencilView(DepthStencilBuffer.Get(), &dsvDesc, GetDepthStencilView());
+	Device->CreateDepthStencilView(DepthStencilBuffer->Get(), &dsvDesc, GetDepthStencilView());
 
 	// Execute the resize commands.
 	THROW_IF_FAILED(CommandList->Close());

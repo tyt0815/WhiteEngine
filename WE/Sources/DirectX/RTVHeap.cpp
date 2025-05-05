@@ -26,9 +26,14 @@ FRTVHeap::~FRTVHeap()
 
 int FRTVHeap::CreateRenderTargetView(ID3D12Resource* Resource, const D3D12_RENDER_TARGET_VIEW_DESC& Desc)
 {
-	const int RTVHeapIndex = mRTVCount++;
-	mDevice->CreateRenderTargetView(Resource, &Desc, GetCPURTV(RTVHeapIndex));
+	const int RTVHeapIndex = NextRTVIndex();
+	CreateRenderTargetView(Resource, Desc, GetCPURTV(RTVHeapIndex));
 	return RTVHeapIndex;
+}
+
+void FRTVHeap::CreateRenderTargetView(ID3D12Resource* Resource, const D3D12_RENDER_TARGET_VIEW_DESC& Desc, D3D12_CPU_DESCRIPTOR_HANDLE RTV)
+{
+	mDevice->CreateRenderTargetView(Resource, &Desc, RTV);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE FRTVHeap::GetCPURTV(int i) const

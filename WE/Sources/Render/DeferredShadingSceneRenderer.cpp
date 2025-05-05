@@ -302,7 +302,15 @@ void FDeferredShadingSceneRenderer::UpdateDeferredShadingPassCB(TUploadBuffer<FD
 	DeferredShadingPassCB->CopyData(0, CB);
 }
 
-void FDeferredShadingSceneRenderer::Render(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResourceBase)
+void FDeferredShadingSceneRenderer::Render(
+	ID3D12GraphicsCommandList* CommandList,
+	FFrameResourceBase* FrameResourceBase,
+	FResource* Resource,
+	D3D12_CPU_DESCRIPTOR_HANDLE Rtv,
+	D3D12_CPU_DESCRIPTOR_HANDLE Dsv,
+	D3D12_VIEWPORT Viewport,
+	D3D12_RECT ScissorRect
+)
 {
 	FFrameResource* FrameResource = dynamic_cast<FFrameResource*>(FrameResourceBase);
 
@@ -310,32 +318,28 @@ void FDeferredShadingSceneRenderer::Render(ID3D12GraphicsCommandList* CommandLis
 	DrawShadowMap(CommandList, FrameResource);
 
 	ReadyBackBuffer(CommandList);
-	D3D12_CPU_DESCRIPTOR_HANDLE BackBufferView = GetDXResourceManagerPtr()->GetCurrentBackBufferView();
-	D3D12_CPU_DESCRIPTOR_HANDLE BackBufferDsv = GetDXResourceManagerPtr()->GetDepthStencilView();
-	CommandList->OMSetRenderTargets(1, &BackBufferView, true, &BackBufferDsv);
-
-	D3D12_VIEWPORT BackBufferViewport = GetDXResourceManagerPtr()->GetScreenViewport();
-	D3D12_RECT BackBufferScissorRect = GetDXResourceManagerPtr()->GetScissorRect();
-	CommandList->RSSetScissorRects(1, &BackBufferScissorRect);
+	CommandList->OMSetRenderTargets(1, &Rtv, true, &Dsv);
+	CommandList->RSSetViewports(1, &Viewport);
+	CommandList->RSSetScissorRects(1, &ScissorRect);
 
 	DrawDeferredShadingPass(
 		CommandList,
-		BackBufferView,
-		BackBufferDsv,
-		BackBufferViewport,
+		Rtv,
+		Dsv,
+		Viewport,
 		FrameResource
 	);
 
-	mEnvironmentMapRenderer->Render(CommandList, BackBufferView, BackBufferDsv, BackBufferViewport);
+	mEnvironmentMapRenderer->Render(CommandList, Rtv, Dsv, Viewport);
 
-	D3D12_VIEWPORT DebugScreenViewport = FDXUtility::GetQuadrantViewport(BackBufferViewport, 2);
+	D3D12_VIEWPORT DebugScreenViewport = FDXUtility::GetQuadrantViewport(Viewport, 2);
 	DebugScreenViewport = FDXUtility::GetQuadrantViewport(DebugScreenViewport, 2);
-	DrawDebugGBuffers(CommandList, BackBufferView, BackBufferDsv, DebugScreenViewport);
+	DrawDebugGBuffers(CommandList, Rtv, Dsv, DebugScreenViewport);
 	DrawRectPass(
 		CommandList,
 		mGBufferDepthStencil->GetSRVHeapIndex(),
-		BackBufferView,
-		BackBufferDsv,
+		Rtv,
+		Dsv,
 		FDXUtility::GetQuadrantViewport(DebugScreenViewport, 4),
 		"DebugDepthPass"
 	);
@@ -343,12 +347,12 @@ void FDeferredShadingSceneRenderer::Render(ID3D12GraphicsCommandList* CommandLis
 	DrawRectPass(
 		CommandList,
 		mShadowMap->GetSRVHeapIndex(),
-		BackBufferView,
-		BackBufferDsv,
-		FDXUtility::GetQuadrantViewport(FDXUtility::GetQuadrantViewport(BackBufferViewport, 4), 4),
+		Rtv,
+		Dsv,
+		FDXUtility::GetQuadrantViewport(FDXUtility::GetQuadrantViewport(Viewport, 4), 4),
 		"DebugDepthPass"
 	);
-
+	mGaussianBlurFilter->Execute(CommandList, Resource, 10);
 	FinishBackBuffer(CommandList);
 }
 

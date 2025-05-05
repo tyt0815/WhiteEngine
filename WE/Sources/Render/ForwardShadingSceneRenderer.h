@@ -21,7 +21,15 @@ protected:
     virtual void BuildShadersAndInputLayouts() override;
     virtual void BuildPipelineStates(ID3D12Device* Device) override;
     virtual void CreateFrameResources(ID3D12Device* Device) override;
-	virtual void Render(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource) override;
+	virtual void Render(
+        ID3D12GraphicsCommandList* CommandList,
+        FFrameResourceBase* FrameResourceBase,
+        FResource* Resource,
+        D3D12_CPU_DESCRIPTOR_HANDLE Rtv,
+        D3D12_CPU_DESCRIPTOR_HANDLE Dsv,
+        D3D12_VIEWPORT Viewport,
+        D3D12_RECT ScissorRect
+    ) override;
 private:
 	// std::unique_ptr<FCubeSkyRenderer> mSkyCubeMapRenderer;
 };

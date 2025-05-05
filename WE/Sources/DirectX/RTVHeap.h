@@ -11,6 +11,7 @@ class FRTVHeap
 	SINGLETON(FRTVHeap);
 public:
 	int CreateRenderTargetView(ID3D12Resource* Resource, const D3D12_RENDER_TARGET_VIEW_DESC& Desc);
+	void CreateRenderTargetView(ID3D12Resource* Resource, const D3D12_RENDER_TARGET_VIEW_DESC& Desc, D3D12_CPU_DESCRIPTOR_HANDLE RTV);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCPURTV(int i) const;
 	D3D12_GPU_DESCRIPTOR_HANDLE GetGPURTV(int i) const;
 
@@ -19,6 +20,12 @@ private:
 	ID3D12Device* mDevice;
 	UINT mRTVSize = 0;
 	int mRTVCount = 0;
+
+public:
+	inline int NextRTVIndex()
+	{
+		return mRTVCount++;
+	}
 };
 
 inline FRTVHeap* GetRTVHeap()

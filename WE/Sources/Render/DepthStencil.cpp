@@ -3,7 +3,8 @@
 #include "DirectX/DXResourceManager.h"
 
 FDepthStencil::FDepthStencil(UINT Width, UINT Height):
-	mDSVHeap(GetDSVHeap())
+	mDSVHeap(GetDSVHeap()),
+	FTexture::FTexture(GetDXResourceManagerPtr()->GetDevicePtr())
 {
 	// Build DepthStencilBuffer
 	D3D12_RESOURCE_DESC DepthStencilDesc;
@@ -26,7 +27,7 @@ FDepthStencil::FDepthStencil(UINT Width, UINT Height):
 	OptClear.DepthStencil.Stencil = 0;
 
 	D3D12_HEAP_PROPERTIES DefaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-	CreateCommittedResource(DefaultHeapProperties, D3D12_HEAP_FLAG_NONE, DepthStencilDesc, OptClear);
+	CreateCommittedResource(&DefaultHeapProperties, D3D12_HEAP_FLAG_NONE, &DepthStencilDesc, &OptClear);
 
 	// Build SRV
 	D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc;

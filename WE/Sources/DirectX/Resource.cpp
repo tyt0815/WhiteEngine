@@ -1,7 +1,13 @@
 #include "Resource.h"
+#include <assert.h>
 #include "d3dx12.h"
 #include "DXResourceManager.h"
 #include "CBVSRVUAVHeap.h"
+
+FResource::FResource(ID3D12Device* Device):
+	mDevice(Device)
+{
+}
 
 void FResource::TransitResourceBarrier(ID3D12GraphicsCommandList* CommandList, D3D12_RESOURCE_STATES ResourceState)
 {
@@ -55,22 +61,21 @@ D3D12_RECT FResource::GetScissorRectMipLevel(int i) const
 }
 
 void FResource::CreateCommittedResource(
-	const D3D12_HEAP_PROPERTIES& HeapProperties,
+	D3D12_HEAP_PROPERTIES* HeapProperties,
 	const D3D12_HEAP_FLAGS& HeapFlags,
-	const D3D12_RESOURCE_DESC& ResourceDesc,
-	const D3D12_CLEAR_VALUE& ClearValue
+	 D3D12_RESOURCE_DESC* ResourceDesc,
+	 D3D12_CLEAR_VALUE* ClearValue
 )
 {
-	ID3D12Device* Device = GetDXResourceManagerPtr()->GetDevicePtr();
+	assert(mDevice);
 	THROW_IF_FAILED(
-		Device->CreateCommittedResource(
-			&HeapProperties,
+		mDevice->CreateCommittedResource(
+			HeapProperties,
 			HeapFlags,
-			&ResourceDesc,
+			ResourceDesc,
 			D3D12_RESOURCE_STATE_COMMON,
-			&ClearValue,
+			ClearValue,
 			IID_PPV_ARGS(mResource.GetAddressOf())
 		)
 	);
-	mResource->GetDesc();
 }

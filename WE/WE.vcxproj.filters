@@ -203,8 +203,11 @@
     <ClCompile Include="Sources\Render\EnvironmentMapRenderer.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Render\UnorderedAccessTexture2D.cpp">
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
     <ClCompile Include="Sources\Render\GausiaanBlurFilter.cpp">
-      <Filter>Sources</Filter>
+      <Filter>Sources\Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -362,6 +365,9 @@
       <Filter>Sources\Render</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Render\GausiaanBlurFilter.h">
+      <Filter>Sources\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\UnorderedAccessTexture2D.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
   </ItemGroup>
