@@ -306,7 +306,13 @@ void FSceneRenderer::DrawShadowMap(ID3D12GraphicsCommandList* CommandList, FFram
 	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTexture2DGPUDescriptorHandleStart());
 	CommandList->SetGraphicsRootDescriptorTable(6, SRVHeap->GetTextureCubeGPUDescriptorHandleStart());
 
-	DrawRenderItems(FrameResource, CommandList, GetRenderItemManager()->mStaticMeshInfoPool[ESM_DefaultLit][EBM_Opaque]);
+
+	DrawStaticMeshs(
+		CommandList,
+		FrameResource->GetMeshCB()->Resource(),
+		FrameResource->GetSubmeshCB()->Resource(),
+		GetRenderItemManager()
+	);
 
 	mShadowMap->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
 }
@@ -334,44 +340,70 @@ void FSceneRenderer::ClearRenderTargetAndDepthStencil(
 	);
 }
 
-void FSceneRenderer::DrawRenderItems(FFrameResourceBase* FrameResource, ID3D12GraphicsCommandList* CommandList, const TPool<FRenderItemInfo>& RenderItems)
+void FSceneRenderer::DrawStaticMeshs(
+	ID3D12GraphicsCommandList* CommandList,
+	ID3D12Resource* MeshConstantBuffer,
+	ID3D12Resource* SubmeshConstantBuffer,
+	FRenderItemManager* RIM
+)
 {
-	ID3D12Resource* MeshConstantBuffer = FrameResource->GetMeshCB()->Resource();
-	ID3D12Resource* SubmeshConstantBuffer = FrameResource->GetSubmeshCB()->Resource();
-
-	UINT ObjectConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FMeshConstantBuffer));
-	UINT SubmeshConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FSubmeshConstantBuffer));
-
-	for (int i = 0; i < RenderItems.GetPoolSize(); ++i)
+	int ShadingModelsNum = EShadingModel::ESM_None;
+	int BlendModesNum = EBlendMode::EBM_None;
+	for (int i = 0; i < ShadingModelsNum; ++i)
 	{
-		if (RenderItems.IsUsed(i))
+		for (int j = 0; j < BlendModesNum; ++j)
 		{
-			const FRenderItemInfo& DrawArgs = RenderItems.GetItem(i);
-			FMaterial* Material = DrawArgs.Material;
-
-			// MeshConstantBuffer
-			auto ObjectConstantBufferAddress = MeshConstantBuffer->GetGPUVirtualAddress() + DrawArgs.MeshCBIndex * ObjectConstantBufferByteSize;
-			CommandList->SetGraphicsRootConstantBufferView(1, ObjectConstantBufferAddress);
-
-			// SubmeshConstantBuffer
-			auto SubmeshConstantBufferAddress = SubmeshConstantBuffer->GetGPUVirtualAddress() + DrawArgs.SubmeshCBIndex * SubmeshConstantBufferByteSize;
-			CommandList->SetGraphicsRootConstantBufferView(2, SubmeshConstantBufferAddress);
-
-			D3D12_VERTEX_BUFFER_VIEW VertexBufferView = DrawArgs.MeshGeometry->VertexBufferView();
-			D3D12_INDEX_BUFFER_VIEW IndexBufferView = DrawArgs.MeshGeometry->IndexBufferView();
-			CommandList->IASetVertexBuffers(0, 1, &VertexBufferView);
-			CommandList->IASetIndexBuffer(&IndexBufferView);
-			CommandList->IASetPrimitiveTopology(DrawArgs.MeshGeometry->PrimitiveType);
-
-			CommandList->DrawIndexedInstanced(
-				DrawArgs.IndexCount,
-				1,
-				DrawArgs.StartIndexLocation,
-				DrawArgs.BaseVertexLocation,
-				0
-			);
+			TPool<FStaticMeshInfo>& StaticMeshInfoPool = RIM->mStaticMeshInfoPool[i][j];
+			size_t PoolSize = StaticMeshInfoPool.GetPoolSize();
+			for (size_t k = 0; k < PoolSize; ++k)
+			{
+				if (StaticMeshInfoPool.IsUsed(k))
+				{
+					DrawStaticMesh(
+						CommandList,
+						MeshConstantBuffer,
+						SubmeshConstantBuffer,
+						StaticMeshInfoPool.GetItem(k)
+					);
+				}
+			}
 		}
 	}
+}
+
+void FSceneRenderer::DrawStaticMesh(
+	ID3D12GraphicsCommandList* CommandList,
+	ID3D12Resource* MeshConstantBuffer,
+	ID3D12Resource* SubmeshConstantBuffer,
+	const FStaticMeshInfo& StaticMeshInfo
+)
+{
+	static UINT ObjectConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FMeshConstantBuffer));
+	static UINT SubmeshConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FSubmeshConstantBuffer));
+
+	FMaterial* Material = StaticMeshInfo.Material;
+
+	// MeshConstantBuffer
+	auto ObjectConstantBufferAddress = MeshConstantBuffer->GetGPUVirtualAddress() + StaticMeshInfo.MeshCBIndex * ObjectConstantBufferByteSize;
+	CommandList->SetGraphicsRootConstantBufferView(1, ObjectConstantBufferAddress);
+
+	// SubmeshConstantBuffer
+	auto SubmeshConstantBufferAddress = SubmeshConstantBuffer->GetGPUVirtualAddress() + StaticMeshInfo.SubmeshCBIndex * SubmeshConstantBufferByteSize;
+	CommandList->SetGraphicsRootConstantBufferView(2, SubmeshConstantBufferAddress);
+
+	D3D12_VERTEX_BUFFER_VIEW VertexBufferView = StaticMeshInfo.MeshGeometry->VertexBufferView();
+	D3D12_INDEX_BUFFER_VIEW IndexBufferView = StaticMeshInfo.MeshGeometry->IndexBufferView();
+	CommandList->IASetVertexBuffers(0, 1, &VertexBufferView);
+	CommandList->IASetIndexBuffer(&IndexBufferView);
+	CommandList->IASetPrimitiveTopology(StaticMeshInfo.MeshGeometry->PrimitiveType);
+
+	CommandList->DrawIndexedInstanced(
+		StaticMeshInfo.IndexCount,
+		1,
+		StaticMeshInfo.StartIndexLocation,
+		StaticMeshInfo.BaseVertexLocation,
+		0
+	);
 }
 
 void FSceneRenderer::ReadyBackBuffer(ID3D12GraphicsCommandList* CommandList)

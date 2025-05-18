@@ -573,7 +573,12 @@ void FDeferredShadingSceneRenderer::DrawGBuffers(ID3D12GraphicsCommandList* Comm
 	CommandList->SetGraphicsRootDescriptorTable(4, SRVHeap->GetTexture2DGPUDescriptorHandleStart());
 	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTextureCubeGPUDescriptorHandleStart());
 
-	DrawRenderItems(FrameResource, CommandList, GetRenderItemManager()->mStaticMeshInfoPool[ESM_DefaultLit][EBM_Opaque]);
+	DrawStaticMeshs(
+		CommandList,
+		FrameResource->GetMeshCB()->Resource(),
+		FrameResource->GetSubmeshCB()->Resource(),
+		GetRenderItemManager()
+	);
 
 	mGBufferA->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
 	mGBufferB->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);

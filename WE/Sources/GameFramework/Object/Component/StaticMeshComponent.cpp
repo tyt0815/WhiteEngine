@@ -31,7 +31,7 @@ void WStaticMeshComponent::SetStaticMesh(const FStaticMesh& StaticMesh)
 	mSubmeshCBIndices.clear();
 
 	mStaticMesh = StaticMesh;
-	FRenderItemInfo DrawArgs;
+	FStaticMeshInfo DrawArgs;
 	DrawArgs.MeshGeometry = mStaticMesh.Geometry;
 	DrawArgs.Material = mStaticMesh.Material;		// TODO: Submesh당 Material로 변경? 밑에 되있는데...
 	DrawArgs.MeshCBIndex = (UINT)mMeshCBIndex;

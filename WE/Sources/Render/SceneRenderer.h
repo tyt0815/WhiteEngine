@@ -20,6 +20,8 @@ constexpr int DIR_LIGHTS_NUM = 3;
 constexpr int MESH_CB_NUM = 512;
 constexpr int SUBMESH_CB_NUM = 1024;
 
+class FRenderItemManager;
+
 struct FDirectionalLightSB
 {
     XMFLOAT4X4 LightViewProj;
@@ -196,11 +198,20 @@ protected:
         const D3D12_RECT& ScissorRect
     );
 
-    void DrawRenderItems(
-        FFrameResourceBase* FrameResource,
+    void DrawStaticMeshs(
         ID3D12GraphicsCommandList* CommandList,
-        const TPool<FRenderItemInfo>& RenderItems
+        ID3D12Resource* MeshConstantBuffer,
+        ID3D12Resource* SubmeshConstantBuffer,
+        FRenderItemManager* RIM
     );
+    
+    void DrawStaticMesh(
+        ID3D12GraphicsCommandList* CommandList,
+        ID3D12Resource* MeshConstantBuffer,
+        ID3D12Resource* SubmeshConstantBuffer,
+        const FStaticMeshInfo& StaticMeshInfo
+    );
+
     // BackBuffer와 DepthStencilBuffer를 쓰기 가능한 상태로 전이하고, Clear한다.
     void ReadyBackBuffer(ID3D12GraphicsCommandList* CommandList);
 

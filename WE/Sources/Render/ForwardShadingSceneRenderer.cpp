@@ -55,16 +55,12 @@ void FForwardShadingSceneRenderer::Render(
 	}
 	else
 	{
-		for (size_t i = 0; i < ESM_None; ++i)
-		{
-			EShadingModel ShadingModel = static_cast<EShadingModel>(i);
-			for (size_t j = 0; j < EBM_None; ++j)
-			{
-				EBlendMode BlendMode = static_cast<EBlendMode>(j);
-				CommandList->SetPipelineState(mPipelineStates["ForwardShadingPass_Opaque"].Get());
-				DrawRenderItems(FrameResource, CommandList, GetRenderItemManager()->mStaticMeshInfoPool[ESM_DefaultLit][EBM_Opaque]);
-			}
-		}
+		DrawStaticMeshs(
+			CommandList,
+			FrameResource->GetMeshCB()->Resource(),
+			FrameResource->GetSubmeshCB()->Resource(),
+			GetRenderItemManager()
+		);
 	}
 	
 	// mSkyCubeMapRenderer->Render(CommandList);

@@ -8,7 +8,7 @@
 
 class FMeshGeometry;
 
-struct FRenderItemInfo
+struct FStaticMeshInfo
 {
 	FMeshGeometry* MeshGeometry;
 	FMaterial* Material;
@@ -51,7 +51,7 @@ class FRenderItemManager
 public:
 	TPool<FMeshInfo> mMeshInfoPool;
 	TPool<FSubmeshInfo> mSubmeshInfoPool;
-	std::array<std::array<TPool<FRenderItemInfo>, EBM_None>, ESM_None> mStaticMeshInfoPool;
+	std::array<std::array<TPool<FStaticMeshInfo>, EBM_None>, ESM_None> mStaticMeshInfoPool;
 	TPool<FLightInfo> mLightInfoPool;
 	TPool<FDirectionalLightInfo> mDirectionalLightInfoPool;
 };
