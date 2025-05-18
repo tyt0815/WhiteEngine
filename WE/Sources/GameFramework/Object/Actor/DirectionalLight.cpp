@@ -3,6 +3,6 @@
 
 ADirectionalLight::ADirectionalLight()
 {
-	DirectionalLightComponent = CreateSceneComponent<WDirectionalLightComponent>();
-	SetRootComponent(DirectionalLightComponent);
+	mDirectionalLightComponent = CreateSceneComponent<WDirectionalLightComponent>();
+	SetRootComponent(mDirectionalLightComponent);
 }

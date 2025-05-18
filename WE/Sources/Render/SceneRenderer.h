@@ -218,7 +218,6 @@ protected:
     // BackBuffer와 DepthStencilBuffer를 Present하기 위한 상태로 전이한다.
     void FinishBackBuffer(ID3D12GraphicsCommandList* CommandList);
 
-    std::unique_ptr<FDepthStencil> mShadowMap;
     std::unique_ptr<FGaussianBlurFilter> mGaussianBlurFilter;
     std::array<std::unique_ptr<FFrameResourceBase>, FRAME_RESOURCES_NUM> mFrameResources;
     std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D12RootSignature>> mRootSignatures;

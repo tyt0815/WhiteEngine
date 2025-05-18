@@ -35,7 +35,7 @@ void WStaticMeshComponent::SetStaticMesh(const FStaticMesh& StaticMesh)
 	DrawArgs.MeshGeometry = mStaticMesh.Geometry;
 	DrawArgs.Material = mStaticMesh.Material;		// TODO: Submesh당 Material로 변경? 밑에 되있는데...
 	DrawArgs.MeshCBIndex = (UINT)mMeshCBIndex;
-
+	DrawArgs.bCastShadow = mbCastShadow;
 	for (size_t i = 0; i < mStaticMesh.Geometry->DrawArgs.size(); ++i)
 	{
 		EShadingModel ShadingModel = mStaticMesh.Material->ShadingModel;

@@ -51,8 +51,7 @@ void FDeferredShadingSceneRenderer::Initialize(ID3D12Device* Device)
 	GetInputSystemManager()->BindKeyboardAction('4', this, &FDeferredShadingSceneRenderer::SwitchToGBufferBDebugMode);
 	GetInputSystemManager()->BindKeyboardAction('5', this, &FDeferredShadingSceneRenderer::SwitchToGBufferCDebugMode);
 	GetInputSystemManager()->BindKeyboardAction('6', this, &FDeferredShadingSceneRenderer::SwitchToDepthDebugMode);
-	GetInputSystemManager()->BindKeyboardAction('7', this, &FDeferredShadingSceneRenderer::SwitchToShadowMapDebugMode);
-	GetInputSystemManager()->BindKeyboardAction('8', this, &FDeferredShadingSceneRenderer::SwitchToDebugAllMode);
+	GetInputSystemManager()->BindKeyboardAction('7', this, &FDeferredShadingSceneRenderer::SwitchToDebugAllMode);
 }
 
 void FDeferredShadingSceneRenderer::CreateFrameResources(ID3D12Device* Device)
@@ -113,7 +112,7 @@ void FDeferredShadingSceneRenderer::BuildShadersAndInputLayouts()
 void FDeferredShadingSceneRenderer::BuildDeferredShadingPassShaders()
 {
 	D3D_SHADER_MACRO Defines[] = {
-		// {"IBL", "1"},
+		{"IBL", "1"},
 		{NULL, NULL}
 	};
 	mShaders["DeferredShadingPassVertexShader"] = FDXUtility::CompileShader(
@@ -334,11 +333,6 @@ void FDeferredShadingSceneRenderer::SwitchToDepthDebugMode()
 	mScreenMode = EDebugScreenMode::EDSM_Depth;
 }
 
-void FDeferredShadingSceneRenderer::SwitchToShadowMapDebugMode()
-{
-	mScreenMode = EDebugScreenMode::EDSM_ShadowMap;
-}
-
 void FDeferredShadingSceneRenderer::UpdateDeferredShadingPassCB(TUploadBuffer<FDeferredShadingPassConstantBuffer>* DeferredShadingPassCB)
 {
 	FDeferredShadingPassConstantBuffer CB;
@@ -404,10 +398,6 @@ void FDeferredShadingSceneRenderer::Render(
 		DrawRectPass(CommandList, mGBufferDepthStencil->GetSRVHeapIndex(), Rtv, Dsv, Viewport, "DebugDepthPass");
 		break;
 
-	case EDebugScreenMode::EDSM_ShadowMap:
-		DrawRectPass(CommandList, mShadowMap->GetSRVHeapIndex(), Rtv, Dsv, Viewport, "DebugDepthPass");
-		break;
-
 	case EDebugScreenMode::EDSM_DebugAll:
 		D3D12_VIEWPORT DebugScreenViewport = FDXUtility::GetQuadrantViewport(Viewport, 2);
 		DebugScreenViewport = FDXUtility::GetQuadrantViewport(DebugScreenViewport, 2);
@@ -418,15 +408,6 @@ void FDeferredShadingSceneRenderer::Render(
 			Rtv,
 			Dsv,
 			FDXUtility::GetQuadrantViewport(DebugScreenViewport, 4),
-			"DebugDepthPass"
-		);
-
-		DrawRectPass(
-			CommandList,
-			mShadowMap->GetSRVHeapIndex(),
-			Rtv,
-			Dsv,
-			FDXUtility::GetQuadrantViewport(FDXUtility::GetQuadrantViewport(Viewport, 4), 4),
 			"DebugDepthPass"
 		);
 		break;

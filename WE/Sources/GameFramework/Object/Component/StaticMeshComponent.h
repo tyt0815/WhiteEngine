@@ -14,4 +14,11 @@ private:
 	FStaticMesh mStaticMesh;
 	std::array<std::array<std::vector<size_t>, EBM_None>, ESM_None> mStaticMeshInfoPoolIds;
 	std::vector<size_t> mSubmeshCBIndices;
+	bool mbCastShadow = true;
+
+public:
+	inline void SetCastShadow(bool bCast)
+	{
+		mbCastShadow = bCast;
+	}
 };

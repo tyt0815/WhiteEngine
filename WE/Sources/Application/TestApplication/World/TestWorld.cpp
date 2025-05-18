@@ -8,6 +8,7 @@
 #include "Application/TestApplication/Actor/ThickMortarStonework.h"
 #include "Application/TestApplication/Actor/LaminateFloorBrown.h"
 #include "Application/TestApplication/Actor/RotatingDirLight.h"
+#include "GameFramework/Object/Component/DirectionalLightComponent.h"
 
 WTestWorld::WTestWorld()
 {
@@ -39,5 +40,12 @@ WTestWorld::WTestWorld()
 	Transform.Translation = XMFLOAT3(0.0f, -2.0f, 0.0f);
 	Actor->SetActorTransform(Transform);
 
-	Actor = SpawnActor<ARotatingDirLight>();
+	ADirectionalLight* LightActor;
+	LightActor = SpawnActor<ARotatingDirLight>();
+	Transform.Rotation = XMFLOAT3(0.0f, 0.0f, -90.0f);
+	LightActor->SetActorTransform(Transform);
+
+	LightActor = SpawnActor<ADirectionalLight>();
+	LightActor->SetActorTransform(Transform);
+	// LightActor->GetDirLightComp()->SetCastShadow(false);
 }

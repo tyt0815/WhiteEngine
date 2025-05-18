@@ -6,6 +6,7 @@ extern const int gFrameResourcesNum;
 WDirectionalLightComponent::WDirectionalLightComponent():
 	mDirectionalLightInfoPoolIndex(GetRenderItemManager()->mDirectionalLightInfoPool.Register({}))
 {
+	mShadowMap = std::make_unique<FDepthStencil>(1920 * 2, 1080 * 2);
 }
 
 void WDirectionalLightComponent::Update()
@@ -31,6 +32,7 @@ void WDirectionalLightComponent::Update()
 	if (LightInfo.DirtyFrameCount == gFrameResourcesNum || mbCastShadow != LightInfo.bCastShadow)
 	{
 		LightInfo.bCastShadow = mbCastShadow;
+		LightInfo.ShadowMap = mShadowMap.get();
 		LightInfoPool.SetItem(mDirectionalLightInfoPoolIndex, LightInfo);
 	}
 	Super::Update();

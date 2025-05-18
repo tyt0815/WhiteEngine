@@ -9,5 +9,11 @@ public:
 	ADirectionalLight();
 
 private:
-	WDirectionalLightComponent* DirectionalLightComponent = nullptr;
+	WDirectionalLightComponent* mDirectionalLightComponent = nullptr;
+
+public:
+	inline WDirectionalLightComponent* GetDirLightComp() const
+	{
+		return mDirectionalLightComponent;
+	}
 };

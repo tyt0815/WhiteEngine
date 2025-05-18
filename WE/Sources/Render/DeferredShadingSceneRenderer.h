@@ -12,8 +12,7 @@ enum class EDebugScreenMode
     EDSM_GBufferA,
     EDSM_GBufferB,
     EDSM_GBufferC,
-    EDSM_Depth,
-    EDSM_ShadowMap,
+    EDSM_Depth
 };
 
 class FDeferredShadingSceneRenderer final : public FSceneRenderer
@@ -69,7 +68,6 @@ private:
     void SwitchToGBufferBDebugMode();
     void SwitchToGBufferCDebugMode();
     void SwitchToDepthDebugMode();
-    void SwitchToShadowMapDebugMode();
 
 
     // 해당 버퍼는 처음 실행될때 한번만 업데이트 한다.

@@ -47,8 +47,6 @@ void FFrameResourceBase::Flush()
 
 FSceneRenderer::FSceneRenderer()
 {
-	mShadowMap = std::make_unique<FDepthStencil>(1920 * 2, 1080 * 2);
-
 	FDXResourceManager* DXManager = GetDXResourceManagerPtr();
 	D3D12_VIEWPORT Viewport = DXManager->GetScreenViewport();
 	mGaussianBlurFilter = std::make_unique<FGaussianBlurFilter>(DXManager->GetDevicePtr(), (UINT)Viewport.Width, (UINT)Viewport.Height);
@@ -222,6 +220,7 @@ void FSceneRenderer::BuildShadowMapPassPipelineStates(ID3D12Device* Device)
 		mShaders["ShadowMapPassVertexShader"]->GetBufferSize()
 	};
 	ShadowMapPassPipelineState.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	ShadowMapPassPipelineState.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 	ShadowMapPassPipelineState.RasterizerState.DepthBias = 10000;
 	ShadowMapPassPipelineState.RasterizerState.DepthBiasClamp = 0.0f;
 	ShadowMapPassPipelineState.RasterizerState.SlopeScaledDepthBias = 1.0f;
@@ -231,7 +230,7 @@ void FSceneRenderer::BuildShadowMapPassPipelineStates(ID3D12Device* Device)
 	ShadowMapPassPipelineState.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	ShadowMapPassPipelineState.SampleDesc.Count = 1;
 	ShadowMapPassPipelineState.SampleDesc.Quality = 0;
-	ShadowMapPassPipelineState.DSVFormat = mShadowMap->GetFormat();
+	ShadowMapPassPipelineState.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	THROW_IF_FAILED(
 		Device->CreateGraphicsPipelineState(
 			&ShadowMapPassPipelineState,
@@ -283,38 +282,68 @@ void FSceneRenderer::DrawRectPass(
 
 void FSceneRenderer::DrawShadowMap(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource)
 {
-	mShadowMap->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-	mShadowMap->Clear(CommandList);
-	D3D12_CPU_DESCRIPTOR_HANDLE Dsv = mShadowMap->GetDSV();
-	CommandList->OMSetRenderTargets(0, nullptr, false, &Dsv);
+	TPool<FDirectionalLightInfo>& DirLightInfoPool = GetRenderItemManager()->mDirectionalLightInfoPool;
+	int TargetIndex = min(DIR_LIGHTS_NUM, (int)DirLightInfoPool.GetPoolSize());
+	int ShadingModelsNum = EShadingModel::ESM_None;
+	int BlendModesNum = EBlendMode::EBM_None;
+	for (int i = 0; i < TargetIndex; ++i)
+	{
 
-	D3D12_VIEWPORT Viewport = mShadowMap->GetViewport();
-	D3D12_RECT ScissorRect = mShadowMap->GetScissorRect();
-	CommandList->RSSetViewports(1, &Viewport);
-	CommandList->RSSetScissorRects(1, &ScissorRect);
+		if (DirLightInfoPool.IsUsed(i))
+		{
+			FDirectionalLightInfo DirLightInfo = DirLightInfoPool.GetItem(i);
+			if (DirLightInfo.bCastShadow)
+			{
+				DirLightInfo.ShadowMap->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+				DirLightInfo.ShadowMap->Clear(CommandList);
+				D3D12_CPU_DESCRIPTOR_HANDLE Dsv = DirLightInfo.ShadowMap->GetDSV();
+				CommandList->OMSetRenderTargets(0, nullptr, false, &Dsv);
 
-	CommandList->SetPipelineState(mPipelineStates["ShadowMapPass"].Get());
+				D3D12_VIEWPORT Viewport = DirLightInfo.ShadowMap->GetViewport();
+				D3D12_RECT ScissorRect = DirLightInfo.ShadowMap->GetScissorRect();
+				CommandList->RSSetViewports(1, &Viewport);
+				CommandList->RSSetScissorRects(1, &ScissorRect);
 
-	FCBVSRVUAVHeap* SRVHeap = GetCBVSRVUAVHeap();
-	ID3D12DescriptorHeap* DescriptorHeaps[] = { SRVHeap->Get() };
-	CommandList->SetDescriptorHeaps(_countof(DescriptorHeaps), DescriptorHeaps);
+				CommandList->SetPipelineState(mPipelineStates["ShadowMapPass"].Get());
 
-	CommandList->SetGraphicsRootSignature(mRootSignatures["ShadowMapPass"].Get());
-	CommandList->SetGraphicsRoot32BitConstant(0, 0, 0);
-	CommandList->SetGraphicsRootShaderResourceView(3, FrameResource->GetMaterialSB()->Resource()->GetGPUVirtualAddress());
-	CommandList->SetGraphicsRootShaderResourceView(4, FrameResource->GetDirectionalLightSB()->Resource()->GetGPUVirtualAddress());
-	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTexture2DGPUDescriptorHandleStart());
-	CommandList->SetGraphicsRootDescriptorTable(6, SRVHeap->GetTextureCubeGPUDescriptorHandleStart());
+				FCBVSRVUAVHeap* SRVHeap = GetCBVSRVUAVHeap();
+				ID3D12DescriptorHeap* DescriptorHeaps[] = { SRVHeap->Get() };
+				CommandList->SetDescriptorHeaps(_countof(DescriptorHeaps), DescriptorHeaps);
+
+				CommandList->SetGraphicsRootSignature(mRootSignatures["ShadowMapPass"].Get());
+				CommandList->SetGraphicsRoot32BitConstant(0, i, 0);
+				CommandList->SetGraphicsRootShaderResourceView(3, FrameResource->GetMaterialSB()->Resource()->GetGPUVirtualAddress());
+				CommandList->SetGraphicsRootShaderResourceView(4, FrameResource->GetDirectionalLightSB()->Resource()->GetGPUVirtualAddress());
+				CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTexture2DGPUDescriptorHandleStart());
+				CommandList->SetGraphicsRootDescriptorTable(6, SRVHeap->GetTextureCubeGPUDescriptorHandleStart());
 
 
-	DrawStaticMeshs(
-		CommandList,
-		FrameResource->GetMeshCB()->Resource(),
-		FrameResource->GetSubmeshCB()->Resource(),
-		GetRenderItemManager()
-	);
+				for (int i = 0; i < ShadingModelsNum; ++i)
+				{
+					for (int j = 0; j < BlendModesNum; ++j)
+					{
+						TPool<FStaticMeshInfo>& StaticMeshInfoPool = GetRenderItemManager()->mStaticMeshInfoPool[i][j];
+						size_t PoolSize = StaticMeshInfoPool.GetPoolSize();
+						for (size_t k = 0; k < PoolSize; ++k)
+						{
+							if (StaticMeshInfoPool.IsUsed(k) && StaticMeshInfoPool.GetItem(k).bCastShadow)
+							{
+								DrawStaticMesh(
+									CommandList,
+									FrameResource->GetMeshCB()->Resource(),
+									FrameResource->GetSubmeshCB()->Resource(),
+									StaticMeshInfoPool.GetItem(k)
+								);
+							}
+						}
+					}
+				}
 
-	mShadowMap->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
+				DirLightInfo.ShadowMap->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
+			}
+		}
+	}
+	
 }
 
 void FSceneRenderer::ClearRenderTargetAndDepthStencil(
@@ -583,7 +612,7 @@ void FSceneRenderer::UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightStr
 				FDirectionalLightStructuredBuffer DirectionalLight;
 				DirectionalLight.Direction = DirLightInfo.Direction;
 				DirectionalLight.Color = DirLightInfo.Color;
-				DirectionalLight.ShadowMapIndex = mShadowMap->GetSRVHeapIndex();
+				DirectionalLight.ShadowMapIndex = DirLightInfo.ShadowMap->GetSRVHeapIndex();
 
 				// TODO: ÇÏµåÄÚµùµÊ
 				float SphereRadius = sqrtf(100 * 100);

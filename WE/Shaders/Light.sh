@@ -142,6 +142,7 @@ float3 ComputeDirectionalLight(
     float3 Specular = Numerator / Denominator;
     
     float NDotL = max(dot(N, L), 0.0f);
+    
     return (kD * Material.Albedo / PI + Specular) * Radiance * NDotL;
 }
 

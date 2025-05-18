@@ -17,6 +17,7 @@ struct FStaticMeshInfo
 	UINT IndexCount = 0;
 	UINT StartIndexLocation = 0;
 	int BaseVertexLocation = 0;
+	bool bCastShadow = false;
 };
 
 struct FMeshInfo
@@ -39,6 +40,7 @@ struct FDirectionalLightInfo
 	UINT DirtyFrameCount;
 	DirectX::XMFLOAT3 Color;
 	bool bCastShadow;
+	class FDepthStencil* ShadowMap;
 };
 
 class FRenderItemManager
