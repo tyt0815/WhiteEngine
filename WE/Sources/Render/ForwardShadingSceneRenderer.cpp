@@ -62,7 +62,7 @@ void FForwardShadingSceneRenderer::Render(
 			{
 				EBlendMode BlendMode = static_cast<EBlendMode>(j);
 				CommandList->SetPipelineState(mPipelineStates["ForwardShadingPass_Opaque"].Get());
-				DrawRenderItems(FrameResource, CommandList, GetRenderItemManager()->GetRenderItems(ShadingModel, BlendMode));
+				DrawRenderItems(FrameResource, CommandList, GetRenderItemManager()->mStaticMeshInfoPool[ESM_DefaultLit][EBM_Opaque]);
 			}
 		}
 	}

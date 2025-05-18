@@ -2,6 +2,7 @@
 #include "DirectXColors.h"
 #include "DirectX/DXResourceManager.h"
 #include "DirectX/CBVSRVUAVHeap.h"
+#include "GameFramework/InputSystem/InputSystem.h"
 #include "ShapeDrawer.h"
 
 FDeferredShadingSceneRenderer::FFrameResource::FFrameResource(ID3D12Device* Device) :
@@ -43,6 +44,15 @@ void FDeferredShadingSceneRenderer::Initialize(ID3D12Device* Device)
 		FFrameResource* FrameResource = dynamic_cast<FFrameResource*>(mFrameResources[i].get());
 		UpdateDeferredShadingPassCB(FrameResource->GetDeferredShadingPassCB());
 	}
+
+	GetInputSystemManager()->BindKeyboardAction('1', this, &FDeferredShadingSceneRenderer::SwitchToDefaultMode);
+	GetInputSystemManager()->BindKeyboardAction('2', this, &FDeferredShadingSceneRenderer::SwitchToBlurMode);
+	GetInputSystemManager()->BindKeyboardAction('3', this, &FDeferredShadingSceneRenderer::SwitchToGBufferADebugMode);
+	GetInputSystemManager()->BindKeyboardAction('4', this, &FDeferredShadingSceneRenderer::SwitchToGBufferBDebugMode);
+	GetInputSystemManager()->BindKeyboardAction('5', this, &FDeferredShadingSceneRenderer::SwitchToGBufferCDebugMode);
+	GetInputSystemManager()->BindKeyboardAction('6', this, &FDeferredShadingSceneRenderer::SwitchToDepthDebugMode);
+	GetInputSystemManager()->BindKeyboardAction('7', this, &FDeferredShadingSceneRenderer::SwitchToShadowMapDebugMode);
+	GetInputSystemManager()->BindKeyboardAction('8', this, &FDeferredShadingSceneRenderer::SwitchToDebugAllMode);
 }
 
 void FDeferredShadingSceneRenderer::CreateFrameResources(ID3D12Device* Device)
@@ -289,6 +299,46 @@ void FDeferredShadingSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* Frame
 	FFrameResource* Fr = dynamic_cast<FFrameResource*>(FrameResource);
 }
 
+void FDeferredShadingSceneRenderer::SwitchToDefaultMode()
+{
+	mScreenMode = EDebugScreenMode::EDSM_Default;
+}
+
+void FDeferredShadingSceneRenderer::SwitchToDebugAllMode()
+{
+	mScreenMode = EDebugScreenMode::EDSM_DebugAll;
+}
+
+void FDeferredShadingSceneRenderer::SwitchToBlurMode()
+{
+	mScreenMode = EDebugScreenMode::EDSM_Blur;
+}
+
+void FDeferredShadingSceneRenderer::SwitchToGBufferADebugMode()
+{
+	mScreenMode = EDebugScreenMode::EDSM_GBufferA;
+}
+
+void FDeferredShadingSceneRenderer::SwitchToGBufferBDebugMode()
+{
+	mScreenMode = EDebugScreenMode::EDSM_GBufferB;
+}
+
+void FDeferredShadingSceneRenderer::SwitchToGBufferCDebugMode()
+{
+	mScreenMode = EDebugScreenMode::EDSM_GBufferC;
+}
+
+void FDeferredShadingSceneRenderer::SwitchToDepthDebugMode()
+{
+	mScreenMode = EDebugScreenMode::EDSM_Depth;
+}
+
+void FDeferredShadingSceneRenderer::SwitchToShadowMapDebugMode()
+{
+	mScreenMode = EDebugScreenMode::EDSM_ShadowMap;
+}
+
 void FDeferredShadingSceneRenderer::UpdateDeferredShadingPassCB(TUploadBuffer<FDeferredShadingPassConstantBuffer>* DeferredShadingPassCB)
 {
 	FDeferredShadingPassConstantBuffer CB;
@@ -332,27 +382,60 @@ void FDeferredShadingSceneRenderer::Render(
 
 	mEnvironmentMapRenderer->Render(CommandList, Rtv, Dsv, Viewport);
 
-	D3D12_VIEWPORT DebugScreenViewport = FDXUtility::GetQuadrantViewport(Viewport, 2);
-	DebugScreenViewport = FDXUtility::GetQuadrantViewport(DebugScreenViewport, 2);
-	DrawDebugGBuffers(CommandList, Rtv, Dsv, DebugScreenViewport);
-	DrawRectPass(
-		CommandList,
-		mGBufferDepthStencil->GetSRVHeapIndex(),
-		Rtv,
-		Dsv,
-		FDXUtility::GetQuadrantViewport(DebugScreenViewport, 4),
-		"DebugDepthPass"
-	);
+	switch (mScreenMode)
+	{
+	case EDebugScreenMode::EDSM_Blur:
+		mGaussianBlurFilter->Execute(CommandList, Resource, 10);
+		break;
 
-	DrawRectPass(
-		CommandList,
-		mShadowMap->GetSRVHeapIndex(),
-		Rtv,
-		Dsv,
-		FDXUtility::GetQuadrantViewport(FDXUtility::GetQuadrantViewport(Viewport, 4), 4),
-		"DebugDepthPass"
-	);
-	mGaussianBlurFilter->Execute(CommandList, Resource, 10);
+	case EDebugScreenMode::EDSM_GBufferA:
+		DrawRectPass(CommandList, mGBufferA->GetSRVHeapIndex(), Rtv, Dsv, Viewport);
+		break;
+
+	case EDebugScreenMode::EDSM_GBufferB:
+		DrawRectPass(CommandList, mGBufferB->GetSRVHeapIndex(), Rtv, Dsv, Viewport);
+		break;
+
+	case EDebugScreenMode::EDSM_GBufferC:
+		DrawRectPass(CommandList, mGBufferC->GetSRVHeapIndex(), Rtv, Dsv, Viewport);
+		break;
+
+	case EDebugScreenMode::EDSM_Depth:
+		DrawRectPass(CommandList, mGBufferDepthStencil->GetSRVHeapIndex(), Rtv, Dsv, Viewport, "DebugDepthPass");
+		break;
+
+	case EDebugScreenMode::EDSM_ShadowMap:
+		DrawRectPass(CommandList, mShadowMap->GetSRVHeapIndex(), Rtv, Dsv, Viewport, "DebugDepthPass");
+		break;
+
+	case EDebugScreenMode::EDSM_DebugAll:
+		D3D12_VIEWPORT DebugScreenViewport = FDXUtility::GetQuadrantViewport(Viewport, 2);
+		DebugScreenViewport = FDXUtility::GetQuadrantViewport(DebugScreenViewport, 2);
+		DrawDebugGBuffers(CommandList, Rtv, Dsv, DebugScreenViewport);
+		DrawRectPass(
+			CommandList,
+			mGBufferDepthStencil->GetSRVHeapIndex(),
+			Rtv,
+			Dsv,
+			FDXUtility::GetQuadrantViewport(DebugScreenViewport, 4),
+			"DebugDepthPass"
+		);
+
+		DrawRectPass(
+			CommandList,
+			mShadowMap->GetSRVHeapIndex(),
+			Rtv,
+			Dsv,
+			FDXUtility::GetQuadrantViewport(FDXUtility::GetQuadrantViewport(Viewport, 4), 4),
+			"DebugDepthPass"
+		);
+		break;
+
+	default:
+		break;
+	}
+
+	
 	FinishBackBuffer(CommandList);
 }
 
@@ -490,7 +573,7 @@ void FDeferredShadingSceneRenderer::DrawGBuffers(ID3D12GraphicsCommandList* Comm
 	CommandList->SetGraphicsRootDescriptorTable(4, SRVHeap->GetTexture2DGPUDescriptorHandleStart());
 	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTextureCubeGPUDescriptorHandleStart());
 
-	DrawRenderItems(FrameResource, CommandList, GetRenderItemManager()->GetRenderItems(ESM_DefaultLit, EBM_Opaque));
+	DrawRenderItems(FrameResource, CommandList, GetRenderItemManager()->mStaticMeshInfoPool[ESM_DefaultLit][EBM_Opaque]);
 
 	mGBufferA->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
 	mGBufferB->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);

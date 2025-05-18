@@ -4,6 +4,18 @@
 #include "DepthStencil.h"
 #include "EnvironmentMapRenderer.h"
 
+enum class EDebugScreenMode
+{
+    EDSM_Default,
+    EDSM_DebugAll,
+    EDSM_Blur,
+    EDSM_GBufferA,
+    EDSM_GBufferB,
+    EDSM_GBufferC,
+    EDSM_Depth,
+    EDSM_ShadowMap,
+};
+
 class FDeferredShadingSceneRenderer final : public FSceneRenderer
 {
     struct FDeferredShadingPassConstantBuffer
@@ -50,6 +62,15 @@ private:
     void BuildGBufferPassPipelineState(ID3D12Device* Device);
     void BuildDebugPassPipelineStates(ID3D12Device* Device);
     virtual void UpdateFrameBuffers(FFrameResourceBase* FrameResource) override;
+    void SwitchToDefaultMode();
+    void SwitchToDebugAllMode();
+    void SwitchToBlurMode();
+    void SwitchToGBufferADebugMode();
+    void SwitchToGBufferBDebugMode();
+    void SwitchToGBufferCDebugMode();
+    void SwitchToDepthDebugMode();
+    void SwitchToShadowMapDebugMode();
+
 
     // 해당 버퍼는 처음 실행될때 한번만 업데이트 한다.
     void UpdateDeferredShadingPassCB(TUploadBuffer<FDeferredShadingPassConstantBuffer>* DeferredShadingPassCB);
@@ -85,4 +106,6 @@ private:
     std::unique_ptr<FRenderTarget> mGBufferC;
     std::unique_ptr<FDepthStencil> mGBufferDepthStencil;
     std::unique_ptr<FEnvironmentMapRenderer> mEnvironmentMapRenderer;
+
+    EDebugScreenMode mScreenMode = EDebugScreenMode::EDSM_Default;
 };

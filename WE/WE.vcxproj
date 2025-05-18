@@ -32,6 +32,8 @@
     <ClCompile Include="Sources\GameFramework\Object\Actor\Actor.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\ActorComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\CameraComponent.cpp" />
+    <ClCompile Include="Sources\GameFramework\Object\Component\DirectionalLightComponent.cpp" />
+    <ClCompile Include="Sources\GameFramework\Object\Component\LightComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\PrimitiveComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\SceneComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\StaticMeshComponent.cpp" />
@@ -84,6 +86,8 @@
     <ClInclude Include="Sources\GameFramework\Object\Actor\Actor.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\ActorComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\CameraComponent.h" />
+    <ClInclude Include="Sources\GameFramework\Object\Component\DirectionalLightComponent.h" />
+    <ClInclude Include="Sources\GameFramework\Object\Component\LightComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\PrimitiveComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\SceneComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\StaticMeshComponent.h" />

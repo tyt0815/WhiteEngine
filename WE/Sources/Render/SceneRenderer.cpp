@@ -306,7 +306,7 @@ void FSceneRenderer::DrawShadowMap(ID3D12GraphicsCommandList* CommandList, FFram
 	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTexture2DGPUDescriptorHandleStart());
 	CommandList->SetGraphicsRootDescriptorTable(6, SRVHeap->GetTextureCubeGPUDescriptorHandleStart());
 
-	DrawRenderItems(FrameResource, CommandList, GetRenderItemManager()->GetRenderItems(ESM_DefaultLit, EBM_Opaque));
+	DrawRenderItems(FrameResource, CommandList, GetRenderItemManager()->mStaticMeshInfoPool[ESM_DefaultLit][EBM_Opaque]);
 
 	mShadowMap->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
 }
@@ -460,12 +460,13 @@ void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConsta
 
 void FSceneRenderer::UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConstantBuffer)
 {
-	size_t TargetIndex = GetRenderItemManager()->GetMeshInfoPoolSize();
+	TPool<FMeshInfo>& MeshInfoPool = GetRenderItemManager()->mMeshInfoPool;
+	size_t TargetIndex = MeshInfoPool.GetPoolSize();
 	for (size_t i = 0; i < TargetIndex; ++i)
 	{
-		if (GetRenderItemManager()->IsUsedMeshInfoPool(i))
+		if (MeshInfoPool.IsUsed(i))
 		{
-			FMeshInfo MeshInfo = GetRenderItemManager()->GetMeshInfo(i);
+			FMeshInfo MeshInfo = MeshInfoPool.GetItem(i);
 			if (MeshInfo.DirtyFrameCount > 0)
 			{
 				FMeshConstantBuffer MeshCB;
@@ -476,7 +477,7 @@ void FSceneRenderer::UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConsta
 				XMStoreFloat4x4(&MeshCB.InvTransposeWorld, InvWorld);
 				MeshConstantBuffer->CopyData((int)i, MeshCB);
 				--MeshInfo.DirtyFrameCount;
-				GetRenderItemManager()->SetMeshInfo((int)i, MeshInfo);
+				MeshInfoPool.SetItem(i, MeshInfo);
 			}
 		}
 	}
@@ -484,12 +485,13 @@ void FSceneRenderer::UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConsta
 
 void FSceneRenderer::UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshConstantBuffer)
 {
-	size_t TargetIndex = GetRenderItemManager()->GetSubmeshInfoPoolSize();
+	TPool<FSubmeshInfo>& SubmeshInfoPool = GetRenderItemManager()->mSubmeshInfoPool;
+	size_t TargetIndex = SubmeshInfoPool.GetPoolSize();
 	for (size_t i = 0; i < TargetIndex; ++i)
 	{
-		if (GetRenderItemManager()->IsUsedSubmeshInfoPool(i))
+		if (SubmeshInfoPool.IsUsed(i))
 		{
-			FSubmeshInfo SubmeshInfo = GetRenderItemManager()->GetSubmeshInfo(i);
+			FSubmeshInfo SubmeshInfo = SubmeshInfoPool.GetItem(i);
 			if (SubmeshInfo.DirtyFrameCount > 0)
 			{
 				FSubmeshConstantBuffer SubmeshCB;
@@ -499,7 +501,7 @@ void FSceneRenderer::UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* Subm
 				SubmeshConstantBuffer->CopyData((int)i, SubmeshCB);
 
 				--SubmeshInfo.DirtyFrameCount;
-				GetRenderItemManager()->SetSubmeshInfo((int)i, SubmeshInfo);
+				SubmeshInfoPool.SetItem(i, SubmeshInfo);
 			}
 		}
 	}
