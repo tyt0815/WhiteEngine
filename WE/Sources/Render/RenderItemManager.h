@@ -33,16 +33,12 @@ struct FSubmeshInfo
 	UINT DirtyFrameCount;
 };
 
-struct FLightInfo
-{
-	DirectX::XMFLOAT3 Position;
-	DirectX::XMFLOAT3 Rotation;
-	DirectX::XMFLOAT3 Color;
-};
-
 struct FDirectionalLightInfo
 {
-	UINT LightInfoIndex;
+	DirectX::XMFLOAT3 Direction;
+	UINT DirtyFrameCount;
+	DirectX::XMFLOAT3 Color;
+	bool bCastShadow;
 };
 
 class FRenderItemManager
@@ -52,7 +48,6 @@ public:
 	TPool<FMeshInfo> mMeshInfoPool;
 	TPool<FSubmeshInfo> mSubmeshInfoPool;
 	std::array<std::array<TPool<FStaticMeshInfo>, EBM_None>, ESM_None> mStaticMeshInfoPool;
-	TPool<FLightInfo> mLightInfoPool;
 	TPool<FDirectionalLightInfo> mDirectionalLightInfoPool;
 };
 

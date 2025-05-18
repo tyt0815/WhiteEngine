@@ -37,37 +37,37 @@ public:
 	{
 		return mRootComponent;
 	}
-	inline FTransform GetTransform() const
+	inline FTransform GetActorTransform() const
 	{
-		return mRootComponent->GetTransform();
+		return mRootComponent->GetLocalTransform();
 	}
-	inline void SetTransform(FTransform Transform)
+	inline void SetActorTransform(FTransform Transform)
 	{
-		mRootComponent->SetTransform(Transform);
+		mRootComponent->SetLocalTransform(Transform);
 	}
-	inline XMFLOAT3 GetLocation() const
+	inline XMFLOAT3 GetActorLocation() const
 	{
-		return mRootComponent->GetLocation();
+		return mRootComponent->GetLocalLocation();
 	}
-	inline void SetLocation(XMFLOAT3 Location)
+	inline void SetActorLocation(XMFLOAT3 Location)
 	{
-		mRootComponent->SetLocation(Location);
+		mRootComponent->SetLocalLocation(Location);
 	}
-	inline XMFLOAT3 GetRotation() const
+	inline XMFLOAT3 GetActorRotation() const
 	{
-		return mRootComponent->GetRotation();
+		return mRootComponent->GetLocalRotation();
 	}
-	inline void SetRotation(XMFLOAT3 Rotation)
+	inline void SetActorRotation(XMFLOAT3 Rotation)
 	{
-		mRootComponent->SetRotation(Rotation);
+		mRootComponent->SetLocalRotation(Rotation);
 	}
-	inline XMFLOAT3 GetScale() const
+	inline XMFLOAT3 GetActorScale() const
 	{
-		return mRootComponent->GetScale();
+		return mRootComponent->GetLocalScale();
 	}
-	inline void SetScale(XMFLOAT3 Scale)
+	inline void SetActorScale(XMFLOAT3 Scale)
 	{
-		mRootComponent->SetScale(Scale);
+		mRootComponent->SetLocalScale(Scale);
 	}
 	inline WCameraComponent* GetCameraComponent() const
 	{

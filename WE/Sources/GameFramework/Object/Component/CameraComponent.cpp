@@ -13,12 +13,6 @@ void WCameraComponent::SetOwner(AActor* Owner)
 	Owner->SetCameraComponent(this);
 }
 
-void WCameraComponent::SetRotation(XMFLOAT3 Rotation)
-{
-	Rotation.x = FDXMath::Clamp(Rotation.x, -89.0f, 89.0f);
-	Super::SetRotation(Rotation);
-}
-
 void WCameraComponent::Update()
 {
 	Super::Update();
@@ -31,10 +25,10 @@ void WCameraComponent::UpdateViewMatrix()
 	if (mbDirty)
 	{
 		XMMATRIX RotationMatrix =
-			XMMatrixRotationX(XMConvertToRadians(GetTransform().Rotation.x)) *
-			XMMatrixRotationY(XMConvertToRadians(GetTransform().Rotation.y)) *
-			XMMatrixRotationZ(XMConvertToRadians(GetTransform().Rotation.z));
-		XMFLOAT3 Location = GetTransform().Translation;
+			XMMatrixRotationX(XMConvertToRadians(GetLocalTransform().Rotation.x)) *
+			XMMatrixRotationY(XMConvertToRadians(GetLocalTransform().Rotation.y)) *
+			XMMatrixRotationZ(XMConvertToRadians(GetLocalTransform().Rotation.z));
+		XMFLOAT3 Location = GetLocalTransform().Translation;
 		XMVECTOR P = XMLoadFloat3(&Location);
 		XMVECTOR L = XMVector3Transform({ 0.0f, 0.0f, 1.0f }, RotationMatrix);
 		XMVECTOR U = XMVector3Transform({ 0.0f, 1.0f, 0.0f }, RotationMatrix);

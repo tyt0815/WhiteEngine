@@ -7,7 +7,6 @@ class WCameraComponent : public WSceneComponent
 public:
 	WCameraComponent();
 	virtual void SetOwner(AActor* Owner) override;
-	virtual void SetRotation(XMFLOAT3 Rotation) override;
 
 protected:
 	virtual void Update() override;

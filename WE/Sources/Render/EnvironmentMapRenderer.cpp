@@ -543,7 +543,7 @@ void FEnvironmentMapRenderer::UpdateBuffers()
 {
 	WCameraComponent* Camera = GetWorld()->GetPlayerCamera();
 	FEnvironmentMapPassCB CB;
-	CB.EyePosW = Camera->GetLocation();
+	CB.EyePosW = Camera->GetLocalLocation();
 	XMFLOAT4X4 View = Camera->GetViewMatrix();
 	XMFLOAT4X4 Proj = Camera->GetProjMatrix();
 	XMMATRIX V = XMLoadFloat4x4(&View);

@@ -7,10 +7,12 @@ class AActor;
 class WSceneComponent : public WActorComponent
 {
 public:
-	void SetupAttachment(WSceneComponent* Parent);
 	void UpdateRecursive();
-	virtual void SetRotation(DirectX::XMFLOAT3 Rotation);
-	
+	DirectX::XMFLOAT4 GetLocalQuatRotation();
+	DirectX::XMFLOAT4 GetWorldQuatRotation();
+	DirectX::XMFLOAT3 GetWorldLocation();
+	void SetupAttachment(WSceneComponent* Parent);
+	void SetLocalRotation(DirectX::XMFLOAT3 Rotation);
 
 protected:
 	virtual void Update();
@@ -20,6 +22,7 @@ private:
 	void UpdateWorldMatrix();
 	FTransform mTransform;
 	DirectX::XMFLOAT4X4 mWorld;
+	DirectX::XMFLOAT4 mWorldQuat;
 	WSceneComponent* mParent = nullptr;
 	std::vector<WSceneComponent*> mChilds;
 
@@ -28,33 +31,33 @@ public:
 	{
 		return mWorld;
 	}
-	inline FTransform GetTransform() const
+	inline FTransform GetLocalTransform() const
 	{
 		return mTransform;
 	}
-	inline void SetTransform(const FTransform& Transform)
+	inline void SetLocalTransform(const FTransform& Transform)
 	{
 		mTransform = Transform;
 		mbDirty = true;
 	}
-	inline DirectX::XMFLOAT3 GetLocation() const
+	inline DirectX::XMFLOAT3 GetLocalLocation() const
 	{
 		return mTransform.Translation;
 	}
-	inline void SetLocation(DirectX::XMFLOAT3 Location)
+	inline void SetLocalLocation(DirectX::XMFLOAT3 Location)
 	{
 		mTransform.Translation = Location;
 		mbDirty = true;
 	}
-	inline DirectX::XMFLOAT3 GetRotation() const
+	inline DirectX::XMFLOAT3 GetLocalRotation() const
 	{
 		return mTransform.Rotation;
 	}
-	inline DirectX::XMFLOAT3 GetScale() const
+	inline DirectX::XMFLOAT3 GetLocalScale() const
 	{
 		return mTransform.Scale;
 	}
-	inline void SetScale(DirectX::XMFLOAT3 Scale)
+	inline void SetLocalScale(DirectX::XMFLOAT3 Scale)
 	{
 		mTransform.Scale = Scale;
 		mbDirty = true;

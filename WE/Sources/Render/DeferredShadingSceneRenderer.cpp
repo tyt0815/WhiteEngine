@@ -113,7 +113,7 @@ void FDeferredShadingSceneRenderer::BuildShadersAndInputLayouts()
 void FDeferredShadingSceneRenderer::BuildDeferredShadingPassShaders()
 {
 	D3D_SHADER_MACRO Defines[] = {
-		{"IBL", "1"},
+		// {"IBL", "1"},
 		{NULL, NULL}
 	};
 	mShaders["DeferredShadingPassVertexShader"] = FDXUtility::CompileShader(

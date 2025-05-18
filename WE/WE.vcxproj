@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClCompile Include="Sources\Application\TestApplication\Actor\IceFieldGird.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\Actor\LaminateFloorBrown.cpp" />
+    <ClCompile Include="Sources\Application\TestApplication\Actor\RotatingDirLight.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\Actor\RustedIron2Sphere.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\Actor\ScuffedGoldBox.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\Actor\ScuffedGoldSphere.cpp" />
@@ -30,6 +31,7 @@
     <ClCompile Include="Sources\DirectX\CBVSRVUAVHeap.cpp" />
     <ClCompile Include="Sources\GameFramework\InputSystem\InputSystem.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Actor\Actor.cpp" />
+    <ClCompile Include="Sources\GameFramework\Object\Actor\DirectionalLight.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\ActorComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\CameraComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\DirectionalLightComponent.cpp" />
@@ -66,6 +68,7 @@
     <ClInclude Include="Shaders\DrawRectPassCommon.sh" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\IceFieldGird.h" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\LaminateFloorBrown.h" />
+    <ClInclude Include="Sources\Application\TestApplication\Actor\RotatingDirLight.h" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\RustedIron2Sphere.h" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\ScuffedGoldBox.h" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\ScuffedGoldSphere.h" />
@@ -84,6 +87,7 @@
     <ClInclude Include="Sources\DirectX\CBVSRVUAVHeap.h" />
     <ClInclude Include="Sources\GameFramework\InputSystem\InputSystem.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\Actor.h" />
+    <ClInclude Include="Sources\GameFramework\Object\Actor\DirectionalLight.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\ActorComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\CameraComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\DirectionalLightComponent.h" />

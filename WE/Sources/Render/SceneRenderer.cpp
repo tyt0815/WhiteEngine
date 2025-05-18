@@ -23,7 +23,7 @@ FFrameResourceBase::FFrameResourceBase(ID3D12Device* Device)
 	mSubmeshConstantBuffer = std::make_unique<TUploadBuffer<FSubmeshConstantBuffer>>(Device, SUBMESH_CB_NUM, true);
 	mLightInfoConstantBuffer = std::make_unique<TUploadBuffer<FLightInfoConstantBuffer>>(Device, 1, true);
 	mMaterialStructuredBuffer = std::make_unique<TUploadBuffer<FMaterialStructuredBuffer>>(Device, EMT_None, false);
-	mDirectionalLightStructuredBuffer = std::make_unique<TUploadBuffer<FDirectionalLightSB>>(Device, DIR_LIGHTS_NUM, false);
+	mDirectionalLightStructuredBuffer = std::make_unique<TUploadBuffer<FDirectionalLightStructuredBuffer>>(Device, DIR_LIGHTS_NUM, false);
 }
 
 FFrameResourceBase::~FFrameResourceBase()
@@ -470,7 +470,7 @@ void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConsta
 	XMStoreFloat4x4(&PassConstants.InvProj, XMMatrixTranspose(InvProj));
 	XMStoreFloat4x4(&PassConstants.ViewProj, XMMatrixTranspose(ViewProj));
 	XMStoreFloat4x4(&PassConstants.InvViewProj, XMMatrixTranspose(InvViewProj));
-	PassConstants.EyePosW = Camera->GetLocation();
+	PassConstants.EyePosW = Camera->GetLocalLocation();
 	D3D12_VIEWPORT Viewport = DeviceManager->GetScreenViewport();
 	float Width = static_cast<float>(Viewport.Width);
 	float Height = static_cast<float>(Viewport.Height);
@@ -542,7 +542,7 @@ void FSceneRenderer::UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* Subm
 void FSceneRenderer::UpdateLightInfoCB(TUploadBuffer<FLightInfoConstantBuffer>* LightInfoConstantBuffer)
 {
 	FLightInfoConstantBuffer LightInfoCB;
-	LightInfoCB.DirectionalLightNum = min(1, DIR_LIGHTS_NUM);
+	LightInfoCB.DirectionalLightNum = min((UINT)GetRenderItemManager()->mDirectionalLightInfoPool.GetPoolSize(), DIR_LIGHTS_NUM);
 
 	LightInfoConstantBuffer->CopyData(0, LightInfoCB);
 }
@@ -568,50 +568,65 @@ void FSceneRenderer::UpdateMaterialSB(TUploadBuffer<FMaterialStructuredBuffer>* 
 	}
 }
 
-void FSceneRenderer::UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightSB>* DirectionalLightStructuredBuffer)
+void FSceneRenderer::UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightStructuredBuffer>* DirectionalLightStructuredBuffer)
 {
-	// TODO: 임시코드.
-	FDirectionalLightSB DirectionalLight;
-	DirectionalLight.Direction = { 0.57735f, -0.57735f, 0.57735f };
-	DirectionalLight.Color = { 1.0f, 1.0f, 1.0f };
-	DirectionalLight.ShadowMapIndex = mShadowMap->GetSRVHeapIndex();
+	TPool<FDirectionalLightInfo>& DirLightInfoPool = GetRenderItemManager()->mDirectionalLightInfoPool;
+	int TargetIndex = min(DIR_LIGHTS_NUM, (UINT)DirLightInfoPool.GetPoolSize());
+	for (int i = 0; i < TargetIndex; ++i)
+	{
+		if (DirLightInfoPool.IsUsed(i))
+		{
+			FDirectionalLightInfo DirLightInfo = DirLightInfoPool.GetItem(i);
+			if (DirLightInfo.DirtyFrameCount > 0)
+			{
+				// TODO: 임시코드.
+				FDirectionalLightStructuredBuffer DirectionalLight;
+				DirectionalLight.Direction = DirLightInfo.Direction;
+				DirectionalLight.Color = DirLightInfo.Color;
+				DirectionalLight.ShadowMapIndex = mShadowMap->GetSRVHeapIndex();
 
-	// TODO: 하드코딩됨
-	float SphereRadius = sqrtf(100 * 100);
-	// 첫번째 광원만 그림자를 드리운다.
-	XMVECTOR LightDirection = XMLoadFloat3(&DirectionalLight.Direction);
-	XMVECTOR LightPosition = -2.0f * SphereRadius * LightDirection;
-	XMVECTOR TargetPosition = XMVectorSet(0, 0, 0, 0);
-	XMVECTOR LightUp = XMVectorSet(0, 1, 0, 0);
-	XMMATRIX LightView = XMMatrixLookAtLH(LightPosition, TargetPosition, LightUp);
+				// TODO: 하드코딩됨
+				float SphereRadius = sqrtf(100 * 100);
+				// 첫번째 광원만 그림자를 드리운다.
+				XMVECTOR LightDirection = XMLoadFloat3(&DirectionalLight.Direction);
+				XMVECTOR LightPosition = -2.0f * SphereRadius * LightDirection;
+				XMVECTOR TargetPosition = XMVectorSet(0, 0, 0, 0);
+				XMVECTOR LightUp = XMVectorSet(0, 1, 0, 0);
+				XMMATRIX LightView = XMMatrixLookAtLH(LightPosition, TargetPosition, LightUp);
 
-	// 경계구를 광원 공간으로 변환한다.
-	XMFLOAT3 SphereCenterLS;
-	XMStoreFloat3(&SphereCenterLS, XMVector3TransformCoord(TargetPosition, LightView));
+				// 경계구를 광원 공간으로 변환한다.
+				XMFLOAT3 SphereCenterLS;
+				XMStoreFloat3(&SphereCenterLS, XMVector3TransformCoord(TargetPosition, LightView));
 
-	// 장면을 감싸는 광원 공간 직교투영 시야 입체
-	float l = SphereCenterLS.x - SphereRadius;
-	float b = SphereCenterLS.y - SphereRadius;
-	float n = SphereCenterLS.z - SphereRadius;
-	float r = SphereCenterLS.x + SphereRadius;
-	float t = SphereCenterLS.y + SphereRadius;
-	float f = SphereCenterLS.z + SphereRadius;
+				// 장면을 감싸는 광원 공간 직교투영 시야 입체
+				float l = SphereCenterLS.x - SphereRadius;
+				float b = SphereCenterLS.y - SphereRadius;
+				float n = SphereCenterLS.z - SphereRadius;
+				float r = SphereCenterLS.x + SphereRadius;
+				float t = SphereCenterLS.y + SphereRadius;
+				float f = SphereCenterLS.z + SphereRadius;
 
-	XMMATRIX LightProj = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
+				XMMATRIX LightProj = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
 
-	XMMATRIX T(
-		0.5f, 0.0f, 0.0f, 0.0f,
-		0.0f, -0.5f, 0.0f, 0.0f,
-		0.0f, 0.0f, 1.0f, 0.0f,
-		0.5f, 0.5f, 0.0f, 1.0f
-	);
+				static XMMATRIX T(
+					0.5f, 0.0f, 0.0f, 0.0f,
+					0.0f, -0.5f, 0.0f, 0.0f,
+					0.0f, 0.0f, 1.0f, 0.0f,
+					0.5f, 0.5f, 0.0f, 1.0f
+				);
 
-	XMMATRIX S = LightView * LightProj * T;
+				XMMATRIX S = LightView * LightProj * T;
 
-	XMStoreFloat4x4(&DirectionalLight.LightViewProj, XMMatrixTranspose(LightView * LightProj));
-	XMStoreFloat4x4(&DirectionalLight.ShadowTransform, XMMatrixTranspose(S));
+				XMStoreFloat4x4(&DirectionalLight.LightViewProj, XMMatrixTranspose(LightView * LightProj));
+				XMStoreFloat4x4(&DirectionalLight.ShadowTransform, XMMatrixTranspose(S));
 
-	DirectionalLightStructuredBuffer->CopyData(0, DirectionalLight);
+				DirectionalLightStructuredBuffer->CopyData(i, DirectionalLight);
+
+				--DirLightInfo.DirtyFrameCount;
+				DirLightInfoPool.SetItem(i, DirLightInfo);
+			}
+		}
+	}
 }
 
 void FSceneRenderer::UpdateTargetFrameResource()

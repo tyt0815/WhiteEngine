@@ -22,7 +22,7 @@ constexpr int SUBMESH_CB_NUM = 1024;
 
 class FRenderItemManager;
 
-struct FDirectionalLightSB
+struct FDirectionalLightStructuredBuffer
 {
     XMFLOAT4X4 LightViewProj;
     XMFLOAT4X4 ShadowTransform;
@@ -108,7 +108,7 @@ private:
     std::unique_ptr<TUploadBuffer<FSubmeshConstantBuffer>> mSubmeshConstantBuffer;
     std::unique_ptr<TUploadBuffer<FLightInfoConstantBuffer>> mLightInfoConstantBuffer;
     std::unique_ptr<TUploadBuffer<FMaterialStructuredBuffer>> mMaterialStructuredBuffer;
-    std::unique_ptr<TUploadBuffer<FDirectionalLightSB>> mDirectionalLightStructuredBuffer;
+    std::unique_ptr<TUploadBuffer<FDirectionalLightStructuredBuffer>> mDirectionalLightStructuredBuffer;
     UINT64 mFenceCount = 0;
 
 public:
@@ -144,7 +144,7 @@ public:
     {
         return mMaterialStructuredBuffer.get();
     }
-    inline TUploadBuffer<FDirectionalLightSB>* GetDirectionalLightSB() const
+    inline TUploadBuffer<FDirectionalLightStructuredBuffer>* GetDirectionalLightSB() const
     {
         return mDirectionalLightStructuredBuffer.get();
     }
@@ -236,7 +236,7 @@ private:
     void UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshConstantBuffer);
     void UpdateLightInfoCB(TUploadBuffer<FLightInfoConstantBuffer>* LightInfoConstantBuffer);
     void UpdateMaterialSB(TUploadBuffer<FMaterialStructuredBuffer>* MaterialStructuredBuffer);
-    void UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightSB>* DirectionalLightStructuredBuffer);
+    void UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightStructuredBuffer>* DirectionalLightStructuredBuffer);
 
 public:
     inline FFrameResourceBase* GetTargetFrameResource() const

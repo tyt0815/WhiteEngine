@@ -24,9 +24,9 @@ void AActor::SetRootComponent(WSceneComponent* Component)
 XMFLOAT3 AActor::GetFowardVector() const
 {
 	XMMATRIX RotationMatrix =
-		XMMatrixRotationX(XMConvertToRadians(GetTransform().Rotation.x)) *
-		XMMatrixRotationY(XMConvertToRadians(GetTransform().Rotation.y)) *
-		XMMatrixRotationZ(XMConvertToRadians(GetTransform().Rotation.z));
+		XMMatrixRotationX(XMConvertToRadians(GetActorTransform().Rotation.x)) *
+		XMMatrixRotationY(XMConvertToRadians(GetActorTransform().Rotation.y)) *
+		XMMatrixRotationZ(XMConvertToRadians(GetActorTransform().Rotation.z));
 	XMVECTOR L = XMVector3Transform({ 0.0f, 0.0f, 1.0f }, RotationMatrix);
 	XMFLOAT3 Foward;
 	XMStoreFloat3(&Foward, L);
@@ -36,9 +36,9 @@ XMFLOAT3 AActor::GetFowardVector() const
 XMFLOAT3 AActor::GetRightVector() const
 {
 	XMMATRIX RotationMatrix =
-		XMMatrixRotationX(XMConvertToRadians(GetTransform().Rotation.x)) *
-		XMMatrixRotationY(XMConvertToRadians(GetTransform().Rotation.y)) *
-		XMMatrixRotationZ(XMConvertToRadians(GetTransform().Rotation.z));
+		XMMatrixRotationX(XMConvertToRadians(GetActorTransform().Rotation.x)) *
+		XMMatrixRotationY(XMConvertToRadians(GetActorTransform().Rotation.y)) *
+		XMMatrixRotationZ(XMConvertToRadians(GetActorTransform().Rotation.z));
 	XMVECTOR R = XMVector3Transform({ 1.0f, 0.0f, 0.0f }, RotationMatrix);
 	XMFLOAT3 Right;
 	XMStoreFloat3(&Right, R);
@@ -48,9 +48,9 @@ XMFLOAT3 AActor::GetRightVector() const
 XMFLOAT3 AActor::GetUpVector() const
 {
 	XMMATRIX RotationMatrix =
-		XMMatrixRotationX(XMConvertToRadians(GetTransform().Rotation.x)) *
-		XMMatrixRotationY(XMConvertToRadians(GetTransform().Rotation.y)) *
-		XMMatrixRotationZ(XMConvertToRadians(GetTransform().Rotation.z));
+		XMMatrixRotationX(XMConvertToRadians(GetActorTransform().Rotation.x)) *
+		XMMatrixRotationY(XMConvertToRadians(GetActorTransform().Rotation.y)) *
+		XMMatrixRotationZ(XMConvertToRadians(GetActorTransform().Rotation.z));
 	XMVECTOR U = XMVector3Transform({ 0.0f, 1.0f, 0.0f }, RotationMatrix);
 	XMFLOAT3 Up;
 	XMStoreFloat3(&Up, U);

@@ -16,7 +16,52 @@ void WSceneComponent::UpdateRecursive()
 	}
 }
 
-void WSceneComponent::SetRotation(DirectX::XMFLOAT3 Rotation)
+DirectX::XMFLOAT4 WSceneComponent::GetLocalQuatRotation()
+{
+	DirectX::XMVECTOR LocalEulerRadian = XMVectorSet(
+		DirectX::XMConvertToRadians(mTransform.Rotation.x),
+		DirectX::XMConvertToRadians(mTransform.Rotation.y),
+		DirectX::XMConvertToRadians(mTransform.Rotation.z),
+		0.0f
+	);
+
+	DirectX::XMVECTOR LocalQuat = XMQuaternionRotationRollPitchYawFromVector(LocalEulerRadian);
+	DirectX::XMFLOAT4 LocalQuatRotation;
+	DirectX::XMStoreFloat4(&LocalQuatRotation, LocalQuat);
+	return LocalQuatRotation;
+}
+
+DirectX::XMFLOAT4 WSceneComponent::GetWorldQuatRotation()
+{
+	if (mParent)
+	{
+		DirectX::XMFLOAT4 ParentWorldQuatRotation = mParent->GetWorldQuatRotation();
+		DirectX::XMFLOAT4 LocalQuatRotation = GetLocalQuatRotation();
+		DirectX::XMVECTOR ParentWorldQuat = XMLoadFloat4(&ParentWorldQuatRotation);
+		DirectX::XMVECTOR LocalQuat = DirectX::XMLoadFloat4(&LocalQuatRotation);
+		DirectX::XMVECTOR WorldQuat = DirectX::XMQuaternionMultiply(LocalQuat, ParentWorldQuat);
+		DirectX::XMFLOAT4 WorldQuatRotation;
+		DirectX::XMStoreFloat4(&WorldQuatRotation, WorldQuat);
+		return WorldQuatRotation;
+	}
+	else
+	{
+		return GetLocalQuatRotation();
+	}
+}
+
+DirectX::XMFLOAT3 WSceneComponent::GetWorldLocation()
+{
+	DirectX::XMMATRIX WorldMat = DirectX::XMLoadFloat4x4(&mWorld);
+	DirectX::XMVECTOR Pos = DirectX::XMLoadFloat3(&mTransform.Translation);
+	Pos = DirectX::XMVectorSetW(Pos, 1.0f);
+	
+	DirectX::XMFLOAT3 WorldLocation;
+	DirectX::XMStoreFloat3(&WorldLocation, DirectX::XMVector4Transform(Pos, WorldMat));
+	return WorldLocation;
+}
+
+void WSceneComponent::SetLocalRotation(DirectX::XMFLOAT3 Rotation)
 {
 	mTransform.Rotation = Rotation;
 	mTransform.Rotation.x = fmodf(mTransform.Rotation.x, 360.0f);

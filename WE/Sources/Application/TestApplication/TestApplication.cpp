@@ -39,7 +39,6 @@ int FTestApplication::Run()
 			GetAppTimer()->Tick();
 			if (!GetMainWindowPtr()->IsPaused())
 			{
-				GetAppTimer()->Start();
 				CalculateFrameStats();
 				// TODO
 				//ProcessInput();
