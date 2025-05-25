@@ -1,0 +1,26 @@
+#include "ForwardShadingPassCommon.hlsli"
+
+float4 MainPS(FVSOutput PIn) : SV_Target
+{
+    FMaterialSB MaterialData = gMaterialData[gMaterialIndex];
+    FMaterial Material;
+    Material.Albedo = pow(gTexture[MaterialData.AlbedoTextureIndex].Sample(gsamLinearWrap, PIn.TexC).rgb, (float3) 2.2f); // 감마 보정된 값을 원래대로 돌리기 위해 2.2제곱
+    Material.Metallic = gTexture[MaterialData.MetallicTextureIndex].Sample(gsamLinearWrap, PIn.TexC).r;
+    Material.Roughness = gTexture[MaterialData.RoughneesTextureIndex].Sample(gsamLinearWrap, PIn.TexC).r;
+    
+#ifdef ALPHA_TEST
+    // TODO
+    // clip(Albedo.a - 0.1f);
+#endif
+    
+    float3 N = normalize(PIn.NormalW);
+    float3 V = normalize(gEyePosW - PIn.PosW);
+    
+    float3 Color = ComputeLight(Material, N, V);
+    
+#ifdef FOG
+    float fogAmount = saturate((distToEye - gFogStart) / gFogRange);
+	Color = lerp(Color, gFogColor, fogAmount);
+#endif
+    return float4(Color, 1.0f);
+}

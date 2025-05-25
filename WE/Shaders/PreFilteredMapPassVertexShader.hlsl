@@ -1,0 +1,10 @@
+#include "PreFilteredMapPassCommon.hlsli"
+
+void MainVS(
+    float3 InPosL : POSITION,
+    out float3 OutPosL : POSITION0,
+    out float4 OutPosH : SV_Position
+)
+{
+    DrawSphere(InPosL, gViewProj, OutPosL, OutPosH);
+}

@@ -78,13 +78,13 @@ void FForwardShadingSceneRenderer::BuildShadersAndInputLayouts()
 	};
 
 	mShaders["ForwardShadingPassVertexShader"] = FDXUtility::CompileShader(
-		L"Shaders\\ForwardShadingPassVertexShader.sf",
+		L"Shaders\\ForwardShadingPassVertexShader.hlsl",
 		nullptr,
 		"MainVS",
 		"vs_5_1"
 	);
 	mShaders["ForwardShadingPassPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\ForwardShadingPassPixelShader.sf",
+		L"Shaders\\ForwardShadingPassPixelShader.hlsl",
 		Defines,
 		"MainPS",
 		"ps_5_1"

@@ -1,0 +1,9 @@
+#include "EnvironmentMapPassCommon.hlsli"
+
+float4 MainPS(
+    float3 PosL : POSITION0,
+    float4 PosH : SV_Position
+) : SV_Target
+{
+    return gTextureCube[gSkyCubeMapIndex].Sample(gsamLinearWrap, PosL);
+}

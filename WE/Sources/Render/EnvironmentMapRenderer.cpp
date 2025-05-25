@@ -161,14 +161,14 @@ void FEnvironmentMapRenderer::BuildShadersAndInputLayouts()
 void FEnvironmentMapRenderer::BuildIrradianceMapPassShaders()
 {
 	mShaders["IrradianceMapPassVertexShader"] = FDXUtility::CompileShader(
-		L"Shaders\\IrradianceMapPassVertexShader.sf",
+		L"Shaders\\IrradianceMapPassVertexShader.hlsl",
 		nullptr,
 		"MainVS",
 		"vs_5_1"
 	);
 
 	mShaders["IrradianceMapPassPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\IrradianceMapPassPixelShader.sf",
+		L"Shaders\\IrradianceMapPassPixelShader.hlsl",
 		nullptr,
 		"MainPS",
 		"ps_5_1"
@@ -178,14 +178,14 @@ void FEnvironmentMapRenderer::BuildIrradianceMapPassShaders()
 void FEnvironmentMapRenderer::BuildPreFilteredMapPassShaders()
 {
 	mShaders["PreFilteredMapPassVertexShader"] = FDXUtility::CompileShader(
-		L"Shaders\\PreFilteredMapPassVertexShader.sf",
+		L"Shaders\\PreFilteredMapPassVertexShader.hlsl",
 		nullptr,
 		"MainVS",
 		"vs_5_1"
 	);
 
 	mShaders["PreFilteredMapPassPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\PreFilteredMapPassPixelShader.sf",
+		L"Shaders\\PreFilteredMapPassPixelShader.hlsl",
 		nullptr,
 		"MainPS",
 		"ps_5_1"
@@ -196,14 +196,14 @@ void FEnvironmentMapRenderer::BuildBRDFLUTPassShaders()
 {
 	// Compile Shader
 	mShaders["BRDFLUTPassVertexShader"] = FDXUtility::CompileShader(
-		L"Shaders\\BRDFLUTPassVertexShader.sf",
+		L"Shaders\\BRDFLUTPassVertexShader.hlsl",
 		nullptr,
 		"MainVS",
 		"vs_5_1"
 	);
 
 	mShaders["BRDFLUTPassPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\BRDFLUTPassPixelShader.sf",
+		L"Shaders\\BRDFLUTPassPixelShader.hlsl",
 		nullptr,
 		"MainPS",
 		"ps_5_1"
@@ -213,14 +213,14 @@ void FEnvironmentMapRenderer::BuildBRDFLUTPassShaders()
 void FEnvironmentMapRenderer::BuildEnvironmentMapPassShaders()
 {
 	mShaders["EnvironmentMapPassVertexShader"] = FDXUtility::CompileShader(
-		L"Shaders\\EnvironmentMapPassVertexShader.sf",
+		L"Shaders\\EnvironmentMapPassVertexShader.hlsl",
 		nullptr,
 		"MainVS",
 		"vs_5_1"
 	);
 
 	mShaders["EnvironmentMapPassPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\EnvironmentMapPassPixelShader.sf",
+		L"Shaders\\EnvironmentMapPassPixelShader.hlsl",
 		nullptr,
 		"MainPS",
 		"ps_5_1"

@@ -94,13 +94,13 @@ void FGaussianBlurFilter::BuildRootSignature()
 void FGaussianBlurFilter::BuildShaders()
 {
 	mHorizontalComputeShader = FDXUtility::CompileShader(
-		L"Shaders\\HorizontalGaussianBlurComputeShader.sf",
+		L"Shaders\\HorizontalGaussianBlurComputeShader.hlsl",
 		nullptr,
 		"MainCS",
 		"cs_5_1"
 	);
 	mVerticalComputeShader = FDXUtility::CompileShader(
-		L"Shaders\\VerticalGaussianBlurComputeShader.sf",
+		L"Shaders\\VerticalGaussianBlurComputeShader.hlsl",
 		nullptr,
 		"MainCS",
 		"cs_5_1"

@@ -1,0 +1,14 @@
+#include "ForwardShadingPassCommon.hlsli"
+
+FVSOutput MainVS(FVertexInput VIn)
+{
+    FVSOutput VOut;
+    FMaterialSB MaterialData = gMaterialData[gMaterialIndex];
+    
+    float4 PosW = mul(float4(VIn.LocalPosition, 1.0f), gWorld);
+    VOut.PosW = PosW.xyz;
+    VOut.NormalW = mul(VIn.LocalNormal, (float3x3) gInvTransposeWorld);
+    VOut.PosH = mul(PosW, gViewProj);
+    VOut.TexC = mul(float4(VIn.TexC, 0.0f, 1.0f), MaterialData.MatTransform).xy;
+    return VOut;
+}

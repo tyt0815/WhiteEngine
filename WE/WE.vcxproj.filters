@@ -352,7 +352,7 @@
     <ClInclude Include="Sources\Render\SceneRenderer.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Shaders\DrawRectPassCommon.sh">
+    <ClInclude Include="Shaders\DrawRectPassCommon.hlsli">
       <Filter>Shaders</Filter>
     </ClInclude>
     <ClInclude Include="Sources\DirectX\Resource.h">
@@ -394,120 +394,123 @@
     <ClInclude Include="Sources\Application\TestApplication\Actor\RotatingDirLight.h">
       <Filter>Sources\Application\TestApplication\Actor</Filter>
     </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Component\SkyAtmosphereComponent.h">
+      <Filter>Sources\GameFramework\Object\Component</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\BillboardCommon.sh">
+    <None Include="Shaders\BillboardCommon.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\BillboardGeometryShader.sf">
+    <None Include="Shaders\BillboardGeometryShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\BillboardPixelShader.sf">
+    <None Include="Shaders\BillboardPixelShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\BillboardVertexShader.sf">
+    <None Include="Shaders\BillboardVertexShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\Common.sh">
+    <None Include="Shaders\Common.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\Material.sh">
+    <None Include="Shaders\Material.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\EnvironmentMapPassCommon.sh">
+    <None Include="Shaders\EnvironmentMapPassCommon.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\EnvironmentMapPassVertexShader.sf">
+    <None Include="Shaders\EnvironmentMapPassVertexShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\EnvironmentMapPassPixelShader.sf">
+    <None Include="Shaders\EnvironmentMapPassPixelShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\IrradianceMapPassCommon.sh">
+    <None Include="Shaders\IrradianceMapPassCommon.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\IrradianceMapPassVertexShader.sf">
+    <None Include="Shaders\IrradianceMapPassVertexShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\IrradianceMapPassPixelShader.sf">
+    <None Include="Shaders\IrradianceMapPassPixelShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\Math.sh">
+    <None Include="Shaders\Math.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\PreFilteredMapPassVertexShader.sf">
+    <None Include="Shaders\PreFilteredMapPassVertexShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\PreFilteredMapPassPixelShader.sf">
+    <None Include="Shaders\PreFilteredMapPassPixelShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\PreFilteredMapPassCommon.sh">
+    <None Include="Shaders\PreFilteredMapPassCommon.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\BRDFLUTPassVertexShader.sf">
+    <None Include="Shaders\BRDFLUTPassVertexShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\BRDFLUTPassPixelShader.sf">
+    <None Include="Shaders\BRDFLUTPassPixelShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\GBufferPassCommon.sh">
+    <None Include="Shaders\GBufferPassCommon.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\GBufferPassPixelShader.sf">
+    <None Include="Shaders\GBufferPassPixelShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\GBufferPassVertexShader.sf">
+    <None Include="Shaders\GBufferPassVertexShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\DeferredShadingPassCommon.sh">
+    <None Include="Shaders\DeferredShadingPassCommon.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\DeferredShadingPassVertexShader.sf">
+    <None Include="Shaders\DeferredShadingPassVertexShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\DeferredShadingPassPixelShader.sf">
+    <None Include="Shaders\DeferredShadingPassPixelShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\DrawRectPassPixelShader.sf">
+    <None Include="Shaders\DrawRectPassPixelShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\DrawRectPassVertexShader.sf">
+    <None Include="Shaders\DrawRectPassVertexShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\ForwardShadingPassCommon.sh">
+    <None Include="Shaders\ForwardShadingPassCommon.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\ForwardShadingPassPixelShader.sf">
+    <None Include="Shaders\ForwardShadingPassPixelShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\ForwardShadingPassVertexShader.sf">
+    <None Include="Shaders\ForwardShadingPassVertexShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\BRDFLUTPassCommon.sh">
+    <None Include="Shaders\BRDFLUTPassCommon.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\Light.sh">
+    <None Include="Shaders\Light.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\DebugDepthPassPixelShader.sf">
+    <None Include="Shaders\DebugDepthPassPixelShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\DebugVectorPassPixelShader.sf">
+    <None Include="Shaders\DebugVectorPassPixelShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\ShadowMapPassCommon.sh">
+    <None Include="Shaders\ShadowMapPassCommon.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\ShadowMapPassVertexShader.sf">
+    <None Include="Shaders\ShadowMapPassVertexShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\HorizontalGaussianBlurComputeShader.sf">
+    <None Include="Shaders\HorizontalGaussianBlurComputeShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\VerticalGaussianBlurComputeShader.sf">
+    <None Include="Shaders\VerticalGaussianBlurComputeShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\GaussianBlurCommon.sh">
+    <None Include="Shaders\GaussianBlurCommon.hlsli">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

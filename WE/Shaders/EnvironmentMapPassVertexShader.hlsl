@@ -1,0 +1,22 @@
+#include "EnvironmentMapPassCommon.hlsli"
+
+#define SCALE_VALUE 5000
+
+void MainVS(
+    float3 InPosL : POSITION,
+    out float3 OutPosL : POSITION0,
+    out float4 OutPosH : SV_Position
+)
+{
+    static float4x4 World = float4x4(
+        float4(SCALE_VALUE, 0.0f, 0.0f, 0.0f),
+        float4(0.0f, SCALE_VALUE, 0.0f, 0.0f),
+        float4(0.0f, 0.0f, SCALE_VALUE, 0.0f),
+        float4(0.0f, 0.0f, 0.0f, 1.0f)
+    );
+    
+    OutPosL = InPosL;
+    float4 PosW = mul(float4(InPosL, 1.0f), World);
+    PosW.xyz += gEyePosW;
+    OutPosH = mul(PosW, gViewProj).xyww;
+}

@@ -138,13 +138,13 @@ void FSceneRenderer::BuildShadowMapPassRootSignature()
 void FSceneRenderer::BuildShadersAndInputLayouts()
 {
 	mShaders["DrawRectPassVertexShader"] = FDXUtility::CompileShader(
-		L"Shaders\\DrawRectPassVertexShader.sf",
+		L"Shaders\\DrawRectPassVertexShader.hlsl",
 		nullptr,
 		"MainVS",
 		"vs_5_1"
 	);
 	mShaders["DrawRectPassPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\DrawRectPassPixelShader.sf",
+		L"Shaders\\DrawRectPassPixelShader.hlsl",
 		nullptr,
 		"MainPS",
 		"ps_5_1"
@@ -164,7 +164,7 @@ void FSceneRenderer::BuildShadersAndInputLayouts()
 void FSceneRenderer::BuildShadowMapShaders()
 {
 	mShaders["ShadowMapPassVertexShader"] = FDXUtility::CompileShader(
-		L"Shaders\\ShadowMapPassVertexShader.sf",
+		L"Shaders\\ShadowMapPassVertexShader.hlsl",
 		nullptr,
 		"MainVS",
 		"vs_5_1"

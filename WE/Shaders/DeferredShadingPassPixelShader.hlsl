@@ -1,0 +1,70 @@
+#include "DeferredShadingPassCommon.hlsli"
+
+float4 MainPS(
+    float4 ViewportPosition : SV_Position,
+    float2 TexC : TEXCOORD
+) : SV_Target
+{
+    float Depth = gTexture[gDepthTextureIndex].Sample(gsamLinearClamp, TexC).r;
+    clip(0.99 - Depth);
+    
+    // GBuffer에서 데이터 추출
+    float4 GBufferA = gTexture[gGBufferATextureIndex].Sample(gsamPointWrap, TexC);  // WorldNormal
+    float3 WorldNormal = GBufferA.rgb;
+    
+    FMaterial Material;
+    float4 GBufferB = gTexture[gGBufferBTextureIndex].Sample(gsamPointWrap, TexC);  // Specular, Roughness, Metallic
+    float Specular = GBufferB.r; // 현재 0.04f값이 고정적으로 들어옴
+    Material.Roughness = GBufferB.g;
+    Material.Metallic = GBufferB.b;
+    
+    float4 GBufferC = gTexture[gGBufferCTextureIndex].Sample(gsamPointWrap, TexC);  // Albedo
+    Material.Albedo = pow(GBufferC.rgb, (float3) 2.2f);
+    
+    float3 WorldPosition = TransformScreenToWorld(TexC, Depth, gInvProj, gInvView);
+    
+    float3 F0 = CalculateF0(Specular, Material.Albedo, Material.Metallic);
+    float3 V = normalize(gEyePosW - WorldPosition);
+    float3 Lo = (float3) 0.0f;
+    
+    // Directional light 계산
+    for (uint i = 0; i < gDirectionalLightNum; ++i)
+    {
+        FDirectionalLight DirLight = gDirectionalLights[i];
+        float4 ShadowPosH = mul(float4(WorldPosition, 1.0f), DirLight.ShadowTransform);
+        float ShadowFactor = CalculateShadowFactor(ShadowPosH, gTexture[DirLight.ShadowMapIndex]);
+        Lo += ShadowFactor * ComputeDirectionalLight(gDirectionalLights[i], Material, V, WorldNormal, F0);
+    }
+    
+#ifdef IBL
+    float3 F = FresnelSchlickRoughness(max(dot(WorldNormal, V), 0.0f), F0, Material.Roughness);
+    float3 kS = F;
+    float3 kD = 1.0f - kS;
+    kD *= 1.0f - Material.Metallic;
+    
+    // IBL Diffuse
+    float3 Irradiance = gTextureCube[gIrradianceMapIndex].Sample(gsamLinearWrap, WorldNormal).rgb;
+    float3 Diffuse = Irradiance * Material.Albedo;
+    // Diffuse = pow(Diffuse, 3.0f);
+    // return float4(Diffuse * Diffuse, 1.0f);
+    
+    // IBL Specular
+    float3 R = reflect(-V, WorldNormal);
+    const float MAX_REFLECTION_LOD = 5.0;
+    float3 prefilteredColor = gTextureCube[gPrefilteredMapIndex].SampleLevel(gsamLinearWrap, R, Material.Roughness * MAX_REFLECTION_LOD).rgb;
+    float2 envBRDF = gTexture[gBRDFLUTIndex].Sample(gsamLinearWrap, float2(max(dot(WorldNormal, V), 0.0), Material.Roughness)).rg;
+    float3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
+    
+    // TODO: AO 적용. float3(1.0f)를 AO로 변경
+    float3 Ambient = (kD * Diffuse + specular) * (float3) 1.0f;
+#else
+    float3 Ambient = (float3) 0.03f * Material.Albedo;
+#endif    
+    float3 Color = Ambient + Lo;
+    // HDR tone mapping
+    Color = Color / (Color + (float3) 1.0f);
+    // gamma correct
+    Color = pow(Color, (float3) (1.0f / 2.2f));
+    
+    return float4(Color, 1.0f);
+}

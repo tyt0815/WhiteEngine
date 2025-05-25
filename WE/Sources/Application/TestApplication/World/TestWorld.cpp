@@ -44,8 +44,4 @@ WTestWorld::WTestWorld()
 	LightActor = SpawnActor<ARotatingDirLight>();
 	Transform.Rotation = XMFLOAT3(0.0f, 0.0f, -90.0f);
 	LightActor->SetActorTransform(Transform);
-
-	LightActor = SpawnActor<ADirectionalLight>();
-	LightActor->SetActorTransform(Transform);
-	// LightActor->GetDirLightComp()->SetCastShadow(false);
 }

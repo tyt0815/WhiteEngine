@@ -116,13 +116,13 @@ void FDeferredShadingSceneRenderer::BuildDeferredShadingPassShaders()
 		{NULL, NULL}
 	};
 	mShaders["DeferredShadingPassVertexShader"] = FDXUtility::CompileShader(
-		L"Shaders\\DeferredShadingPassVertexShader.sf",
+		L"Shaders\\DeferredShadingPassVertexShader.hlsl",
 		nullptr,
 		"MainVS",
 		"vs_5_1"
 	);
 	mShaders["DeferredShadingPassPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\DeferredShadingPassPixelShader.sf",
+		L"Shaders\\DeferredShadingPassPixelShader.hlsl",
 		Defines,
 		"MainPS",
 		"ps_5_1"
@@ -132,13 +132,13 @@ void FDeferredShadingSceneRenderer::BuildDeferredShadingPassShaders()
 void FDeferredShadingSceneRenderer::BuildGBufferPassShaders()
 {
 	mShaders["GBufferPassVertexShader"] = FDXUtility::CompileShader(
-		L"Shaders\\GBufferPassVertexShader.sf",
+		L"Shaders\\GBufferPassVertexShader.hlsl",
 		nullptr,
 		"MainVS",
 		"vs_5_1"
 	);
 	mShaders["GBufferPassPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\GBufferPassPixelShader.sf",
+		L"Shaders\\GBufferPassPixelShader.hlsl",
 		nullptr,
 		"MainPS",
 		"ps_5_1"
@@ -148,14 +148,14 @@ void FDeferredShadingSceneRenderer::BuildGBufferPassShaders()
 void FDeferredShadingSceneRenderer::BuildDebugPassShaders()
 {
 	mShaders["DebugDepthPassPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\DebugDepthPassPixelShader.sf",
+		L"Shaders\\DebugDepthPassPixelShader.hlsl",
 		nullptr,
 		"MainPS",
 		"ps_5_1"
 	);
 
 	mShaders["DebugVectorPassPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\DebugVectorPassPixelShader.sf",
+		L"Shaders\\DebugVectorPassPixelShader.hlsl",
 		nullptr,
 		"MainPS",
 		"ps_5_1"

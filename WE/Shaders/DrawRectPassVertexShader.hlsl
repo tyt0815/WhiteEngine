@@ -1,0 +1,11 @@
+#include "DrawRectPassCommon.hlsli"
+
+void MainVS(
+    float2 InPosition : POSITION,
+    float2 InTexC : TEXC,
+    out float4 OutPosition : SV_Position,
+    out float2 OutTexC : TEXCOORD
+)
+{
+    DrawRect(InPosition, InTexC, OutPosition, OutTexC);
+}
