@@ -513,6 +513,12 @@
     <None Include="Shaders\GaussianBlurCommon.hlsli">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Shaders\PrecomputationTransmittanceLUTPassCommon.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\SkyAtmosphereCommon.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\Default.dds">
@@ -566,5 +572,13 @@
     <Image Include="Resources\Textures\White.dds">
       <Filter>Resources\Textures</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\PrecomputationTransmittanceLUTPassVertexShader.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\PrecomputationTransmittanceLUTPassPixelShader.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

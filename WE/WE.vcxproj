@@ -170,6 +170,7 @@
     <None Include="Shaders\Light.hlsli" />
     <None Include="Shaders\Material.hlsli" />
     <None Include="Shaders\Math.hlsli" />
+    <None Include="Shaders\PrecomputationTransmittanceLUTPassCommon.hlsli" />
     <None Include="Shaders\PreFilteredMapPassCommon.hlsli" />
     <None Include="Shaders\PreFilteredMapPassPixelShader.hlsl" />
     <None Include="Shaders\PreFilteredMapPassVertexShader.hlsl" />
@@ -181,7 +182,17 @@
     <None Include="Shaders\IrradianceMapPassCommon.hlsli" />
     <None Include="Shaders\IrradianceMapPassPixelShader.hlsl" />
     <None Include="Shaders\IrradianceMapPassVertexShader.hlsl" />
+    <None Include="Shaders\SkyAtmosphereCommon.hlsli" />
     <None Include="Shaders\VerticalGaussianBlurComputeShader.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\PrecomputationTransmittanceLUTPassPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="Shaders\PrecomputationTransmittanceLUTPassVertexShader.hlsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
