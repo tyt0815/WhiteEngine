@@ -65,7 +65,9 @@
     <ClCompile Include="Sources\Window\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Shaders\DrawRectPassCommon.hlsli" />
+    <ClInclude Include="Shaders\DrawRectPassCommon.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Sources\Application\TestApplication\Actor\IceFieldGird.h" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\LaminateFloorBrown.h" />
     <ClInclude Include="Sources\Application\TestApplication\Actor\RotatingDirLight.h" />
@@ -144,46 +146,126 @@
     <Image Include="Resources\Textures\White.dds" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\DebugDepthPassPixelShader.hlsl" />
-    <None Include="Shaders\DebugVectorPassPixelShader.hlsl" />
-    <None Include="Shaders\DrawRectPassPixelShader.hlsl" />
-    <None Include="Shaders\DrawRectPassVertexShader.hlsl" />
-    <None Include="Shaders\ForwardShadingPassCommon.hlsli" />
-    <None Include="Shaders\ForwardShadingPassPixelShader.hlsl" />
-    <None Include="Shaders\ForwardShadingPassVertexShader.hlsl" />
-    <None Include="Shaders\BillboardCommon.hlsli" />
-    <None Include="Shaders\BillboardGeometryShader.hlsl" />
-    <None Include="Shaders\BillboardPixelShader.hlsl" />
-    <None Include="Shaders\BillboardVertexShader.hlsl" />
-    <None Include="Shaders\Common.hlsli" />
-    <None Include="Shaders\DeferredShadingPassCommon.hlsli" />
-    <None Include="Shaders\DeferredShadingPassPixelShader.hlsl" />
-    <None Include="Shaders\DeferredShadingPassVertexShader.hlsl" />
-    <None Include="Shaders\GaussianBlurCommon.hlsli" />
-    <None Include="Shaders\GBufferPassCommon.hlsli" />
-    <None Include="Shaders\GBufferPassPixelShader.hlsl" />
-    <None Include="Shaders\GBufferPassVertexShader.hlsl" />
-    <None Include="Shaders\BRDFLUTPassCommon.hlsli" />
-    <None Include="Shaders\BRDFLUTPassPixelShader.hlsl" />
-    <None Include="Shaders\BRDFLUTPassVertexShader.hlsl" />
-    <None Include="Shaders\HorizontalGaussianBlurComputeShader.hlsl" />
-    <None Include="Shaders\Light.hlsli" />
-    <None Include="Shaders\Material.hlsli" />
-    <None Include="Shaders\Math.hlsli" />
-    <None Include="Shaders\PrecomputationTransmittanceLUTPassCommon.hlsli" />
-    <None Include="Shaders\PreFilteredMapPassCommon.hlsli" />
-    <None Include="Shaders\PreFilteredMapPassPixelShader.hlsl" />
-    <None Include="Shaders\PreFilteredMapPassVertexShader.hlsl" />
-    <None Include="Shaders\ShadowMapPassCommon.hlsli" />
-    <None Include="Shaders\ShadowMapPassVertexShader.hlsl" />
-    <None Include="Shaders\EnvironmentMapPassCommon.hlsli" />
-    <None Include="Shaders\EnvironmentMapPassPixelShader.hlsl" />
-    <None Include="Shaders\EnvironmentMapPassVertexShader.hlsl" />
-    <None Include="Shaders\IrradianceMapPassCommon.hlsli" />
-    <None Include="Shaders\IrradianceMapPassPixelShader.hlsl" />
-    <None Include="Shaders\IrradianceMapPassVertexShader.hlsl" />
-    <None Include="Shaders\SkyAtmosphereCommon.hlsli" />
-    <None Include="Shaders\VerticalGaussianBlurComputeShader.hlsl" />
+    <None Include="Shaders\DebugDepthPassPixelShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\DebugVectorPassPixelShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\DrawRectPassPixelShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\DrawRectPassVertexShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\ForwardShadingPassCommon.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\ForwardShadingPassPixelShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\ForwardShadingPassVertexShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\BillboardCommon.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\BillboardGeometryShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\BillboardPixelShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\BillboardVertexShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\Common.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\DeferredShadingPassCommon.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\DeferredShadingPassPixelShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\DeferredShadingPassVertexShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\GaussianBlurCommon.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\GBufferPassCommon.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\GBufferPassPixelShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\GBufferPassVertexShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\BRDFLUTPassCommon.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\BRDFLUTPassPixelShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\BRDFLUTPassVertexShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\HorizontalGaussianBlurComputeShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\Light.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\Material.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\Math.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\PrecomputationTransmittanceLUTPassCommon.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\PreFilteredMapPassCommon.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\PreFilteredMapPassPixelShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\PreFilteredMapPassVertexShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\ShadowMapPassCommon.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\ShadowMapPassVertexShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\EnvironmentMapPassCommon.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\EnvironmentMapPassPixelShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\EnvironmentMapPassVertexShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\IrradianceMapPassCommon.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\IrradianceMapPassPixelShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\IrradianceMapPassVertexShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\SkyAtmosphereCommon.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\VerticalGaussianBlurComputeShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\PrecomputationTransmittanceLUTPassPixelShader.hlsl">
@@ -191,8 +273,11 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="Shaders\PrecomputationTransmittanceLUTPassVertexShader.hlsl" />
+    <FxCompile Include="Shaders\PrecomputationTransmittanceLUTPassVertexShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
