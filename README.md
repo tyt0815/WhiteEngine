@@ -24,4 +24,4 @@ Application 폴더는 하나의 프로젝트에 해당하는 폴더입니다. �
 ![ShadowMap](Images/ShadowMap.png)
 
 - Gaussian Blur
-![GBufferA](Images/GaussianBlur.png)
+![GaussianBlur](Images/GaussianBlur.png)
