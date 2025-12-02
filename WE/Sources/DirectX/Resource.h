@@ -9,7 +9,7 @@ class FResource : FNoncopyable
 public:
 	FResource(ID3D12Device* Device);
 	virtual ~FResource() {};
-	void TransitResourceBarrier(ID3D12GraphicsCommandList* CommandList, D3D12_RESOURCE_STATES ResourceState);
+	void TransitionResourceBarrier(ID3D12GraphicsCommandList* CommandList, D3D12_RESOURCE_STATES ResourceState);
 	void CreateCommittedResource(
 		D3D12_HEAP_PROPERTIES* HeapProperties,
 		const D3D12_HEAP_FLAGS& HeapFlags,

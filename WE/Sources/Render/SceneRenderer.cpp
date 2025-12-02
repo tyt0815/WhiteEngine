@@ -93,7 +93,7 @@ void FSceneRenderer::Tick()
 
 void FSceneRenderer::Destroy()
 {
-	// ¸ğµç CommandAllocator¸¦ Flush
+	// ëª¨ë“  CommandAllocatorë¥¼ Flush
 	SwitchToNextFrameResource();
 	SwitchToNextFrameResource();
 	SwitchToNextFrameResource();
@@ -104,7 +104,7 @@ void FSceneRenderer::BuildRootSignature()
 	D3D12_DESCRIPTOR_RANGE TextureTable = GetTextureManager()->GetTexture2DDescriptorRange();
 	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
 
-	// Tip: ÀÚÁÖ »ç¿ëµÇ´Â °ÍÀÏ¼ö·Ï ÀÛÀº ÀÎµ¦½º¿¡ º¸°üÇÏ´Â°Ô ÆÛÆ÷¸Õ½º°¡ ÁÁÀ½
+	// Tip: ìì£¼ ì‚¬ìš©ë˜ëŠ” ê²ƒì¼ìˆ˜ë¡ ì‘ì€ ì¸ë±ìŠ¤ì— ë³´ê´€í•˜ëŠ”ê²Œ í¼í¬ë¨¼ìŠ¤ê°€ ì¢‹ìŒ
 	constexpr UINT ROOT_PARAMETERs_NUM = 3;
 	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERs_NUM];
 	RootParameter[0].InitAsConstants(4, 0);	// IndexCB
@@ -121,7 +121,7 @@ void FSceneRenderer::BuildShadowMapPassRootSignature()
 	D3D12_DESCRIPTOR_RANGE TextureTable = GetTextureManager()->GetTexture2DDescriptorRange();
 	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
 
-	// Tip: ÀÚÁÖ »ç¿ëµÇ´Â °ÍÀÏ¼ö·Ï ÀÛÀº ÀÎµ¦½º¿¡ º¸°üÇÏ´Â°Ô ÆÛÆ÷¸Õ½º°¡ ÁÁÀ½
+	// Tip: ìì£¼ ì‚¬ìš©ë˜ëŠ” ê²ƒì¼ìˆ˜ë¡ ì‘ì€ ì¸ë±ìŠ¤ì— ë³´ê´€í•˜ëŠ”ê²Œ í¼í¬ë¨¼ìŠ¤ê°€ ì¢‹ìŒ
 	constexpr UINT ROOT_PARAMETERs_NUM = 7;
 	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERs_NUM];
 	RootParameter[0].InitAsConstants(4, 3);		// ShadowMapCB
@@ -294,7 +294,7 @@ void FSceneRenderer::DrawShadowMap(ID3D12GraphicsCommandList* CommandList, FFram
 			FDirectionalLightInfo DirLightInfo = DirLightInfoPool.GetItem(i);
 			if (DirLightInfo.bCastShadow)
 			{
-				DirLightInfo.ShadowMap->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+				DirLightInfo.ShadowMap->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 				DirLightInfo.ShadowMap->Clear(CommandList);
 				D3D12_CPU_DESCRIPTOR_HANDLE Dsv = DirLightInfo.ShadowMap->GetDSV();
 				CommandList->OMSetRenderTargets(0, nullptr, false, &Dsv);
@@ -339,7 +339,7 @@ void FSceneRenderer::DrawShadowMap(ID3D12GraphicsCommandList* CommandList, FFram
 					}
 				}
 
-				DirLightInfo.ShadowMap->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
+				DirLightInfo.ShadowMap->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
 			}
 		}
 	}
@@ -439,8 +439,8 @@ void FSceneRenderer::ReadyBackBuffer(ID3D12GraphicsCommandList* CommandList)
 {
 	FResource* BackBuffer = GetDXResourceManagerPtr()->GetCurrentBackBufferPtr();
 	FResource* DepthStencilBuffer = GetDXResourceManagerPtr()->GetDepthStencilBuffer();
-	BackBuffer->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	DepthStencilBuffer->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	BackBuffer->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	DepthStencilBuffer->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 	D3D12_VIEWPORT Viewport = GetDXResourceManagerPtr()->GetScreenViewport();
 	D3D12_RECT ScissorRect = GetDXResourceManagerPtr()->GetScissorRect();
 	CommandList->RSSetViewports(1, &Viewport);
@@ -468,8 +468,8 @@ void FSceneRenderer::FinishBackBuffer(ID3D12GraphicsCommandList* CommandList)
 {
 	FResource* BackBuffer = GetDXResourceManagerPtr()->GetCurrentBackBufferPtr();
 	FResource* DepthStencilBuffer = GetDXResourceManagerPtr()->GetDepthStencilBuffer();
-	BackBuffer->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_PRESENT);
-	DepthStencilBuffer->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
+	BackBuffer->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_PRESENT);
+	DepthStencilBuffer->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
 }
 
 void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuffer)
@@ -608,26 +608,26 @@ void FSceneRenderer::UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightStr
 			FDirectionalLightInfo DirLightInfo = DirLightInfoPool.GetItem(i);
 			if (DirLightInfo.DirtyFrameCount > 0)
 			{
-				// TODO: ÀÓ½ÃÄÚµå.
+				// TODO: ì„ì‹œì½”ë“œ.
 				FDirectionalLightStructuredBuffer DirectionalLight;
 				DirectionalLight.Direction = DirLightInfo.Direction;
 				DirectionalLight.Color = DirLightInfo.Color;
 				DirectionalLight.ShadowMapIndex = DirLightInfo.ShadowMap->GetSRVHeapIndex();
 
-				// TODO: ÇÏµåÄÚµùµÊ
+				// TODO: í•˜ë“œì½”ë”©ë¨
 				float SphereRadius = sqrtf(100 * 100);
-				// Ã¹¹øÂ° ±¤¿ø¸¸ ±×¸²ÀÚ¸¦ µå¸®¿î´Ù.
+				// ì²«ë²ˆì§¸ ê´‘ì›ë§Œ ê·¸ë¦¼ìë¥¼ ë“œë¦¬ìš´ë‹¤.
 				XMVECTOR LightDirection = XMLoadFloat3(&DirectionalLight.Direction);
 				XMVECTOR LightPosition = -2.0f * SphereRadius * LightDirection;
 				XMVECTOR TargetPosition = XMVectorSet(0, 0, 0, 0);
 				XMVECTOR LightUp = XMVectorSet(0, 1, 0, 0);
 				XMMATRIX LightView = XMMatrixLookAtLH(LightPosition, TargetPosition, LightUp);
 
-				// °æ°è±¸¸¦ ±¤¿ø °ø°£À¸·Î º¯È¯ÇÑ´Ù.
+				// ê²½ê³„êµ¬ë¥¼ ê´‘ì› ê³µê°„ìœ¼ë¡œ ë³€í™˜í•œë‹¤.
 				XMFLOAT3 SphereCenterLS;
 				XMStoreFloat3(&SphereCenterLS, XMVector3TransformCoord(TargetPosition, LightView));
 
-				// Àå¸éÀ» °¨½Î´Â ±¤¿ø °ø°£ Á÷±³Åõ¿µ ½Ã¾ß ÀÔÃ¼
+				// ì¥ë©´ì„ ê°ì‹¸ëŠ” ê´‘ì› ê³µê°„ ì§êµíˆ¬ì˜ ì‹œì•¼ ì…ì²´
 				float l = SphereCenterLS.x - SphereRadius;
 				float b = SphereCenterLS.y - SphereRadius;
 				float n = SphereCenterLS.z - SphereRadius;

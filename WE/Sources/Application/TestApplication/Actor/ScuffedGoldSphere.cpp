@@ -8,3 +8,14 @@ AScuffedGoldSphere::AScuffedGoldSphere()
 	// Component->SetCastShadow(false);
 	Component->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_ScuffedGoldSphere));
 }
+
+void AScuffedGoldSphere::Tick(float Seconds)
+{
+	AActor::Tick(Seconds);
+
+	Alpha += Seconds;
+
+	DirectX::XMFLOAT3 Location = GetActorLocation();
+	Location.y = sin(Alpha);
+	SetActorLocation(Location);
+}

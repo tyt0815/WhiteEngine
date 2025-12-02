@@ -40,8 +40,6 @@ int FTestApplication::Run()
 			if (!GetMainWindowPtr()->IsPaused())
 			{
 				CalculateFrameStats();
-				// TODO
-				//ProcessInput();
 				GetInputSystemManager()->Tick();
 				GetWObjectManager()->Tick(GetAppTimer()->GetDeltaTime());
 				
@@ -55,7 +53,7 @@ int FTestApplication::Run()
 			}
 		}
 	}
-	// GPU ÀÇ ¸í·ÉÀÌ ³¡³ª°í Com°´Ã¼µéÀ» ÇØÁ¦ÇØ¾ß Á¤»óÀûÀÎ ÇØÁ¦ °¡´É
+	// GPU ì˜ ëª…ë ¹ì´ ëë‚˜ê³  Comê°ì²´ë“¤ì„ í•´ì œí•´ì•¼ ì •ìƒì ì¸ í•´ì œ ê°€ëŠ¥
 	Renderer->Destroy();
 	GetDXResourceManagerPtr()->FlushCommandQueue();
 	return (int)msg.wParam;

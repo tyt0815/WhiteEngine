@@ -5,4 +5,9 @@ class AThickMortarStonework : public AActor
 {
 public:
 	AThickMortarStonework();
+
+	virtual void Tick(float Seconds) override;
+
+private:
+	float Alpha = 0;
 };

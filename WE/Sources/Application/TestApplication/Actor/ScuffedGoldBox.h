@@ -5,4 +5,9 @@ class AScuffedGoldBox : public AActor
 {
 public:
 	AScuffedGoldBox();
+
+	virtual void Tick(float Seconds) override;
+
+private:
+	float Alpha = 0;
 };

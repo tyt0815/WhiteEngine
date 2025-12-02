@@ -87,7 +87,7 @@ void FDeferredShadingSceneRenderer::BuildGBufferRootSignature()
 	D3D12_DESCRIPTOR_RANGE TextureTable = GetTextureManager()->GetTexture2DDescriptorRange();
 	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
 
-	// Tip: ÀÚÁÖ »ç¿ëµÇ´Â °ÍÀÏ¼ö·Ï ÀÛÀº ÀÎµ¦½º¿¡ º¸°üÇÏ´Â°Ô ÆÛÆ÷¸Õ½º°¡ ÁÁÀ½
+	// Tip: ìžì£¼ ì‚¬ìš©ë˜ëŠ” ê²ƒì¼ìˆ˜ë¡ ìž‘ì€ ì¸ë±ìŠ¤ì— ë³´ê´€í•˜ëŠ”ê²Œ í¼í¬ë¨¼ìŠ¤ê°€ ì¢‹ìŒ
 	constexpr UINT ROOT_PARAMETERs_NUM = 6;
 	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERs_NUM];
 	RootParameter[0].InitAsConstantBufferView(0);	// PassCB
@@ -446,7 +446,7 @@ void FDeferredShadingSceneRenderer::DrawDebugGBuffers(
 	);
 	CommandList->OMSetRenderTargets(1, &Rtv, false, &Dsv);
 
-	// 1»çºÐ¸é: GBufferA	
+	// 1ì‚¬ë¶„ë©´: GBufferA	
 	DrawRectPass(
 		CommandList,
 		mGBufferA->GetSRVHeapIndex(),
@@ -455,7 +455,7 @@ void FDeferredShadingSceneRenderer::DrawDebugGBuffers(
 		FDXUtility::GetQuadrantViewport(Viewport, 1),
 		"DebugVectorPass"
 	);
-	// 2»çºÐ¸é: GBufferB
+	// 2ì‚¬ë¶„ë©´: GBufferB
 	DrawRectPass(
 		CommandList,
 		mGBufferB->GetSRVHeapIndex(),
@@ -463,7 +463,7 @@ void FDeferredShadingSceneRenderer::DrawDebugGBuffers(
 		Dsv,
 		FDXUtility::GetQuadrantViewport(Viewport, 2)
 	);
-	// 3»çºÐ¸é: GBufferC
+	// 3ì‚¬ë¶„ë©´: GBufferC
 	DrawRectPass(
 		CommandList,
 		mGBufferC->GetSRVHeapIndex(),
@@ -517,10 +517,10 @@ void FDeferredShadingSceneRenderer::DrawDeferredShadingPass(
 
 void FDeferredShadingSceneRenderer::DrawGBuffers(ID3D12GraphicsCommandList* CommandList, FFrameResource* FrameResource)
 {
-	mGBufferA->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	mGBufferB->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	mGBufferC->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	mGBufferDepthStencil->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	mGBufferA->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	mGBufferB->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	mGBufferC->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	mGBufferDepthStencil->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 	mGBufferA->Clear(CommandList);
 	mGBufferB->Clear(CommandList);
 	mGBufferC->Clear(CommandList);
@@ -548,7 +548,7 @@ void FDeferredShadingSceneRenderer::DrawGBuffers(ID3D12GraphicsCommandList* Comm
 
 	ID3D12Resource* PassCB = FrameResource->GetPassCB()->Resource();
 	CommandList->SetGraphicsRootConstantBufferView(0, PassCB->GetGPUVirtualAddress());
-	// 1 : Mesh, 2 : Submesh »ý·«. DrawRenderItems¿¡¼­ ¼³Á¤µÊ.
+	// 1 : Mesh, 2 : Submesh ìƒëžµ. DrawRenderItemsì—ì„œ ì„¤ì •ë¨.
 	ID3D12Resource* MaterialSB = FrameResource->GetMaterialSB()->Resource();
 	CommandList->SetGraphicsRootShaderResourceView(3, MaterialSB->GetGPUVirtualAddress());
 	CommandList->SetGraphicsRootDescriptorTable(4, SRVHeap->GetTexture2DGPUDescriptorHandleStart());
@@ -561,8 +561,8 @@ void FDeferredShadingSceneRenderer::DrawGBuffers(ID3D12GraphicsCommandList* Comm
 		GetRenderItemManager()
 	);
 
-	mGBufferA->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
-	mGBufferB->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
-	mGBufferC->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
-	mGBufferDepthStencil->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
+	mGBufferA->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
+	mGBufferB->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
+	mGBufferC->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
+	mGBufferDepthStencil->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
 }

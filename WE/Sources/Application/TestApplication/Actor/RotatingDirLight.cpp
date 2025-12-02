@@ -5,6 +5,6 @@ void ARotatingDirLight::Tick(float Delta)
 	Super::Tick(Delta);
 
 	DirectX::XMFLOAT3 Rotation = GetActorRotation();
-	Rotation.z += Delta * 20;
+	Rotation.z += Delta * 30;
 	SetActorRotation(Rotation);
 }

@@ -5,4 +5,10 @@ class ALaminateFloorBrown : public AActor
 {
 public:
 	ALaminateFloorBrown();
+
+	virtual void Tick(float Delta) override;
+
+	
+private:
+	float Alpha = 0;
 };

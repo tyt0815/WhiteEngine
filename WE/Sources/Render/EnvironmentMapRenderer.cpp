@@ -85,7 +85,7 @@ void FEnvironmentMapRenderer::BuildIrradianceMapPassRootSignature()
 {
 	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
 
-	// Tip: ÀÚÁÖ »ç¿ëµÇ´Â °ÍÀÏ¼ö·Ï ÀÛÀº ÀÎµ¦½º¿¡ º¸°üÇÏ´Â°Ô ÆÛÆ÷¸Õ½º°¡ ÁÁÀ½
+	// Tip: ìžì£¼ ì‚¬ìš©ë˜ëŠ” ê²ƒì¼ìˆ˜ë¡ ìž‘ì€ ì¸ë±ìŠ¤ì— ë³´ê´€í•˜ëŠ”ê²Œ í¼í¬ë¨¼ìŠ¤ê°€ ì¢‹ìŒ
 	constexpr UINT ROOT_PARAMETERs_NUM = 2;
 	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERs_NUM];
 	RootParameter[0].InitAsConstantBufferView(0);
@@ -103,7 +103,7 @@ void FEnvironmentMapRenderer::BuildPreFilteredMapPassRootSignature()
 	// Build RootSignature
 	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
 
-	// Tip: ÀÚÁÖ »ç¿ëµÇ´Â °ÍÀÏ¼ö·Ï ÀÛÀº ÀÎµ¦½º¿¡ º¸°üÇÏ´Â°Ô ÆÛÆ÷¸Õ½º°¡ ÁÁÀ½
+	// Tip: ìžì£¼ ì‚¬ìš©ë˜ëŠ” ê²ƒì¼ìˆ˜ë¡ ìž‘ì€ ì¸ë±ìŠ¤ì— ë³´ê´€í•˜ëŠ”ê²Œ í¼í¬ë¨¼ìŠ¤ê°€ ì¢‹ìŒ
 	constexpr UINT ROOT_PARAMETERs_NUM = 2;
 	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERs_NUM];
 	RootParameter[0].InitAsConstantBufferView(0);
@@ -121,7 +121,7 @@ void FEnvironmentMapRenderer::BuildBRDFLUTPassRootSignature()
 	// Build RootSignature
 	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
 
-	// Tip: ÀÚÁÖ »ç¿ëµÇ´Â °ÍÀÏ¼ö·Ï ÀÛÀº ÀÎµ¦½º¿¡ º¸°üÇÏ´Â°Ô ÆÛÆ÷¸Õ½º°¡ ÁÁÀ½
+	// Tip: ìžì£¼ ì‚¬ìš©ë˜ëŠ” ê²ƒì¼ìˆ˜ë¡ ìž‘ì€ ì¸ë±ìŠ¤ì— ë³´ê´€í•˜ëŠ”ê²Œ í¼í¬ë¨¼ìŠ¤ê°€ ì¢‹ìŒ
 	constexpr UINT ROOT_PARAMETERs_NUM = 1;
 	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERs_NUM];
 	RootParameter[0].InitAsDescriptorTable(1, &CubeTextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// CubeTextureTable
@@ -137,7 +137,7 @@ void FEnvironmentMapRenderer::BuildEnvironmentMapPassRootSignature()
 {
 	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
 
-	// Tip: ÀÚÁÖ »ç¿ëµÇ´Â °ÍÀÏ¼ö·Ï ÀÛÀº ÀÎµ¦½º¿¡ º¸°üÇÏ´Â°Ô ÆÛÆ÷¸Õ½º°¡ ÁÁÀ½
+	// Tip: ìžì£¼ ì‚¬ìš©ë˜ëŠ” ê²ƒì¼ìˆ˜ë¡ ìž‘ì€ ì¸ë±ìŠ¤ì— ë³´ê´€í•˜ëŠ”ê²Œ í¼í¬ë¨¼ìŠ¤ê°€ ì¢‹ìŒ
 	constexpr UINT ROOT_PARAMETERs_NUM = 2;
 	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERs_NUM];
 	RootParameter[0].InitAsConstantBufferView(0);
@@ -409,8 +409,8 @@ void FEnvironmentMapRenderer::PreRenderIrradianceMapPass(ID3D12GraphicsCommandLi
 	}
 
 	// Render
-	mIrradianceMapRenderTarget->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	mDepthStencil->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	mIrradianceMapRenderTarget->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	mDepthStencil->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
 	D3D12_VIEWPORT Viewport = mIrradianceMapRenderTarget->GetViewport();
 	D3D12_RECT ScissorRect = mIrradianceMapRenderTarget->GetScissorRect();
@@ -441,8 +441,8 @@ void FEnvironmentMapRenderer::PreRenderIrradianceMapPass(ID3D12GraphicsCommandLi
 		DrawSphere(CommandList);
 	}
 
-	mIrradianceMapRenderTarget->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
-	mDepthStencil->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
+	mIrradianceMapRenderTarget->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
+	mDepthStencil->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
 }
 
 void FEnvironmentMapRenderer::PreRenderPrefilteredMapPass(ID3D12GraphicsCommandList* CommandList)
@@ -473,8 +473,8 @@ void FEnvironmentMapRenderer::PreRenderPrefilteredMapPass(ID3D12GraphicsCommandL
 
 	//////////////////////////////////////////////////////////////////////////
 	// Render
-	mPrefilteredMapRenderTarget->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	mDepthStencil->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	mPrefilteredMapRenderTarget->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	mDepthStencil->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
 	CommandList->SetPipelineState(mPipelineStates["PreFilteredMapPass"].Get());
 
@@ -510,14 +510,14 @@ void FEnvironmentMapRenderer::PreRenderPrefilteredMapPass(ID3D12GraphicsCommandL
 		}
 	}
 
-	mPrefilteredMapRenderTarget->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
-	mDepthStencil->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
+	mPrefilteredMapRenderTarget->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
+	mDepthStencil->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
 }
 
 void FEnvironmentMapRenderer::PreRenderBRDFLUTPass(ID3D12GraphicsCommandList* CommandList)
 {
-	mBRDFLUTRenderTarget->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	mDepthStencil->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	mBRDFLUTRenderTarget->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	mDepthStencil->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
 	D3D12_VIEWPORT Viewport = mBRDFLUTRenderTarget->GetViewport();
 	D3D12_RECT ScissorRect = mBRDFLUTRenderTarget->GetScissorRect();
@@ -535,8 +535,8 @@ void FEnvironmentMapRenderer::PreRenderBRDFLUTPass(ID3D12GraphicsCommandList* Co
 	DrawRect(CommandList);
 
 
-	mBRDFLUTRenderTarget->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
-	mDepthStencil->TransitResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
+	mBRDFLUTRenderTarget->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
+	mDepthStencil->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
 }
 
 void FEnvironmentMapRenderer::UpdateBuffers()

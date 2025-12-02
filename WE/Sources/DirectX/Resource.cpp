@@ -9,7 +9,7 @@ FResource::FResource(ID3D12Device* Device):
 {
 }
 
-void FResource::TransitResourceBarrier(ID3D12GraphicsCommandList* CommandList, D3D12_RESOURCE_STATES ResourceState)
+void FResource::TransitionResourceBarrier(ID3D12GraphicsCommandList* CommandList, D3D12_RESOURCE_STATES ResourceState)
 {
 	if (ResourceState != mResourceState)
 	{
