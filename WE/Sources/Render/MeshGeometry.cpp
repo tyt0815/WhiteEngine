@@ -1,4 +1,4 @@
-#include "MeshGeometry.h"
+﻿#include "MeshGeometry.h"
 
 #include <array>
 #include <vector>
@@ -47,7 +47,8 @@ void FMeshGeometryManager::BuildMeshGeometryFromMeshData(
 		Vertices[i].Pos = MeshData.Vertices[i].Position;
 		Vertices[i].Normal = MeshData.Vertices[i].Normal;
 		Vertices[i].TexC = MeshData.Vertices[i].TexC;
-		Vertices[i].TangentU = MeshData.Vertices[i].TangentU;
+		XMFLOAT3 Tangent = MeshData.Vertices[i].TangentU;
+		Vertices[i].TangentU = XMFLOAT4(Tangent.x, Tangent.y, Tangent.z, 1.0f);
 	}
 	std::vector<std::uint32_t> Indices;
 	Indices.insert(Indices.end(), std::begin(MeshData.Indices32), std::end(MeshData.Indices32));

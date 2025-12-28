@@ -82,7 +82,7 @@ struct FVertexInput
     float3 LocalPosition : POSITION;
     float3 LocalNormal : NORMAL;
     float2 TexC : TEXCOORD;
-    float3 TangentU : TANGENT;
+    float4 TangentU : TANGENT;
 };
 
 void DrawSphere(in float3 InPosL, in float4x4 ViewProj, out float3 OutPosL, out float4 OutPosH)

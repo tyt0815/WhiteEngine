@@ -14,5 +14,5 @@ void MainVS(
     ClipPosition = mul(PosW, gViewProj);
     WorldNormal = mul(VIn.LocalNormal, (float3x3) gInvTransposeWorld);
     TexC = mul(float4(VIn.TexC, 0.0f, 1.0f), MaterialInfo.MatTransform).xy;
-    WorldTangent = mul(VIn.TangentU, (float3x3) gInvTransposeWorld);
+    WorldTangent = mul(VIn.TangentU.xyz, (float3x3) gInvTransposeWorld);
 }

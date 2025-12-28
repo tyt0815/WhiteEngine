@@ -18,7 +18,7 @@ struct FVertex
 	DirectX::XMFLOAT3 Pos;
 	DirectX::XMFLOAT3 Normal;
 	DirectX::XMFLOAT2 TexC;
-	DirectX::XMFLOAT3 TangentU;
+	DirectX::XMFLOAT4 TangentU;
 };
 
 struct FSpriteVertex
