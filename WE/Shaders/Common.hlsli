@@ -66,7 +66,7 @@ cbuffer SubmeshCB : register(b)\
     uint gSkyIrradianceCubeMapIndex;\
     uint gPrefilteredSkyCubeMapIndex;\
     uint gPadOfSubmeshCB1;\
-};\
+};
 
 #define DECLARE_LIGHTINFO_CB(b)\
 cbuffer LightInfoCB : register(b)\
@@ -77,12 +77,22 @@ cbuffer LightInfoCB : register(b)\
     uint gLightInfoPad1;\
 };
 
+#define DECLARE_SKINNED_CB(b)\
+cbuffer SkinnedCB : register(b)\
+{\
+    float4x4 gBoneTransforms[96];\
+};
+
 struct FVertexInput
 {
     float3 LocalPosition : POSITION;
     float3 LocalNormal : NORMAL;
     float2 TexC : TEXCOORD;
-    float4 TangentU : TANGENT;
+    float3 TangentU : TANGENT;
+#ifdef SKINNED
+    float3 BoneWeights : WEIGHTS;
+    uint4 BoneIndices  : BONEINDICES;
+#endif
 };
 
 void DrawSphere(in float3 InPosL, in float4x4 ViewProj, out float3 OutPosL, out float4 OutPosH)
@@ -103,7 +113,7 @@ float CalcNDCDepthToViewDepth(float z, float4x4 Proj)
     return ViewZ;
 }
 
-// ScreenÁÂÇ¥ -> View ÁÂÇ¥°è
+// Screenì¢Œí‘œ -> View ì¢Œí‘œê³„
 float3 TransformScreenToView(in float2 TexC, float Depth, in float4x4 InvProj)
 {
     float4 NDCPosition = float4(TexC * 2 - 1.0f, Depth, 1.0f);
@@ -113,27 +123,27 @@ float3 TransformScreenToView(in float2 TexC, float Depth, in float4x4 InvProj)
     return ViewPosition.xyz;
 }
 
-// View ÁÂÇ¥°è -> World ÁÂÇ¥°è
+// View ì¢Œí‘œê³„ -> World ì¢Œí‘œê³„
 float3 TransformViewToWorld(in float3 ViewPosition, in float4x4 InvView)
 {
     float4 WorldPosition = mul(float4(ViewPosition, 1.0f), InvView);
     return WorldPosition.xyz;
 }
 
-// ScreenÁÂÇ¥°è -> World ÁÂÇ¥°è
+// Screenì¢Œí‘œê³„ -> World ì¢Œí‘œê³„
 float3 TransformScreenToWorld(in float2 TexC, float Depth, in float4x4 InvProj, in float4x4 InvView)
 {
     float3 ViewPosition = TransformScreenToView(TexC, Depth, InvProj);
     return TransformViewToWorld(ViewPosition, InvView);
 }
 
-// º¤ÅÍ¸¦ normalizeÇÏ°í 0 ~ 1°ªÀ¸·Î ÀÎÄÚµù
+// ë²¡í„°ë¥¼ normalizeí•˜ê³  0 ~ 1ê°’ìœ¼ë¡œ ì¸ì½”ë”©
 float3 EncodeVector(float3 Vector)
 {
     return (normalize(Vector) + 1.0f) / 2.0f;
 }
 
-// 0 ~ 1·Î ÀÎÄÚµùµÈ º¤ÅÍ¸¦ -1 ~ 1·Î µğÄÚµù
+// 0 ~ 1ë¡œ ì¸ì½”ë”©ëœ ë²¡í„°ë¥¼ -1 ~ 1ë¡œ ë””ì½”ë”©
 float3 DecodeVector(float3 EncodedVector)
 {
     return EncodedVector * 2 - 1.0f;

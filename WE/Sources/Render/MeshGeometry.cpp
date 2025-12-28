@@ -1,10 +1,12 @@
-﻿#include "MeshGeometry.h"
+#include "MeshGeometry.h"
 
 #include <array>
 #include <vector>
 #include "GeometryGenerator.h"
 #include "DirectX/DXResourceManager.h"
 #include "Utility/FileIO.h"
+
+#include "SkeletalMesh.h"
 
 FMeshGeometryManager::FMeshGeometryManager()
 {
@@ -27,6 +29,40 @@ void FMeshGeometryManager::BuildMeshGeometries(ID3D12Device* Device, ID3D12Graph
 	BuildSkullMeshGeometry(Device, CommandList);
 	BuildBillboardPoints(Device, CommandList);
 	BuildRectangle(Device, CommandList);
+
+	FSkeletalMesh* SkeletalMesh = FSkeletalMeshManager::GetInstance()->mSkeletalMesh.get();
+
+	std::vector<SkinnedVertex> Vertices(SkeletalMesh->Vertices.size());
+	for (size_t i = 0; i < SkeletalMesh->Vertices.size(); ++i)
+	{
+		Vertices[i].Pos = SkeletalMesh->Vertices[i].Pos;
+		Vertices[i].Normal = SkeletalMesh->Vertices[i].Normal;
+		Vertices[i].TexC = SkeletalMesh->Vertices[i].TexC;
+		Vertices[i].TangentU = SkeletalMesh->Vertices[i].TangentU;
+		Vertices[i].BoneWeights = SkeletalMesh->Vertices[i].BoneWeights;
+		for (int j = 0; j < 4; ++j)
+		{
+			Vertices[i].BoneIndices[j] = SkeletalMesh->Vertices[i].BoneIndices[j];
+		}
+	}
+
+	std::vector<FSubmeshGeometry> Submesh(SkeletalMesh->SkinnedSubsets.size());
+	for (UINT i = 0; i < (UINT)SkeletalMesh->SkinnedSubsets.size(); ++i)
+	{
+		Submesh[i].IndexCount = (UINT)SkeletalMesh->SkinnedSubsets[i].FaceCount * 3;
+		Submesh[i].StartIndexLocation = SkeletalMesh->SkinnedSubsets[i].FaceStart * 3;
+		Submesh[i].BaseVertexLocation = 0;
+	}
+
+	BuildMeshGeometryU16(
+		"Soldier",
+		Vertices,
+		SkeletalMesh->Indices,
+		Submesh,
+		D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		Device,
+		CommandList
+	);
 }
 
 void FMeshGeometryManager::BuildMeshGeometryFromMeshData(
@@ -47,8 +83,7 @@ void FMeshGeometryManager::BuildMeshGeometryFromMeshData(
 		Vertices[i].Pos = MeshData.Vertices[i].Position;
 		Vertices[i].Normal = MeshData.Vertices[i].Normal;
 		Vertices[i].TexC = MeshData.Vertices[i].TexC;
-		XMFLOAT3 Tangent = MeshData.Vertices[i].TangentU;
-		Vertices[i].TangentU = XMFLOAT4(Tangent.x, Tangent.y, Tangent.z, 1.0f);
+		Vertices[i].TangentU = MeshData.Vertices[i].TangentU;
 	}
 	std::vector<std::uint32_t> Indices;
 	Indices.insert(Indices.end(), std::begin(MeshData.Indices32), std::end(MeshData.Indices32));

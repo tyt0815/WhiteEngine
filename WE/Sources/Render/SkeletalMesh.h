@@ -1,7 +1,8 @@
-﻿#pragma once
+#pragma once
 
 #include "Utility/Class.h"
 #include "SkinnedData.h"
+#include "LoadM3d.h"
 
 #include <memory>
 
@@ -12,7 +13,7 @@ struct SkinnedVertex
     DirectX::XMFLOAT2 TexC;
     DirectX::XMFLOAT3 TangentU;
     DirectX::XMFLOAT3 BoneWeights;
-    BYTE BoneIndices[4];
+    UINT BoneIndices[4];
 };
 
 struct SkinnedModelInstance
@@ -39,9 +40,19 @@ struct SkinnedModelInstance
     }
 };
 
+struct FSkeletalMesh
+{
+    std::unique_ptr<SkinnedModelInstance> SkinnedModelInst;
+    std::vector<M3DLoader::Subset> SkinnedSubsets;
+    std::vector<M3DLoader::M3dMaterial> SkinnedMats;
+    std::vector<M3DLoader::SkinnedVertex> Vertices;
+    std::vector<std::uint16_t> Indices;
+    SkinnedData SkinnedInfo;
+};
+
 class FSkeletalMeshManager
 {
 	SINGLETON(FSkeletalMeshManager);
 public:
-	std::unique_ptr<SkinnedModelInstance> mSkinnedModelInst;
+	std::unique_ptr<FSkeletalMesh> mSkeletalMesh;
 };
