@@ -399,6 +399,7 @@ void FDeferredShadingSceneRenderer::Render(
 		break;
 
 	case EDebugScreenMode::EDSM_DebugAll:
+	{
 		D3D12_VIEWPORT DebugScreenViewport = FDXUtility::GetQuadrantViewport(Viewport, 2);
 		DebugScreenViewport = FDXUtility::GetQuadrantViewport(DebugScreenViewport, 2);
 		DrawDebugGBuffers(CommandList, Rtv, Dsv, DebugScreenViewport);
@@ -411,6 +412,7 @@ void FDeferredShadingSceneRenderer::Render(
 			"DebugDepthPass"
 		);
 		break;
+	}
 
 	default:
 		break;

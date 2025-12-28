@@ -44,4 +44,5 @@ WTestWorld::WTestWorld()
 	LightActor = SpawnActor<ADirectionalLight>();
 	Transform.Rotation = XMFLOAT3(0.0f, -45, -45);
 	LightActor->SetActorTransform(Transform);
+	LightActor->GetDirLightComp()->SetColor({10.0f, 10.0f, 10.0f});
 }
