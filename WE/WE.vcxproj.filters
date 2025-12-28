@@ -221,6 +221,12 @@
     <ClCompile Include="Sources\Application\TestApplication\Actor\RotatingDirLight.cpp">
       <Filter>Sources\Application\TestApplication\Actor</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Render\SkinnedData.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Render\LoadM3d.cpp">
+      <Filter>Sources\Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -396,6 +402,12 @@
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\Component\SkyAtmosphereComponent.h">
       <Filter>Sources\GameFramework\Object\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\LoadM3d.h">
+      <Filter>Sources\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\SkinnedData.h">
+      <Filter>Sources\Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

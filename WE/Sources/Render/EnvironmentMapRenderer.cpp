@@ -1,4 +1,4 @@
-#include "EnvironmentMapRenderer.h"
+﻿#include "EnvironmentMapRenderer.h"
 #include "DirectX/DXResourceManager.h"
 #include "DirectX/DXMath.h"
 #include "DirectX/CBVSRVUAVHeap.h"
