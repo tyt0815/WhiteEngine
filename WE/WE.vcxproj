@@ -58,6 +58,7 @@
     <ClCompile Include="Sources\Render\RenderTarget.cpp" />
     <ClCompile Include="Sources\Render\SceneRenderer.cpp" />
     <ClCompile Include="Sources\Render\ShapeDrawer.cpp" />
+    <ClCompile Include="Sources\Render\SkeletalMesh.cpp" />
     <ClCompile Include="Sources\Render\SkinnedData.cpp" />
     <ClCompile Include="Sources\Render\StaticMesh.cpp" />
     <ClCompile Include="Sources\Render\Texture.cpp" />
@@ -118,6 +119,7 @@
     <ClInclude Include="Sources\Render\RenderTarget.h" />
     <ClInclude Include="Sources\Render\SceneRenderer.h" />
     <ClInclude Include="Sources\Render\ShapeDrawer.h" />
+    <ClInclude Include="Sources\Render\SkeletalMesh.h" />
     <ClInclude Include="Sources\Render\SkinnedData.h" />
     <ClInclude Include="Sources\Render\StaticMesh.h" />
     <ClInclude Include="Sources\Render\Texture.h" />
