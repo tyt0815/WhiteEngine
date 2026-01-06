@@ -412,6 +412,9 @@
     <ClInclude Include="Sources\Render\SceneRenderer.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
+    <ClInclude Include="Sources\Utility\Container.h">
+      <Filter>Sources\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\BillboardCommon.hlsli">

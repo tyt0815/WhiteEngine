@@ -125,6 +125,7 @@
     <ClInclude Include="Sources\Render\UnorderedAccessTexture2D.h" />
     <ClInclude Include="Sources\Render\UploadBuffer.h" />
     <ClInclude Include="Sources\Utility\Class.h" />
+    <ClInclude Include="Sources\Utility\Container.h" />
     <ClInclude Include="Sources\Utility\FileIO.h" />
     <ClInclude Include="Sources\Utility\Pool.h" />
     <ClInclude Include="Sources\Utility\String.h" />
