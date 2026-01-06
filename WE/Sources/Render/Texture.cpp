@@ -5,6 +5,8 @@
 #include "DirectX/DXResourceManager.h"
 #include "DirectX/CBVSRVUAVHeap.h"
 
+#include <filesystem>
+
 D3D12_GPU_DESCRIPTOR_HANDLE FTexture::GetSRV() const
 {
 	return mCBVSRVUAVHeap->GetTexture2DGPUDescriptorHandle(mSRVIndex);
@@ -113,7 +115,9 @@ FTexture::FTexture(std::string Name, ID3D12Device* Device, ID3D12GraphicsCommand
 	mCBVSRVUAVHeap(GetCBVSRVUAVHeap()),
 	FResource::FResource(Device)
 {
-	static std::wstring Path = L"./Resources/Textures/";
+	// TODO: 텍스처 로드를 다른 모듈로 옮겨야함.
+	std::wstring CurrentPath = std::filesystem::current_path().c_str();
+	std::wstring Path = CurrentPath + L"./Resources/Textures/";
 	std::wstring FileName = std::wstring(mName.begin(), mName.end()) + L".dds";
 	THROW_IF_FAILED(
 		DirectX::CreateDDSTextureFromFile12(
