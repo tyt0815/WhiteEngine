@@ -1,4 +1,5 @@
 #pragma once
+
 #include <array>
 #include <d3d12.h>
 #include <memory>
@@ -83,6 +84,12 @@ struct FLightInfoConstantBuffer
     UINT Pad1;
 };
 
+// register(b4)
+struct FSkinnedConstantBuffer
+{
+    DirectX::XMFLOAT4X4 BoneTransforms[96];
+};
+
 // register(t0, space1)
 struct FMaterialStructuredBuffer
 {
@@ -107,6 +114,7 @@ private:
     std::unique_ptr<TUploadBuffer<FMeshConstantBuffer>> mMeshConstantBuffer;
     std::unique_ptr<TUploadBuffer<FSubmeshConstantBuffer>> mSubmeshConstantBuffer;
     std::unique_ptr<TUploadBuffer<FLightInfoConstantBuffer>> mLightInfoConstantBuffer;
+	std::unique_ptr<TUploadBuffer<FSkinnedConstantBuffer>> mSkinnedConstantBuffer;
     std::unique_ptr<TUploadBuffer<FMaterialStructuredBuffer>> mMaterialStructuredBuffer;
     std::unique_ptr<TUploadBuffer<FDirectionalLightStructuredBuffer>> mDirectionalLightStructuredBuffer;
     UINT64 mFenceCount = 0;
@@ -140,6 +148,10 @@ public:
     {
         return mLightInfoConstantBuffer.get();
     }
+    inline TUploadBuffer<FSkinnedConstantBuffer>* GetSkinnedCB() const
+    {
+        return mSkinnedConstantBuffer.get();
+	}
     inline TUploadBuffer<FMaterialStructuredBuffer>* GetMaterialSB() const
     {
         return mMaterialStructuredBuffer.get();
@@ -212,10 +224,10 @@ protected:
         const FStaticMeshInfo& StaticMeshInfo
     );
 
-    // BackBuffer¿Í DepthStencilBuffer¸¦ ¾²±â °¡´ÉÇÑ »óÅÂ·Î ÀüÀÌÇÏ°í, ClearÇÑ´Ù.
+    // BackBufferì™€ DepthStencilBufferë¥¼ ì“°ê¸° ê°€ëŠ¥í•œ ìƒíƒœë¡œ ì „ì´í•˜ê³ , Clearí•œë‹¤.
     void ReadyBackBuffer(ID3D12GraphicsCommandList* CommandList);
 
-    // BackBuffer¿Í DepthStencilBuffer¸¦ PresentÇÏ±â À§ÇÑ »óÅÂ·Î ÀüÀÌÇÑ´Ù.
+    // BackBufferì™€ DepthStencilBufferë¥¼ Presentí•˜ê¸° ìœ„í•œ ìƒíƒœë¡œ ì „ì´í•œë‹¤.
     void FinishBackBuffer(ID3D12GraphicsCommandList* CommandList);
 
     std::unique_ptr<FGaussianBlurFilter> mGaussianBlurFilter;

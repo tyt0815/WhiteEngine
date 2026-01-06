@@ -2,6 +2,7 @@
 #include "DirectX/DXException.h"
 #include "Render/MeshGeometry.h"
 #include "Render/RenderItemManager.h"
+#include "Render/SkeletalMesh.h"
 
 #pragma comment(lib,"d3dcompiler.lib")
 #pragma comment(lib, "D3D12.lib")
@@ -48,4 +49,5 @@ void InitializeSingleton()
     GetMaterialManager();
     GetMeshGeometryManager();
     GetRenderItemManager();
+	FSkeletalMeshManager::GetInstance();
 }

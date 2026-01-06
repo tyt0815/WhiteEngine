@@ -5,6 +5,9 @@
 #include "GameFramework/InputSystem/InputSystem.h"
 #include "ShapeDrawer.h"
 
+#include "SkeletalMesh.h"
+#include "MeshGeometry.h"
+
 FDeferredShadingSceneRenderer::FFrameResource::FFrameResource(ID3D12Device* Device) :
 	FFrameResourceBase(Device)
 {
@@ -64,6 +67,24 @@ void FDeferredShadingSceneRenderer::BuildRootSignature()
 	Super::BuildRootSignature();
 	BuildGBufferRootSignature();
 	BuildDeferredShadingPassRootSignature();
+
+
+	// TODO: SkinnedMesh 테스트용
+	D3D12_DESCRIPTOR_RANGE TextureTable = GetTextureManager()->GetTexture2DDescriptorRange();
+	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
+
+	// Tip: 자주 사용되는 것일수록 작은 인덱스에 보관하는게 퍼포먼스가 좋음
+	constexpr UINT ROOT_PARAMETERs_NUM = 7;
+	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERs_NUM];
+	RootParameter[0].InitAsConstantBufferView(0);	// PassCB
+	RootParameter[1].InitAsConstantBufferView(1);	// MeshCB
+	RootParameter[2].InitAsConstantBufferView(2);	// SubmeshCB
+	RootParameter[3].InitAsShaderResourceView(0, 2);	// MaterialSB
+	RootParameter[4].InitAsDescriptorTable(1, &TextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// TextureTable
+	RootParameter[5].InitAsDescriptorTable(1, &CubeTextureTable, D3D12_SHADER_VISIBILITY_PIXEL);	// CubeTextureTable
+	RootParameter[6].InitAsConstantBufferView(10);	// SkinnedCB
+
+	FDXUtility::BuildRootSignature(RootParameter, ROOT_PARAMETERs_NUM, mRootSignatures["GBufferPass_Skinned"].GetAddressOf());
 }
 
 void FDeferredShadingSceneRenderer::BuildDeferredShadingPassRootSignature()
@@ -143,6 +164,19 @@ void FDeferredShadingSceneRenderer::BuildGBufferPassShaders()
 		"MainPS",
 		"ps_5_1"
 	);
+
+	// TODO: SkinnedMesh 테스트용
+	D3D_SHADER_MACRO Defines[] = {
+		{"SKINNED", "1"},
+		{NULL, NULL}
+	};
+
+	mShaders["GBufferPassVertexShader_Skinned"] = FDXUtility::CompileShader(
+		L"Shaders\\GBufferPassVertexShader.hlsl",
+		Defines,
+		"MainVS",
+		"vs_5_1"
+	);
 }
 
 void FDeferredShadingSceneRenderer::BuildDebugPassShaders()
@@ -168,6 +202,40 @@ void FDeferredShadingSceneRenderer::BuildPipelineStates(ID3D12Device* Device)
 	BuildGBufferPassPipelineState(Device);
 	BuildDeferredShadingPassPipelineState(Device);
 	BuildDebugPassPipelineStates(Device);
+
+	// TODO: SkinnedMesh 테스트용
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC GBufferPassPipelineStateDesc;
+	ZeroMemory(&GBufferPassPipelineStateDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+	GBufferPassPipelineStateDesc.InputLayout = { mInputLayouts["MeshGeometryPass_Skinned"].data(), (UINT)mInputLayouts["MeshGeometryPass_Skinned"].size() };
+	GBufferPassPipelineStateDesc.pRootSignature = mRootSignatures["GBufferPass_Skinned"].Get();
+	GBufferPassPipelineStateDesc.VS =
+	{
+		reinterpret_cast<BYTE*>(mShaders["GBufferPassVertexShader_Skinned"]->GetBufferPointer()),
+		mShaders["GBufferPassVertexShader_Skinned"]->GetBufferSize()
+	};
+	GBufferPassPipelineStateDesc.PS =
+	{
+		reinterpret_cast<BYTE*>(mShaders["GBufferPassPixelShader"]->GetBufferPointer()),
+		mShaders["GBufferPassPixelShader"]->GetBufferSize()
+	};
+	GBufferPassPipelineStateDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	GBufferPassPipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	GBufferPassPipelineStateDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	GBufferPassPipelineStateDesc.SampleMask = UINT_MAX;
+	GBufferPassPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	GBufferPassPipelineStateDesc.NumRenderTargets = 3;
+	GBufferPassPipelineStateDesc.RTVFormats[0] = mGBufferA->GetFormat();
+	GBufferPassPipelineStateDesc.RTVFormats[1] = mGBufferB->GetFormat();
+	GBufferPassPipelineStateDesc.RTVFormats[2] = mGBufferC->GetFormat();
+	GBufferPassPipelineStateDesc.SampleDesc.Count = 1;
+	GBufferPassPipelineStateDesc.SampleDesc.Quality = 0;
+	GBufferPassPipelineStateDesc.DSVFormat = mGBufferDepthStencil->GetFormat();
+	THROW_IF_FAILED(
+		Device->CreateGraphicsPipelineState(
+			&GBufferPassPipelineStateDesc,
+			IID_PPV_ARGS(mPipelineStates["GBufferPass_Skinned"].GetAddressOf())
+		)
+	);
 }
 
 void FDeferredShadingSceneRenderer::BuildDeferredShadingPassPipelineState(ID3D12Device* Device)
@@ -556,12 +624,69 @@ void FDeferredShadingSceneRenderer::DrawGBuffers(ID3D12GraphicsCommandList* Comm
 	CommandList->SetGraphicsRootDescriptorTable(4, SRVHeap->GetTexture2DGPUDescriptorHandleStart());
 	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTextureCubeGPUDescriptorHandleStart());
 
-	DrawStaticMeshs(
-		CommandList,
-		FrameResource->GetMeshCB()->Resource(),
-		FrameResource->GetSubmeshCB()->Resource(),
-		GetRenderItemManager()
-	);
+	//DrawStaticMeshs(
+	//	CommandList,
+	//	FrameResource->GetMeshCB()->Resource(),
+	//	FrameResource->GetSubmeshCB()->Resource(),
+	//	GetRenderItemManager()
+	//);
+
+	////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////
+	// TODO: SkinnedMesh 테스트용
+
+	CommandList->SetPipelineState(mPipelineStates["GBufferPass_Skinned"].Get());
+
+	CommandList->SetGraphicsRootSignature(mRootSignatures["GBufferPass_Skinned"].Get());
+
+	//CommandList->SetDescriptorHeaps(_countof(DescriptorHeaps), DescriptorHeaps);
+	//CommandList->SetGraphicsRootConstantBufferView(0, PassCB->GetGPUVirtualAddress());
+	//CommandList->SetGraphicsRootShaderResourceView(3, MaterialSB->GetGPUVirtualAddress());
+	//CommandList->SetGraphicsRootDescriptorTable(4, SRVHeap->GetTexture2DGPUDescriptorHandleStart());
+	//CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTextureCubeGPUDescriptorHandleStart());
+
+	//UINT ObjectConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FMeshConstantBuffer));
+	//UINT SubmeshConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FSubmeshConstantBuffer));
+	//UINT SkinnedConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FSkinnedConstantBuffer));
+
+	//ID3D12Resource* MeshConstantBuffer = FrameResource->GetMeshCB()->Resource();
+	//ID3D12Resource* SubmeshConstantBuffer = FrameResource->GetSubmeshCB()->Resource();
+
+	//// MeshConstantBuffer
+	//auto ObjectConstantBufferAddress = MeshConstantBuffer->GetGPUVirtualAddress() + StaticMeshInfo.MeshCBIndex * ObjectConstantBufferByteSize;
+	//CommandList->SetGraphicsRootConstantBufferView(1, ObjectConstantBufferAddress);
+
+	//// SubmeshConstantBuffer
+	//auto SubmeshConstantBufferAddress = SubmeshConstantBuffer->GetGPUVirtualAddress() + StaticMeshInfo.SubmeshCBIndex * SubmeshConstantBufferByteSize;
+	//CommandList->SetGraphicsRootConstantBufferView(2, SubmeshConstantBufferAddress);
+
+	// SkinnedConstantBuffer
+	auto SKinnedConstantBufferAddress = FrameResource->GetSkinnedCB()->Resource()->GetGPUVirtualAddress();
+	CommandList->SetGraphicsRootConstantBufferView(6, SKinnedConstantBufferAddress);
+
+	auto MeshGeo = FMeshGeometryManager::GetInstance()->GetMeshGeometry("Soldier");
+
+	D3D12_VERTEX_BUFFER_VIEW VertexBufferView = MeshGeo->VertexBufferView();
+	D3D12_INDEX_BUFFER_VIEW IndexBufferView = MeshGeo->IndexBufferView();
+	CommandList->IASetVertexBuffers(0, 1, &VertexBufferView);
+	CommandList->IASetIndexBuffer(&IndexBufferView);
+	CommandList->IASetPrimitiveTopology(MeshGeo->PrimitiveType);
+
+	for (int i = 0; i < MeshGeo->DrawArgs.size(); ++i)
+	{
+		CommandList->DrawIndexedInstanced(
+			MeshGeo->DrawArgs[i].IndexCount,
+			1,
+			MeshGeo->DrawArgs[i].StartIndexLocation,
+			MeshGeo->DrawArgs[i].BaseVertexLocation,
+			0
+		);
+	}
+
+	
+
+	////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////
 
 	mGBufferA->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
 	mGBufferB->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);

@@ -10,7 +10,7 @@ void MainPS(
     out float4 GBufferC : SV_Target2
 )
 {
-    FMaterialSB MaterialData = gMaterialData[gMaterialIndex];
+    FMaterialSB MaterialData = gMaterialData[0];
     
     float3 NormalMapSample = gTexture[MaterialData.NormalTextureIndex].Sample(gsamLinearWrap, TexC).rgb;
     WorldNormal = NormalSampleToWorldSpace(NormalMapSample, normalize(WorldNormal), WorldTangent);

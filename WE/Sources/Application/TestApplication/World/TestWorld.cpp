@@ -14,7 +14,6 @@ WTestWorld::WTestWorld()
 {
 	APawn* Player = SpawnActor<AGhostCameraPawn>();
 	SetPlayer(Player);
-	
 
 	AActor* Actor = nullptr;
 	FTransform Transform = FTransform::Default;

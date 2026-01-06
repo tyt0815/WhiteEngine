@@ -49,6 +49,7 @@
     <ClCompile Include="Sources\Render\EnvironmentMapRenderer.cpp" />
     <ClCompile Include="Sources\Render\GausiaanBlurFilter.cpp" />
     <ClCompile Include="Sources\Render\GeometryGenerator.cpp" />
+    <ClCompile Include="Sources\Render\LoadM3d.cpp" />
     <ClCompile Include="Sources\Render\Material.cpp" />
     <ClCompile Include="Sources\Render\MeshGeometry.cpp" />
     <ClCompile Include="Sources\Render\ForwardShadingSceneRenderer.cpp" />
@@ -56,6 +57,8 @@
     <ClCompile Include="Sources\Render\RenderTarget.cpp" />
     <ClCompile Include="Sources\Render\SceneRenderer.cpp" />
     <ClCompile Include="Sources\Render\ShapeDrawer.cpp" />
+    <ClCompile Include="Sources\Render\SkeletalMesh.cpp" />
+    <ClCompile Include="Sources\Render\SkinnedData.cpp" />
     <ClCompile Include="Sources\Render\StaticMesh.cpp" />
     <ClCompile Include="Sources\Render\Texture.cpp" />
     <ClCompile Include="Sources\Render\UnorderedAccessTexture2D.cpp" />
@@ -107,6 +110,7 @@
     <ClInclude Include="Sources\Render\EnvironmentMapRenderer.h" />
     <ClInclude Include="Sources\Render\GausiaanBlurFilter.h" />
     <ClInclude Include="Sources\Render\GeometryGenerator.h" />
+    <ClInclude Include="Sources\Render\LoadM3d.h" />
     <ClInclude Include="Sources\Render\Material.h" />
     <ClInclude Include="Sources\Render\MeshGeometry.h" />
     <ClInclude Include="Sources\Render\ForwardShadingSceneRenderer.h" />
@@ -114,6 +118,8 @@
     <ClInclude Include="Sources\Render\RenderTarget.h" />
     <ClInclude Include="Sources\Render\SceneRenderer.h" />
     <ClInclude Include="Sources\Render\ShapeDrawer.h" />
+    <ClInclude Include="Sources\Render\SkeletalMesh.h" />
+    <ClInclude Include="Sources\Render\SkinnedData.h" />
     <ClInclude Include="Sources\Render\StaticMesh.h" />
     <ClInclude Include="Sources\Render\Texture.h" />
     <ClInclude Include="Sources\Render\UnorderedAccessTexture2D.h" />

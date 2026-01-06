@@ -8,6 +8,8 @@
 #include "Utility/Timer.h"
 #include "DirectX/CBVSRVUAVHeap.h"
 
+#include "SkeletalMesh.h"
+
 const int gFrameResourcesNum = FRAME_RESOURCES_NUM;
 
 FFrameResourceBase::FFrameResourceBase(ID3D12Device* Device)
@@ -22,6 +24,7 @@ FFrameResourceBase::FFrameResourceBase(ID3D12Device* Device)
 	mMeshConstantBuffer = std::make_unique<TUploadBuffer<FMeshConstantBuffer>>(Device, MESH_CB_NUM, true);
 	mSubmeshConstantBuffer = std::make_unique<TUploadBuffer<FSubmeshConstantBuffer>>(Device, SUBMESH_CB_NUM, true);
 	mLightInfoConstantBuffer = std::make_unique<TUploadBuffer<FLightInfoConstantBuffer>>(Device, 1, true);
+	mSkinnedConstantBuffer = std::make_unique<TUploadBuffer<FSkinnedConstantBuffer>>(Device, 1, true);
 	mMaterialStructuredBuffer = std::make_unique<TUploadBuffer<FMaterialStructuredBuffer>>(Device, EMT_None, false);
 	mDirectionalLightStructuredBuffer = std::make_unique<TUploadBuffer<FDirectionalLightStructuredBuffer>>(Device, DIR_LIGHTS_NUM, false);
 }
@@ -158,6 +161,16 @@ void FSceneRenderer::BuildShadersAndInputLayouts()
 		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 32, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 	};
 
+	mInputLayouts["MeshGeometryPass_Skinned"] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 32, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "WEIGHTS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 44, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "BONEINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, 56, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+	};
+
 	BuildShadowMapShaders();
 }
 
@@ -247,6 +260,18 @@ void FSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* FrameResource)
 	UpdateLightInfoCB(FrameResource->GetLightInfoCB());
 	UpdateMaterialSB(FrameResource->GetMaterialSB());
 	UpdateDirectionalLightSB(FrameResource->GetDirectionalLightSB());
+
+	// TODO: 테스트용 Skinned CB 업데이트
+	auto SkinnedCB = FrameResource->GetSkinnedCB();
+	FSkinnedConstantBuffer SkinnedData = {};
+	SkinnedModelInstance* TestModelInstance = FSkeletalMeshManager::GetInstance()->mSkeletalMesh->SkinnedModelInst.get();
+	TestModelInstance->UpdateSkinnedAnimation(0.001);
+	std::copy(
+		TestModelInstance->FinalTransforms.begin(),
+		TestModelInstance->FinalTransforms.end(),
+		&SkinnedData.BoneTransforms[0]
+	);
+	SkinnedCB->CopyData(0, SkinnedData);
 }
 
 void FSceneRenderer::DrawRectPass(
