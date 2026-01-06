@@ -42,7 +42,6 @@
     <ClCompile Include="Sources\GameFramework\Object\Object.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Pawn\Pawn.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\World\World.cpp" />
-    <ClCompile Include="Sources\Main.cpp" />
     <ClCompile Include="Sources\Render\CubeRenderTarget.cpp" />
     <ClCompile Include="Sources\Render\DDSTextureLoader.cpp" />
     <ClCompile Include="Sources\Render\DeferredShadingSceneRenderer.cpp" />
@@ -289,13 +288,13 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>

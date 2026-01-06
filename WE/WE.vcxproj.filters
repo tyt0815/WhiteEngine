@@ -83,9 +83,6 @@
     <ClCompile Include="Sources\Render\Texture.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Main.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\Window\Window.cpp">
       <Filter>Sources\Window</Filter>
     </ClCompile>
