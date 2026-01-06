@@ -5,15 +5,6 @@ float gAspectRatio = 1;
 
 FDXResourceManager::FDXResourceManager()
 {
-#if defined(DEBUG) || defined(_DEBUG) 
-	// Enable the D3D12 debug layer.
-	{
-		Microsoft::WRL::ComPtr<ID3D12Debug> DebugController;
-		THROW_IF_FAILED(D3D12GetDebugInterface(IID_PPV_ARGS(&DebugController)));
-		DebugController->EnableDebugLayer();
-	}
-#endif
-
 	THROW_IF_FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&Factory)));
 
 	// Try to create hardware device.

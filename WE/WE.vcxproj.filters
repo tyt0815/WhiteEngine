@@ -519,6 +519,7 @@
     <None Include="Shaders\SkyAtmosphereCommon.hlsli">
       <Filter>Shaders</Filter>
     </None>
+    <None Include=".editorconfig" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\Default.dds">
