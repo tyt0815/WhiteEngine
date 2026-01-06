@@ -4,8 +4,8 @@
 
 AGhostCameraPawn::AGhostCameraPawn()
 {
-	Camera = CreateSceneComponent<WCameraComponent>();
-	SetRootComponent(Camera);
+	mCameraComponent = CreateComponent<WCameraComponent>();
+	SetRootComponent(mCameraComponent);
 }
 
 void AGhostCameraPawn::SetupPlayerInput()

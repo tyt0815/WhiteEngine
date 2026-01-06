@@ -38,7 +38,7 @@ void MainVS(
     float4 PosW = mul(float4(VIn.LocalPosition, 1.0f), gWorld);
     
     ClipPosition = mul(PosW, gViewProj);
-    ClipPosition = mul(float4(VIn.LocalPosition, 1.0f), gViewProj);
+
 #ifdef SKINNED
     ClipPosition = mul(float4(VIn.LocalPosition, 1.0f), gViewProj);
 #endif

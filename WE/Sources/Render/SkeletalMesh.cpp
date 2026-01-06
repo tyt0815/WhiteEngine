@@ -2,13 +2,15 @@
 
 #include "MeshGeometry.h"
 #include "DirectX/DXResourceManager.h"
+#include <filesystem>
 
 FSkeletalMeshManager::FSkeletalMeshManager()
 {
 	// Load a skinned model.
 
-	
-	std::string FilePath = "./Resources/Models/soldier.m3d";
+	std::wstring CurrentPath = std::filesystem::current_path().c_str();
+	std::wstring FilePathW = CurrentPath + L"\\..\\WE\\Resources\\Models\\soldier.m3d";
+	std::string FilePath = WStringToString(FilePathW);
 
 	mSkeletalMesh = std::make_unique<FSkeletalMesh>();
 

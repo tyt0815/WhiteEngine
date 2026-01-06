@@ -26,9 +26,9 @@ private:
 	bool bStopped = false;
 };
 
-extern UTimer gAppTimer;
+extern UTimer gEngineTimer;
 
-inline UTimer* GetAppTimer()
+inline UTimer* GetEngineTimer()
 {
-	return &gAppTimer;
+	return &gEngineTimer;
 }

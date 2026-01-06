@@ -6,14 +6,16 @@ template<typename T>
 class TUnorderedArray
 {
 public:
-	void Add(const T& Data)
+	template<typename __T>
+	size_t Add(__T&& Data)
 	{
-		Array.push_back(Data);
+		Array.emplace_back(std::move(Data));
+		return Array.size() - 1;
 	}
 
 	void RemoveAt(size_t Index)
 	{
-		Array[Index] = std::move()(Array.back());		
+		Array[Index] = std::move(Array.back());
 		Array.pop_back();
 	}
 	

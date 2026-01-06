@@ -1,7 +1,7 @@
 #include "Timer.h"
 #include <Windows.h>
 
-UTimer gAppTimer;
+UTimer gEngineTimer;
 
 UTimer::UTimer()
 {

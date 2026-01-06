@@ -4,7 +4,7 @@
 #include "Material.h"
 #include "DirectX/DXMath.h"
 #include "Utility/Class.h"
-#include "Utility/Pool.h"
+#include "Utility/Container.h"
 
 class FMeshGeometry;
 
@@ -47,10 +47,10 @@ class FRenderItemManager
 {
 	SINGLETON(FRenderItemManager);
 public:
-	TPool<FMeshInfo> mMeshInfoPool;
-	TPool<FSubmeshInfo> mSubmeshInfoPool;
-	std::array<std::array<TPool<FStaticMeshInfo>, EBM_None>, ESM_None> mStaticMeshInfoPool;
-	TPool<FDirectionalLightInfo> mDirectionalLightInfoPool;
+	TUnorderedArray<FMeshInfo> mMeshInfoPool;
+	TUnorderedArray<FSubmeshInfo> mSubmeshInfoPool;
+	std::array<std::array<TUnorderedArray<FStaticMeshInfo>, EBM_None>, ESM_None> mStaticMeshInfoPool;
+	TUnorderedArray<FDirectionalLightInfo> mDirectionalLightInfoPool;
 };
 
 inline FRenderItemManager* GetRenderItemManager()

@@ -14,11 +14,9 @@ void AActor::SetRootComponent(WSceneComponent* Component)
 	if (mRootComponent != nullptr)
 	{
 		mRootComponent->SetupAttachment(Component);
-		GetWObjectManager()->RemoveRootComponent(mRootComponentPoolId);
 	}
 
 	mRootComponent = Component;
-	mRootComponentPoolId = GetWObjectManager()->RegisterRootComponent(mRootComponent);
 }
 
 XMFLOAT3 AActor::GetFowardVector() const

@@ -7,6 +7,7 @@
 #include "GameFramework/Object/World/World.h"
 #include "Utility/Timer.h"
 #include "DirectX/CBVSRVUAVHeap.h"
+#include "MeshGeometry.h"
 
 #include "SkeletalMesh.h"
 
@@ -141,13 +142,13 @@ void FSceneRenderer::BuildShadowMapPassRootSignature()
 void FSceneRenderer::BuildShadersAndInputLayouts()
 {
 	mShaders["DrawRectPassVertexShader"] = FDXUtility::CompileShader(
-		L"Shaders\\DrawRectPassVertexShader.hlsl",
+		std::wstring(PROJECT_DIR_W) + L"\\Shaders\\DrawRectPassVertexShader.hlsl",
 		nullptr,
 		"MainVS",
 		"vs_5_1"
 	);
 	mShaders["DrawRectPassPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\DrawRectPassPixelShader.hlsl",
+		std::wstring(PROJECT_DIR_W) + L"\\Shaders\\DrawRectPassPixelShader.hlsl",
 		nullptr,
 		"MainPS",
 		"ps_5_1"
@@ -177,7 +178,7 @@ void FSceneRenderer::BuildShadersAndInputLayouts()
 void FSceneRenderer::BuildShadowMapShaders()
 {
 	mShaders["ShadowMapPassVertexShader"] = FDXUtility::CompileShader(
-		L"Shaders\\ShadowMapPassVertexShader.hlsl",
+		std::wstring(PROJECT_DIR_W) + L"\\Shaders\\ShadowMapPassVertexShader.hlsl",
 		nullptr,
 		"MainVS",
 		"vs_5_1"
@@ -307,66 +308,63 @@ void FSceneRenderer::DrawRectPass(
 
 void FSceneRenderer::DrawShadowMap(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource)
 {
-	TPool<FDirectionalLightInfo>& DirLightInfoPool = GetRenderItemManager()->mDirectionalLightInfoPool;
-	int TargetIndex = min(DIR_LIGHTS_NUM, (int)DirLightInfoPool.GetPoolSize());
+	TUnorderedArray<FDirectionalLightInfo>& DirLightInfoPool = GetRenderItemManager()->mDirectionalLightInfoPool;
+	int TargetIndex = min(DIR_LIGHTS_NUM, (int)DirLightInfoPool.Size());
 	int ShadingModelsNum = EShadingModel::ESM_None;
 	int BlendModesNum = EBlendMode::EBM_None;
 	for (int i = 0; i < TargetIndex; ++i)
 	{
-
-		if (DirLightInfoPool.IsUsed(i))
+		FDirectionalLightInfo DirLightInfo = DirLightInfoPool[i];
+		if (DirLightInfo.bCastShadow)
 		{
-			FDirectionalLightInfo DirLightInfo = DirLightInfoPool.GetItem(i);
-			if (DirLightInfo.bCastShadow)
+			DirLightInfo.ShadowMap->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+			DirLightInfo.ShadowMap->Clear(CommandList);
+			D3D12_CPU_DESCRIPTOR_HANDLE Dsv = DirLightInfo.ShadowMap->GetDSV();
+			CommandList->OMSetRenderTargets(0, nullptr, false, &Dsv);
+
+			D3D12_VIEWPORT Viewport = DirLightInfo.ShadowMap->GetViewport();
+			D3D12_RECT ScissorRect = DirLightInfo.ShadowMap->GetScissorRect();
+			CommandList->RSSetViewports(1, &Viewport);
+			CommandList->RSSetScissorRects(1, &ScissorRect);
+
+			CommandList->SetPipelineState(mPipelineStates["ShadowMapPass"].Get());
+
+			FCBVSRVUAVHeap* SRVHeap = GetCBVSRVUAVHeap();
+			ID3D12DescriptorHeap* DescriptorHeaps[] = { SRVHeap->Get() };
+			CommandList->SetDescriptorHeaps(_countof(DescriptorHeaps), DescriptorHeaps);
+
+			CommandList->SetGraphicsRootSignature(mRootSignatures["ShadowMapPass"].Get());
+			CommandList->SetGraphicsRoot32BitConstant(0, i, 0);
+			CommandList->SetGraphicsRootShaderResourceView(3, FrameResource->GetMaterialSB()->Resource()->GetGPUVirtualAddress());
+			CommandList->SetGraphicsRootShaderResourceView(4, FrameResource->GetDirectionalLightSB()->Resource()->GetGPUVirtualAddress());
+			CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTexture2DGPUDescriptorHandleStart());
+			CommandList->SetGraphicsRootDescriptorTable(6, SRVHeap->GetTextureCubeGPUDescriptorHandleStart());
+
+
+			for (int i = 0; i < ShadingModelsNum; ++i)
 			{
-				DirLightInfo.ShadowMap->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-				DirLightInfo.ShadowMap->Clear(CommandList);
-				D3D12_CPU_DESCRIPTOR_HANDLE Dsv = DirLightInfo.ShadowMap->GetDSV();
-				CommandList->OMSetRenderTargets(0, nullptr, false, &Dsv);
-
-				D3D12_VIEWPORT Viewport = DirLightInfo.ShadowMap->GetViewport();
-				D3D12_RECT ScissorRect = DirLightInfo.ShadowMap->GetScissorRect();
-				CommandList->RSSetViewports(1, &Viewport);
-				CommandList->RSSetScissorRects(1, &ScissorRect);
-
-				CommandList->SetPipelineState(mPipelineStates["ShadowMapPass"].Get());
-
-				FCBVSRVUAVHeap* SRVHeap = GetCBVSRVUAVHeap();
-				ID3D12DescriptorHeap* DescriptorHeaps[] = { SRVHeap->Get() };
-				CommandList->SetDescriptorHeaps(_countof(DescriptorHeaps), DescriptorHeaps);
-
-				CommandList->SetGraphicsRootSignature(mRootSignatures["ShadowMapPass"].Get());
-				CommandList->SetGraphicsRoot32BitConstant(0, i, 0);
-				CommandList->SetGraphicsRootShaderResourceView(3, FrameResource->GetMaterialSB()->Resource()->GetGPUVirtualAddress());
-				CommandList->SetGraphicsRootShaderResourceView(4, FrameResource->GetDirectionalLightSB()->Resource()->GetGPUVirtualAddress());
-				CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTexture2DGPUDescriptorHandleStart());
-				CommandList->SetGraphicsRootDescriptorTable(6, SRVHeap->GetTextureCubeGPUDescriptorHandleStart());
-
-
-				for (int i = 0; i < ShadingModelsNum; ++i)
+				for (int j = 0; j < BlendModesNum; ++j)
 				{
-					for (int j = 0; j < BlendModesNum; ++j)
+					TUnorderedArray<FStaticMeshInfo>& StaticMeshInfoPool = GetRenderItemManager()->mStaticMeshInfoPool[i][j];
+					size_t PoolSize = StaticMeshInfoPool.Size();
+					for (size_t k = 0; k < PoolSize; ++k)
 					{
-						TPool<FStaticMeshInfo>& StaticMeshInfoPool = GetRenderItemManager()->mStaticMeshInfoPool[i][j];
-						size_t PoolSize = StaticMeshInfoPool.GetPoolSize();
-						for (size_t k = 0; k < PoolSize; ++k)
+						if (StaticMeshInfoPool[k].bCastShadow)
 						{
-							if (StaticMeshInfoPool.IsUsed(k) && StaticMeshInfoPool.GetItem(k).bCastShadow)
-							{
-								DrawStaticMesh(
-									CommandList,
-									FrameResource->GetMeshCB()->Resource(),
-									FrameResource->GetSubmeshCB()->Resource(),
-									StaticMeshInfoPool.GetItem(k)
-								);
-							}
+							DrawStaticMesh(
+								CommandList,
+								FrameResource->GetMeshCB()->Resource(),
+								FrameResource->GetSubmeshCB()->Resource(),
+								StaticMeshInfoPool[k]
+							);
 						}
 					}
 				}
-
-				DirLightInfo.ShadowMap->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
 			}
+
+			DirLightInfo.ShadowMap->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
 		}
+	
 	}
 	
 }
@@ -407,19 +405,16 @@ void FSceneRenderer::DrawStaticMeshs(
 	{
 		for (int j = 0; j < BlendModesNum; ++j)
 		{
-			TPool<FStaticMeshInfo>& StaticMeshInfoPool = RIM->mStaticMeshInfoPool[i][j];
-			size_t PoolSize = StaticMeshInfoPool.GetPoolSize();
+			TUnorderedArray<FStaticMeshInfo>& StaticMeshInfoPool = RIM->mStaticMeshInfoPool[i][j];
+			size_t PoolSize = StaticMeshInfoPool.Size();
 			for (size_t k = 0; k < PoolSize; ++k)
 			{
-				if (StaticMeshInfoPool.IsUsed(k))
-				{
-					DrawStaticMesh(
-						CommandList,
-						MeshConstantBuffer,
-						SubmeshConstantBuffer,
-						StaticMeshInfoPool.GetItem(k)
-					);
-				}
+				DrawStaticMesh(
+					CommandList,
+					MeshConstantBuffer,
+					SubmeshConstantBuffer,
+					StaticMeshInfoPool[k]
+				);
 			}
 		}
 	}
@@ -500,7 +495,7 @@ void FSceneRenderer::FinishBackBuffer(ID3D12GraphicsCommandList* CommandList)
 void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuffer)
 {
 	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
-	UTimer* Timer = GetAppTimer();
+	UTimer* Timer = GetEngineTimer();
 
 	// Build the view matrix.
 	XMVECTOR target = XMVectorZero();
@@ -546,49 +541,43 @@ void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConsta
 
 void FSceneRenderer::UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConstantBuffer)
 {
-	TPool<FMeshInfo>& MeshInfoPool = GetRenderItemManager()->mMeshInfoPool;
-	size_t TargetIndex = MeshInfoPool.GetPoolSize();
+	TUnorderedArray<FMeshInfo>& MeshInfoPool = GetRenderItemManager()->mMeshInfoPool;
+	size_t TargetIndex = MeshInfoPool.Size();
 	for (size_t i = 0; i < TargetIndex; ++i)
 	{
-		if (MeshInfoPool.IsUsed(i))
+		FMeshInfo MeshInfo = MeshInfoPool[i];
+		if (MeshInfo.DirtyFrameCount > 0)
 		{
-			FMeshInfo MeshInfo = MeshInfoPool.GetItem(i);
-			if (MeshInfo.DirtyFrameCount > 0)
-			{
-				FMeshConstantBuffer MeshCB;
-				XMMATRIX World = XMLoadFloat4x4(&MeshInfo.World);
-				XMVECTOR Determinant = XMMatrixDeterminant(World);
-				XMMATRIX InvWorld = XMMatrixInverse(&Determinant, World);
-				XMStoreFloat4x4(&MeshCB.World, XMMatrixTranspose(World));
-				XMStoreFloat4x4(&MeshCB.InvTransposeWorld, InvWorld);
-				MeshConstantBuffer->CopyData((int)i, MeshCB);
-				--MeshInfo.DirtyFrameCount;
-				MeshInfoPool.SetItem(i, MeshInfo);
-			}
+			FMeshConstantBuffer MeshCB;
+			XMMATRIX World = XMLoadFloat4x4(&MeshInfo.World);
+			XMVECTOR Determinant = XMMatrixDeterminant(World);
+			XMMATRIX InvWorld = XMMatrixInverse(&Determinant, World);
+			XMStoreFloat4x4(&MeshCB.World, XMMatrixTranspose(World));
+			XMStoreFloat4x4(&MeshCB.InvTransposeWorld, InvWorld);
+			MeshConstantBuffer->CopyData((int)i, MeshCB);
+			--MeshInfo.DirtyFrameCount;
+			MeshInfoPool[i] = MeshInfo;
 		}
 	}
 }
 
 void FSceneRenderer::UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshConstantBuffer)
 {
-	TPool<FSubmeshInfo>& SubmeshInfoPool = GetRenderItemManager()->mSubmeshInfoPool;
-	size_t TargetIndex = SubmeshInfoPool.GetPoolSize();
+	TUnorderedArray<FSubmeshInfo>& SubmeshInfoPool = GetRenderItemManager()->mSubmeshInfoPool;
+	size_t TargetIndex = SubmeshInfoPool.Size();
 	for (size_t i = 0; i < TargetIndex; ++i)
 	{
-		if (SubmeshInfoPool.IsUsed(i))
+		FSubmeshInfo SubmeshInfo = SubmeshInfoPool[i];
+		if (SubmeshInfo.DirtyFrameCount > 0)
 		{
-			FSubmeshInfo SubmeshInfo = SubmeshInfoPool.GetItem(i);
-			if (SubmeshInfo.DirtyFrameCount > 0)
-			{
-				FSubmeshConstantBuffer SubmeshCB;
-				SubmeshCB.MaterialIndex = SubmeshInfo.MaterialIndex;
-				SubmeshCB.SkyIrradianceCubeMapIndex = SubmeshInfo.SkyIrradianceCubeMapIndex;
-				SubmeshCB.SkySpecularCubeMapIndex = SubmeshInfo.SkySpecularCubeMapIndex;
-				SubmeshConstantBuffer->CopyData((int)i, SubmeshCB);
+			FSubmeshConstantBuffer SubmeshCB;
+			SubmeshCB.MaterialIndex = SubmeshInfo.MaterialIndex;
+			SubmeshCB.SkyIrradianceCubeMapIndex = SubmeshInfo.SkyIrradianceCubeMapIndex;
+			SubmeshCB.SkySpecularCubeMapIndex = SubmeshInfo.SkySpecularCubeMapIndex;
+			SubmeshConstantBuffer->CopyData((int)i, SubmeshCB);
 
-				--SubmeshInfo.DirtyFrameCount;
-				SubmeshInfoPool.SetItem(i, SubmeshInfo);
-			}
+			--SubmeshInfo.DirtyFrameCount;
+			SubmeshInfoPool[i] = SubmeshInfo;
 		}
 	}
 }
@@ -596,7 +585,7 @@ void FSceneRenderer::UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* Subm
 void FSceneRenderer::UpdateLightInfoCB(TUploadBuffer<FLightInfoConstantBuffer>* LightInfoConstantBuffer)
 {
 	FLightInfoConstantBuffer LightInfoCB;
-	LightInfoCB.DirectionalLightNum = min((UINT)GetRenderItemManager()->mDirectionalLightInfoPool.GetPoolSize(), DIR_LIGHTS_NUM);
+	LightInfoCB.DirectionalLightNum = min((UINT)GetRenderItemManager()->mDirectionalLightInfoPool.Size(), DIR_LIGHTS_NUM);
 
 	LightInfoConstantBuffer->CopyData(0, LightInfoCB);
 }
@@ -624,61 +613,58 @@ void FSceneRenderer::UpdateMaterialSB(TUploadBuffer<FMaterialStructuredBuffer>* 
 
 void FSceneRenderer::UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightStructuredBuffer>* DirectionalLightStructuredBuffer)
 {
-	TPool<FDirectionalLightInfo>& DirLightInfoPool = GetRenderItemManager()->mDirectionalLightInfoPool;
-	int TargetIndex = min(DIR_LIGHTS_NUM, (UINT)DirLightInfoPool.GetPoolSize());
+	TUnorderedArray<FDirectionalLightInfo>& DirLightInfoPool = GetRenderItemManager()->mDirectionalLightInfoPool;
+	int TargetIndex = min(DIR_LIGHTS_NUM, (UINT)DirLightInfoPool.Size());
 	for (int i = 0; i < TargetIndex; ++i)
 	{
-		if (DirLightInfoPool.IsUsed(i))
+		FDirectionalLightInfo DirLightInfo = DirLightInfoPool[i];
+		if (DirLightInfo.DirtyFrameCount > 0)
 		{
-			FDirectionalLightInfo DirLightInfo = DirLightInfoPool.GetItem(i);
-			if (DirLightInfo.DirtyFrameCount > 0)
-			{
-				// TODO: 임시코드.
-				FDirectionalLightStructuredBuffer DirectionalLight;
-				DirectionalLight.Direction = DirLightInfo.Direction;
-				DirectionalLight.Color = DirLightInfo.Color;
-				DirectionalLight.ShadowMapIndex = DirLightInfo.ShadowMap->GetSRVHeapIndex();
+			// TODO: 임시코드.
+			FDirectionalLightStructuredBuffer DirectionalLight;
+			DirectionalLight.Direction = DirLightInfo.Direction;
+			DirectionalLight.Color = DirLightInfo.Color;
+			DirectionalLight.ShadowMapIndex = DirLightInfo.ShadowMap->GetSRVHeapIndex();
 
-				// TODO: 하드코딩됨
-				float SphereRadius = sqrtf(100 * 100);
-				// 첫번째 광원만 그림자를 드리운다.
-				XMVECTOR LightDirection = XMLoadFloat3(&DirectionalLight.Direction);
-				XMVECTOR LightPosition = -2.0f * SphereRadius * LightDirection;
-				XMVECTOR TargetPosition = XMVectorSet(0, 0, 0, 0);
-				XMVECTOR LightUp = XMVectorSet(0, 1, 0, 0);
-				XMMATRIX LightView = XMMatrixLookAtLH(LightPosition, TargetPosition, LightUp);
+			// TODO: 하드코딩됨
+			float SphereRadius = sqrtf(100 * 100);
+			// 첫번째 광원만 그림자를 드리운다.
+			XMVECTOR LightDirection = XMLoadFloat3(&DirectionalLight.Direction);
+			XMVECTOR LightPosition = -2.0f * SphereRadius * LightDirection;
+			XMVECTOR TargetPosition = XMVectorSet(0, 0, 0, 0);
+			XMVECTOR LightUp = XMVectorSet(0, 1, 0, 0);
+			XMMATRIX LightView = XMMatrixLookAtLH(LightPosition, TargetPosition, LightUp);
 
-				// 경계구를 광원 공간으로 변환한다.
-				XMFLOAT3 SphereCenterLS;
-				XMStoreFloat3(&SphereCenterLS, XMVector3TransformCoord(TargetPosition, LightView));
+			// 경계구를 광원 공간으로 변환한다.
+			XMFLOAT3 SphereCenterLS;
+			XMStoreFloat3(&SphereCenterLS, XMVector3TransformCoord(TargetPosition, LightView));
 
-				// 장면을 감싸는 광원 공간 직교투영 시야 입체
-				float l = SphereCenterLS.x - SphereRadius;
-				float b = SphereCenterLS.y - SphereRadius;
-				float n = SphereCenterLS.z - SphereRadius;
-				float r = SphereCenterLS.x + SphereRadius;
-				float t = SphereCenterLS.y + SphereRadius;
-				float f = SphereCenterLS.z + SphereRadius;
+			// 장면을 감싸는 광원 공간 직교투영 시야 입체
+			float l = SphereCenterLS.x - SphereRadius;
+			float b = SphereCenterLS.y - SphereRadius;
+			float n = SphereCenterLS.z - SphereRadius;
+			float r = SphereCenterLS.x + SphereRadius;
+			float t = SphereCenterLS.y + SphereRadius;
+			float f = SphereCenterLS.z + SphereRadius;
 
-				XMMATRIX LightProj = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
+			XMMATRIX LightProj = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
 
-				static XMMATRIX T(
-					0.5f, 0.0f, 0.0f, 0.0f,
-					0.0f, -0.5f, 0.0f, 0.0f,
-					0.0f, 0.0f, 1.0f, 0.0f,
-					0.5f, 0.5f, 0.0f, 1.0f
-				);
+			static XMMATRIX T(
+				0.5f, 0.0f, 0.0f, 0.0f,
+				0.0f, -0.5f, 0.0f, 0.0f,
+				0.0f, 0.0f, 1.0f, 0.0f,
+				0.5f, 0.5f, 0.0f, 1.0f
+			);
 
-				XMMATRIX S = LightView * LightProj * T;
+			XMMATRIX S = LightView * LightProj * T;
 
-				XMStoreFloat4x4(&DirectionalLight.LightViewProj, XMMatrixTranspose(LightView * LightProj));
-				XMStoreFloat4x4(&DirectionalLight.ShadowTransform, XMMatrixTranspose(S));
+			XMStoreFloat4x4(&DirectionalLight.LightViewProj, XMMatrixTranspose(LightView * LightProj));
+			XMStoreFloat4x4(&DirectionalLight.ShadowTransform, XMMatrixTranspose(S));
 
-				DirectionalLightStructuredBuffer->CopyData(i, DirectionalLight);
+			DirectionalLightStructuredBuffer->CopyData(i, DirectionalLight);
 
-				--DirLightInfo.DirtyFrameCount;
-				DirLightInfoPool.SetItem(i, DirLightInfo);
-			}
+			--DirLightInfo.DirtyFrameCount;
+			DirLightInfoPool[i] = DirLightInfo;
 		}
 	}
 }

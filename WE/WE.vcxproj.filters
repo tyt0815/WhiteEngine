@@ -110,9 +110,6 @@
     <ClCompile Include="Sources\GameFramework\Object\World\World.cpp">
       <Filter>Sources\GameFramework\Object\World</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\GameFramework\Object\Object.cpp">
-      <Filter>Sources\GameFramework\Object</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\GameFramework\Object\Component\PrimitiveComponent.cpp">
       <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClCompile>
@@ -294,12 +291,6 @@
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\World\World.h">
       <Filter>Sources\GameFramework\Object\World</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\GameFramework\Object\Object.h">
-      <Filter>Sources\GameFramework\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Utility\Pool.h">
-      <Filter>Sources\Utility</Filter>
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\Component\PrimitiveComponent.h">
       <Filter>Sources\GameFramework\Object\Component</Filter>

@@ -4,7 +4,7 @@
 extern const int gFrameResourcesNum;
 
 WPrimitiveComponent::WPrimitiveComponent() :
-	mMeshCBIndex(GetRenderItemManager()->mMeshInfoPool.Register({}))
+	mMeshCBIndex(GetRenderItemManager()->mMeshInfoPool.Add(FMeshInfo()))
 {
 
 }
@@ -19,6 +19,6 @@ void WPrimitiveComponent::Update()
 		FMeshInfo MeshInfo;
 		MeshInfo.World = GetWorldMatrix();
 		MeshInfo.DirtyFrameCount = gFrameResourcesNum;
-		GetRenderItemManager()->mMeshInfoPool.SetItem(mMeshCBIndex, MeshInfo);
+		GetRenderItemManager()->mMeshInfoPool[mMeshCBIndex] = MeshInfo;
 	}
 }

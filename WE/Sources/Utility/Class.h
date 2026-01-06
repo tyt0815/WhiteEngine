@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 #define SINGLETON(type) public: static type* GetInstance()\
 	{\
 		static type mgr;\
@@ -19,3 +21,6 @@ private:
 	FNoncopyable(const FNoncopyable&);
 	FNoncopyable& operator=(const FNoncopyable&) { return *this; }
 };
+
+template<typename Base, typename T>
+constexpr bool IsDerivedFrom = std::is_base_of_v<Base, T>;

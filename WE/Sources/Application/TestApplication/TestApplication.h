@@ -23,7 +23,7 @@ public:
 private:
 	void CalculateFrameStats();
 
-	WWorld* mWorld;
+	std::unique_ptr<WWorld> mWorld;
 
 	bool bAppPaused = false;
 };

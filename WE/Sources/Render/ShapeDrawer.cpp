@@ -55,3 +55,21 @@ void DrawRect(ID3D12GraphicsCommandList* CommandList)
         0
     );
 }
+
+void DrawMeshGeometry(ID3D12GraphicsCommandList* CommandList, const FMeshDrawInfo& MeshDrawInfo)
+{
+    CommandList->SetGraphicsRootConstantBufferView(1, MeshDrawInfo.ObjectConstantBufferAddress);
+    CommandList->SetGraphicsRootConstantBufferView(2, MeshDrawInfo.SubmeshConstantBufferAddress);
+
+    CommandList->IASetVertexBuffers(0, 1, &MeshDrawInfo.VertexBufferView);
+    CommandList->IASetIndexBuffer(&MeshDrawInfo.IndexBufferView);
+    CommandList->IASetPrimitiveTopology(MeshDrawInfo.PrimitiveTopology);
+
+    CommandList->DrawIndexedInstanced(
+        MeshDrawInfo.IndexCount,
+        1,
+        MeshDrawInfo.StartIndexLocation,
+        MeshDrawInfo.BaseVertexLocation,
+        0
+    );
+}

@@ -116,8 +116,7 @@ FTexture::FTexture(std::string Name, ID3D12Device* Device, ID3D12GraphicsCommand
 	FResource::FResource(Device)
 {
 	// TODO: 텍스처 로드를 다른 모듈로 옮겨야함.
-	std::wstring CurrentPath = std::filesystem::current_path().c_str();
-	std::wstring Path = CurrentPath + L"./Resources/Textures/";
+	std::wstring Path = std::wstring(PROJECT_DIR_W) + L"\\Resources\\Textures\\";
 	std::wstring FileName = std::wstring(mName.begin(), mName.end()) + L".dds";
 	THROW_IF_FAILED(
 		DirectX::CreateDDSTextureFromFile12(

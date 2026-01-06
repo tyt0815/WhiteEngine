@@ -3,7 +3,7 @@
 
 AScuffedGoldSphere::AScuffedGoldSphere()
 {
-	WStaticMeshComponent* Component = CreateSceneComponent<WStaticMeshComponent>();
+	WStaticMeshComponent* Component = CreateComponent<WStaticMeshComponent>();
 	SetRootComponent(Component);
 	// Component->SetCastShadow(false);
 	Component->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_ScuffedGoldSphere));

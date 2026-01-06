@@ -1,5 +1,5 @@
 #include "CameraComponent.h"
-#include "GameFramework/Object/Actor/Actor.h"
+#include "GameFramework/Object/Pawn/Pawn.h"
 
 extern float gAspectRatio;
 
@@ -10,7 +10,12 @@ WCameraComponent::WCameraComponent()
 void WCameraComponent::SetOwner(AActor* Owner)
 {
 	Super::SetOwner(Owner);
-	Owner->SetCameraComponent(this);
+
+	if (APawn* OwnerPawn = dynamic_cast<APawn*>(Owner))
+	{
+		OwnerPawn->SetCameraComponent(this);
+	}
+	
 }
 
 void WCameraComponent::Update()

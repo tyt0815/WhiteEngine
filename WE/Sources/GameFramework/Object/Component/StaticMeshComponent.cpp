@@ -18,7 +18,7 @@ void WStaticMeshComponent::SetStaticMesh(const FStaticMesh& StaticMesh)
 			EBlendMode BlendMode = (EBlendMode)j;
 			for (size_t k = 0; k < mStaticMeshInfoPoolIds[i][j].size(); ++k)
 			{
-				GetRenderItemManager()->mStaticMeshInfoPool[ShadingModel][BlendMode].Remove(
+				GetRenderItemManager()->mStaticMeshInfoPool[ShadingModel][BlendMode].RemoveAt(
 					mStaticMeshInfoPoolIds[i][j][k]
 				);
 			}
@@ -26,7 +26,7 @@ void WStaticMeshComponent::SetStaticMesh(const FStaticMesh& StaticMesh)
 	}
 	for (size_t i = 0; i < mSubmeshCBIndices.size(); ++i)
 	{
-		GetRenderItemManager()->mSubmeshInfoPool.Remove(mSubmeshCBIndices[i]);
+		GetRenderItemManager()->mSubmeshInfoPool.RemoveAt(mSubmeshCBIndices[i]);
 	}
 	mSubmeshCBIndices.clear();
 
@@ -50,10 +50,10 @@ void WStaticMeshComponent::SetStaticMesh(const FStaticMesh& StaticMesh)
 		SubmeshInfo.SkySpecularCubeMapIndex = 3;
 		SubmeshInfo.DirtyFrameCount = gFrameResourcesNum;
 
-		mSubmeshCBIndices.push_back(GetRenderItemManager()->mSubmeshInfoPool.Register(SubmeshInfo));
+		mSubmeshCBIndices.push_back(GetRenderItemManager()->mSubmeshInfoPool.Add(SubmeshInfo));
 		DrawArgs.SubmeshCBIndex = mSubmeshCBIndices.back();
 		mStaticMeshInfoPoolIds[ShadingModel][BlendMode].push_back(
-			GetRenderItemManager()->mStaticMeshInfoPool[ShadingModel][BlendMode].Register(DrawArgs)
+			GetRenderItemManager()->mStaticMeshInfoPool[ShadingModel][BlendMode].Add(DrawArgs)
 		);
 
 	}

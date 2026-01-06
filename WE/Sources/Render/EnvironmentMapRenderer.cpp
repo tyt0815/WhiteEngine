@@ -1,4 +1,4 @@
-﻿#include "EnvironmentMapRenderer.h"
+#include "EnvironmentMapRenderer.h"
 #include "DirectX/DXResourceManager.h"
 #include "DirectX/DXMath.h"
 #include "DirectX/CBVSRVUAVHeap.h"
@@ -161,14 +161,14 @@ void FEnvironmentMapRenderer::BuildShadersAndInputLayouts()
 void FEnvironmentMapRenderer::BuildIrradianceMapPassShaders()
 {
 	mShaders["IrradianceMapPassVertexShader"] = FDXUtility::CompileShader(
-		L"Shaders\\IrradianceMapPassVertexShader.hlsl",
+		std::wstring(PROJECT_DIR_W) + L"\\Shaders\\IrradianceMapPassVertexShader.hlsl",
 		nullptr,
 		"MainVS",
 		"vs_5_1"
 	);
 
 	mShaders["IrradianceMapPassPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\IrradianceMapPassPixelShader.hlsl",
+		std::wstring(PROJECT_DIR_W) + L"\\Shaders\\IrradianceMapPassPixelShader.hlsl",
 		nullptr,
 		"MainPS",
 		"ps_5_1"
@@ -178,14 +178,14 @@ void FEnvironmentMapRenderer::BuildIrradianceMapPassShaders()
 void FEnvironmentMapRenderer::BuildPreFilteredMapPassShaders()
 {
 	mShaders["PreFilteredMapPassVertexShader"] = FDXUtility::CompileShader(
-		L"Shaders\\PreFilteredMapPassVertexShader.hlsl",
+		std::wstring(PROJECT_DIR_W) + L"\\Shaders\\PreFilteredMapPassVertexShader.hlsl",
 		nullptr,
 		"MainVS",
 		"vs_5_1"
 	);
 
 	mShaders["PreFilteredMapPassPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\PreFilteredMapPassPixelShader.hlsl",
+		std::wstring(PROJECT_DIR_W) + L"\\Shaders\\PreFilteredMapPassPixelShader.hlsl",
 		nullptr,
 		"MainPS",
 		"ps_5_1"
@@ -196,14 +196,14 @@ void FEnvironmentMapRenderer::BuildBRDFLUTPassShaders()
 {
 	// Compile Shader
 	mShaders["BRDFLUTPassVertexShader"] = FDXUtility::CompileShader(
-		L"Shaders\\BRDFLUTPassVertexShader.hlsl",
+		std::wstring(PROJECT_DIR_W) + L"\\Shaders\\BRDFLUTPassVertexShader.hlsl",
 		nullptr,
 		"MainVS",
 		"vs_5_1"
 	);
 
 	mShaders["BRDFLUTPassPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\BRDFLUTPassPixelShader.hlsl",
+		std::wstring(PROJECT_DIR_W) + L"\\Shaders\\BRDFLUTPassPixelShader.hlsl",
 		nullptr,
 		"MainPS",
 		"ps_5_1"
@@ -213,14 +213,14 @@ void FEnvironmentMapRenderer::BuildBRDFLUTPassShaders()
 void FEnvironmentMapRenderer::BuildEnvironmentMapPassShaders()
 {
 	mShaders["EnvironmentMapPassVertexShader"] = FDXUtility::CompileShader(
-		L"Shaders\\EnvironmentMapPassVertexShader.hlsl",
+		std::wstring(PROJECT_DIR_W) + L"\\Shaders\\EnvironmentMapPassVertexShader.hlsl",
 		nullptr,
 		"MainVS",
 		"vs_5_1"
 	);
 
 	mShaders["EnvironmentMapPassPixelShader"] = FDXUtility::CompileShader(
-		L"Shaders\\EnvironmentMapPassPixelShader.hlsl",
+		std::wstring(PROJECT_DIR_W) + L"\\Shaders\\EnvironmentMapPassPixelShader.hlsl",
 		nullptr,
 		"MainPS",
 		"ps_5_1"

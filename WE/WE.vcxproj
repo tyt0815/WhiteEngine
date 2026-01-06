@@ -39,7 +39,6 @@
     <ClCompile Include="Sources\GameFramework\Object\Component\PrimitiveComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\SceneComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\StaticMeshComponent.cpp" />
-    <ClCompile Include="Sources\GameFramework\Object\Object.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Pawn\Pawn.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\World\World.cpp" />
     <ClCompile Include="Sources\Render\CubeRenderTarget.cpp" />
@@ -100,7 +99,6 @@
     <ClInclude Include="Sources\GameFramework\Object\Component\SceneComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\SkyAtmosphereComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\StaticMeshComponent.h" />
-    <ClInclude Include="Sources\GameFramework\Object\Object.h" />
     <ClInclude Include="Sources\GameFramework\Object\Pawn\Pawn.h" />
     <ClInclude Include="Sources\GameFramework\Object\World\World.h" />
     <ClInclude Include="Sources\Render\CubeRenderTarget.h" />
@@ -127,7 +125,6 @@
     <ClInclude Include="Sources\Utility\Class.h" />
     <ClInclude Include="Sources\Utility\Container.h" />
     <ClInclude Include="Sources\Utility\FileIO.h" />
-    <ClInclude Include="Sources\Utility\Pool.h" />
     <ClInclude Include="Sources\Utility\String.h" />
     <ClInclude Include="Sources\Utility\Timer.h" />
     <ClInclude Include="Sources\Window\Window.h" />
@@ -334,7 +331,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PROJECT_DIR=R"($(ProjectDir))";PROJECT_DIR_W=LR"($(ProjectDir))";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -350,7 +347,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PROJECT_DIR=R"($(ProjectDir))";PROJECT_DIR_W=LR"($(ProjectDir))";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>

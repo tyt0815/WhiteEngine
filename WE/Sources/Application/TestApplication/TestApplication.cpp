@@ -1,4 +1,4 @@
-﻿#include "TestApplication.h"
+#include "TestApplication.h"
 
 
 FTestApplication::FTestApplication()
@@ -13,7 +13,7 @@ FTestApplication::~FTestApplication()
 
 bool FTestApplication::Initialize()
 {
-	mWorld = GetWObjectManager()->CreateWObject<WTestWorld>();
+	mWorld = std::make_unique<WTestWorld>();
 
 	return true;
 }
@@ -37,19 +37,19 @@ int FTestApplication::Run()
 		// Otherwise, do animation/game stuff.
 		else
 		{
-			GetAppTimer()->Tick();
+			GetEngineTimer()->Tick();
 			if (!GetMainWindowPtr()->IsPaused())
 			{
 				CalculateFrameStats();
 				GetInputSystemManager()->Tick();
-				GetWObjectManager()->Tick(GetAppTimer()->GetDeltaTime());
+				mWorld->Tick(GetEngineTimer()->GetDeltaTime());
 				
 				Renderer->Tick();
 				
 			}
 			else
 			{
-				GetAppTimer()->Stop();
+				GetEngineTimer()->Stop();
 				Sleep(100);
 			}
 		}
@@ -72,7 +72,7 @@ void FTestApplication::CalculateFrameStats()
 	frameCnt++;
 
 	// Compute averages over one second period.
-	if ((GetAppTimer()->GetTotalTime() - timeElapsed) >= 1.0f)
+	if ((GetEngineTimer()->GetTotalTime() - timeElapsed) >= 1.0f)
 	{
 		float fps = (float)frameCnt; // fps = frameCnt / 1
 		float mspf = 1000.0f / fps;
@@ -83,7 +83,7 @@ void FTestApplication::CalculateFrameStats()
 		std::wstring windowText = GetMainWindowPtr()->GetWindowName() +
 			L"    fps: " + fpsStr +
 			L"   mspf: " + mspfStr +
-			L"TotalTime: " + std::to_wstring(GetAppTimer()->GetTotalTime()) +
+			L"TotalTime: " + std::to_wstring(GetEngineTimer()->GetTotalTime()) +
 			L"ElapsedTime:" + std::to_wstring(timeElapsed);
 
 		SetWindowText(GetMainWindowPtr()->GetWindowHandle(), windowText.c_str());

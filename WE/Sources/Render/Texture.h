@@ -41,7 +41,6 @@ class FTextureManager
 {
 	SINGLETON(FTextureManager);
 public:
-	void RegisterDepthStencilTexture2D(std::unique_ptr<FTexture> Texture);
 	D3D12_DESCRIPTOR_RANGE GetTexture2DDescriptorRange() const;
 	D3D12_DESCRIPTOR_RANGE GetTextureCubeDescriptorRange() const;
 	FTexture* GetTexture(std::string Name);

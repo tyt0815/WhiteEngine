@@ -17,5 +17,4 @@ private:
 	void MoveUp();
 	void MoveDown();
 	void Look(FMouseInputParameter Parameter);
-	WCameraComponent* Camera;
 };

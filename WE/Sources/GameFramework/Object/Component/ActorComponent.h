@@ -1,10 +1,18 @@
 #pragma once
-#include "GameFramework/Object/Object.h"
 
-class WActorComponent : public WObject
+class AActor;
+
+class WActorComponent
 {
 public:
+	WActorComponent() {};
+
+	virtual ~WActorComponent() noexcept = default;
+
+public:
 	virtual void SetOwner(AActor* Owner);
+	virtual void TickComponent(float DeltaTime) {};
+
 private:
 	AActor* mOwner = nullptr;
 

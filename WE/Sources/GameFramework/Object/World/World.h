@@ -1,35 +1,34 @@
 #pragma once
 
-#include "DirectX/DXUtility.h"
-#include "Render/MeshGeometry.h"
-#include "Render/Material.h"
 #include "GameFramework/Object/Pawn/Pawn.h"
+#include "Utility/Container.h"
+#include "Utility/Class.h"
 
-class WWorld : public WObject
+class WWorld
 {
 public:
 	WWorld();
-	virtual ~WWorld() override;
+
+	virtual ~WWorld();
+
+public:
 	virtual void Tick(float Delta);
+
 	void SetPlayer(APawn* Player);
 
-protected:
 	template<typename T>
 	T* SpawnActor();
 
 private:
-	TPool<AActor*> mAllActors;
+	TUnorderedArray<std::unique_ptr<AActor>> mAllActors;
 	APawn* mPlayer = nullptr;
 
 public:
-	inline const TPool<AActor*>& GetAllActorsRef()
-	{
-		return mAllActors;
-	}
 	inline APawn* GetPlayer() const
 	{
 		return mPlayer;
 	}
+
 	inline WCameraComponent* GetPlayerCamera() const
 	{
 		return mPlayer->GetCameraComponent();
@@ -46,7 +45,15 @@ inline WWorld* GetWorld()
 template<typename T>
 inline T* WWorld::SpawnActor()
 {
-	T* Actor = GetWObjectManager()->CreateWObject<T>();
-	mAllActors.Register(Actor);
+	static_assert(IsDerivedFrom<AActor, T>);
+	size_t Index = mAllActors.Add(std::make_unique<T>());
+	T* Actor = dynamic_cast<T*>(mAllActors[Index].get());
+
+	if (Actor->GetRootComponent() == nullptr)
+	{
+		WSceneComponent* DummyRoot = Actor->CreateComponent<WSceneComponent>();
+		Actor->SetRootComponent(DummyRoot);
+	}
+
 	return Actor;
 }

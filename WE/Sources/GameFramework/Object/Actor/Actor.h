@@ -1,8 +1,11 @@
 #pragma once
 
-#include "GameFramework/Object/Object.h"
-#include <d3d12.h>
 #include "GameFramework/Object/Component/SceneComponent.h"
+#include "Utility/Class.h"
+#include "Utility/Container.h"
+
+#include <d3d12.h>
+#include <memory>
 
 extern const int gFrameResourcesNum;
 
@@ -10,29 +13,42 @@ class FMeshGeometry;
 class FMaterial;
 class WCameraComponent;
 
-class AActor : public WObject
+class AActor
 {
 public:
-	virtual void Tick(float Delta) override;
-	template<typename T>
-	T* CreateSceneComponent();
-	template<typename T>
-	T* CreateNoneSceneComponent();
-	void SetRootComponent(WSceneComponent* Component);
-	XMFLOAT3 GetFowardVector() const;
-	XMFLOAT3 GetRightVector() const;
-	XMFLOAT3 GetUpVector() const;
+	virtual void Tick(float Delta);
 
-protected:
+	template<typename T>
+	T* CreateComponent();
+
+	void SetRootComponent(WSceneComponent* Component);
+
+	XMFLOAT3 GetFowardVector() const;
+
+	XMFLOAT3 GetRightVector() const;
+
+	XMFLOAT3 GetUpVector() const;
 
 private:
 	void SetupComponent(WActorComponent* Component);
+
 	void SetupSceneComponent(WSceneComponent* Component);
+
+	TUnorderedArray<std::unique_ptr<WActorComponent>> mAllComponents;
+
+	TUnorderedArray<WSceneComponent*> mAllSceneComponent;
+
+	TUnorderedArray<WActorComponent*> mAllNoneSceneComponent;
+
 	WSceneComponent* mRootComponent = nullptr;
-	std::uint64_t mRootComponentPoolId = -1;
-	WCameraComponent* mCameraComponent = nullptr;
+
 
 public:
+	inline TUnorderedArray<std::unique_ptr<WActorComponent>>& GetAllComponents()
+	{
+		return mAllComponents;
+	}
+
 	inline WSceneComponent* GetRootComponent() const
 	{
 		return mRootComponent;
@@ -69,29 +85,27 @@ public:
 	{
 		mRootComponent->SetLocalScale(Scale);
 	}
-	inline WCameraComponent* GetCameraComponent() const
-	{
-		return mCameraComponent;
-	}
-	inline void SetCameraComponent(WCameraComponent* CameraComponent)
-	{
-		mCameraComponent = CameraComponent;
-	}
+
 };
 
 template<typename T>
-inline T* AActor::CreateSceneComponent()
+inline T* AActor::CreateComponent()
 {
-	T* SceneComponent = GetWObjectManager()->CreateWObject<T>();
-	SetupComponent(SceneComponent);
-	SetupSceneComponent(SceneComponent);
-	return SceneComponent;
-}
+	static_assert(IsDerivedFrom<WActorComponent, T>);
+	size_t Index = mAllComponents.Add(std::make_unique<T>());
+	WActorComponent* ActorComp = mAllComponents[Index].get();
+	
+	WSceneComponent* SceneComp = dynamic_cast<WSceneComponent*>(ActorComp);
+	if (SceneComp != nullptr)
+	{
+		mAllSceneComponent.Add(SceneComp);
+	}
+	else
+	{
+		mAllNoneSceneComponent.Add(ActorComp);
+	}
 
-template<typename T>
-inline T* AActor::CreateNoneSceneComponent()
-{
-	T* NoneSceneComponent = GetWObjectManager()->CreateWObject<T>();
-	SetupComponent(NoneSceneComponent);
-	return NoneSceneComponent;
+	T* Comp = dynamic_cast<T*>(ActorComp);
+
+	return Comp;
 }
