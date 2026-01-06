@@ -224,6 +224,12 @@
     <ClCompile Include="Sources\Render\SkinnedData.cpp">
       <Filter>Sources\Render</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\GameFramework\GameCore.cpp">
+      <Filter>Sources\GameFramework</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\DirectX\D3D12Linker.cpp">
+      <Filter>Sources\DirectX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -405,6 +411,9 @@
     </ClInclude>
     <ClInclude Include="Sources\Utility\Container.h">
       <Filter>Sources\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\GameCore.h">
+      <Filter>Sources\GameFramework</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -21,6 +21,7 @@
     <ClCompile Include="Sources\Application\TestApplication\Pawn\GhostCameraPawn.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\TestApplication.cpp" />
     <ClCompile Include="Sources\Application\TestApplication\World\TestWorld.cpp" />
+    <ClCompile Include="Sources\DirectX\D3D12Linker.cpp" />
     <ClCompile Include="Sources\DirectX\DSVHeap.cpp" />
     <ClCompile Include="Sources\DirectX\DXResourceManager.cpp" />
     <ClCompile Include="Sources\DirectX\DXException.cpp" />
@@ -29,6 +30,7 @@
     <ClCompile Include="Sources\DirectX\Resource.cpp" />
     <ClCompile Include="Sources\DirectX\RTVHeap.cpp" />
     <ClCompile Include="Sources\DirectX\CBVSRVUAVHeap.cpp" />
+    <ClCompile Include="Sources\GameFramework\GameCore.cpp" />
     <ClCompile Include="Sources\GameFramework\InputSystem\InputSystem.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Actor\Actor.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Actor\DirectionalLight.cpp" />
@@ -88,6 +90,7 @@
     <ClInclude Include="Sources\DirectX\Resource.h" />
     <ClInclude Include="Sources\DirectX\RTVHeap.h" />
     <ClInclude Include="Sources\DirectX\CBVSRVUAVHeap.h" />
+    <ClInclude Include="Sources\GameFramework\GameCore.h" />
     <ClInclude Include="Sources\GameFramework\InputSystem\InputSystem.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\Actor.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\DirectionalLight.h" />
