@@ -14,12 +14,11 @@ namespace GameCore
 		virtual void Update() = 0;
 	};
 
-	int RunApplication
+	int RunApplication(IGameApp& App, const wchar_t* ClassName, HINSTANCE hInst, int nCmdShow);
 }
 
-
-
 #define CREATE_APPLICATION(AppClass)\
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, int showCmd)\
+int WINAPI WinMain(HINSTANCE hInst, HINSTANCE prevInst, PSTR CmdLine, int nCmdShow)\
 {\
+	return GameCore::RunApplication(AppClass(), L#AppClass, hInst, nCmdShow);\
 }
