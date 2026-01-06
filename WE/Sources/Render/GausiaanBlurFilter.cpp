@@ -36,7 +36,7 @@ void FGaussianBlurFilter::Execute(ID3D12GraphicsCommandList* CommandList, FResou
 		CommandList->SetComputeRootDescriptorTable(2, mBlurMap1->GetSRV());
 
 		UINT NumGroupsX = (UINT)ceilf(mBlurMap1->GetWidth() / 256.0f);
-		CommandList->Dispatch(NumGroupsX, mBlurMap1->GetHeight(), 1);
+		CommandList->Dispatch(NumGroupsX, static_cast<UINT>(mBlurMap1->GetHeight()), 1);
 
 		mBlurMap0->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		mBlurMap1->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_GENERIC_READ);
@@ -46,7 +46,7 @@ void FGaussianBlurFilter::Execute(ID3D12GraphicsCommandList* CommandList, FResou
 		CommandList->SetComputeRootDescriptorTable(2, mBlurMap0->GetSRV());
 
 		UINT NumGroupsY = (UINT)ceilf(mBlurMap0->GetHeight() / 256.0f);
-		CommandList->Dispatch(mBlurMap0->GetWidth(), NumGroupsY, 1);
+		CommandList->Dispatch(static_cast<UINT>(mBlurMap0->GetWidth()), NumGroupsY, 1);
 	}
 
 	InputTexture->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_COPY_DEST);

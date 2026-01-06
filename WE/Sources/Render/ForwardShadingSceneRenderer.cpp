@@ -148,7 +148,7 @@ void FForwardShadingSceneRenderer::BuildRootSignature()
 	D3D12_DESCRIPTOR_RANGE TextureTable = GetTextureManager()->GetTexture2DDescriptorRange();
 	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
 
-	// Tip: ÀÚÁÖ »ç¿ëµÇ´Â °ÍÀÏ¼ö·Ï ÀÛÀº ÀÎµ¦½º¿¡ º¸°üÇÏ´Â°Ô ÆÛÆ÷¸Õ½º°¡ ÁÁÀ½
+	// Tip: ìžì£¼ ì‚¬ìš©ë˜ëŠ” ê²ƒì¼ìˆ˜ë¡ ìž‘ì€ ì¸ë±ìŠ¤ì— ë³´ê´€í•˜ëŠ”ê²Œ í¼í¬ë¨¼ìŠ¤ê°€ ì¢‹ìŒ
 	constexpr UINT ROOT_PARAMETERs_NUM = 7;
 	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERs_NUM];
 	RootParameter[0].InitAsConstantBufferView(0);	// PassCB

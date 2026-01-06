@@ -64,7 +64,7 @@ FDXResourceManager::FDXResourceManager()
 	CreateSwapChain();
 	CreateDescriptorHeaps();
 	Resize(GetMainWindowPtr()->GetWidth(), GetMainWindowPtr()->GetHeight());
-	// MainWindow°¡ resizeµÉ¶§ ResizeÇÔ¼ö°¡ È£ÃâµÇµµ·Ï µî·Ï
+	// MainWindowê°€ resizeë ë•Œ Resizeí•¨ìˆ˜ê°€ í˜¸ì¶œë˜ë„ë¡ ë“±ë¡
 	GetMainWindowPtr()->SetResizeCallbackFunction([&]()
 		{
 			Resize(GetMainWindowPtr()->GetWidth(), GetMainWindowPtr()->GetHeight());

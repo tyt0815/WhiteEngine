@@ -1,4 +1,4 @@
-﻿#include "LoadM3d.h"
+#include "LoadM3d.h"
 #include <fstream>
 
 using namespace std;

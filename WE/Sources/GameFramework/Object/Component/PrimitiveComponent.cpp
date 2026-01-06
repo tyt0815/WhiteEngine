@@ -13,7 +13,7 @@ void WPrimitiveComponent::Update()
 {
 	Super::Update();
 
-	// Á÷Á¢ÀûÀ¸·Î ¾÷·ÎµåµÉ µ¥ÀÌÅÍ¸¦ FrameResourceManager¿¡ ÀúÀå
+	// ì§ì ‘ì ìœ¼ë¡œ ì—…ë¡œë“œë  ë°ì´í„°ë¥¼ FrameResourceManagerì— ì €ì¥
 	if (mbDirty)
 	{
 		FMeshInfo MeshInfo;

@@ -265,7 +265,7 @@ void FSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* FrameResource)
 	auto SkinnedCB = FrameResource->GetSkinnedCB();
 	FSkinnedConstantBuffer SkinnedData = {};
 	SkinnedModelInstance* TestModelInstance = FSkeletalMeshManager::GetInstance()->mSkeletalMesh->SkinnedModelInst.get();
-	TestModelInstance->UpdateSkinnedAnimation(0.001);
+	TestModelInstance->UpdateSkinnedAnimation(0.001f);
 	std::copy(
 		TestModelInstance->FinalTransforms.begin(),
 		TestModelInstance->FinalTransforms.end(),

@@ -70,7 +70,7 @@ private:
     void SwitchToDepthDebugMode();
 
 
-    // ÇØ´ç ¹öÆÛ´Â Ã³À½ ½ÇÇàµÉ¶§ ÇÑ¹ø¸¸ ¾÷µ¥ÀÌÆ® ÇÑ´Ù.
+    // í•´ë‹¹ ë²„í¼ëŠ” ì²˜ìŒ ì‹¤í–‰ë ë•Œ í•œë²ˆë§Œ ì—…ë°ì´íŠ¸ í•œë‹¤.
     void UpdateDeferredShadingPassCB(TUploadBuffer<FDeferredShadingPassConstantBuffer>* DeferredShadingPassCB);
     virtual void Render(
         ID3D12GraphicsCommandList* CommandList,

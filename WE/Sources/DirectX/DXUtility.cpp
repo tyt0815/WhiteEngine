@@ -241,7 +241,7 @@ void FDXUtility::BuildRootSignature(
 
 D3D12_VIEWPORT FDXUtility::GetQuadrantViewport(D3D12_VIEWPORT Viewport, int n)
 {
-    // 2»çºÐ¸é
+    // 2ì‚¬ë¶„ë©´
     Viewport.Width /= 2.0f;
     Viewport.Height /= 2.0f;
     if (n == 1)

@@ -65,12 +65,12 @@ FWindow::FWindow(const std::wstring ClassName, const std::wstring WindowName, UI
 		throw "CreateWindow Failed.";
 	}
 
-	// ¸¶¿ì½º ÀÌµ¿·®À» ¾Ë±â À§ÇØ rawinputdevice µî·Ï
+	// ë§ˆìš°ìŠ¤ ì´ë™ëŸ‰ì„ ì•Œê¸° ìœ„í•´ rawinputdevice ë“±ë¡
 	RAWINPUTDEVICE Rid;
 	Rid.usUsagePage = 0x01; // Generic Desktop Controls
 	Rid.usUsage = 0x02;     // Mouse
-	Rid.dwFlags = RIDEV_INPUTSINK; // ¹é±×¶ó¿îµå¿¡¼­µµ ÀÔ·Â ¹Ş±â
-	Rid.hwndTarget = mWindowHandle; // ¸Ş½ÃÁö¸¦ ¹ŞÀ» À©µµ¿ì ÇÚµé
+	Rid.dwFlags = RIDEV_INPUTSINK; // ë°±ê·¸ë¼ìš´ë“œì—ì„œë„ ì…ë ¥ ë°›ê¸°
+	Rid.hwndTarget = mWindowHandle; // ë©”ì‹œì§€ë¥¼ ë°›ì„ ìœˆë„ìš° í•¸ë“¤
 
 	if (!RegisterRawInputDevices(&Rid, 1, sizeof(RAWINPUTDEVICE)))
 	{
@@ -83,14 +83,14 @@ FWindow::FWindow(const std::wstring ClassName, const std::wstring WindowName, UI
 
 LRESULT FWindow::WindowProcedure(HWND WindowHandle, UINT Message, WPARAM WParam, LPARAM LParam)
 {
-	// È­¸é Áß¾Ó ÁÂÇ¥
+	// í™”ë©´ ì¤‘ì•™ ì¢Œí‘œ
 	RECT R;
 	::GetClientRect(WindowHandle, &R);
 	POINT CenterPos;
 	CenterPos.x = (R.left + R.right) / 2;
 	CenterPos.y = (R.top + R.bottom) / 2;
 
-	// Input Ã³¸®
+	// Input ì²˜ë¦¬
 	if (bCaptured)
 	{
 		switch (Message)
@@ -271,7 +271,7 @@ LRESULT FWindow::WindowProcedure(HWND WindowHandle, UINT Message, WPARAM WParam,
 		return 0;
 	}	
 
-	// ¸¶¿ì½º¸¦ È­¸é Áß¾Ó¿¡ °íÁ¤
+	// ë§ˆìš°ìŠ¤ë¥¼ í™”ë©´ ì¤‘ì•™ì— ê³ ì •
 	if (bCaptured)
 	{
 		::ClientToScreen(WindowHandle, &CenterPos);

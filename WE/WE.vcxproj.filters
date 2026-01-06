@@ -355,9 +355,6 @@
     <ClInclude Include="Sources\Render\ForwardShadingSceneRenderer.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Render\SceneRenderer.h">
-      <Filter>Sources\Render</Filter>
-    </ClInclude>
     <ClInclude Include="Shaders\DrawRectPassCommon.hlsli">
       <Filter>Shaders</Filter>
     </ClInclude>
@@ -410,6 +407,9 @@
       <Filter>Sources\Render</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Render\SkeletalMesh.h">
+      <Filter>Sources\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\SceneRenderer.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
   </ItemGroup>

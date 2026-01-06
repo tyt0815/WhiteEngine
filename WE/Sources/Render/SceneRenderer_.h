@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include <array>
@@ -114,7 +115,7 @@ private:
     std::unique_ptr<TUploadBuffer<FMeshConstantBuffer>> mMeshConstantBuffer;
     std::unique_ptr<TUploadBuffer<FSubmeshConstantBuffer>> mSubmeshConstantBuffer;
     std::unique_ptr<TUploadBuffer<FLightInfoConstantBuffer>> mLightInfoConstantBuffer;
-    std::unique_ptr<TUploadBuffer<FSkinnedConstantBuffer>> mSkinnedConstantBuffer;
+	std::unique_ptr<TUploadBuffer<FSkinnedConstantBuffer>> mSkinnedConstantBuffer;
     std::unique_ptr<TUploadBuffer<FMaterialStructuredBuffer>> mMaterialStructuredBuffer;
     std::unique_ptr<TUploadBuffer<FDirectionalLightStructuredBuffer>> mDirectionalLightStructuredBuffer;
     UINT64 mFenceCount = 0;
@@ -151,7 +152,7 @@ public:
     inline TUploadBuffer<FSkinnedConstantBuffer>* GetSkinnedCB() const
     {
         return mSkinnedConstantBuffer.get();
-    }
+	}
     inline TUploadBuffer<FMaterialStructuredBuffer>* GetMaterialSB() const
     {
         return mMaterialStructuredBuffer.get();
@@ -165,8 +166,8 @@ public:
 class FSceneRenderer : FNoncopyable
 {
 public:
-    FSceneRenderer();
-    virtual ~FSceneRenderer() = default;
+	FSceneRenderer();
+	virtual ~FSceneRenderer() = default;
     virtual void Initialize(ID3D12Device* Device);
     void Tick();
     virtual void Destroy();
@@ -200,7 +201,7 @@ protected:
         const D3D12_VIEWPORT& Viewport,
         std::string PipelineStateName = "DrawRectPass"
     );
-
+    
     void DrawShadowMap(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource);
 
     void ClearRenderTargetAndDepthStencil(
@@ -216,7 +217,7 @@ protected:
         ID3D12Resource* SubmeshConstantBuffer,
         FRenderItemManager* RIM
     );
-
+    
     void DrawStaticMesh(
         ID3D12GraphicsCommandList* CommandList,
         ID3D12Resource* MeshConstantBuffer,
@@ -224,9 +225,10 @@ protected:
         const FStaticMeshInfo& StaticMeshInfo
     );
 
-
+    // BackBuffer와 DepthStencilBuffer를 쓰기 가능한 상태로 전이하고, Clear한다.
     void ReadyBackBuffer(ID3D12GraphicsCommandList* CommandList);
 
+    // BackBuffer와 DepthStencilBuffer를 Present하기 위한 상태로 전이한다.
     void FinishBackBuffer(ID3D12GraphicsCommandList* CommandList);
 
     std::unique_ptr<FGaussianBlurFilter> mGaussianBlurFilter;

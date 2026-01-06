@@ -1,3 +1,4 @@
+
 #include "DeferredShadingSceneRenderer.h"
 #include "DirectXColors.h"
 #include "DirectX/DXResourceManager.h"
@@ -69,11 +70,11 @@ void FDeferredShadingSceneRenderer::BuildRootSignature()
 	BuildDeferredShadingPassRootSignature();
 
 
-	// TODO: SkinnedMesh 테스트용
+	
 	D3D12_DESCRIPTOR_RANGE TextureTable = GetTextureManager()->GetTexture2DDescriptorRange();
 	D3D12_DESCRIPTOR_RANGE CubeTextureTable = GetTextureManager()->GetTextureCubeDescriptorRange();
 
-	// Tip: 자주 사용되는 것일수록 작은 인덱스에 보관하는게 퍼포먼스가 좋음
+	
 	constexpr UINT ROOT_PARAMETERs_NUM = 7;
 	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERs_NUM];
 	RootParameter[0].InitAsConstantBufferView(0);	// PassCB

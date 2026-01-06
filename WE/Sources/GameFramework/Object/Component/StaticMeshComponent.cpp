@@ -33,7 +33,7 @@ void WStaticMeshComponent::SetStaticMesh(const FStaticMesh& StaticMesh)
 	mStaticMesh = StaticMesh;
 	FStaticMeshInfo DrawArgs;
 	DrawArgs.MeshGeometry = mStaticMesh.Geometry;
-	DrawArgs.Material = mStaticMesh.Material;		// TODO: Submesh´ç Material·Î º¯°æ? ¹Ø¿¡ µÇÀÖ´Âµ¥...
+	DrawArgs.Material = mStaticMesh.Material;		// TODO: Submeshë‹¹ Materialë¡œ ë³€ê²½? ë°‘ì— ë˜ìˆëŠ”ë°...
 	DrawArgs.MeshCBIndex = (UINT)mMeshCBIndex;
 	DrawArgs.bCastShadow = mbCastShadow;
 	for (size_t i = 0; i < mStaticMesh.Geometry->DrawArgs.size(); ++i)
@@ -45,7 +45,7 @@ void WStaticMeshComponent::SetStaticMesh(const FStaticMesh& StaticMesh)
 		DrawArgs.BaseVertexLocation = mStaticMesh.Geometry->DrawArgs[i].BaseVertexLocation;
 		FSubmeshInfo SubmeshInfo;
 		SubmeshInfo.MaterialIndex = mStaticMesh.Material->Type;
-		// TODO: ÇÏµåÄÚµù
+		// TODO: í•˜ë“œì½”ë”©
 		SubmeshInfo.SkyIrradianceCubeMapIndex = 2;
 		SubmeshInfo.SkySpecularCubeMapIndex = 3;
 		SubmeshInfo.DirtyFrameCount = gFrameResourcesNum;
