@@ -625,12 +625,12 @@ void FDeferredShadingSceneRenderer::DrawGBuffers(ID3D12GraphicsCommandList* Comm
 	CommandList->SetGraphicsRootDescriptorTable(4, SRVHeap->GetTexture2DGPUDescriptorHandleStart());
 	CommandList->SetGraphicsRootDescriptorTable(5, SRVHeap->GetTextureCubeGPUDescriptorHandleStart());
 
-	//DrawStaticMeshs(
-	//	CommandList,
-	//	FrameResource->GetMeshCB()->Resource(),
-	//	FrameResource->GetSubmeshCB()->Resource(),
-	//	GetRenderItemManager()
-	//);
+	DrawStaticMeshs(
+		CommandList,
+		FrameResource->GetMeshCB()->Resource(),
+		FrameResource->GetSubmeshCB()->Resource(),
+		GetRenderItemManager()
+	);
 
 	////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////

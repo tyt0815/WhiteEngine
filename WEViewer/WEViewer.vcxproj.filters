@@ -9,10 +9,51 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="Sources\Actor">
+      <UniqueIdentifier>{e457deab-0a6b-4350-af5b-dbb819758ecc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\World">
+      <UniqueIdentifier>{ae9dc88c-18df-4a1e-ac8f-b9d057b00f1f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Pawn">
+      <UniqueIdentifier>{9cbb2439-e049-4fd6-af05-d40f0fefb82a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Main.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Actor\Box.cpp">
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Actor\Sphere.cpp">
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Actor\Floor.cpp">
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\World\TestWorld.cpp">
+      <Filter>Sources\World</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Pawn\GhostCameraPawn.cpp">
+      <Filter>Sources\Pawn</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Sources\Actor\Box.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\Sphere.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\Floor.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\World\TestWorld.h">
+      <Filter>Sources\World</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Pawn\GhostCameraPawn.h">
+      <Filter>Sources\Pawn</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,53 +1,44 @@
-#include "Application/TestApplication/TestApplication.h"
-#include "DirectX/DXException.h"
-#include "Render/MeshGeometry.h"
-#include "Render/RenderItemManager.h"
-#include "Render/SkeletalMesh.h"
+#include "GameFramework/GameCore.h"
+#include "World/TestWorld.h"
+#include "Render/DeferredShadingSceneRenderer.h"
+#include "DirectX/DXResourceManager.h"
+
 
 #pragma comment(lib,"d3dcompiler.lib")
 #pragma comment(lib, "D3D12.lib")
 #pragma comment(lib, "dxgi.lib")
 
-void InitializeSingleton();
-
-HINSTANCE AppInstance;
-
-int WINAPI WinMain(
-    HINSTANCE hInstance,
-    HINSTANCE prevInstance,
-    PSTR cmdLine,
-    int showCmd
-)
+class FTestApp : public GameCore::IGameApp
 {
-    AppInstance = hInstance;
-    // Enable run-time memory check for debug builds.
-#if defined(DEBUG) | defined(_DEBUG)
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-#endif
-    InitializeSingleton();
-    FTestApplication* App = FTestApplication::GetInstance();
-    try
-    {
-        if (!App->Initialize())
-        {
-            return 0;
-        }
-        return App->Run();
-    }
-    catch (FDXException& e)
-    {
-        MessageBox(nullptr, e.ToString().c_str(), L"HR Failed", MB_OK);
-        return 0;
-    }
+public:
+	virtual void Startup() override;
+
+    virtual void Cleanup() override;
+
+	virtual void Update(float DeltaTime) override;
+
+
+private:
+    WTestWorld mWorld;
+    FDeferredShadingSceneRenderer mRenderer;
+};
+
+CREATE_APPLICATION(FTestApp)
+
+void FTestApp::Startup()
+{
+    mRenderer.Initialize(GetDXResourceManagerPtr()->GetDevicePtr());
 }
 
-void InitializeSingleton()
+void FTestApp::Cleanup()
 {
-    GetMainWindowPtr();
-    GetDXResourceManagerPtr();
-    GetTextureManager();
-    GetMaterialManager();
-    GetMeshGeometryManager();
-    GetRenderItemManager();
-	FSkeletalMeshManager::GetInstance();
+    mRenderer.Destroy();
+
+}
+
+void FTestApp::Update(float DeltaTime)
+{
+    mWorld.Tick(DeltaTime);
+
+    mRenderer.Tick();
 }

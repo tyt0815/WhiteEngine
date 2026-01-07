@@ -34,7 +34,7 @@ FWindow::FWindow(const std::wstring ClassName, const std::wstring WindowName, UI
 	WndClass.lpfnWndProc = InitialWindowProcedure;
 	WndClass.cbClsExtra = 0;
 	WndClass.cbWndExtra = 0;
-	WndClass.hInstance = AppInstance;
+	WndClass.hInstance = g_hInst;
 	WndClass.hIcon = LoadIcon(0, IDI_APPLICATION);
 	WndClass.hCursor = LoadCursor(0, IDC_ARROW);
 	WndClass.hbrBackground = (HBRUSH)GetStockObject(NULL_BRUSH);
@@ -58,7 +58,7 @@ FWindow::FWindow(const std::wstring ClassName, const std::wstring WindowName, UI
 		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		mWidth, mHeight,
-		0, 0, AppInstance, this
+		0, 0, g_hInst, this
 	);
 	if (!mWindowHandle)
 	{
@@ -132,14 +132,6 @@ LRESULT FWindow::WindowProcedure(HWND WindowHandle, UINT Message, WPARAM WParam,
 			}
 			delete[] lpb;
 
-
-			//static int LastX = GET_X_LPARAM(LParam);
-			//static int LastY = GET_Y_LPARAM(LParam);
-			//int dX = GET_X_LPARAM(LParam) - LastX;
-			//int dY = GET_Y_LPARAM(LParam) - LastY;
-			//GetInputSystemManager()->ProcessMouseInput(EMIT_Move, dX, dY);
-			//LastX = GET_X_LPARAM(LParam);
-			//LastY = GET_Y_LPARAM(LParam);
 			break;
 		}
 

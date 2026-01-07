@@ -19,12 +19,24 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Sources\Actor\Box.cpp" />
+    <ClCompile Include="Sources\Actor\Floor.cpp" />
+    <ClCompile Include="Sources\Actor\Sphere.cpp" />
     <ClCompile Include="Sources\Main.cpp" />
+    <ClCompile Include="Sources\Pawn\GhostCameraPawn.cpp" />
+    <ClCompile Include="Sources\World\TestWorld.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\WE\WE.vcxproj">
       <Project>{07e85a62-52be-4d10-9be4-82d548dc1f69}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Sources\Actor\Box.h" />
+    <ClInclude Include="Sources\Actor\Floor.h" />
+    <ClInclude Include="Sources\Actor\Sphere.h" />
+    <ClInclude Include="Sources\Pawn\GhostCameraPawn.h" />
+    <ClInclude Include="Sources\World\TestWorld.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

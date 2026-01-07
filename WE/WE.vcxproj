@@ -11,16 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Sources\Application\TestApplication\Actor\IceFieldGird.cpp" />
-    <ClCompile Include="Sources\Application\TestApplication\Actor\LaminateFloorBrown.cpp" />
-    <ClCompile Include="Sources\Application\TestApplication\Actor\RotatingDirLight.cpp" />
-    <ClCompile Include="Sources\Application\TestApplication\Actor\RustedIron2Sphere.cpp" />
-    <ClCompile Include="Sources\Application\TestApplication\Actor\ScuffedGoldBox.cpp" />
-    <ClCompile Include="Sources\Application\TestApplication\Actor\ScuffedGoldSphere.cpp" />
-    <ClCompile Include="Sources\Application\TestApplication\Actor\ThickMortarStonework.cpp" />
-    <ClCompile Include="Sources\Application\TestApplication\Pawn\GhostCameraPawn.cpp" />
-    <ClCompile Include="Sources\Application\TestApplication\TestApplication.cpp" />
-    <ClCompile Include="Sources\Application\TestApplication\World\TestWorld.cpp" />
     <ClCompile Include="Sources\DirectX\D3D12Linker.cpp" />
     <ClCompile Include="Sources\DirectX\DSVHeap.cpp" />
     <ClCompile Include="Sources\DirectX\DXResourceManager.cpp" />
@@ -71,16 +61,6 @@
     <ClInclude Include="Shaders\DrawRectPassCommon.hlsli">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="Sources\Application\TestApplication\Actor\IceFieldGird.h" />
-    <ClInclude Include="Sources\Application\TestApplication\Actor\LaminateFloorBrown.h" />
-    <ClInclude Include="Sources\Application\TestApplication\Actor\RotatingDirLight.h" />
-    <ClInclude Include="Sources\Application\TestApplication\Actor\RustedIron2Sphere.h" />
-    <ClInclude Include="Sources\Application\TestApplication\Actor\ScuffedGoldBox.h" />
-    <ClInclude Include="Sources\Application\TestApplication\Actor\ScuffedGoldSphere.h" />
-    <ClInclude Include="Sources\Application\TestApplication\Actor\ThickMortarStonework.h" />
-    <ClInclude Include="Sources\Application\TestApplication\Pawn\GhostCameraPawn.h" />
-    <ClInclude Include="Sources\Application\TestApplication\TestApplication.h" />
-    <ClInclude Include="Sources\Application\TestApplication\World\TestWorld.h" />
     <ClInclude Include="Sources\DirectX\d3dx12.h" />
     <ClInclude Include="Sources\DirectX\DSVHeap.h" />
     <ClInclude Include="Sources\DirectX\DXResourceManager.h" />

@@ -91,7 +91,6 @@ public:
 template<typename T>
 inline T* AActor::CreateComponent()
 {
-	static_assert(IsDerivedFrom<WActorComponent, T>);
 	size_t Index = mAllComponents.Add(std::make_unique<T>());
 	WActorComponent* ActorComp = mAllComponents[Index].get();
 	

@@ -9,7 +9,7 @@
 #include "Utility/Class.h"
 #include "GameFramework/InputSystem/InputSystem.h"
 
-extern HINSTANCE AppInstance;
+extern HINSTANCE g_hInst;
 
 class FWindow : FNoncopyable
 {

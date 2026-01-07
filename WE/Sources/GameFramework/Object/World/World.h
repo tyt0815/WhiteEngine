@@ -45,7 +45,6 @@ inline WWorld* GetWorld()
 template<typename T>
 inline T* WWorld::SpawnActor()
 {
-	static_assert(IsDerivedFrom<AActor, T>);
 	size_t Index = mAllActors.Add(std::make_unique<T>());
 	T* Actor = dynamic_cast<T*>(mAllActors[Index].get());
 

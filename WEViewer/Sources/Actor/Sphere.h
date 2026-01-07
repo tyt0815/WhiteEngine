@@ -1,8 +1,9 @@
 #pragma once
+
 #include "GameFramework/Object/Actor/Actor.h"
 
-class AIceFieldGrid : public AActor
+class ASphere : public AActor
 {
 public:
-	AIceFieldGrid();
+	ASphere();
 };
