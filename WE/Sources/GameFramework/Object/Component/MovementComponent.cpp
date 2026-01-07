@@ -5,12 +5,16 @@ void WMovementComponent::TickComponent(float DeltaTime)
 {
 	Super::TickComponent(DeltaTime);
 
-	XMVECTOR ScaledVelocityV = XMLoadFloat3(&mVelocity);
-	XMVectorScale(ScaledVelocityV, DeltaTime);
-	XMFLOAT3 ScaledVelocity;
-	XMStoreFloat3(&ScaledVelocity, ScaledVelocityV);
-	MoveOwner(ScaledVelocity);
+	XMVECTOR ScaledVelocity = XMLoadFloat3(&mVelocity);
+	XMVectorScale(ScaledVelocity, DeltaTime);
+	XMFLOAT4X4 World = GetOwner()->GetRootComponent()->GetWorldMatrix();
+	XMMATRIX WorldMat = XMLoadFloat4x4(&World);
+	XMVECTOR WorldDirectionV = XMVector3TransformNormal(ScaledVelocity, WorldMat);
+	XMFLOAT3 WorldDirection;
+	XMStoreFloat3(&WorldDirection, WorldDirectionV);
+	MoveOwner(WorldDirection);
 }
+
 
 void WMovementComponent::MoveOwner(XMFLOAT3 WorldDirection)
 {
