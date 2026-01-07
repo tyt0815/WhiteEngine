@@ -40,7 +40,7 @@ XMFLOAT4X4 FTransform::GetTransformMatrix()
 	);
 	XMMATRIX T = XMMatrixTranslationFromVector(GetTranslationXMVECTOR());
 	XMFLOAT4X4 Matrix;
-	XMStoreFloat4x4(&Matrix, T * R * S);
+	XMStoreFloat4x4(&Matrix, S * R * T);
 	return Matrix;
 }
 

@@ -28,6 +28,7 @@
     <ClCompile Include="Sources\GameFramework\Object\Component\CameraComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\DirectionalLightComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\LightComponent.cpp" />
+    <ClCompile Include="Sources\GameFramework\Object\Component\MovementComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\PrimitiveComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\SceneComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\StaticMeshComponent.cpp" />
@@ -78,9 +79,10 @@
     <ClInclude Include="Sources\GameFramework\Object\Component\CameraComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\DirectionalLightComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\LightComponent.h" />
+    <ClInclude Include="Sources\GameFramework\Object\Component\MovementComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\PrimitiveComponent.h" />
+    <ClInclude Include="Sources\GameFramework\Object\Component\ProjectileMovementComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\SceneComponent.h" />
-    <ClInclude Include="Sources\GameFramework\Object\Component\SkyAtmosphereComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\StaticMeshComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Pawn\Pawn.h" />
     <ClInclude Include="Sources\GameFramework\Object\World\World.h" />

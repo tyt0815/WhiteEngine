@@ -93,6 +93,7 @@ inline T* AActor::CreateComponent()
 {
 	size_t Index = mAllComponents.Add(std::make_unique<T>());
 	WActorComponent* ActorComp = mAllComponents[Index].get();
+	ActorComp->SetOwner(this);
 	
 	WSceneComponent* SceneComp = dynamic_cast<WSceneComponent*>(ActorComp);
 	if (SceneComp != nullptr)

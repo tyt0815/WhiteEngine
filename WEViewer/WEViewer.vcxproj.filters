@@ -38,6 +38,9 @@
     <ClCompile Include="Sources\Pawn\GhostCameraPawn.cpp">
       <Filter>Sources\Pawn</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Actor\ProjectileSphere.cpp">
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Actor\Box.h">
@@ -54,6 +57,9 @@
     </ClInclude>
     <ClInclude Include="Sources\Pawn\GhostCameraPawn.h">
       <Filter>Sources\Pawn</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\ProjectileSphere.h">
+      <Filter>Sources\Actor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

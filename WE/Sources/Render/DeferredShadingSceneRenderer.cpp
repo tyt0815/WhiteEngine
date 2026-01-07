@@ -673,16 +673,16 @@ void FDeferredShadingSceneRenderer::DrawGBuffers(ID3D12GraphicsCommandList* Comm
 	CommandList->IASetIndexBuffer(&IndexBufferView);
 	CommandList->IASetPrimitiveTopology(MeshGeo->PrimitiveType);
 
-	for (int i = 0; i < MeshGeo->DrawArgs.size(); ++i)
-	{
-		CommandList->DrawIndexedInstanced(
-			MeshGeo->DrawArgs[i].IndexCount,
-			1,
-			MeshGeo->DrawArgs[i].StartIndexLocation,
-			MeshGeo->DrawArgs[i].BaseVertexLocation,
-			0
-		);
-	}
+	//for (int i = 0; i < MeshGeo->DrawArgs.size(); ++i)
+	//{
+	//	CommandList->DrawIndexedInstanced(
+	//		MeshGeo->DrawArgs[i].IndexCount,
+	//		1,
+	//		MeshGeo->DrawArgs[i].StartIndexLocation,
+	//		MeshGeo->DrawArgs[i].BaseVertexLocation,
+	//		0
+	//	);
+	//}
 
 	
 

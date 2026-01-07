@@ -1,5 +1,7 @@
 #pragma once
 
+#include "DirectX/DXMath.h"
+
 class AActor;
 
 class WActorComponent
@@ -11,6 +13,7 @@ public:
 
 public:
 	virtual void SetOwner(AActor* Owner);
+
 	virtual void TickComponent(float DeltaTime) {};
 
 private:

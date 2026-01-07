@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="Sources\Actor\Box.cpp" />
     <ClCompile Include="Sources\Actor\Floor.cpp" />
+    <ClCompile Include="Sources\Actor\ProjectileSphere.cpp" />
     <ClCompile Include="Sources\Actor\Sphere.cpp" />
     <ClCompile Include="Sources\Main.cpp" />
     <ClCompile Include="Sources\Pawn\GhostCameraPawn.cpp" />
@@ -34,6 +35,7 @@
   <ItemGroup>
     <ClInclude Include="Sources\Actor\Box.h" />
     <ClInclude Include="Sources\Actor\Floor.h" />
+    <ClInclude Include="Sources\Actor\ProjectileSphere.h" />
     <ClInclude Include="Sources\Actor\Sphere.h" />
     <ClInclude Include="Sources\Pawn\GhostCameraPawn.h" />
     <ClInclude Include="Sources\World\TestWorld.h" />

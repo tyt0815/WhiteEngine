@@ -185,6 +185,9 @@
     <ClCompile Include="Sources\DirectX\D3D12Linker.cpp">
       <Filter>Sources\DirectX</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Component\MovementComponent.cpp">
+      <Filter>Sources\GameFramework\Object\Component</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -319,9 +322,6 @@
     <ClInclude Include="Sources\GameFramework\Object\Actor\DirectionalLight.h">
       <Filter>Sources\GameFramework\Object\Actor</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\GameFramework\Object\Component\SkyAtmosphereComponent.h">
-      <Filter>Sources\GameFramework\Object\Component</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\Render\LoadM3d.h">
       <Filter>Sources\Render</Filter>
     </ClInclude>
@@ -339,6 +339,12 @@
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\GameCore.h">
       <Filter>Sources\GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Component\ProjectileMovementComponent.h">
+      <Filter>Sources\GameFramework\Object\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Component\MovementComponent.h">
+      <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
