@@ -1,10 +1,10 @@
-#include "ProjectileSphere.h"
+#include "ProjectileBox.h"
 #include "GameFramework/Object/Component/StaticMeshComponent.h"
 #include "GameFramework/Object/Component/ProjectileMovementComponent.h"
 
-AProjectileSphere::AProjectileSphere()
+AProjectileBox::AProjectileBox()
 {
 	WStaticMeshComponent* Component = CreateComponent<WStaticMeshComponent>();
 	SetRootComponent(Component);
-	Component->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_RustedIron2Sphere));
+	Component->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_ScuffedGoldBox));
 }

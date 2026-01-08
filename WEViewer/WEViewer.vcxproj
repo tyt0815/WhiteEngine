@@ -20,7 +20,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Actor\Box.cpp" />
+    <ClCompile Include="Sources\Actor\Bullet.cpp" />
     <ClCompile Include="Sources\Actor\Floor.cpp" />
+    <ClCompile Include="Sources\Actor\ProjectileActor.cpp" />
+    <ClCompile Include="Sources\Actor\ProjectileBox.cpp" />
     <ClCompile Include="Sources\Actor\ProjectileSpawner.cpp" />
     <ClCompile Include="Sources\Actor\ProjectileSphere.cpp" />
     <ClCompile Include="Sources\Actor\Sphere.cpp" />
@@ -35,7 +38,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Actor\Box.h" />
+    <ClInclude Include="Sources\Actor\Bullet.h" />
     <ClInclude Include="Sources\Actor\Floor.h" />
+    <ClInclude Include="Sources\Actor\ProjectileActor.h" />
+    <ClInclude Include="Sources\Actor\ProjectileBox.h" />
     <ClInclude Include="Sources\Actor\ProjectileSpawner.h" />
     <ClInclude Include="Sources\Actor\ProjectileSphere.h" />
     <ClInclude Include="Sources\Actor\Sphere.h" />

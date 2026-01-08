@@ -12,4 +12,10 @@ protected:
 
 private:
 	float mLifeTimeElapsed = 0.0f;
+
+public:
+	void SetLifeSpan(float LifeSpan)
+	{
+		mLiftSpan = LifeSpan;
+	}
 };

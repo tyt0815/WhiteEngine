@@ -44,6 +44,15 @@
     <ClCompile Include="Sources\Actor\ProjectileSpawner.cpp">
       <Filter>Sources\Actor</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Actor\Bullet.cpp">
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Actor\ProjectileBox.cpp">
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Actor\ProjectileActor.cpp">
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Actor\Box.h">
@@ -65,6 +74,15 @@
       <Filter>Sources\Actor</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Actor\ProjectileSpawner.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\Bullet.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\ProjectileBox.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\ProjectileActor.h">
       <Filter>Sources\Actor</Filter>
     </ClInclude>
   </ItemGroup>

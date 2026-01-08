@@ -31,9 +31,10 @@ WTestWorld::WTestWorld()
 	//Transform.Translation = XMFLOAT3(-2.0f, 0.0f, 5.0f);
 	//Actor->SetActorTransform(Transform);
 
-	//Actor = SpawnActor<AFloor>();
-	//Transform.Translation = XMFLOAT3(0.0f, -2.0f, 0.0f);
-	//Actor->SetActorTransform(Transform);
+	Actor = SpawnActor<AFloor>();
+	Transform = FTransform::Default;
+	Transform.Translation = XMFLOAT3(0.0f, -5.0f, 0.0f);
+	Actor->SetActorTransform(Transform);
 
 	Actor = SpawnActor<AProjectileSpawner>();
 	Transform.Translation = XMFLOAT3(0.0f, 0.0f, 5.0f);

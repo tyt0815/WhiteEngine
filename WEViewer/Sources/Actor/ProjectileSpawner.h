@@ -10,7 +10,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
-	void SpawnRandomScaledProjectile();
+	void SpawnRandomProjectile();
+
+	void SpawnBullet();
 
 	float mCoolDown = 0;
 };

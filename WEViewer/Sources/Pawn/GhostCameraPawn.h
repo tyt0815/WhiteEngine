@@ -17,4 +17,5 @@ private:
 	void MoveUp();
 	void MoveDown();
 	void Look(FMouseInputParameter Parameter);
+	void Fire(FMouseInputParameter Parameter);
 };

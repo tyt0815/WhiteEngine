@@ -1,11 +1,10 @@
 #pragma once
 
-
 #include "ProjectileActor.h"
 
-class AProjectileSphere : public AProjectileActor
+class AProjectileBox : public AProjectileActor
 {
 	typedef AActor Super;
 public:
-	AProjectileSphere();
+	AProjectileBox();
 };
