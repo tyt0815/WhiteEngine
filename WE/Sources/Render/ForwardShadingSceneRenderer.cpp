@@ -9,7 +9,6 @@
 #include "DirectX/DXException.h"
 #include "DirectX/DXUtility.h"
 #include "DirectX/CBVSRVUAVHeap.h"
-#include "RenderItemManager.h"
 
 void FForwardShadingSceneRenderer::Initialize(ID3D12Device* Device)
 {
@@ -24,7 +23,8 @@ void FForwardShadingSceneRenderer::Render(
 	D3D12_CPU_DESCRIPTOR_HANDLE Rtv,
 	D3D12_CPU_DESCRIPTOR_HANDLE Dsv,
 	D3D12_VIEWPORT Viewport,
-	D3D12_RECT ScissorRect
+	D3D12_RECT ScissorRect,
+	const FRenderItemProxy* RenderItemProxy
 )
 {
 	ReadyBackBuffer(CommandList);
@@ -59,7 +59,7 @@ void FForwardShadingSceneRenderer::Render(
 			CommandList,
 			FrameResource->GetMeshCB()->Resource(),
 			FrameResource->GetSubmeshCB()->Resource(),
-			GetRenderItemManager()
+			RenderItemProxy
 		);
 	}
 	

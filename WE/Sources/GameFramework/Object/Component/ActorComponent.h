@@ -3,6 +3,7 @@
 #include "DirectX/DXMath.h"
 
 class AActor;
+class WWorld;
 
 class WActorComponent
 {
@@ -15,6 +16,8 @@ public:
 	virtual void SetOwner(AActor* Owner);
 
 	virtual void TickComponent(float DeltaTime) {};
+
+	WWorld* GetWorld() const;
 
 private:
 	AActor* mOwner = nullptr;

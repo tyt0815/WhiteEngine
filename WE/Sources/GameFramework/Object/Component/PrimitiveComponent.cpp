@@ -1,10 +1,10 @@
 #include "PrimitiveComponent.h"
-#include "Render/RenderItemManager.h"
+#include "GameFramework/RenderItemProxy.h"
+#include "GameFramework/Object/World/World.h"
 
 extern const int gFrameResourcesNum;
 
-WPrimitiveComponent::WPrimitiveComponent() :
-	mMeshCBIndex(GetRenderItemManager()->mMeshInfoPool.Add(FMeshInfo()))
+WPrimitiveComponent::WPrimitiveComponent()
 {
 
 }
@@ -13,12 +13,19 @@ void WPrimitiveComponent::Update()
 {
 	Super::Update();
 
-	// 직접적으로 업로드될 데이터를 FrameResourceManager에 저장
-	if (mbDirty)
-	{
-		FMeshInfo MeshInfo;
-		MeshInfo.World = GetWorldMatrix();
-		MeshInfo.DirtyFrameCount = gFrameResourcesNum;
-		GetRenderItemManager()->mMeshInfoPool[mMeshCBIndex] = MeshInfo;
-	}
+	UpdateConstantBufferIndex();
+
+	UpdateProxies();
+}
+
+void WPrimitiveComponent::UpdateConstantBufferIndex()
+{
+	WWorld* World = GetWorld();
+	mMeshCBIndex = GetWorld()->AllocateMeshCbProxy();
+}
+
+void WPrimitiveComponent::UpdateProxies()
+{
+	FMeshCBProxy* MeshCbProxy = GetWorld()->GetMeshCBProxy(mMeshCBIndex);
+	MeshCbProxy->World = GetWorldMatrix();
 }

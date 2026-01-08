@@ -28,7 +28,8 @@ protected:
         D3D12_CPU_DESCRIPTOR_HANDLE Rtv,
         D3D12_CPU_DESCRIPTOR_HANDLE Dsv,
         D3D12_VIEWPORT Viewport,
-        D3D12_RECT ScissorRect
+        D3D12_RECT ScissorRect,
+        const FRenderItemProxy* RenderItemProxy
     ) override;
 private:
 	// std::unique_ptr<FCubeSkyRenderer> mSkyCubeMapRenderer;

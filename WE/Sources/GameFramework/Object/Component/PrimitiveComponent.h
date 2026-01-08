@@ -9,7 +9,12 @@ public:
 
 protected:
 	virtual void Update() override;
-	std::uint64_t mMeshCBIndex;
+
+	virtual void UpdateConstantBufferIndex();
+
+	virtual void UpdateProxies();
+
+	size_t mMeshCBIndex;
 
 private:
 

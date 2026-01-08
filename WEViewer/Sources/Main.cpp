@@ -40,5 +40,5 @@ void FTestApp::Update(float DeltaTime)
 {
     mWorld.Tick(DeltaTime);
 
-    mRenderer.Tick();
+    mRenderer.Tick(mWorld.GetRenderItemProxyPtr());
 }

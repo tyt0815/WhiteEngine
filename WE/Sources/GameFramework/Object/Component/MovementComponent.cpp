@@ -5,6 +5,7 @@ void WMovementComponent::TickComponent(float DeltaTime)
 {
 	Super::TickComponent(DeltaTime);
 
+	// 프레임마다 Owner를 이동시킴
 	XMVECTOR ScaledVelocity = XMLoadFloat3(&mVelocity);
 	XMVectorScale(ScaledVelocity, DeltaTime);
 	XMFLOAT4X4 World = GetOwner()->GetRootComponent()->GetWorldMatrix();

@@ -13,6 +13,8 @@ WWorld::~WWorld()
 
 void WWorld::Tick(float Delta)
 {
+	mRenderItemProxy.Cleanup();
+
 	for (size_t i = 0; i < mAllActors.Size(); ++i)
 	{
 		mAllActors[i]->Tick(Delta);

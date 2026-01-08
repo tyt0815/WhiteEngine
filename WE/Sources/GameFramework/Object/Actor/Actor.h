@@ -42,6 +42,8 @@ private:
 
 	WSceneComponent* mRootComponent = nullptr;
 
+	WWorld* mWorld;
+
 
 public:
 	inline TUnorderedArray<std::unique_ptr<WActorComponent>>& GetAllComponents()
@@ -85,7 +87,14 @@ public:
 	{
 		mRootComponent->SetLocalScale(Scale);
 	}
-
+	inline WWorld* GetWorld() const
+	{
+		return mWorld;
+	}
+	inline void SetWorld(WWorld* World)
+	{
+		mWorld = World;
+	}
 };
 
 template<typename T>

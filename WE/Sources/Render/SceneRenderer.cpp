@@ -1,6 +1,5 @@
 #include "SceneRenderer.h"
 #include <DirectXColors.h>
-#include "RenderItemManager.h"
 #include "ShapeDrawer.h"
 #include "DirectX/DXResourceManager.h"
 #include "GameFramework/Object/Component/CameraComponent.h"
@@ -64,9 +63,9 @@ void FSceneRenderer::Initialize(ID3D12Device* Device)
 	BuildPipelineStates(Device);
 }
 
-void FSceneRenderer::Tick()
+void FSceneRenderer::Tick(const FRenderItemProxy* RenderItemProxy)
 {
-	UpdateTargetFrameResource();
+	UpdateTargetFrameResource(RenderItemProxy);
 	FFrameResourceBase* FrameResource = GetTargetFrameResource();
 	ID3D12GraphicsCommandList* CommandList = GetDXResourceManagerPtr()->GetCommandListPtr();
 	ID3D12CommandAllocator* CommandAllocator = FrameResource->GetCommandAllocatorPtr();
@@ -85,7 +84,8 @@ void FSceneRenderer::Tick()
 		Rtv,
 		Dsv,
 		Viewport,
-		ScissorRect
+		ScissorRect,
+		RenderItemProxy
 	);
 
 	THROW_IF_FAILED(CommandList->Close());
@@ -253,14 +253,14 @@ void FSceneRenderer::BuildShadowMapPassPipelineStates(ID3D12Device* Device)
 	);
 }
 
-void FSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* FrameResource)
+void FSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* FrameResource, const FRenderItemProxy* RenderItemProxy)
 {
-	UpdatePassCB(FrameResource->GetPassCB());
-	UpdateMeshCB(FrameResource->GetMeshCB());
-	UpdateSubmeshCB(FrameResource->GetSubmeshCB());
-	UpdateLightInfoCB(FrameResource->GetLightInfoCB());
+	UpdatePassCB(FrameResource->GetPassCB(), RenderItemProxy);
+	UpdateMeshCB(FrameResource->GetMeshCB(), RenderItemProxy);
+	UpdateSubmeshCB(FrameResource->GetSubmeshCB(), RenderItemProxy);
+	UpdateLightInfoCB(FrameResource->GetLightInfoCB(), RenderItemProxy);
 	UpdateMaterialSB(FrameResource->GetMaterialSB());
-	UpdateDirectionalLightSB(FrameResource->GetDirectionalLightSB());
+	UpdateDirectionalLightSB(FrameResource->GetDirectionalLightSB(), RenderItemProxy);
 
 	// TODO: 테스트용 Skinned CB 업데이트
 	auto SkinnedCB = FrameResource->GetSkinnedCB();
@@ -306,15 +306,19 @@ void FSceneRenderer::DrawRectPass(
 	DrawRect(CommandList);
 }
 
-void FSceneRenderer::DrawShadowMap(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource)
+void FSceneRenderer::DrawShadowMap(
+	ID3D12GraphicsCommandList* CommandList,
+	FFrameResourceBase* FrameResource,
+	const FRenderItemProxy* RenderItemProxy
+)
 {
-	TUnorderedArray<FDirectionalLightInfo>& DirLightInfoPool = GetRenderItemManager()->mDirectionalLightInfoPool;
-	int TargetIndex = min(DIR_LIGHTS_NUM, (int)DirLightInfoPool.Size());
+	const auto& DirLightProxies = RenderItemProxy->mDirectionalLightProxies;
+	int TargetIndex = min(DIR_LIGHTS_NUM, (int)DirLightProxies.size());
 	int ShadingModelsNum = EShadingModel::ESM_None;
 	int BlendModesNum = EBlendMode::EBM_None;
 	for (int i = 0; i < TargetIndex; ++i)
 	{
-		FDirectionalLightInfo DirLightInfo = DirLightInfoPool[i];
+		FDirectionalLightProxy DirLightInfo = DirLightProxies[i];
 		if (DirLightInfo.bCastShadow)
 		{
 			DirLightInfo.ShadowMap->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
@@ -341,24 +345,18 @@ void FSceneRenderer::DrawShadowMap(ID3D12GraphicsCommandList* CommandList, FFram
 			CommandList->SetGraphicsRootDescriptorTable(6, SRVHeap->GetTextureCubeGPUDescriptorHandleStart());
 
 
-			for (int i = 0; i < ShadingModelsNum; ++i)
+			// TODO: ShadingModel, Blend별로 드로우하게 수정
+			const auto& StaticMeshProxies = RenderItemProxy->mStaticMeshProxies;
+			for (const FStaticMeshProxy& Proxy : StaticMeshProxies)
 			{
-				for (int j = 0; j < BlendModesNum; ++j)
+				if (Proxy.bCastShadow)
 				{
-					TUnorderedArray<FStaticMeshInfo>& StaticMeshInfoPool = GetRenderItemManager()->mStaticMeshInfoPool[i][j];
-					size_t PoolSize = StaticMeshInfoPool.Size();
-					for (size_t k = 0; k < PoolSize; ++k)
-					{
-						if (StaticMeshInfoPool[k].bCastShadow)
-						{
-							DrawStaticMesh(
-								CommandList,
-								FrameResource->GetMeshCB()->Resource(),
-								FrameResource->GetSubmeshCB()->Resource(),
-								StaticMeshInfoPool[k]
-							);
-						}
-					}
+					DrawStaticMesh(
+						CommandList,
+						FrameResource->GetMeshCB()->Resource(),
+						FrameResource->GetSubmeshCB()->Resource(),
+						Proxy
+					);
 				}
 			}
 
@@ -396,29 +394,19 @@ void FSceneRenderer::DrawStaticMeshs(
 	ID3D12GraphicsCommandList* CommandList,
 	ID3D12Resource* MeshConstantBuffer,
 	ID3D12Resource* SubmeshConstantBuffer,
-	FRenderItemManager* RIM
+	const FRenderItemProxy* RenderItemProxy
 )
 {
-	int ShadingModelsNum = EShadingModel::ESM_None;
-	int BlendModesNum = EBlendMode::EBM_None;
-	for (int i = 0; i < ShadingModelsNum; ++i)
+	// TODO: ShadingModel, Blend별로 드로우하게 수정
+	const auto& StaticMeshProxies = RenderItemProxy->mStaticMeshProxies;
+	for (const FStaticMeshProxy& Proxy : StaticMeshProxies)
 	{
-		for (int j = 0; j < BlendModesNum; ++j)
-		{
-			TUnorderedArray<FStaticMeshInfo>& StaticMeshInfoPool = RIM->mStaticMeshInfoPool[i][j];
-			size_t PoolSize = StaticMeshInfoPool.Size();
-			for (size_t k = 0; k < PoolSize; ++k)
-			{
-				DrawStaticMesh(
-					CommandList,
-					MeshConstantBuffer,
-					SubmeshConstantBuffer,
-					StaticMeshInfoPool[k]
-				);
-
-				// DrawMeshGeometry()
-			}
-		}
+		DrawStaticMesh(
+			CommandList,
+			MeshConstantBuffer,
+			SubmeshConstantBuffer,
+			Proxy
+		);
 	}
 }
 
@@ -426,33 +414,31 @@ void FSceneRenderer::DrawStaticMesh(
 	ID3D12GraphicsCommandList* CommandList,
 	ID3D12Resource* MeshConstantBuffer,
 	ID3D12Resource* SubmeshConstantBuffer,
-	const FStaticMeshInfo& StaticMeshInfo
+	const FStaticMeshProxy& StaticMeshProxy
 )
 {
 	static UINT ObjectConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FMeshConstantBuffer));
 	static UINT SubmeshConstantBufferByteSize = FDXUtility::CalcConstantBufferByteSize(sizeof(FSubmeshConstantBuffer));
 
-	FMaterial* Material = StaticMeshInfo.Material;
-
 	// MeshConstantBuffer
-	auto ObjectConstantBufferAddress = MeshConstantBuffer->GetGPUVirtualAddress() + StaticMeshInfo.MeshCBIndex * ObjectConstantBufferByteSize;
+	auto ObjectConstantBufferAddress = MeshConstantBuffer->GetGPUVirtualAddress() + StaticMeshProxy.MeshCBIndex * ObjectConstantBufferByteSize;
 	CommandList->SetGraphicsRootConstantBufferView(1, ObjectConstantBufferAddress);
 
 	// SubmeshConstantBuffer
-	auto SubmeshConstantBufferAddress = SubmeshConstantBuffer->GetGPUVirtualAddress() + StaticMeshInfo.SubmeshCBIndex * SubmeshConstantBufferByteSize;
+	auto SubmeshConstantBufferAddress = SubmeshConstantBuffer->GetGPUVirtualAddress() + StaticMeshProxy.SubmeshCBIndex * SubmeshConstantBufferByteSize;
 	CommandList->SetGraphicsRootConstantBufferView(2, SubmeshConstantBufferAddress);
 
-	D3D12_VERTEX_BUFFER_VIEW VertexBufferView = StaticMeshInfo.MeshGeometry->VertexBufferView();
-	D3D12_INDEX_BUFFER_VIEW IndexBufferView = StaticMeshInfo.MeshGeometry->IndexBufferView();
+	D3D12_VERTEX_BUFFER_VIEW VertexBufferView = StaticMeshProxy.MeshGeometry->VertexBufferView();
+	D3D12_INDEX_BUFFER_VIEW IndexBufferView = StaticMeshProxy.MeshGeometry->IndexBufferView();
 	CommandList->IASetVertexBuffers(0, 1, &VertexBufferView);
 	CommandList->IASetIndexBuffer(&IndexBufferView);
-	CommandList->IASetPrimitiveTopology(StaticMeshInfo.MeshGeometry->PrimitiveType);
+	CommandList->IASetPrimitiveTopology(StaticMeshProxy.MeshGeometry->PrimitiveType);
 
 	CommandList->DrawIndexedInstanced(
-		StaticMeshInfo.IndexCount,
+		StaticMeshProxy.IndexCount,
 		1,
-		StaticMeshInfo.StartIndexLocation,
-		StaticMeshInfo.BaseVertexLocation,
+		StaticMeshProxy.StartIndexLocation,
+		StaticMeshProxy.BaseVertexLocation,
 		0
 	);
 }
@@ -494,7 +480,7 @@ void FSceneRenderer::FinishBackBuffer(ID3D12GraphicsCommandList* CommandList)
 	DepthStencilBuffer->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
 }
 
-void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuffer)
+void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuffer, const FRenderItemProxy* RenderItemProxy)
 {
 	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
 	UTimer* Timer = GetEngineTimer();
@@ -541,53 +527,41 @@ void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConsta
 	PassConstantBuffer->CopyData(0, PassConstants);
 }
 
-void FSceneRenderer::UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConstantBuffer)
+void FSceneRenderer::UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConstantBuffer, const FRenderItemProxy* RenderItemProxy)
 {
-	TUnorderedArray<FMeshInfo>& MeshInfoPool = GetRenderItemManager()->mMeshInfoPool;
-	size_t TargetIndex = MeshInfoPool.Size();
-	for (size_t i = 0; i < TargetIndex; ++i)
+	const auto& MeshCBProxies = RenderItemProxy->mMeshCBProxies;
+	for (size_t i = 0; i < MeshCBProxies.size(); ++i)
 	{
-		FMeshInfo MeshInfo = MeshInfoPool[i];
-		if (MeshInfo.DirtyFrameCount > 0)
-		{
-			FMeshConstantBuffer MeshCB;
-			XMMATRIX World = XMLoadFloat4x4(&MeshInfo.World);
-			XMVECTOR Determinant = XMMatrixDeterminant(World);
-			XMMATRIX InvWorld = XMMatrixInverse(&Determinant, World);
-			XMStoreFloat4x4(&MeshCB.World, XMMatrixTranspose(World));
-			XMStoreFloat4x4(&MeshCB.InvTransposeWorld, InvWorld);
-			MeshConstantBuffer->CopyData((int)i, MeshCB);
-			--MeshInfo.DirtyFrameCount;
-			MeshInfoPool[i] = MeshInfo;
-		}
+		const FMeshCBProxy& MeshCBProxy = MeshCBProxies[i];
+		FMeshConstantBuffer MeshCB;
+		XMMATRIX World = XMLoadFloat4x4(&MeshCBProxy.World);
+		XMVECTOR Determinant = XMMatrixDeterminant(World);
+		XMMATRIX InvWorld = XMMatrixInverse(&Determinant, World);
+		XMStoreFloat4x4(&MeshCB.World, XMMatrixTranspose(World));
+		XMStoreFloat4x4(&MeshCB.InvTransposeWorld, InvWorld);
+		MeshConstantBuffer->CopyData((int)i, MeshCB);
 	}
 }
 
-void FSceneRenderer::UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshConstantBuffer)
+void FSceneRenderer::UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshConstantBuffer, const FRenderItemProxy* RenderItemProxy)
 {
-	TUnorderedArray<FSubmeshInfo>& SubmeshInfoPool = GetRenderItemManager()->mSubmeshInfoPool;
-	size_t TargetIndex = SubmeshInfoPool.Size();
-	for (size_t i = 0; i < TargetIndex; ++i)
+	const auto& SubmeshProxies = RenderItemProxy->mSubmeshCBProxies;
+	for (size_t i = 0; i < SubmeshProxies.size(); ++i)
 	{
-		FSubmeshInfo SubmeshInfo = SubmeshInfoPool[i];
-		if (SubmeshInfo.DirtyFrameCount > 0)
-		{
-			FSubmeshConstantBuffer SubmeshCB;
-			SubmeshCB.MaterialIndex = SubmeshInfo.MaterialIndex;
-			SubmeshCB.SkyIrradianceCubeMapIndex = SubmeshInfo.SkyIrradianceCubeMapIndex;
-			SubmeshCB.SkySpecularCubeMapIndex = SubmeshInfo.SkySpecularCubeMapIndex;
-			SubmeshConstantBuffer->CopyData((int)i, SubmeshCB);
-
-			--SubmeshInfo.DirtyFrameCount;
-			SubmeshInfoPool[i] = SubmeshInfo;
-		}
+		FSubmeshCBProxy SubmeshInfo = SubmeshProxies[i];
+		FSubmeshConstantBuffer SubmeshCB;
+		SubmeshCB.MaterialIndex = SubmeshInfo.MaterialIndex;
+		// TODO: 하드코딩
+		SubmeshCB.SkyIrradianceCubeMapIndex = 2;
+		SubmeshCB.SkySpecularCubeMapIndex = 3;
+		SubmeshConstantBuffer->CopyData((int)i, SubmeshCB);
 	}
 }
 
-void FSceneRenderer::UpdateLightInfoCB(TUploadBuffer<FLightInfoConstantBuffer>* LightInfoConstantBuffer)
+void FSceneRenderer::UpdateLightInfoCB(TUploadBuffer<FLightInfoConstantBuffer>* LightInfoConstantBuffer, const FRenderItemProxy* RenderItemProxy)
 {
 	FLightInfoConstantBuffer LightInfoCB;
-	LightInfoCB.DirectionalLightNum = min((UINT)GetRenderItemManager()->mDirectionalLightInfoPool.Size(), DIR_LIGHTS_NUM);
+	LightInfoCB.DirectionalLightNum = min((UINT)RenderItemProxy->mDirectionalLightProxies.size(), DIR_LIGHTS_NUM);
 
 	LightInfoConstantBuffer->CopyData(0, LightInfoCB);
 }
@@ -613,68 +587,62 @@ void FSceneRenderer::UpdateMaterialSB(TUploadBuffer<FMaterialStructuredBuffer>* 
 	}
 }
 
-void FSceneRenderer::UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightStructuredBuffer>* DirectionalLightStructuredBuffer)
+void FSceneRenderer::UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightStructuredBuffer>* DirectionalLightStructuredBuffer, const FRenderItemProxy* RenderItemProxy)
 {
-	TUnorderedArray<FDirectionalLightInfo>& DirLightInfoPool = GetRenderItemManager()->mDirectionalLightInfoPool;
-	int TargetIndex = min(DIR_LIGHTS_NUM, (UINT)DirLightInfoPool.Size());
-	for (int i = 0; i < TargetIndex; ++i)
+	const auto& DirLightProxies = RenderItemProxy->mDirectionalLightProxies;
+	for (int i = 0; i < DirLightProxies.size(); ++i)
 	{
-		FDirectionalLightInfo DirLightInfo = DirLightInfoPool[i];
-		if (DirLightInfo.DirtyFrameCount > 0)
-		{
-			// TODO: 임시코드.
-			FDirectionalLightStructuredBuffer DirectionalLight;
-			DirectionalLight.Direction = DirLightInfo.Direction;
-			DirectionalLight.Color = DirLightInfo.Color;
-			DirectionalLight.ShadowMapIndex = DirLightInfo.ShadowMap->GetSRVHeapIndex();
+		FDirectionalLightProxy DirLightInfo = DirLightProxies[i];
 
-			// TODO: 하드코딩됨
-			float SphereRadius = sqrtf(100 * 100);
-			// 첫번째 광원만 그림자를 드리운다.
-			XMVECTOR LightDirection = XMLoadFloat3(&DirectionalLight.Direction);
-			XMVECTOR LightPosition = -2.0f * SphereRadius * LightDirection;
-			XMVECTOR TargetPosition = XMVectorSet(0, 0, 0, 0);
-			XMVECTOR LightUp = XMVectorSet(0, 1, 0, 0);
-			XMMATRIX LightView = XMMatrixLookAtLH(LightPosition, TargetPosition, LightUp);
+		// TODO: 임시코드.
+		FDirectionalLightStructuredBuffer DirectionalLight;
+		DirectionalLight.Direction = DirLightInfo.Direction;
+		DirectionalLight.Color = DirLightInfo.Color;
+		DirectionalLight.ShadowMapIndex = DirLightInfo.ShadowMap->GetSRVHeapIndex();
 
-			// 경계구를 광원 공간으로 변환한다.
-			XMFLOAT3 SphereCenterLS;
-			XMStoreFloat3(&SphereCenterLS, XMVector3TransformCoord(TargetPosition, LightView));
+		// TODO: 하드코딩됨
+		float SphereRadius = sqrtf(100 * 100);
+		// 첫번째 광원만 그림자를 드리운다.
+		XMVECTOR LightDirection = XMLoadFloat3(&DirectionalLight.Direction);
+		XMVECTOR LightPosition = -2.0f * SphereRadius * LightDirection;
+		XMVECTOR TargetPosition = XMVectorSet(0, 0, 0, 0);
+		XMVECTOR LightUp = XMVectorSet(0, 1, 0, 0);
+		XMMATRIX LightView = XMMatrixLookAtLH(LightPosition, TargetPosition, LightUp);
 
-			// 장면을 감싸는 광원 공간 직교투영 시야 입체
-			float l = SphereCenterLS.x - SphereRadius;
-			float b = SphereCenterLS.y - SphereRadius;
-			float n = SphereCenterLS.z - SphereRadius;
-			float r = SphereCenterLS.x + SphereRadius;
-			float t = SphereCenterLS.y + SphereRadius;
-			float f = SphereCenterLS.z + SphereRadius;
+		// 경계구를 광원 공간으로 변환한다.
+		XMFLOAT3 SphereCenterLS;
+		XMStoreFloat3(&SphereCenterLS, XMVector3TransformCoord(TargetPosition, LightView));
 
-			XMMATRIX LightProj = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
+		// 장면을 감싸는 광원 공간 직교투영 시야 입체
+		float l = SphereCenterLS.x - SphereRadius;
+		float b = SphereCenterLS.y - SphereRadius;
+		float n = SphereCenterLS.z - SphereRadius;
+		float r = SphereCenterLS.x + SphereRadius;
+		float t = SphereCenterLS.y + SphereRadius;
+		float f = SphereCenterLS.z + SphereRadius;
 
-			static XMMATRIX T(
-				0.5f, 0.0f, 0.0f, 0.0f,
-				0.0f, -0.5f, 0.0f, 0.0f,
-				0.0f, 0.0f, 1.0f, 0.0f,
-				0.5f, 0.5f, 0.0f, 1.0f
-			);
+		XMMATRIX LightProj = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
 
-			XMMATRIX S = LightView * LightProj * T;
+		static XMMATRIX T(
+			0.5f, 0.0f, 0.0f, 0.0f,
+			0.0f, -0.5f, 0.0f, 0.0f,
+			0.0f, 0.0f, 1.0f, 0.0f,
+			0.5f, 0.5f, 0.0f, 1.0f
+		);
 
-			XMStoreFloat4x4(&DirectionalLight.LightViewProj, XMMatrixTranspose(LightView * LightProj));
-			XMStoreFloat4x4(&DirectionalLight.ShadowTransform, XMMatrixTranspose(S));
+		XMMATRIX S = LightView * LightProj * T;
 
-			DirectionalLightStructuredBuffer->CopyData(i, DirectionalLight);
+		XMStoreFloat4x4(&DirectionalLight.LightViewProj, XMMatrixTranspose(LightView * LightProj));
+		XMStoreFloat4x4(&DirectionalLight.ShadowTransform, XMMatrixTranspose(S));
 
-			--DirLightInfo.DirtyFrameCount;
-			DirLightInfoPool[i] = DirLightInfo;
-		}
+		DirectionalLightStructuredBuffer->CopyData(i, DirectionalLight);
 	}
 }
 
-void FSceneRenderer::UpdateTargetFrameResource()
+void FSceneRenderer::UpdateTargetFrameResource(const FRenderItemProxy* RenderItemProxy)
 {
 	SwitchToNextFrameResource();
-	UpdateFrameBuffers(GetTargetFrameResource());
+	UpdateFrameBuffers(GetTargetFrameResource(), RenderItemProxy);
 }
 
 void FSceneRenderer::SwitchToNextFrameResource()

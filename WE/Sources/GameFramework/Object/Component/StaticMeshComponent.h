@@ -6,13 +6,21 @@
 
 class WStaticMeshComponent : public WPrimitiveComponent
 {
+	typedef WPrimitiveComponent Super;
 public:
 	WStaticMeshComponent();
+
+protected:
+	virtual void UpdateConstantBufferIndex() override;
+
+	virtual void UpdateProxies() override;
+
+public:
 	void SetStaticMesh(const FStaticMesh& StaticMesh);
 
 private:
 	FStaticMesh mStaticMesh;
-	std::array<std::array<std::vector<size_t>, EBM_None>, ESM_None> mStaticMeshInfoPoolIds;
+	std::vector<size_t> mStaticMeshProxyIndecies;
 	std::vector<size_t> mSubmeshCBIndices;
 	bool mbCastShadow = true;
 

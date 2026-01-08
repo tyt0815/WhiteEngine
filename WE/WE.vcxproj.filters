@@ -104,9 +104,6 @@
     <ClCompile Include="Sources\GameFramework\Object\Component\StaticMeshComponent.cpp">
       <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Render\RenderItemManager.cpp">
-      <Filter>Sources\Render</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\GameFramework\Object\Component\CameraComponent.cpp">
       <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClCompile>
@@ -188,6 +185,9 @@
     <ClCompile Include="Sources\GameFramework\Object\Component\MovementComponent.cpp">
       <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\GameFramework\RenderItemProxy.cpp">
+      <Filter>Sources\GameFramework</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -261,9 +261,6 @@
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\Component\StaticMeshComponent.h">
       <Filter>Sources\GameFramework\Object\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Render\RenderItemManager.h">
-      <Filter>Sources\Render</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Render\StaticMesh.h">
       <Filter>Sources\Render</Filter>
@@ -345,6 +342,12 @@
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\Component\MovementComponent.h">
       <Filter>Sources\GameFramework\Object\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\RenderItemProxy.h">
+      <Filter>Sources\GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Render\RenderItem.h">
+      <Filter>Sources\Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

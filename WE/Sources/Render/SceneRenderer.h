@@ -8,10 +8,10 @@
 #include "Material.h"
 #include "DepthStencil.h"
 #include "GausiaanBlurFilter.h"
-#include "RenderItemManager.h"
 #include "UploadBuffer.h"
 #include "Utility/Class.h"
 #include "Utility/String.h"
+#include "GameFramework/RenderItemProxy.h"
 
 extern const int gFrameResourcesNum;
 constexpr int FRAME_RESOURCES_NUM = 3;
@@ -20,8 +20,6 @@ constexpr int DIR_LIGHTS_NUM = 3;
 // CosntantBuffer
 constexpr int MESH_CB_NUM = 512;
 constexpr int SUBMESH_CB_NUM = 1024;
-
-class FRenderItemManager;
 
 struct FDirectionalLightStructuredBuffer
 {
@@ -168,7 +166,7 @@ public:
     FSceneRenderer();
     virtual ~FSceneRenderer() = default;
     virtual void Initialize(ID3D12Device* Device);
-    void Tick();
+    void Tick(const FRenderItemProxy* RenderItemProxy);
     virtual void Destroy();
 
 protected:
@@ -181,7 +179,7 @@ protected:
     void BuildShadowMapShaders();
     virtual void BuildPipelineStates(ID3D12Device* Device);
     void BuildShadowMapPassPipelineStates(ID3D12Device* Device);
-    virtual void UpdateFrameBuffers(FFrameResourceBase* FrameResource);
+    virtual void UpdateFrameBuffers(FFrameResourceBase* FrameResource, const FRenderItemProxy* RenderItemProxy);
     virtual void Render(
         ID3D12GraphicsCommandList* CommandList,
         FFrameResourceBase* FrameResourceBase,
@@ -189,7 +187,8 @@ protected:
         D3D12_CPU_DESCRIPTOR_HANDLE Rtv,
         D3D12_CPU_DESCRIPTOR_HANDLE Dsv,
         D3D12_VIEWPORT Viewport,
-        D3D12_RECT ScissorRect
+        D3D12_RECT ScissorRect,
+        const FRenderItemProxy* RenderItemProxy
     ) = 0;
 
     void DrawRectPass(
@@ -201,7 +200,11 @@ protected:
         std::string PipelineStateName = "DrawRectPass"
     );
 
-    void DrawShadowMap(ID3D12GraphicsCommandList* CommandList, FFrameResourceBase* FrameResource);
+    void DrawShadowMap(
+        ID3D12GraphicsCommandList* CommandList,
+        FFrameResourceBase* FrameResource,
+        const FRenderItemProxy* RenderItemProxy
+    );
 
     void ClearRenderTargetAndDepthStencil(
         ID3D12GraphicsCommandList* CommandList,
@@ -214,14 +217,14 @@ protected:
         ID3D12GraphicsCommandList* CommandList,
         ID3D12Resource* MeshConstantBuffer,
         ID3D12Resource* SubmeshConstantBuffer,
-        FRenderItemManager* RIM
+        const FRenderItemProxy* RenderItemProxy
     );
 
     void DrawStaticMesh(
         ID3D12GraphicsCommandList* CommandList,
         ID3D12Resource* MeshConstantBuffer,
         ID3D12Resource* SubmeshConstantBuffer,
-        const FStaticMeshInfo& StaticMeshInfo
+        const FStaticMeshProxy& StaticMeshProxy
     );
 
 
@@ -239,14 +242,14 @@ protected:
     bool bWireFrame = false;
 
 private:
-    void UpdateTargetFrameResource();
+    void UpdateTargetFrameResource(const FRenderItemProxy* RenderItemProxy);
     void SwitchToNextFrameResource();
-    void UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuffer);
-    void UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConstantBuffer);
-    void UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshConstantBuffer);
-    void UpdateLightInfoCB(TUploadBuffer<FLightInfoConstantBuffer>* LightInfoConstantBuffer);
+    void UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuffer, const FRenderItemProxy* RenderItemProxy);
+    void UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConstantBuffer, const FRenderItemProxy* RenderItemProxy);
+    void UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshConstantBuffer, const FRenderItemProxy* RenderItemProxy);
+    void UpdateLightInfoCB(TUploadBuffer<FLightInfoConstantBuffer>* LightInfoConstantBuffer, const FRenderItemProxy* RenderItemProxy);
     void UpdateMaterialSB(TUploadBuffer<FMaterialStructuredBuffer>* MaterialStructuredBuffer);
-    void UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightStructuredBuffer>* DirectionalLightStructuredBuffer);
+    void UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightStructuredBuffer>* DirectionalLightStructuredBuffer, const FRenderItemProxy* RenderItemProxy);
 
 public:
     inline FFrameResourceBase* GetTargetFrameResource() const
