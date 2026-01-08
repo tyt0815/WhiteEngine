@@ -4,6 +4,7 @@
 
 class ABox : public AActor
 {
+	typedef AActor Super;
 public:
 	ABox();
 };

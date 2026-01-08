@@ -1,5 +1,6 @@
 #include "Actor.h"
 #include "GameFramework/Object/Component/SceneComponent.h"
+#include "GameFramework/Object/World/World.h"
 
 void AActor::Tick(float Delta)
 {
@@ -53,6 +54,11 @@ XMFLOAT3 AActor::GetUpVector() const
 	XMFLOAT3 Up;
 	XMStoreFloat3(&Up, U);
 	return Up;
+}
+
+void AActor::Destroy()
+{
+	GetWorld()->DestroyActor(this);
 }
 
 void AActor::SetupComponent(WActorComponent* Component)

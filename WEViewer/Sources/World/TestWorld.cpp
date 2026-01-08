@@ -28,14 +28,14 @@ WTestWorld::WTestWorld()
 	Transform.Translation = XMFLOAT3(0.0f, -2.0f, 0.0f);
 	Actor->SetActorTransform(Transform);
 
-	//Actor = SpawnActor<AProjectileSphere>();
-	//Transform.Translation = XMFLOAT3(0.0f, 0.0f, 5.0f);
-	//Transform.Rotation = XMFLOAT3(0.0f, 90.0f, 0.0f);
-	//Actor->SetActorTransform(Transform);
-
 	ADirectionalLight* LightActor;
 	LightActor = SpawnActor<ADirectionalLight>();
 	Transform.Rotation = XMFLOAT3(0.0f, -45, -45);
 	LightActor->SetActorTransform(Transform);
 	LightActor->GetDirLightComp()->SetColor({10.0f, 10.0f, 10.0f});
+
+	Actor = SpawnActor<AProjectileSphere>();
+	Transform.Translation = XMFLOAT3(0.0f, 0.0f, 5.0f);
+	Transform.Rotation = XMFLOAT3(0.0f, 90.0f, 0.0f);
+	Actor->SetActorTransform(Transform);
 }

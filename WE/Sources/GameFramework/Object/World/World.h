@@ -20,8 +20,14 @@ public:
 	template<typename T>
 	T* SpawnActor();
 
+	void DestroyActor(AActor* Actor);
+
 private:
+	void FlushDestroyQueue();
+
 	TUnorderedArray<std::unique_ptr<AActor>> mAllActors;
+
+	std::vector<AActor*> DestroyQueue;
 
 	APawn* mPlayer = nullptr;
 
@@ -97,6 +103,7 @@ inline T* WWorld::SpawnActor()
 	UINT Index = (UINT)mAllActors.Add(std::make_unique<T>());
 	T* Actor = dynamic_cast<T*>(mAllActors[Index].get());
 	Actor->SetWorld(this);
+	Actor->SetActorId(Index);
 
 	if (Actor->GetRootComponent() == nullptr)
 	{

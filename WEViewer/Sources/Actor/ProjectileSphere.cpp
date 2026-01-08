@@ -11,3 +11,15 @@ AProjectileSphere::AProjectileSphere()
 	WProjectileMovementComponent* ProjComp = CreateComponent<WProjectileMovementComponent>();
 	ProjComp->mVelocity = { 0.0f, 0.0f, 0.0005f };
 }
+
+void AProjectileSphere::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	ElapsedTime += DeltaTime;
+
+	if (ElapsedTime > 5)
+	{
+		Destroy();
+	}
+}

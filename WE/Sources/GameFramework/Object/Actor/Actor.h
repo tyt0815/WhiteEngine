@@ -16,6 +16,8 @@ class WCameraComponent;
 class AActor
 {
 public:
+	virtual ~AActor() {};
+
 	virtual void Tick(float Delta);
 
 	template<typename T>
@@ -29,7 +31,10 @@ public:
 
 	XMFLOAT3 GetUpVector() const;
 
+	void Destroy();
+
 private:
+
 	void SetupComponent(WActorComponent* Component);
 
 	void SetupSceneComponent(WSceneComponent* Component);
@@ -42,8 +47,11 @@ private:
 
 	WSceneComponent* mRootComponent = nullptr;
 
-	WWorld* mWorld;
+	WWorld* mWorld = nullptr;
 
+	size_t mActorId = -1;
+
+	bool mbPendingKill = false;
 
 public:
 	inline TUnorderedArray<std::unique_ptr<WActorComponent>>& GetAllComponents()
@@ -55,45 +63,75 @@ public:
 	{
 		return mRootComponent;
 	}
+
 	inline FTransform GetActorTransform() const
 	{
 		return mRootComponent->GetLocalTransform();
 	}
+
 	inline void SetActorTransform(FTransform Transform)
 	{
 		mRootComponent->SetLocalTransform(Transform);
 	}
+
 	inline XMFLOAT3 GetActorLocation() const
 	{
 		return mRootComponent->GetLocalLocation();
 	}
+
 	inline void SetActorLocation(XMFLOAT3 Location)
 	{
 		mRootComponent->SetLocalLocation(Location);
 	}
+
 	inline XMFLOAT3 GetActorRotation() const
 	{
 		return mRootComponent->GetLocalRotation();
 	}
+
 	inline void SetActorRotation(XMFLOAT3 Rotation)
 	{
 		mRootComponent->SetLocalRotation(Rotation);
 	}
+
 	inline XMFLOAT3 GetActorScale() const
 	{
 		return mRootComponent->GetLocalScale();
 	}
+
 	inline void SetActorScale(XMFLOAT3 Scale)
 	{
 		mRootComponent->SetLocalScale(Scale);
 	}
+
 	inline WWorld* GetWorld() const
 	{
 		return mWorld;
 	}
+
 	inline void SetWorld(WWorld* World)
 	{
 		mWorld = World;
+	}
+
+	inline void MarkPendingKill()
+	{
+		mbPendingKill = true;
+	}
+
+	inline bool IsValid() const
+	{
+		return !mbPendingKill;
+	}
+
+	inline size_t GetActorId() const
+	{
+		return mActorId;
+	}
+
+	inline void SetActorId(size_t Id)
+	{
+		mActorId = Id;
 	}
 };
 
