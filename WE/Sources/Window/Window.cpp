@@ -2,7 +2,7 @@
 
 #include <windowsx.h>
 
-FWindow gMainWindow = FWindow(L"MainWindow", L"WE", 1920, 1080);
+FWindow gMainWindow = FWindow(L"MainWindow", L"WE", 1600, 900);
 
 LRESULT CALLBACK WindowProcedure(HWND WindowHandle, UINT Message, WPARAM WParam, LPARAM LParam)
 {
