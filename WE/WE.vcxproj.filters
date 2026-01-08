@@ -188,6 +188,9 @@
     <ClCompile Include="Sources\GameFramework\RenderItemProxy.cpp">
       <Filter>Sources\GameFramework</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Component\ProjectileMovementComponent.cpp">
+      <Filter>Sources\GameFramework\Object\Component</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">

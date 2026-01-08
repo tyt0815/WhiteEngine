@@ -30,6 +30,7 @@
     <ClCompile Include="Sources\GameFramework\Object\Component\LightComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\MovementComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\PrimitiveComponent.cpp" />
+    <ClCompile Include="Sources\GameFramework\Object\Component\ProjectileMovementComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\SceneComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\StaticMeshComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Pawn\Pawn.cpp" />

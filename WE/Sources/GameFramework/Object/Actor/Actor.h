@@ -18,6 +18,8 @@ class AActor
 public:
 	virtual ~AActor() {};
 
+	virtual void BeginPlay() {};
+
 	virtual void Tick(float Delta);
 
 	template<typename T>

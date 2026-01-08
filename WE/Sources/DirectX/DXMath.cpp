@@ -30,18 +30,63 @@ FTransform::FTransform(XMFLOAT3 InScale, XMFLOAT3 InRotation, XMFLOAT3 InTransla
 {
 }
 
-XMFLOAT4X4 FTransform::GetTransformMatrix()
+XMFLOAT4X4 FTransform::GetScaleMatrix()
 {
-	XMMATRIX S = XMMatrixScalingFromVector(GetScaleXMVECTOR());
+	XMFLOAT4X4 Mat;
+	XMStoreFloat4x4(&Mat, XMMatrixScalingFromVector(XMLoadFloat3(&Scale)));
+	return Mat;
+}
+
+XMFLOAT4X4 FTransform::GetRotationMatrix()
+{
 	XMMATRIX R = XMMatrixRotationRollPitchYaw(
 		XMConvertToRadians(Rotation.x),
 		XMConvertToRadians(Rotation.y),
 		XMConvertToRadians(Rotation.z)
 	);
-	XMMATRIX T = XMMatrixTranslationFromVector(GetTranslationXMVECTOR());
+	XMFLOAT4X4 Mat;
+	XMStoreFloat4x4(&Mat, R);
+	return Mat;
+}
+
+XMFLOAT4X4 FTransform::GetTranslationMatrix()
+{
+	XMFLOAT4X4 Mat;
+	XMStoreFloat4x4(&Mat, XMMatrixTranslationFromVector(XMLoadFloat3(&Translation)));
+	return Mat;
+}
+
+XMFLOAT4X4 FTransform::GetTransformMatrix()
+{
+	XMFLOAT4X4 Scale = GetScaleMatrix();
+	XMFLOAT4X4 Rotation = GetRotationMatrix();
+	XMFLOAT4X4 Translation = GetTranslationMatrix();
+	XMMATRIX S = XMLoadFloat4x4(&Scale);
+	XMMATRIX R = XMLoadFloat4x4(&Rotation);
+	XMMATRIX T = XMLoadFloat4x4(&Translation);
 	XMFLOAT4X4 Matrix;
 	XMStoreFloat4x4(&Matrix, S * R * T);
 	return Matrix;
+}
+
+XMFLOAT4 FTransform::GetQuaternionRotation()
+{
+	XMVECTOR RotationQuat = XMQuaternionRotationRollPitchYaw(
+		XMConvertToRadians(Rotation.x),
+		XMConvertToRadians(Rotation.y),
+		XMConvertToRadians(Rotation.z)
+	);
+	XMFLOAT4 Quat;
+	XMStoreFloat4(&Quat, RotationQuat);
+	return Quat;
+}
+
+XMFLOAT4X4 FTransform::GetQuaternionRotationMatrix()
+{
+	XMFLOAT4 Quat = GetQuaternionRotation();
+	XMFLOAT4X4 Mat;
+	XMStoreFloat4x4(&Mat, XMMatrixRotationQuaternion(XMLoadFloat4(&Quat)));
+	return Mat;
 }
 
 float FDXMath::AngleFromXY(float x, float y)

@@ -111,5 +111,7 @@ inline T* WWorld::SpawnActor()
 		Actor->SetRootComponent(DummyRoot);
 	}
 
+	Actor->BeginPlay();
+
 	return Actor;
 }

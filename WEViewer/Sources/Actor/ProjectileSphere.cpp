@@ -9,17 +9,5 @@ AProjectileSphere::AProjectileSphere()
 	Component->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_RustedIron2Sphere));
 
 	WProjectileMovementComponent* ProjComp = CreateComponent<WProjectileMovementComponent>();
-	ProjComp->mVelocity = { 0.0f, 0.0f, 0.0005f };
-}
-
-void AProjectileSphere::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	ElapsedTime += DeltaTime;
-
-	if (ElapsedTime > 5)
-	{
-		Destroy();
-	}
+	ProjComp->mVelocity = { 0.0f, 0.0f, 1.0f };
 }

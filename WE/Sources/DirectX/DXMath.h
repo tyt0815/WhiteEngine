@@ -26,24 +26,23 @@ public:
 	{}
 	FTransform(XMFLOAT3 Scale, XMFLOAT3 Rotation, XMFLOAT3 Translation);
 	~FTransform() = default;
+
+	XMFLOAT4X4 GetScaleMatrix();
+
+	XMFLOAT4X4 GetRotationMatrix();
+
+	XMFLOAT4X4 GetTranslationMatrix();
+
 	XMFLOAT4X4 GetTransformMatrix();
+
+	XMFLOAT4 GetQuaternionRotation();
+
+	XMFLOAT4X4 GetQuaternionRotationMatrix();
 
 	XMFLOAT3 Scale;
 	XMFLOAT3 Rotation;
 	XMFLOAT3 Translation;
 public:
-	inline XMVECTOR GetScaleXMVECTOR() 
-	{ 
-		return XMLoadFloat3(&Scale); 
-	}
-	inline XMVECTOR GetRotationXMVECTOR() 
-	{ 
-		return XMLoadFloat3(&Rotation); 
-	}
-	inline XMVECTOR GetTranslationXMVECTOR() 
-	{ 
-		return XMLoadFloat3(&Translation); 
-	}
 };
 
 class FDXMath

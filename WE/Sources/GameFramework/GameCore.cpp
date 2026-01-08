@@ -2,6 +2,8 @@
 #include "Window/Window.h"
 #include "Utility/Timer.h"
 #include "DirectX/DXResourceManager.h"
+#include "Render/MeshGeometry.h"
+#include "Render/Texture.h"
 
 #pragma comment(lib,"d3dcompiler.lib")
 #pragma comment(lib, "D3D12.lib")
@@ -45,7 +47,10 @@ namespace GameCore
 
 	void InitializeApplication(IGameApp& Game)
 	{
-
+		// TODO: 현재 Commandlist를 통해 리소스 버퍼를 저장하는 몇몇 싱글톤 클래스를 명시적으로 
+		// 호출해야 안정적인 실행이 가능함. 나중에 다중 스레드로 만들어서 해결해야할 필요 있음
+		GetMeshGeometryManager();
+		GetTextureManager();
 
 		Game.Startup();
 	}

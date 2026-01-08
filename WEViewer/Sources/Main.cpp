@@ -10,6 +10,7 @@
 
 class FTestApp : public GameCore::IGameApp
 {
+    typedef GameCore::IGameApp Super;
 public:
 	virtual void Startup() override;
 
@@ -19,26 +20,27 @@ public:
 
 
 private:
-    WTestWorld mWorld;
-    FDeferredShadingSceneRenderer mRenderer;
+    std::unique_ptr<WTestWorld> mWorld;
+    std::unique_ptr<FDeferredShadingSceneRenderer> mRenderer;
 };
 
 CREATE_APPLICATION(FTestApp)
 
 void FTestApp::Startup()
 {
-    mRenderer.Initialize(GetDXResourceManagerPtr()->GetDevicePtr());
+    mWorld = std::make_unique<WTestWorld>();
+    mRenderer = std::make_unique<FDeferredShadingSceneRenderer>();
+    mRenderer->Initialize(GetDXResourceManagerPtr()->GetDevicePtr());
 }
 
 void FTestApp::Cleanup()
 {
-    mRenderer.Destroy();
-
+    mRenderer->Destroy();
 }
 
 void FTestApp::Update(float DeltaTime)
 {
-    mWorld.Tick(DeltaTime);
+    mWorld->Tick(DeltaTime);
 
-    mRenderer.Tick(mWorld.GetRenderItemProxyPtr());
+    mRenderer->Tick(mWorld->GetRenderItemProxyPtr());
 }
