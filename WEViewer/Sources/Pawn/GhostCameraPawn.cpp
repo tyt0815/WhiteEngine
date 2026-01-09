@@ -64,4 +64,5 @@ void AGhostCameraPawn::Fire(FMouseInputParameter Parameter)
 	ABullet* Bullet = GetWorld()->SpawnActor<ABullet>();
 	Bullet->SetActorLocation(GetActorLocation());
 	Bullet->SetActorRotation(GetActorRotation());
+	Bullet->SetLifeSpan(1);
 }

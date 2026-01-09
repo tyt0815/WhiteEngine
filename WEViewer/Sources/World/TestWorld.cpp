@@ -36,8 +36,8 @@ WTestWorld::WTestWorld()
 	Transform.Translation = XMFLOAT3(0.0f, -5.0f, 0.0f);
 	Actor->SetActorTransform(Transform);
 
-	Actor = SpawnActor<AProjectileSpawner>();
-	Transform.Translation = XMFLOAT3(0.0f, 0.0f, 5.0f);
-	Transform.Rotation = XMFLOAT3(0.0f, 90.0f, 0.0f);
-	Actor->SetActorTransform(Transform);
+	//Actor = SpawnActor<AProjectileSpawner>();
+	//Transform.Translation = XMFLOAT3(0.0f, 0.0f, 5.0f);
+	//Transform.Rotation = XMFLOAT3(0.0f, 90.0f, 0.0f);
+	//Actor->SetActorTransform(Transform);
 }
