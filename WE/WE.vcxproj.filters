@@ -48,6 +48,9 @@
     <Filter Include="Resources\Textures">
       <UniqueIdentifier>{e571654b-8841-4804-b2e7-5cba740881ae}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Physics">
+      <UniqueIdentifier>{aa07d7e0-7fa0-4b7e-bffa-53bd74998465}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Utility\Timer.cpp">
@@ -190,6 +193,9 @@
     </ClCompile>
     <ClCompile Include="Sources\GameFramework\Object\Component\ProjectileMovementComponent.cpp">
       <Filter>Sources\GameFramework\Object\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Physics\PhysicsCore.cpp">
+      <Filter>Sources\Physics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -351,6 +357,9 @@
     </ClInclude>
     <ClInclude Include="Sources\Render\RenderItem.h">
       <Filter>Sources\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Physics\PhysicsCore.h">
+      <Filter>Sources\Physics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

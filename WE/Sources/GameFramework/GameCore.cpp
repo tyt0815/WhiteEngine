@@ -4,6 +4,7 @@
 #include "DirectX/DXResourceManager.h"
 #include "Render/MeshGeometry.h"
 #include "Render/Texture.h"
+#include "Physics/PhysicsCore.h"
 
 #pragma comment(lib,"d3dcompiler.lib")
 #pragma comment(lib, "D3D12.lib")
@@ -51,6 +52,8 @@ namespace GameCore
 		// 호출해야 안정적인 실행이 가능함. 나중에 다중 스레드로 만들어서 해결해야할 필요 있음
 		GetMeshGeometryManager();
 		GetTextureManager();
+
+		Physics::Initialize();
 
 		Game.Startup();
 	}

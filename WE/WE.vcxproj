@@ -36,6 +36,7 @@
     <ClCompile Include="Sources\GameFramework\Object\Pawn\Pawn.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\World\World.cpp" />
     <ClCompile Include="Sources\GameFramework\RenderItemProxy.cpp" />
+    <ClCompile Include="Sources\Physics\PhysicsCore.cpp" />
     <ClCompile Include="Sources\Render\CubeRenderTarget.cpp" />
     <ClCompile Include="Sources\Render\DDSTextureLoader.cpp" />
     <ClCompile Include="Sources\Render\DeferredShadingSceneRenderer.cpp" />
@@ -88,6 +89,7 @@
     <ClInclude Include="Sources\GameFramework\Object\Pawn\Pawn.h" />
     <ClInclude Include="Sources\GameFramework\Object\World\World.h" />
     <ClInclude Include="Sources\GameFramework\RenderItemProxy.h" />
+    <ClInclude Include="Sources\Physics\PhysicsCore.h" />
     <ClInclude Include="Sources\Render\CubeRenderTarget.h" />
     <ClInclude Include="Sources\Render\DDSTextureLoader.h" />
     <ClInclude Include="Sources\Render\DeferredShadingSceneRenderer.h" />
@@ -306,6 +308,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)\$(ProjectName)\Build\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\$(ProjectName)\Intermediate\$(Configuration)\</IntDir>
+    <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -314,18 +322,22 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(SolutionDir)\WE\Sources\</AdditionalIncludeDirectories>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <PreprocessorDefinitions>PROJECT_DIR=R"($(ProjectDir))";PROJECT_DIR_W=LR"($(ProjectDir))";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PROJECT_DIR=R"($(ProjectDir))";PROJECT_DIR_W=LR"($(ProjectDir))";JPH_STATIC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>$(ProjectDir)Sources;$(SolutionDir)External\JoltPhysics;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)\WE\Sources\</AdditionalLibraryDirectories>
     </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>$(SolutionDir)External\JoltPhysics\Build\VS2019_CL\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Jolt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -334,8 +346,9 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <PreprocessorDefinitions>PROJECT_DIR=R"($(ProjectDir))";PROJECT_DIR_W=LR"($(ProjectDir))";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PROJECT_DIR=R"($(ProjectDir))";PROJECT_DIR_W=LR"($(ProjectDir))";JPH_STATIC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>$(ProjectDir)Sources;$(SolutionDir)External\JoltPhysics;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
