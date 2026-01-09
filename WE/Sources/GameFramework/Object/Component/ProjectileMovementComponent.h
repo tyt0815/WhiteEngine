@@ -8,7 +8,8 @@ public:
 	virtual void TickComponent(float DeltaTime) override;
 
 protected:
-	float mLiftSpan = 5.0f;
+	// 투사체 수명. 0일시 영구 지속
+	float mLifeSpan = 5.0f;
 
 private:
 	float mLifeTimeElapsed = 0.0f;
@@ -16,6 +17,6 @@ private:
 public:
 	void SetLifeSpan(float LifeSpan)
 	{
-		mLiftSpan = LifeSpan;
+		mLifeSpan = LifeSpan;
 	}
 };

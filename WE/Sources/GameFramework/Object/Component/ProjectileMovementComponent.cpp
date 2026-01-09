@@ -6,8 +6,9 @@ void WProjectileMovementComponent::TickComponent(float DeltaTime)
 	Super::TickComponent(DeltaTime);
 
 	mLifeTimeElapsed += DeltaTime;
-	if (mLifeTimeElapsed > mLiftSpan)
+	if (mLifeSpan > 0 && mLifeTimeElapsed > mLifeSpan)
 	{
 		GetOwner()->Destroy();
 	}
 }
+
