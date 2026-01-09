@@ -17,10 +17,10 @@ void AProjectileSpawner::Tick(float DeltaTime)
 	mCoolDown += DeltaTime;
 	if(mCoolDown > 1)
 	{
-		int SpawnNum = 100;
+		int SpawnNum = 1;
 		for (int i = 0; i < SpawnNum; ++i)
 		{
-			//SpawnRandomProjectile();
+			SpawnRandomProjectile();
 		}
 		//SpawnBullet();
 		mCoolDown = 0;
