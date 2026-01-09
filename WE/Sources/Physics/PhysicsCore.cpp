@@ -350,6 +350,7 @@ void Physics::Initialize()
 	// Unregisters all types with the factory and cleans up the default material
 	UnregisterTypes();
 
+
 	// Destroy the factory
 	delete Factory::sInstance;
 	Factory::sInstance = nullptr;
