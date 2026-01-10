@@ -139,6 +139,12 @@ inline XMFLOAT4 ToDXQuatRotation(JPH::Quat JPHQuat)
 	return XMFLOAT4(-JPHQuat.GetX(), -JPHQuat.GetY(), JPHQuat.GetZ(), JPHQuat.GetW());
 }
 
+// 함수 본문
+inline EMotionType ToMotionType(EObjectType ObjectType) 
+{
+	return static_cast<EMotionType>(ObjectType);
+}
+
 FBody::FBody(const BodyCreationSettings& Settings)
 {
 	mBody = Physics::GetBodyInterface()->CreateBody(Settings);
@@ -163,6 +169,18 @@ void FBody::RemoveBody()
 void FBody::SetPosition(XMFLOAT3 Position)
 {
 	Physics::GetBodyInterface()->SetPosition(mBody->GetID(), ToJPHPosition(Position), EActivation::Activate);
+}
+
+void FBody::SetMotiontype(EObjectType ObjectType)
+{
+	Physics::GetBodyInterface()->SetMotionType(mBody->GetID(), ToMotionType(ObjectType), JPH::EActivation::Activate);
+}
+
+void FBody::SetActivate(bool bActivate)
+{
+	bActivate ?
+		Physics::GetBodyInterface()->ActivateBody(mBody->GetID()) :
+		Physics::GetBodyInterface()->DeactivateBody(mBody->GetID());
 }
 
 FTransform FBody::GetTransform() const
@@ -349,24 +367,24 @@ void Physics::Tick(float DeltaTime)
 	g_PhysicsSystem->Update(DeltaTime, 1, g_TempAllocator.get(), g_JobSystem.get());
 }
 
-std::unique_ptr<FBody> CreateBody(ShapeSettings::ShapeResult ShapeResult)
+std::unique_ptr<FBody> CreateBody(ShapeSettings::ShapeResult ShapeResult, EObjectType ObjectType, JPH::ObjectLayer ObjectChannel)
 {
 	ShapeRefC SphereShape = ShapeResult.Get();
-	BodyCreationSettings Settings(SphereShape, RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(), EMotionType::Dynamic, EObjectChannel::MOVING);
+	BodyCreationSettings Settings(SphereShape, RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(), ToMotionType(ObjectType), ObjectChannel);
 	return std::move(std::make_unique<FBody>(Settings));
 }
 
-std::unique_ptr<FBody> CreateBoxBody(XMFLOAT3 Size)
+std::unique_ptr<FBody> CreateBoxBody(XMFLOAT3 Size, EObjectType ObjectType, bool bActivate)
 {
 	BoxShapeSettings BoxSettings(RVec3(Size.x, Size.y, Size.z));
 	BoxSettings.SetEmbedded();
-	return std::move(CreateBody(BoxSettings.Create()));
+	return std::move(CreateBody(BoxSettings.Create(), ObjectType, EObjectChannel::NON_MOVING));
 }
 
-std::unique_ptr<FBody> CreateSphereBody(float Radius)
+std::unique_ptr<FBody> CreateSphereBody(float Radius, EObjectType ObjectType)
 {
 	SphereShapeSettings SphereSettings(Radius);
 	SphereSettings.SetEmbedded();
 
-	return std::move(CreateBody(SphereSettings.Create()));
+	return std::move(CreateBody(SphereSettings.Create(), ObjectType, EObjectChannel::MOVING));
 }

@@ -7,7 +7,7 @@ APhysicsSphere::APhysicsSphere()
 	SetRootComponent(Component);
 	Component->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_RustedIron2Sphere));
 
-	mBody = CreateSphereBody(0.5f);
+	mBody = CreateSphereBody(0.5f, EObjectType::EOT_Dynamic);
 	mBody->AddBody();
 }
 

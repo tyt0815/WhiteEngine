@@ -6,8 +6,13 @@
 
 class AFloor : public AActor
 {
+	typedef AActor Super;
 public:
 	AFloor();
+
+	virtual void BeginPlay() override;
+
+	virtual void Tick(float Delta) override;
 
 private:
 	std::unique_ptr<FBody> mBody;
