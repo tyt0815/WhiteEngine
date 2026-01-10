@@ -53,8 +53,6 @@ namespace GameCore
 		GetMeshGeometryManager();
 		GetTextureManager();
 
-		Physics::Initialize();
-
 		Game.Startup();
 	}
 

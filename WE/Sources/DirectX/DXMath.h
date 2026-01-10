@@ -6,11 +6,15 @@
 
 #pragma once
 
-#include <Windows.h>
 #include <DirectXMath.h>
 #include <cstdint>
+#include <stdlib.h>
 
 using namespace DirectX;
+
+typedef unsigned int	UINT;
+typedef unsigned char	BYTE;
+typedef unsigned short	USHORT;
 
 class FTransform
 {
@@ -27,17 +31,23 @@ public:
 	FTransform(XMFLOAT3 Scale, XMFLOAT3 Rotation, XMFLOAT3 Translation);
 	~FTransform() = default;
 
-	XMFLOAT4X4 GetScaleMatrix();
+	void SetRotationByQuat(XMFLOAT4 QuatRotation);
 
-	XMFLOAT4X4 GetRotationMatrix();
+	XMMATRIX XM_CALLCONV GetRotationMatrix();
 
-	XMFLOAT4X4 GetTranslationMatrix();
+	XMVECTOR XM_CALLCONV GetTranslationVector();
 
-	XMFLOAT4X4 GetTransformMatrix();
+	XMFLOAT4X4 GetScaleFloat4x4();
 
-	XMFLOAT4 GetQuaternionRotation();
+	XMFLOAT4X4 GetRotationFloat4x4();
 
-	XMFLOAT4X4 GetQuaternionRotationMatrix();
+	XMFLOAT4X4 GetTranslationFloat4x4();
+
+	XMFLOAT4X4 GetTransformFloat4x4();
+
+	XMFLOAT4 GetQuaternionRotationFloat4();
+
+	XMFLOAT4X4 GetQuaternionRotationFloat4x4();
 
 	XMFLOAT3 Scale;
 	XMFLOAT3 Rotation;
@@ -136,5 +146,7 @@ public:
 		XMVECTOR Determinant = XMMatrixDeterminant(Matrix);
 		return XMMatrixInverse(&Determinant, Matrix);;
 	}
+
+	static XMFLOAT3 QuaternionToEuler(XMFLOAT4 Quat);
 };
 

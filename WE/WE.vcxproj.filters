@@ -361,6 +361,9 @@
     <ClInclude Include="Sources\Physics\PhysicsCore.h">
       <Filter>Sources\Physics</Filter>
     </ClInclude>
+    <ClInclude Include="Sources\Physics\ObjectChannel.h">
+      <Filter>Sources\Physics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\BillboardCommon.hlsli">

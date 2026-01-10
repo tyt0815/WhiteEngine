@@ -4,10 +4,13 @@
 
 #include "Physics/PhysicsCore.h"
 
-class AFloor : public AActor
+class APhysicsSphere : public AActor
 {
+	typedef AActor Super;
 public:
-	AFloor();
+	APhysicsSphere();
+
+	virtual void Tick(float DeltaTiem) override;
 
 private:
 	std::unique_ptr<FBody> mBody;

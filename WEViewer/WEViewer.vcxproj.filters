@@ -53,6 +53,9 @@
     <ClCompile Include="Sources\Actor\ProjectileActor.cpp">
       <Filter>Sources\Actor</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Actor\PhysicsSphere.cpp">
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Actor\Box.h">
@@ -83,6 +86,9 @@
       <Filter>Sources\Actor</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Actor\ProjectileActor.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\PhysicsSphere.h">
       <Filter>Sources\Actor</Filter>
     </ClInclude>
   </ItemGroup>

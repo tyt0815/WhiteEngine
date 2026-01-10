@@ -2,6 +2,7 @@
 #include "World/TestWorld.h"
 #include "Render/DeferredShadingSceneRenderer.h"
 #include "DirectX/DXResourceManager.h"
+#include "Physics/PhysicsCore.h"
 
 
 #pragma comment(lib,"d3dcompiler.lib")
@@ -28,19 +29,26 @@ CREATE_APPLICATION(FTestApp)
 
 void FTestApp::Startup()
 {
+    Physics::Startup();
+
     mWorld = std::make_unique<WTestWorld>();
+
     mRenderer = std::make_unique<FDeferredShadingSceneRenderer>();
+
     mRenderer->Initialize(GetDXResourceManagerPtr()->GetDevicePtr());
 }
 
 void FTestApp::Cleanup()
 {
     mRenderer->Destroy();
+    Physics::Cleanup();
 }
 
 void FTestApp::Update(float DeltaTime)
 {
     mWorld->Tick(DeltaTime);
+
+    Physics::Tick(DeltaTime);
 
     mRenderer->Tick(mWorld->GetRenderItemProxyPtr());
 }

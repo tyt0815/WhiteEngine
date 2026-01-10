@@ -89,7 +89,7 @@ void WSceneComponent::UpdateWorldMatrix()
 			ParentWorld = FDXMath::Identity4x4();
 		}
 		XMMATRIX ParentWorldMat = XMLoadFloat4x4(&ParentWorld);
-		XMFLOAT4X4 Local = mTransform.GetTransformMatrix();
+		XMFLOAT4X4 Local = mTransform.GetTransformFloat4x4();
 		XMMATRIX LocalMat = XMLoadFloat4x4(&Local);
 		XMStoreFloat4x4(&mWorld, ParentWorldMat * LocalMat);
 		mbDirty = true;

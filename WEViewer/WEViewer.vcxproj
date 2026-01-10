@@ -22,6 +22,7 @@
     <ClCompile Include="Sources\Actor\Box.cpp" />
     <ClCompile Include="Sources\Actor\Bullet.cpp" />
     <ClCompile Include="Sources\Actor\Floor.cpp" />
+    <ClCompile Include="Sources\Actor\PhysicsSphere.cpp" />
     <ClCompile Include="Sources\Actor\ProjectileActor.cpp" />
     <ClCompile Include="Sources\Actor\ProjectileBox.cpp" />
     <ClCompile Include="Sources\Actor\ProjectileSpawner.cpp" />
@@ -40,6 +41,7 @@
     <ClInclude Include="Sources\Actor\Box.h" />
     <ClInclude Include="Sources\Actor\Bullet.h" />
     <ClInclude Include="Sources\Actor\Floor.h" />
+    <ClInclude Include="Sources\Actor\PhysicsSphere.h" />
     <ClInclude Include="Sources\Actor\ProjectileActor.h" />
     <ClInclude Include="Sources\Actor\ProjectileBox.h" />
     <ClInclude Include="Sources\Actor\ProjectileSpawner.h" />
@@ -149,6 +151,7 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

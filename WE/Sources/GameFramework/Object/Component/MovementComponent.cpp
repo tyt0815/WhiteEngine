@@ -6,7 +6,7 @@ void WMovementComponent::TickComponent(float DeltaTime)
 	Super::TickComponent(DeltaTime);
 
 	// 프레임마다 Owner를 이동시킴
-	XMFLOAT4 Quat = GetOwner()->GetActorTransform().GetQuaternionRotation();
+	XMFLOAT4 Quat = GetOwner()->GetActorTransform().GetQuaternionRotationFloat4();
 	XMVECTOR V = XMVector3Rotate(XMLoadFloat3(&mVelocity), XMLoadFloat4(&Quat));
 
 	XMFLOAT3 ScaledVelocity;

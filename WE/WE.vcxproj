@@ -89,6 +89,7 @@
     <ClInclude Include="Sources\GameFramework\Object\Pawn\Pawn.h" />
     <ClInclude Include="Sources\GameFramework\Object\World\World.h" />
     <ClInclude Include="Sources\GameFramework\RenderItemProxy.h" />
+    <ClInclude Include="Sources\Physics\ObjectChannel.h" />
     <ClInclude Include="Sources\Physics\PhysicsCore.h" />
     <ClInclude Include="Sources\Render\CubeRenderTarget.h" />
     <ClInclude Include="Sources\Render\DDSTextureLoader.h" />
