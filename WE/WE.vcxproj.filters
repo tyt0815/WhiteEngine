@@ -197,6 +197,9 @@
     <ClCompile Include="Sources\Physics\PhysicsCore.cpp">
       <Filter>Sources\Physics</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Physics\PhysicsDebugRenderer.cpp">
+      <Filter>Sources\Physics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -364,6 +367,12 @@
     <ClInclude Include="Sources\Physics\ObjectChannel.h">
       <Filter>Sources\Physics</Filter>
     </ClInclude>
+    <ClInclude Include="Sources\Physics\PhysicsDebugRenderer.h">
+      <Filter>Sources\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Physics\JPHUtility.h">
+      <Filter>Sources\Physics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\BillboardCommon.hlsli">
@@ -487,6 +496,9 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include=".editorconfig" />
+    <None Include="Shaders\DrawShapeCommon.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\Default.dds">
@@ -546,6 +558,9 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\PrecomputationTransmittanceLUTPassPixelShader.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\DrawLine3DPass.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

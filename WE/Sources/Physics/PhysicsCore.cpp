@@ -11,6 +11,7 @@
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
+#include "JPHUtility.h"
 
 #include <windows.h>
 #include <cstdarg>
@@ -122,21 +123,6 @@ namespace Physics
 	{
 		return &g_PhysicsSystem->GetBodyInterface();
 	}
-}
-
-inline XMFLOAT3 ToDXLocation(RVec3 JPHPos)
-{
-	return XMFLOAT3(JPHPos.GetX(), JPHPos.GetY(), -JPHPos.GetZ());
-}
-
-inline RVec3 ToJPHPosition(XMFLOAT3 DXLocation)
-{
-	return RVec3(DXLocation.x, DXLocation.y, -DXLocation.z);
-}
-
-inline XMFLOAT4 ToDXQuatRotation(JPH::Quat JPHQuat)
-{
-	return XMFLOAT4(-JPHQuat.GetX(), -JPHQuat.GetY(), JPHQuat.GetZ(), JPHQuat.GetW());
 }
 
 // 함수 본문
