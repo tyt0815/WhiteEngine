@@ -30,7 +30,7 @@ void WSplineComponent::LoadSplineFromAsset(const std::wstring& AssetName)
 	}
 }
 
-XMFLOAT3 WSplineComponent::GetLocationAtSplineInputKey(float InputKey)
+XMFLOAT3 WSplineComponent::GetLocalLocationAtSplineInputKey(float InputKey)
 {
 	XMVECTOR P0;
 	XMVECTOR P1;
@@ -46,7 +46,7 @@ XMFLOAT3 WSplineComponent::GetLocationAtSplineInputKey(float InputKey)
 	return Location;
 }
 
-XMFLOAT3 WSplineComponent::GetRotationAtSplineInputKey(float InputKey)
+XMFLOAT3 WSplineComponent::GetLocalRotationAtSplineInputKey(float InputKey)
 {
 	XMVECTOR P0;
 	XMVECTOR P1;
@@ -61,8 +61,10 @@ XMFLOAT3 WSplineComponent::GetRotationAtSplineInputKey(float InputKey)
 	XMVECTOR R;
 	if (XMVector3Dot(F, XMVectorSet(0, 1, 0, 0)).m128_f32[0] > 0.9)
 	{
-		U = XMVector3Normalize(XMVector3Cross(F, XMVectorSet(1, 0, 0, 0)));
-		R = XMVector3Cross(U, F);
+		R = XMVector3Normalize(XMVector3Cross(F, XMVectorSet(0, 1, 0, 0)));
+		U = XMVector3Cross(F, R);
+		/*U = XMVector3Normalize(XMVector3Cross(F, XMVectorSet(1, 0, 0, 0)));
+		R = XMVector3Cross(U, F);*/
 	}
 	else
 	{
@@ -74,13 +76,27 @@ XMFLOAT3 WSplineComponent::GetRotationAtSplineInputKey(float InputKey)
 	return Rotation;
 }
 
-FTransform WSplineComponent::GetTransformAtSplineInputKey(float InputKey)
+FTransform WSplineComponent::GetLocalTransformAtSplineInputKey(float InputKey)
 {
 	FTransform Transform;
-	Transform.Translation = GetLocationAtSplineInputKey(InputKey);
-	Transform.Rotation = GetRotationAtSplineInputKey(InputKey);
+	Transform.Translation = GetLocalLocationAtSplineInputKey(InputKey);
+	Transform.Rotation = GetLocalRotationAtSplineInputKey(InputKey);
 
 	return Transform;
+}
+
+FTransform WSplineComponent::GetWorldTransformAtSplineInputKey(float InputKey)
+{
+	XMFLOAT4X4 ComponentWorld = GetWorldMatrix();
+	XMMATRIX CW = XMLoadFloat4x4(&ComponentWorld);
+
+	FTransform SplineTransform = GetLocalTransformAtSplineInputKey(InputKey);
+	XMMATRIX SM = SplineTransform.GetTransformMatrix();
+
+	FTransform Result;
+	Result.SetByTransformMatrix(SM * CW);
+
+	return Result;
 }
 
 void WSplineComponent::SelectSplineNodesByInputKey(float InputKey, FSplineNode& LeftNode, FSplineNode& RightNode, float& t)
@@ -90,7 +106,7 @@ void WSplineComponent::SelectSplineNodesByInputKey(float InputKey, FSplineNode& 
 		return;
 	}
 
-	int NodeIndex = FDXMath::Clamp<int>(InputKey, 0, mSplineNodes.size() - 2);
+	int NodeIndex = FDXMath::Clamp<int>(static_cast<int>(InputKey), 0, static_cast<int>(mSplineNodes.size() - 2));
 	t = FDXMath::Clamp<float>(InputKey - NodeIndex, 0, 1);
 
 	LeftNode = mSplineNodes[NodeIndex];

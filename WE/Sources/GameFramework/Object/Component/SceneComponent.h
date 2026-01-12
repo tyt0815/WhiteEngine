@@ -22,6 +22,8 @@ public:
 
 	DirectX::XMFLOAT3 GetWorldLocation();
 
+	FTransform GetWorldTransform() const;
+
 	void SetupAttachment(WSceneComponent* Parent);
 
 	void SetLocalRotation(DirectX::XMFLOAT3 Rotation);

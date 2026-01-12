@@ -61,6 +61,22 @@ DirectX::XMFLOAT3 WSceneComponent::GetWorldLocation()
 	return WorldLocation;
 }
 
+FTransform WSceneComponent::GetWorldTransform() const
+{
+	XMVECTOR S;
+	XMVECTOR RQ;
+	XMVECTOR T;
+	XMMATRIX W = XMLoadFloat4x4(&mWorld);
+	XMMatrixDecompose(&S, &RQ, &T, W);
+	FTransform Transform;
+	XMStoreFloat3(&Transform.Scale, S);
+	XMStoreFloat3(&Transform.Translation, T);
+	XMFLOAT4 Quat;
+	XMStoreFloat4(&Quat, RQ);
+	Transform.SetRotationByQuat(Quat);
+	return Transform;
+}
+
 void WSceneComponent::SetLocalRotation(DirectX::XMFLOAT3 Rotation)
 {
 	mTransform.Rotation = Rotation;

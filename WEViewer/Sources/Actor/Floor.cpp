@@ -13,7 +13,7 @@ AFloor::AFloor()
 	SplineComponent = CreateComponent<WSplineComponent>();
 	SplineComponent->SetupAttachment(Component);
 	SplineComponent->LoadSplineFromAsset(L"SDA_Up");
-	SplineComponent->SetLocalLocation(XMFLOAT3(0.0f, 0.0f, -5.0f));
+	SplineComponent->SetLocalLocation(XMFLOAT3(0.0f, 5.0f, 5.0f));
 
 	mBody = CreateBoxBody({50, .5, 50}, EObjectType::EOT_Static, false);
 	mBody->AddBody();
@@ -39,7 +39,7 @@ void AFloor::Tick(float Delta)
 	static int AssetSelector = 0;
 
 	mSplineAlpha += Delta;
-	SplineFollowingActor->SetActorTransform(SplineComponent->GetTransformAtSplineInputKey(mSplineAlpha));
+	SplineFollowingActor->SetActorTransform(SplineComponent->GetWorldTransformAtSplineInputKey(mSplineAlpha));
 	if (mSplineAlpha > SplineComponent->GetControllPointNum())
 	{
 		AssetSelector = (AssetSelector + 1) % AssetNames.size();

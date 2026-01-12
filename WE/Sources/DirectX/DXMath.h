@@ -33,21 +33,29 @@ public:
 
 	void SetRotationByQuat(XMFLOAT4 QuatRotation);
 
-	XMMATRIX XM_CALLCONV GetRotationMatrix();
+	XMMATRIX XM_CALLCONV GetScaleMatrix() const;
 
-	XMVECTOR XM_CALLCONV GetTranslationVector();
+	XMMATRIX XM_CALLCONV GetRotationMatrix() const;
 
-	XMFLOAT4X4 GetScaleFloat4x4();
+	XMMATRIX XM_CALLCONV GetTranslationMatrix() const;
 
-	XMFLOAT4X4 GetRotationFloat4x4();
+	XMVECTOR XM_CALLCONV GetTranslationVector() const;
 
-	XMFLOAT4X4 GetTranslationFloat4x4();
+	XMMATRIX XM_CALLCONV GetTransformMatrix() const;
 
-	XMFLOAT4X4 GetTransformFloat4x4();
+	void XM_CALLCONV SetByTransformMatrix(FXMMATRIX M);
 
-	XMFLOAT4 GetQuaternionRotationFloat4();
+	XMFLOAT4X4 GetScaleFloat4x4() const;
 
-	XMFLOAT4X4 GetQuaternionRotationFloat4x4();
+	XMFLOAT4X4 GetRotationFloat4x4() const;
+
+	XMFLOAT4X4 GetTranslationFloat4x4() const;
+
+	XMFLOAT4X4 GetTransformFloat4x4() const;
+
+	XMFLOAT4 GetQuaternionRotationFloat4() const;
+
+	XMFLOAT4X4 GetQuaternionRotationFloat4x4() const;
 
 	XMFLOAT3 Scale;
 	XMFLOAT3 Rotation;

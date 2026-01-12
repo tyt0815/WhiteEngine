@@ -35,7 +35,12 @@ void FTransform::SetRotationByQuat(XMFLOAT4 QuatRotation)
 	Rotation = FDXMath::QuaternionToEuler(QuatRotation);
 }
 
-XMMATRIX XM_CALLCONV FTransform::GetRotationMatrix()
+XMMATRIX XM_CALLCONV FTransform::GetScaleMatrix() const
+{
+	return XMMatrixScalingFromVector(XMLoadFloat3(&Scale));
+}
+
+XMMATRIX XM_CALLCONV FTransform::GetRotationMatrix() const
 {
 	return XMMatrixRotationRollPitchYaw(
 		XMConvertToRadians(Rotation.x),
@@ -44,19 +49,43 @@ XMMATRIX XM_CALLCONV FTransform::GetRotationMatrix()
 	);
 }
 
-XMVECTOR XM_CALLCONV FTransform::GetTranslationVector()
+XMMATRIX XM_CALLCONV FTransform::GetTranslationMatrix() const
+{
+	return XMMatrixTranslationFromVector(XMLoadFloat3(&Translation));
+}
+
+XMVECTOR XM_CALLCONV FTransform::GetTranslationVector() const
 {
 	return XMLoadFloat3(&Translation);
 }
 
-XMFLOAT4X4 FTransform::GetScaleFloat4x4()
+XMMATRIX XM_CALLCONV FTransform::GetTransformMatrix() const
 {
+	return GetScaleMatrix() * GetRotationMatrix() * GetTranslationMatrix();
+}
+
+void XM_CALLCONV FTransform::SetByTransformMatrix(FXMMATRIX M)
+{
+	XMVECTOR S;
+	XMVECTOR RQ;
+	XMVECTOR T;
+	XMMatrixDecompose(&S, &RQ, &T, M);
+	XMStoreFloat3(&Scale, S);
+	XMStoreFloat3(&Translation, T);
+	XMFLOAT4 RotationQuat;
+	XMStoreFloat4(&RotationQuat, RQ);
+	SetRotationByQuat(RotationQuat);
+}
+
+XMFLOAT4X4 FTransform::GetScaleFloat4x4() const
+{
+	XMMATRIX S = GetScaleMatrix();
 	XMFLOAT4X4 Mat;
-	XMStoreFloat4x4(&Mat, XMMatrixScalingFromVector(XMLoadFloat3(&Scale)));
+	XMStoreFloat4x4(&Mat, S);
 	return Mat;
 }
 
-XMFLOAT4X4 FTransform::GetRotationFloat4x4()
+XMFLOAT4X4 FTransform::GetRotationFloat4x4() const
 {
 	XMMATRIX R = GetRotationMatrix();
 	XMFLOAT4X4 Mat;
@@ -64,27 +93,22 @@ XMFLOAT4X4 FTransform::GetRotationFloat4x4()
 	return Mat;
 }
 
-XMFLOAT4X4 FTransform::GetTranslationFloat4x4()
+XMFLOAT4X4 FTransform::GetTranslationFloat4x4() const
 {
+	XMMATRIX T = GetTranslationMatrix();
 	XMFLOAT4X4 Mat;
-	XMStoreFloat4x4(&Mat, XMMatrixTranslationFromVector(XMLoadFloat3(&Translation)));
+	XMStoreFloat4x4(&Mat, T);
 	return Mat;
 }
 
-XMFLOAT4X4 FTransform::GetTransformFloat4x4()
+XMFLOAT4X4 FTransform::GetTransformFloat4x4() const
 {
-	XMFLOAT4X4 Scale = GetScaleFloat4x4();
-	XMFLOAT4X4 Rotation = GetRotationFloat4x4();
-	XMFLOAT4X4 Translation = GetTranslationFloat4x4();
-	XMMATRIX S = XMLoadFloat4x4(&Scale);
-	XMMATRIX R = XMLoadFloat4x4(&Rotation);
-	XMMATRIX T = XMLoadFloat4x4(&Translation);
 	XMFLOAT4X4 Matrix;
-	XMStoreFloat4x4(&Matrix, S * R * T);
+	XMStoreFloat4x4(&Matrix, GetTransformMatrix());
 	return Matrix;
 }
 
-XMFLOAT4 FTransform::GetQuaternionRotationFloat4()
+XMFLOAT4 FTransform::GetQuaternionRotationFloat4() const
 {
 	XMVECTOR RotationQuat = XMQuaternionRotationRollPitchYaw(
 		XMConvertToRadians(Rotation.x),
@@ -96,7 +120,7 @@ XMFLOAT4 FTransform::GetQuaternionRotationFloat4()
 	return Quat;
 }
 
-XMFLOAT4X4 FTransform::GetQuaternionRotationFloat4x4()
+XMFLOAT4X4 FTransform::GetQuaternionRotationFloat4x4() const
 {
 	XMFLOAT4 Quat = GetQuaternionRotationFloat4();
 	XMFLOAT4X4 Mat;
@@ -237,26 +261,40 @@ XMFLOAT3 XM_CALLCONV FDXMath::GetEulerRotationFromVectors(FXMVECTOR F, FXMVECTOR
 	);
 }
 
-XMFLOAT3 FDXMath::QuaternionToEuler(XMFLOAT4 Quat)
+XMFLOAT3 FDXMath::QuaternionToEuler(XMFLOAT4 q)
 {
 	XMFLOAT3 euler;
 
-	// Roll (z-axis rotation)
-	float sinr_cosp = 2 * (Quat.w * Quat.z + Quat.x * Quat.y);
-	float cosr_cosp = 1 - 2 * (Quat.y * Quat.y + Quat.z * Quat.z);
-	euler.z = std::atan2(sinr_cosp, cosr_cosp);
+	// 1. Pitch (X-axis rotation)
+	// DX 표준: sinp = 2 * (w*x - y*z)
+	float sinp = 2.0f * (q.w * q.x - q.y * q.z);
 
-	// Pitch (x-axis rotation)
-	float sinp = 2 * (Quat.w * Quat.y - Quat.z * Quat.x);
-	if (std::abs(sinp) >= 1)
-		euler.x = std::copysign(XM_PI / 2, sinp); // 90도 제한 (짐벌락 방지)
+	if (std::abs(sinp) >= 0.9999f) // 짐벌락 안전 범위
+	{
+		// 수직 위/아래를 볼 때 (Pitch +-90도)
+		euler.x = std::copysign(XM_PI / 2.0f, sinp);
+		euler.y = 2.0f * std::atan2(q.y, q.w); // Yaw
+		euler.z = 0.0f; // Roll은 0으로 고정
+	}
 	else
+	{
 		euler.x = std::asin(sinp);
 
-	// Yaw (y-axis rotation)
-	float siny_cosp = 2 * (Quat.w * Quat.x + Quat.y * Quat.z);
-	float cosy_cosp = 1 - 2 * (Quat.x * Quat.x + Quat.y * Quat.y);
-	euler.y = std::atan2(siny_cosp, cosy_cosp);
+		// 2. Yaw (Y-axis rotation)
+		float siny_cosp = 2.0f * (q.w * q.y + q.z * q.x);
+		float cosy_cosp = 1.0f - 2.0f * (q.x * q.x + q.y * q.y);
+		euler.y = std::atan2(siny_cosp, cosy_cosp);
+
+		// 3. Roll (Z-axis rotation)
+		float sinr_cosp = 2.0f * (q.w * q.z + q.x * q.y);
+		float cosr_cosp = 1.0f - 2.0f * (q.x * q.x + q.z * q.z);
+		euler.z = std::atan2(sinr_cosp, cosr_cosp);
+	}
+
+	// Radian -> Degree 변환
+	euler.x = XMConvertToDegrees(euler.x);
+	euler.y = XMConvertToDegrees(euler.y);
+	euler.z = XMConvertToDegrees(euler.z);
 
 	return euler;
 }

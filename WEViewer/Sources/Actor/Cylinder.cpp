@@ -9,4 +9,5 @@ ACylinder::ACylinder()
 	Component->SetupAttachment(DummyRoot);
 	Component->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_RustedIron2Cylinder));
 	Component->SetLocalRotation(XMFLOAT3(90, 0, 0));
+	// Component->SetLocalLocation(XMFLOAT3(-5.f, -5.f, 0));
 }

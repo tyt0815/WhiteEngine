@@ -20,11 +20,13 @@ public:
 	void LoadSplineFromAsset(const std::wstring& AssetName);
 
 	// InputKey의 범위는 [0, n - 1] 여기서 n: SplineNode의 수
-	XMFLOAT3 GetLocationAtSplineInputKey(float InputKey);
+	XMFLOAT3 GetLocalLocationAtSplineInputKey(float InputKey);
 
-	XMFLOAT3 GetRotationAtSplineInputKey(float InputKey);
+	XMFLOAT3 GetLocalRotationAtSplineInputKey(float InputKey);
 
-	FTransform GetTransformAtSplineInputKey(float InputKey);
+	FTransform GetLocalTransformAtSplineInputKey(float InputKey);
+
+	FTransform GetWorldTransformAtSplineInputKey(float InputKey);
 	
 private:
 	std::vector<FSplineNode> mSplineNodes;
