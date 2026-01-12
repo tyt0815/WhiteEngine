@@ -11,18 +11,18 @@ class FAssetManager final
 {
 	SINGLETON(FAssetManager);
 public:
+	void LoadAssets();
+
+	FAsset* GetAsset(const std::wstring& Name);
+
 	template<typename TAsset>
-	bool LoadAsset(const std::wstring& FilePath, const std::wstring& AssetName);
+	static bool LoadAsset(const std::wstring& FilePath, const std::wstring& AssetName);
+
+	template<typename TAsset>
+	static TAsset* GetAsset(const std::wstring& Name);
 
 private:
-
 	std::unordered_map<std::wstring, std::unique_ptr<FAsset>> mAssets;
-
-public:
-	inline FAsset* GetAsset(std::wstring Name)
-	{
-		return mAssets[Name].get();
-	}
 };
 
 template<typename TAsset>
@@ -37,7 +37,13 @@ inline bool FAssetManager::LoadAsset(const std::wstring& FilePath, const std::ws
 		return false;
 	}
 	Asset->mName = AssetName;
-	mAssets[AssetName] = std::move(Asset);
+	GetInstance()->mAssets[AssetName] = std::move(Asset);
 
 	return true;
+}
+
+template<typename TAsset>
+inline TAsset* FAssetManager::GetAsset(const std::wstring& Name)
+{
+	return dynamic_cast<TAsset*>(GetInstance()->GetAsset(Name));
 }

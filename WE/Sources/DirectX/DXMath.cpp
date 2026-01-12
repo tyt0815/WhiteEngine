@@ -217,6 +217,26 @@ DirectX::XMFLOAT4X4 FDXMath::CalcViewMatrix(DirectX::XMFLOAT3 Target, DirectX::X
 	return View;
 }
 
+XMFLOAT3 XM_CALLCONV FDXMath::GetEulerRotationFromVectors(FXMVECTOR F, FXMVECTOR R, FXMVECTOR U)
+{
+	XMFLOAT3 Forward;
+	XMFLOAT3 Right;
+	XMFLOAT3 Up;
+	XMStoreFloat3(&Forward, F);
+	XMStoreFloat3(&Right, R);
+	XMStoreFloat3(&Up, U);
+
+	float Pitch = asinf(Forward.y);
+	float Yaw = atan2f(Forward.x, Forward.z);
+	float Roll = atan2f(Right.y, Up.y);
+
+	return XMFLOAT3(
+		XMConvertToDegrees(Pitch),
+		XMConvertToDegrees(Yaw),
+		XMConvertToDegrees(Roll)
+	);
+}
+
 XMFLOAT3 FDXMath::QuaternionToEuler(XMFLOAT4 Quat)
 {
 	XMFLOAT3 euler;
@@ -261,4 +281,25 @@ XMVECTOR XM_CALLCONV FDXMath::CalculateCubicBezier(FXMVECTOR P0, FXMVECTOR P1, F
 	Result = XMVectorMultiplyAdd(XMVectorScale(P3, b3), XMVectorReplicate(1.0f), Result);
 
 	return Result;
+}
+
+XMVECTOR XM_CALLCONV FDXMath::CalculateCubicBezierForward(FXMVECTOR P0, FXMVECTOR P1, FXMVECTOR P2, GXMVECTOR P3, float t)
+{
+	float invT = 1.0f - t;
+
+	// 3차 베지에의 1차 도함수 공식
+	// B'(t) = 3(1-t)^2(P1-P0) + 6(1-t)t(P2-P1) + 3t^2(P3-P2)
+	float b0 = 3.0f * invT * invT;
+	float b1 = 6.0f * invT * t;
+	float b2 = 3.0f * t * t;
+
+	XMVECTOR T0 = XMVectorSubtract(P1, P0);
+	XMVECTOR T1 = XMVectorSubtract(P2, P1);
+	XMVECTOR T2 = XMVectorSubtract(P3, P2);
+
+	XMVECTOR tangent = XMVectorScale(T0, b0);
+	tangent = XMVectorAdd(XMVectorScale(T1, b1), tangent);
+	tangent = XMVectorAdd(XMVectorScale(T2, b2), tangent);
+
+	return XMVector3Normalize(tangent); // 정규화 필수
 }

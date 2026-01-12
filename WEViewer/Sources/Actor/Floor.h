@@ -16,4 +16,8 @@ public:
 
 private:
 	std::unique_ptr<FBody> mBody;
+
+	class WSplineComponent* SplineComponent;
+	AActor* SplineFollowingActor;
+	float mSplineAlpha = 0;
 };

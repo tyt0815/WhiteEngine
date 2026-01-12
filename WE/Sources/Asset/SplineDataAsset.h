@@ -9,5 +9,6 @@ public:
 	std::vector<XMFLOAT3> ControlPoints;
 	std::vector<XMFLOAT3> LeftHandles;
 	std::vector<XMFLOAT3> RightHandles;
-	std::vector<float> Radiuses;
+	std::vector<float> Property1;
+	std::vector<float> Property2;
 };

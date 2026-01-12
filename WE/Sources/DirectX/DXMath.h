@@ -147,8 +147,12 @@ public:
 		return XMMatrixInverse(&Determinant, Matrix);;
 	}
 
+	static XMFLOAT3 XM_CALLCONV GetEulerRotationFromVectors(FXMVECTOR Forward, FXMVECTOR Right, FXMVECTOR Up);
+
 	static XMFLOAT3 QuaternionToEuler(XMFLOAT4 Quat);
 
 	static XMVECTOR XM_CALLCONV CalculateCubicBezier(FXMVECTOR P0, FXMVECTOR P1, FXMVECTOR P2, GXMVECTOR P3, float t);
+
+	static XMVECTOR XM_CALLCONV CalculateCubicBezierForward(FXMVECTOR P0, FXMVECTOR P1, FXMVECTOR P2, GXMVECTOR P3, float t);
 };
 

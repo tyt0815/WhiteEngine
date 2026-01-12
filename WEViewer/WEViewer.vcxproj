@@ -21,6 +21,8 @@
   <ItemGroup>
     <ClCompile Include="Sources\Actor\Box.cpp" />
     <ClCompile Include="Sources\Actor\Bullet.cpp" />
+    <ClCompile Include="Sources\Actor\Cylinder.cpp" />
+    <ClCompile Include="Sources\Actor\Cylinder.h" />
     <ClCompile Include="Sources\Actor\Floor.cpp" />
     <ClCompile Include="Sources\Actor\PhysicsSphere.cpp" />
     <ClCompile Include="Sources\Actor\ProjectileActor.cpp" />
