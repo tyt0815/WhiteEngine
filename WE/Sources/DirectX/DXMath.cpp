@@ -226,7 +226,7 @@ XMFLOAT3 XM_CALLCONV FDXMath::GetEulerRotationFromVectors(FXMVECTOR F, FXMVECTOR
 	XMStoreFloat3(&Right, R);
 	XMStoreFloat3(&Up, U);
 
-	float Pitch = asinf(Forward.y);
+	float Pitch = -asinf(Forward.y);
 	float Yaw = atan2f(Forward.x, Forward.z);
 	float Roll = atan2f(Right.y, Up.y);
 

@@ -70,8 +70,8 @@ XMFLOAT3 WSplineComponent::GetRotationAtSplineInputKey(float InputKey)
 		U = XMVector3Cross(F, R);
 	}
 	
-
-	return FDXMath::GetEulerRotationFromVectors(F, R, U);
+	XMFLOAT3 Rotation = FDXMath::GetEulerRotationFromVectors(F, R, U);
+	return Rotation;
 }
 
 FTransform WSplineComponent::GetTransformAtSplineInputKey(float InputKey)
