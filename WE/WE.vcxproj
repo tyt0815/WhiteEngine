@@ -11,6 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Sources\Asset\Asset.cpp" />
+    <ClCompile Include="Sources\Asset\AssetLoader.cpp" />
+    <ClCompile Include="Sources\Asset\AssetManager.cpp" />
+    <ClCompile Include="Sources\Asset\SplineDataAsset.cpp" />
     <ClCompile Include="Sources\DirectX\D3D12Linker.cpp" />
     <ClCompile Include="Sources\DirectX\DSVHeap.cpp" />
     <ClCompile Include="Sources\DirectX\DXResourceManager.cpp" />
@@ -32,6 +36,7 @@
     <ClCompile Include="Sources\GameFramework\Object\Component\PrimitiveComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\ProjectileMovementComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\SceneComponent.cpp" />
+    <ClCompile Include="Sources\GameFramework\Object\Component\SplineComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\StaticMeshComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Pawn\Pawn.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\World\World.cpp" />
@@ -67,6 +72,10 @@
     <ClInclude Include="Shaders\DrawRectPassCommon.hlsli">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="Sources\Asset\Asset.h" />
+    <ClInclude Include="Sources\Asset\AssetManager.h" />
+    <ClInclude Include="Sources\Asset\AssetLoader.h" />
+    <ClInclude Include="Sources\Asset\SplineDataAsset.h" />
     <ClInclude Include="Sources\DirectX\d3dx12.h" />
     <ClInclude Include="Sources\DirectX\DSVHeap.h" />
     <ClInclude Include="Sources\DirectX\DXResourceManager.h" />
@@ -88,6 +97,7 @@
     <ClInclude Include="Sources\GameFramework\Object\Component\PrimitiveComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\ProjectileMovementComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\SceneComponent.h" />
+    <ClInclude Include="Sources\GameFramework\Object\Component\SplineComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\StaticMeshComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Pawn\Pawn.h" />
     <ClInclude Include="Sources\GameFramework\Object\World\World.h" />
@@ -339,7 +349,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <PreprocessorDefinitions>PROJECT_DIR=R"($(ProjectDir))";PROJECT_DIR_W=LR"($(ProjectDir))";JPH_FLOATING_POINT_EXCEPTIONS_ENABLED=1;JPH_OBJECT_STREAM=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PROJECT_DIR=R"($(ProjectDir))";PROJECT_DIR_W=LR"($(ProjectDir))";SOLUTION_DIR=R"($(SolutionDir))";SOLUTION_DIR_W=LR"($(SolutionDir))";JPH_FLOATING_POINT_EXCEPTIONS_ENABLED=1;JPH_OBJECT_STREAM=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(ProjectDir)Sources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>

@@ -7,7 +7,7 @@ AFloor::AFloor()
 	SetRootComponent(Component);
 	Component->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_LaminateFloorBrown));
 
-	mBody = CreateBoxBody({100, 1, 100}, EObjectType::EOT_Static, false);
+	mBody = CreateBoxBody({50, .5, 50}, EObjectType::EOT_Static, false);
 	mBody->AddBody();
 	mBody->SetActivate(false);
 }

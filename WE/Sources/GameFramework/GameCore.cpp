@@ -6,6 +6,7 @@
 #include "Render/Texture.h"
 #include "Physics/PhysicsCore.h"
 #include "Render/ShapeDrawer.h"
+#include "Asset/AssetManager.h"
 
 #pragma comment(lib,"d3dcompiler.lib")
 #pragma comment(lib, "D3D12.lib")
@@ -54,6 +55,7 @@ namespace GameCore
 		GetMeshGeometryManager();
 		GetTextureManager();
 		FShapeDrawer::GetInstance();
+		FAssetManager::GetInstance();
 
 		Game.Startup();
 	}

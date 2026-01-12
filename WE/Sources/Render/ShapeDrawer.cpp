@@ -94,7 +94,7 @@ void FShapeDrawer::BuildPipelineStates()
 void FShapeDrawer::BuildVertexBuffers(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
 {
 	std::vector<XMFLOAT3> Vertices(1);
-	const UINT VBByteSize = Vertices.size() * sizeof(XMFLOAT3);
+	const UINT VBByteSize = static_cast<UINT>(Vertices.size() * sizeof(XMFLOAT3));
 
 	THROW_IF_FAILED(D3DCreateBlob(VBByteSize, VertexBufferCPU.GetAddressOf()));
 	CopyMemory(VertexBufferCPU->GetBufferPointer(), Vertices.data(), VBByteSize);

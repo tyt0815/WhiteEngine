@@ -51,6 +51,9 @@
     <Filter Include="Sources\Physics">
       <UniqueIdentifier>{aa07d7e0-7fa0-4b7e-bffa-53bd74998465}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Asset">
+      <UniqueIdentifier>{1a10e40e-221b-40ae-8bfa-90824d52ab69}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Utility\Timer.cpp">
@@ -199,6 +202,21 @@
     </ClCompile>
     <ClCompile Include="Sources\Physics\PhysicsDebugRenderer.cpp">
       <Filter>Sources\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Component\SplineComponent.cpp">
+      <Filter>Sources\GameFramework\Object\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Asset\AssetManager.cpp">
+      <Filter>Sources\Asset</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Asset\AssetLoader.cpp">
+      <Filter>Sources\Asset</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Asset\Asset.cpp">
+      <Filter>Sources\Asset</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Asset\SplineDataAsset.cpp">
+      <Filter>Sources\Asset</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -372,6 +390,21 @@
     </ClInclude>
     <ClInclude Include="Sources\Physics\JPHUtility.h">
       <Filter>Sources\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Component\SplineComponent.h">
+      <Filter>Sources\GameFramework\Object\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Asset\AssetManager.h">
+      <Filter>Sources\Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Asset\Asset.h">
+      <Filter>Sources\Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Asset\SplineDataAsset.h">
+      <Filter>Sources\Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Asset\AssetLoader.h">
+      <Filter>Sources\Asset</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

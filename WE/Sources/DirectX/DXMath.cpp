@@ -240,3 +240,25 @@ XMFLOAT3 FDXMath::QuaternionToEuler(XMFLOAT4 Quat)
 
 	return euler;
 }
+
+XMVECTOR XM_CALLCONV FDXMath::CalculateCubicBezier(FXMVECTOR P0, FXMVECTOR P1, FXMVECTOR P2, GXMVECTOR P3, float t)
+{
+	// t가 0에서 1 사이인지 보장
+	t = XMMin(XMMax(t, 0.0f), 1.0f);
+
+	float InvT = 1.0f - t;
+
+	// 베지에 공식: B(t) = (1-t)^3*P0 + 3(1-t)^2*t*P1 + 3(1-t)t^2*P2 + t^3*P3
+	float b0 = InvT * InvT * InvT;
+	float b1 = 3.0f * InvT * InvT * t;
+	float b2 = 3.0f * InvT * t * t;
+	float b3 = t * t * t;
+
+	// DirectXMath의 가중치 합 연산 사용
+	XMVECTOR Result = XMVectorScale(P0, b0);
+	Result = XMVectorMultiplyAdd(XMVectorScale(P1, b1), XMVectorReplicate(1.0f), Result);
+	Result = XMVectorMultiplyAdd(XMVectorScale(P2, b2), XMVectorReplicate(1.0f), Result);
+	Result = XMVectorMultiplyAdd(XMVectorScale(P3, b3), XMVectorReplicate(1.0f), Result);
+
+	return Result;
+}
