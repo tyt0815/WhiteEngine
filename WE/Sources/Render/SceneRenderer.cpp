@@ -718,8 +718,11 @@ void FSceneRenderer::UpdateDebugLine3DVB(TUploadBuffer<FLine3DVertex>* DebugLine
 	{
 		const FDebugLine3DVBProxy& Proxy = RenderItemProxy->mDebugLine3DProxies[i];
 		FLine3DVertex Vertex;
-		Vertex.Position = Proxy.Position;
+		Vertex.Position = Proxy.Start;
 		Vertex.Color = Proxy.Color;
+		LineVertices.push_back(Vertex);
+		Vertex.Position = Proxy.End;
+		LineVertices.push_back(Vertex);
 	}
 
 	DebugLine3DVB->CopyData(0, LineVertices.data(), (UINT)LineVertices.size());

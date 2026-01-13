@@ -40,7 +40,8 @@ struct FDirectionalLightProxy
 
 struct FDebugLine3DVBProxy
 {
-	XMFLOAT3 Position;
+	XMFLOAT3 Start;
+	XMFLOAT3 End;
 	XMFLOAT4 Color;
 	float LifeSpan;
 };

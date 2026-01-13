@@ -22,7 +22,7 @@ public:
 
 	void DestroyActor(AActor* Actor);
 
-	void DrawDebugLine(XMFLOAT3 Location, XMFLOAT4 Color, float LifeSpan);
+	void DrawDebugLine(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT4 Color, float LifeSpan);
 
 private:
 	void FlushDestroyQueue();
