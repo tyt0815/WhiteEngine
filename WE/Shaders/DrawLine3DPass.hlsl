@@ -9,7 +9,7 @@ struct FVertexInput
 struct FVertexOutput
 {
 	float4 Position : SV_POSITION;
-	float4 Color : Color;
+	float4 Color : COLOR;
 };
 
 FVertexOutput MainVS(FVertexInput VIn)

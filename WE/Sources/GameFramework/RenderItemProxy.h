@@ -2,6 +2,7 @@
 
 #include "DirectX/DXMath.h"
 #include <vector>
+#include "Utility/Container.h"
 
 class FMeshGeometry;
 class FMaterial;
@@ -37,10 +38,17 @@ struct FDirectionalLightProxy
 	class FDepthStencil* ShadowMap;
 };
 
+struct FDebugLine3DVBProxy
+{
+	XMFLOAT3 Position;
+	XMFLOAT4 Color;
+	float LifeSpan;
+};
+
 class FRenderItemProxy
 {
 public:
-	void Cleanup();
+	void Cleanup(float Delta);
 
 	size_t AllocateMeshCbProxy();
 
@@ -50,7 +58,6 @@ public:
 
 	size_t AllocateDirectionalLightCbProxy();
 
-// private:
 	std::vector<FMeshCBProxy> mMeshCBProxies;
 
 	std::vector<FSubmeshCBProxy> mSubmeshCBProxies;
@@ -58,6 +65,8 @@ public:
 	std::vector<FStaticMeshProxy> mStaticMeshProxies;
 
 	std::vector<FDirectionalLightProxy> mDirectionalLightProxies;
+
+	TUnorderedArray<FDebugLine3DVBProxy> mDebugLine3DProxies;
 
 public:
 	inline FMeshCBProxy* GetMeshCBProxy(size_t i)

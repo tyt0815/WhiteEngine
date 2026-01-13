@@ -14,7 +14,7 @@ WWorld::~WWorld()
 
 void WWorld::Tick(float Delta)
 {
-	mRenderItemProxy.Cleanup();
+	mRenderItemProxy.Cleanup(Delta);
 
 	for (size_t i = 0; i < mAllActors.Size(); ++i)
 	{
@@ -71,6 +71,15 @@ void WWorld::DestroyActor(AActor* Actor)
 		Actor->MarkPendingKill();
 		DestroyQueue.push_back(Actor);
 	}
+}
+
+void WWorld::DrawDebugLine(XMFLOAT3 Location, XMFLOAT4 Color, float LifeSpan)
+{
+	FDebugLine3DVBProxy Proxy;
+	Proxy.Position = Location;
+	Proxy.Color = Color;
+	Proxy.LifeSpan = LifeSpan;
+	mRenderItemProxy.mDebugLine3DProxies.Add(Proxy);
 }
 
 void WWorld::FlushDestroyQueue()

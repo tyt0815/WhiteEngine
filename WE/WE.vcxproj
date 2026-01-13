@@ -58,7 +58,9 @@
     <ClCompile Include="Sources\Render\ForwardShadingSceneRenderer.cpp" />
     <ClCompile Include="Sources\Render\RenderTarget.cpp" />
     <ClCompile Include="Sources\Render\SceneRenderer.cpp" />
-    <ClCompile Include="Sources\Render\ShapeDrawer.cpp" />
+    <ClCompile Include="Sources\Render\ShapeDrawer.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Sources\Render\SkeletalMesh.cpp" />
     <ClCompile Include="Sources\Render\SkinnedData.cpp" />
     <ClCompile Include="Sources\Render\StaticMesh.cpp" />
@@ -122,7 +124,9 @@
     <ClInclude Include="Sources\Render\RenderItem.h" />
     <ClInclude Include="Sources\Render\RenderTarget.h" />
     <ClInclude Include="Sources\Render\SceneRenderer.h" />
-    <ClInclude Include="Sources\Render\ShapeDrawer.h" />
+    <ClInclude Include="Sources\Render\ShapeDrawer.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Sources\Render\SkeletalMesh.h" />
     <ClInclude Include="Sources\Render\SkinnedData.h" />
     <ClInclude Include="Sources\Render\StaticMesh.h" />
@@ -282,6 +286,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="Shaders\DrawDebugLine3DPass.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="Shaders\DrawLine3DPass.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>

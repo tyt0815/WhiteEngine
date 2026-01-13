@@ -1,11 +1,20 @@
 #include "RenderItemProxy.h"
 
-void FRenderItemProxy::Cleanup()
+void FRenderItemProxy::Cleanup(float Delta)
 {
 	mMeshCBProxies.clear();
 	mSubmeshCBProxies.clear();
 	mStaticMeshProxies.clear();
 	mDirectionalLightProxies.clear();
+	
+	for (int i = 0; i < mDebugLine3DProxies.Size(); ++i)
+	{
+		mDebugLine3DProxies[i].LifeSpan -= Delta;
+		if (mDebugLine3DProxies[i].LifeSpan < 0)
+		{
+			mDebugLine3DProxies.RemoveAt(i--);
+		}
+	}
 }
 
 size_t FRenderItemProxy::AllocateMeshCbProxy()

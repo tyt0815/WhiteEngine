@@ -596,5 +596,8 @@
     <FxCompile Include="Shaders\DrawLine3DPass.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Shaders\DrawDebugLine3DPass.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

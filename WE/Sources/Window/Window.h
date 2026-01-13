@@ -61,3 +61,8 @@ inline FWindow* GetMainWindowPtr()
 {
 	return &gMainWindow;
 }
+
+inline HWND GetHWND()
+{
+	return gMainWindow.GetWindowHandle();
+}

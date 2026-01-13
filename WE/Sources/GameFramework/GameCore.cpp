@@ -12,6 +12,8 @@
 #pragma comment(lib, "D3D12.lib")
 #pragma comment(lib, "dxgi.lib")
 
+HWND GetHWND();
+
 namespace GameCore
 {
 	void CalculateFrameStats()
@@ -72,6 +74,7 @@ namespace GameCore
 		MSG msg = { 0 };
 
 		UTimer* Timer = GetEngineTimer();
+		Timer->Reset();
 
 		while (msg.message != WM_QUIT)
 		{
@@ -110,8 +113,6 @@ int GameCore::RunApplication(IGameApp& App, const wchar_t* ClassName, HINSTANCE 
 	g_hInst = hInst;
 
 	InitializeApplication(App);
-
-
 
 	UpdateApplication(App);
 

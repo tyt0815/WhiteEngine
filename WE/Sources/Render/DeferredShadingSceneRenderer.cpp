@@ -488,6 +488,35 @@ void FDeferredShadingSceneRenderer::Render(
 		break;
 	}
 
+	// DrawDebugLine
+	mGBufferDepthStencil->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE GBufferDsv = mGBufferDepthStencil->GetDSV();
+	CommandList->OMSetRenderTargets(1, &Rtv, false, &GBufferDsv);
+
+	CommandList->RSSetViewports(1, &Viewport);
+	CommandList->RSSetScissorRects(1, &ScissorRect);
+
+	auto* Line3DVB = FrameResource->mLine3DVB.get();
+	UINT IndexCount = Line3DVB->GetElementCount();
+
+	// 3. Vertex Buffer View 설정
+	D3D12_VERTEX_BUFFER_VIEW vbv;
+	vbv.BufferLocation = Line3DVB->Resource()->GetGPUVirtualAddress();
+	vbv.SizeInBytes = IndexCount * sizeof(FLine3DVertex);
+	vbv.StrideInBytes = sizeof(FLine3DVertex);
+
+	// 4. Command List 설정 및 드로우
+	CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+	CommandList->IASetVertexBuffers(0, 1, &vbv);
+
+	// RootSignature와 PSO 바인딩은 생략됨
+	CommandList->SetGraphicsRootSignature(mRootSignatures["DrawDebugLine3DPass"].Get());
+	CommandList->SetPipelineState(mPipelineStates["DrawDebugLine3DPass"].Get());
+	CommandList->SetGraphicsRootConstantBufferView(0, FrameResource->GetPassCB()->Resource()->GetGPUVirtualAddress());
+
+	CommandList->DrawInstanced(IndexCount, 1, 0, 0);
+
 	
 	FinishBackBuffer(CommandList);
 }

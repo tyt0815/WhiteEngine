@@ -98,6 +98,12 @@ struct FMaterialStructuredBuffer
     DirectX::XMFLOAT4X4 MatTransform = FDXMath::Identity4x4();
 };
 
+struct FLine3DVertex
+{
+    XMFLOAT3 Position;
+    XMFLOAT4 Color;
+};
+
 class FFrameResourceBase : FNoncopyable
 {
 public:
@@ -105,6 +111,8 @@ public:
     FFrameResourceBase() = delete;
     virtual ~FFrameResourceBase();
     void Flush();
+
+    std::unique_ptr<TUploadBuffer<FLine3DVertex>> mLine3DVB;
 
 private:
     Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mCommandAllocator;
@@ -174,10 +182,13 @@ protected:
     template<typename T>
     void CreateFrameResources_Internal(ID3D12Device* Device);
     virtual void BuildRootSignature();
+    void BuildDebugDrawLine3DRootSignature();
     void BuildShadowMapPassRootSignature();
     virtual void BuildShadersAndInputLayouts();
+    void BuildDebugDrawLine3DShadersAndInputLayouts();
     void BuildShadowMapShaders();
     virtual void BuildPipelineStates(ID3D12Device* Device);
+    void BuildDebugDrawLine3DPipelineStates(ID3D12Device* Device);
     void BuildShadowMapPassPipelineStates(ID3D12Device* Device);
     virtual void UpdateFrameBuffers(FFrameResourceBase* FrameResource, const FRenderItemProxy* RenderItemProxy);
     virtual void Render(
@@ -250,6 +261,7 @@ private:
     void UpdateLightInfoCB(TUploadBuffer<FLightInfoConstantBuffer>* LightInfoConstantBuffer, const FRenderItemProxy* RenderItemProxy);
     void UpdateMaterialSB(TUploadBuffer<FMaterialStructuredBuffer>* MaterialStructuredBuffer);
     void UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightStructuredBuffer>* DirectionalLightStructuredBuffer, const FRenderItemProxy* RenderItemProxy);
+    void UpdateDebugLine3DVB(TUploadBuffer<FLine3DVertex>* DebugLine3DVB, const FRenderItemProxy* RenderItemProxy);
 
 public:
     inline FFrameResourceBase* GetTargetFrameResource() const

@@ -27,6 +27,8 @@ FFrameResourceBase::FFrameResourceBase(ID3D12Device* Device)
 	mSkinnedConstantBuffer = std::make_unique<TUploadBuffer<FSkinnedConstantBuffer>>(Device, 1, true);
 	mMaterialStructuredBuffer = std::make_unique<TUploadBuffer<FMaterialStructuredBuffer>>(Device, EMT_None, false);
 	mDirectionalLightStructuredBuffer = std::make_unique<TUploadBuffer<FDirectionalLightStructuredBuffer>>(Device, DIR_LIGHTS_NUM, false);
+
+	mLine3DVB = std::make_unique<TUploadBuffer<FLine3DVertex>>(Device, 1000, false);
 }
 
 FFrameResourceBase::~FFrameResourceBase()
@@ -117,7 +119,16 @@ void FSceneRenderer::BuildRootSignature()
 
 	FDXUtility::BuildRootSignature(RootParameter, ROOT_PARAMETERs_NUM, mRootSignatures["DrawRectPass"].GetAddressOf());
 
+	BuildDebugDrawLine3DRootSignature();
 	BuildShadowMapPassRootSignature();
+}
+
+void FSceneRenderer::BuildDebugDrawLine3DRootSignature()
+{
+	constexpr UINT ROOT_PARAMETERs_NUM = 1;
+	CD3DX12_ROOT_PARAMETER RootParameter[ROOT_PARAMETERs_NUM];
+	RootParameter[0].InitAsConstantBufferView(0);	// PassCB
+	FDXUtility::BuildRootSignature(RootParameter, ROOT_PARAMETERs_NUM, mRootSignatures["DrawDebugLine3DPass"].GetAddressOf());
 }
 
 void FSceneRenderer::BuildShadowMapPassRootSignature()
@@ -172,7 +183,31 @@ void FSceneRenderer::BuildShadersAndInputLayouts()
 		{ "BONEINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, 56, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 	};
 
+	BuildDebugDrawLine3DShadersAndInputLayouts();
 	BuildShadowMapShaders();
+}
+
+void FSceneRenderer::BuildDebugDrawLine3DShadersAndInputLayouts()
+{
+	mShaders["DrawDebugLine3DPassVS"] = FDXUtility::CompileShader(
+		std::wstring(PROJECT_DIR_W) + L"\\Shaders\\DrawDebugLine3DPass.hlsl",
+		nullptr,
+		"MainVS",
+		"vs_5_1"
+	);
+
+	mShaders["DrawDebugLine3DPassPS"] = FDXUtility::CompileShader(
+		std::wstring(PROJECT_DIR_W) + L"\\Shaders\\DrawDebugLine3DPass.hlsl",
+		nullptr,
+		"MainPS",
+		"ps_5_1"
+	);
+
+	mInputLayouts["DrawDebugLine3DPass"] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+	};
 }
 
 void FSceneRenderer::BuildShadowMapShaders()
@@ -219,7 +254,43 @@ void FSceneRenderer::BuildPipelineStates(ID3D12Device* Device)
 		)
 	);
 
+	BuildDebugDrawLine3DPipelineStates(Device);
 	BuildShadowMapPassPipelineStates(Device);
+}
+
+void FSceneRenderer::BuildDebugDrawLine3DPipelineStates(ID3D12Device* Device)
+{
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC DrawDebugLine3DPassPO;
+	ZeroMemory(&DrawDebugLine3DPassPO, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+	DrawDebugLine3DPassPO.InputLayout = { mInputLayouts["DrawDebugLine3DPass"].data(), (UINT)mInputLayouts["DrawDebugLine3DPass"].size() };
+	DrawDebugLine3DPassPO.pRootSignature = mRootSignatures["DrawDebugLine3DPass"].Get();
+	DrawDebugLine3DPassPO.VS =
+	{
+		reinterpret_cast<BYTE*>(mShaders["DrawDebugLine3DPassVS"]->GetBufferPointer()),
+		mShaders["DrawDebugLine3DPassVS"]->GetBufferSize()
+	};
+	DrawDebugLine3DPassPO.PS =
+	{
+		reinterpret_cast<BYTE*>(mShaders["DrawDebugLine3DPassPS"]->GetBufferPointer()),
+		mShaders["DrawDebugLine3DPassPS"]->GetBufferSize()
+	};
+	DrawDebugLine3DPassPO.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	DrawDebugLine3DPassPO.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	DrawDebugLine3DPassPO.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	DrawDebugLine3DPassPO.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_LESS_EQUAL;
+	DrawDebugLine3DPassPO.SampleMask = UINT_MAX;
+	DrawDebugLine3DPassPO.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+	DrawDebugLine3DPassPO.NumRenderTargets = 1;
+	DrawDebugLine3DPassPO.RTVFormats[0] = GetDXResourceManagerPtr()->GetBackbufferFormat();
+	DrawDebugLine3DPassPO.SampleDesc.Count = 1;
+	DrawDebugLine3DPassPO.SampleDesc.Quality = 0;
+	DrawDebugLine3DPassPO.DSVFormat = GetDXResourceManagerPtr()->GetDepthStencilFormat();
+	THROW_IF_FAILED(
+		Device->CreateGraphicsPipelineState(
+			&DrawDebugLine3DPassPO,
+			IID_PPV_ARGS(mPipelineStates["DrawDebugLine3DPass"].GetAddressOf())
+		)
+	);
 }
 
 void FSceneRenderer::BuildShadowMapPassPipelineStates(ID3D12Device* Device)
@@ -261,6 +332,7 @@ void FSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* FrameResource, const
 	UpdateLightInfoCB(FrameResource->GetLightInfoCB(), RenderItemProxy);
 	UpdateMaterialSB(FrameResource->GetMaterialSB());
 	UpdateDirectionalLightSB(FrameResource->GetDirectionalLightSB(), RenderItemProxy);
+	UpdateDebugLine3DVB(FrameResource->mLine3DVB.get(), RenderItemProxy);
 
 	// TODO: 테스트용 Skinned CB 업데이트
 	auto SkinnedCB = FrameResource->GetSkinnedCB();
@@ -637,6 +709,20 @@ void FSceneRenderer::UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightStr
 
 		DirectionalLightStructuredBuffer->CopyData(i, DirectionalLight);
 	}
+}
+
+void FSceneRenderer::UpdateDebugLine3DVB(TUploadBuffer<FLine3DVertex>* DebugLine3DVB, const FRenderItemProxy* RenderItemProxy)
+{
+	std::vector<FLine3DVertex> LineVertices;
+	for (int i = 0; i < RenderItemProxy->mDebugLine3DProxies.Size(); ++i)
+	{
+		const FDebugLine3DVBProxy& Proxy = RenderItemProxy->mDebugLine3DProxies[i];
+		FLine3DVertex Vertex;
+		Vertex.Position = Proxy.Position;
+		Vertex.Color = Proxy.Color;
+	}
+
+	DebugLine3DVB->CopyData(0, LineVertices.data(), (UINT)LineVertices.size());
 }
 
 void FSceneRenderer::UpdateTargetFrameResource(const FRenderItemProxy* RenderItemProxy)

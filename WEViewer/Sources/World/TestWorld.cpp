@@ -23,7 +23,7 @@ WTestWorld::WTestWorld()
 	Floor->SetActorLocation(XMFLOAT3(0.0f, -5.0f, 0.0f));
 
 	APhysicsSphere* PSphere = SpawnActor<APhysicsSphere>();
-	PSphere->SetActorLocation(XMFLOAT3(0.0f, 10.0f, 5.0f));
+	PSphere->SetActorLocation(XMFLOAT3(0.0f, 5.0f, 5.0f));
 
 	//Actor = SpawnActor<ASphere>();
 	//Transform.Scale = XMFLOAT3(2.0f, 2.0f, 2.0f);

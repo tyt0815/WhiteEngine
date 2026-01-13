@@ -360,7 +360,7 @@ void Physics::Tick(float DeltaTime)
 	assert(g_PhysicsSystem != nullptr);
 	assert(g_TempAllocator != nullptr);
 	assert(g_JobSystem != nullptr);
-	int steps = FDXMath::Clamp<int>((int)ceil(DeltaTime / (1.0f / 60.0f)), 1, 10);
+	int steps = max(1, static_cast<int>(DeltaTime / (1.0f / 60.0f)));
 	g_PhysicsSystem->Update(DeltaTime, steps, g_TempAllocator.get(), g_JobSystem.get());
 }
 

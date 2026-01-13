@@ -59,6 +59,13 @@ public:
         memcpy(&mMappedData[elementIndex * mElementByteSize], &data, sizeof(T));
     }
 
+    void CopyData(int elementIndex, const T* dataArray, UINT count)
+    {
+        // dataArray로부터 count만큼 한 번에 복사
+        count = min(count, mElementCount);
+        memcpy(&mMappedData[elementIndex * mElementByteSize], dataArray, sizeof(T) * count);
+    }
+
 private:
     Microsoft::WRL::ComPtr<ID3D12Resource> mUploadBuffer;
     BYTE* mMappedData = nullptr;

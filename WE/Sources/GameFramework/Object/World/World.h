@@ -22,6 +22,8 @@ public:
 
 	void DestroyActor(AActor* Actor);
 
+	void DrawDebugLine(XMFLOAT3 Location, XMFLOAT4 Color, float LifeSpan);
+
 private:
 	void FlushDestroyQueue();
 
