@@ -27,6 +27,8 @@ void AFloor::BeginPlay()
 	mBody->SetPosition({ 0.0f, -3.0f, 0.0f });
 
 	SplineFollowingActor = GetWorld()->SpawnActor<ABox>();
+
+	GetWorld()->DrawDebugLine({ 0, 0, 2 }, { 2, 2, 2 }, { 1, 0, 0, 1 }, 5);
 }
 
 void AFloor::Tick_PrePhysics(float Delta)
