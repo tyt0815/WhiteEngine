@@ -181,6 +181,17 @@ FTransform FBody::GetTransform() const
 	return Transform;
 }
 
+void FBody::SetTransform(const FTransform& Transform)
+{
+	RVec3 Pos = ToJPHPosition(Transform.Translation);
+	Quat Quat = TOJPHQuatRotation(Transform.GetQuaternionRotationFloat4());
+
+	BodyInterface* BI = Physics::GetBodyInterface();
+
+	JPH::EActivation Activation = BI->IsActive(mBody->GetID()) ? EActivation::Activate : EActivation::DontActivate;
+	Physics::GetBodyInterface()->SetPositionAndRotation(mBody->GetID(), Pos, Quat, Activation);
+}
+
 void Physics::Startup()
 {
 	// Register allocation hook. In this example we'll just let Jolt use malloc / free but you can override these if you want (see Memory.h).
@@ -349,8 +360,8 @@ void Physics::Tick(float DeltaTime)
 	assert(g_PhysicsSystem != nullptr);
 	assert(g_TempAllocator != nullptr);
 	assert(g_JobSystem != nullptr);
-	int steps = max(1, (int)ceil(DeltaTime / (1.0f / 60.0f)));
-	g_PhysicsSystem->Update(DeltaTime, 1, g_TempAllocator.get(), g_JobSystem.get());
+	int steps = FDXMath::Clamp<int>((int)ceil(DeltaTime / (1.0f / 60.0f)), 1, 10);
+	g_PhysicsSystem->Update(DeltaTime, steps, g_TempAllocator.get(), g_JobSystem.get());
 }
 
 std::unique_ptr<FBody> CreateBody(ShapeSettings::ShapeResult ShapeResult, EObjectType ObjectType, JPH::ObjectLayer ObjectChannel)
@@ -360,7 +371,7 @@ std::unique_ptr<FBody> CreateBody(ShapeSettings::ShapeResult ShapeResult, EObjec
 	return std::move(std::make_unique<FBody>(Settings));
 }
 
-std::unique_ptr<FBody> CreateBoxBody(XMFLOAT3 Size, EObjectType ObjectType, bool bActivate)
+std::unique_ptr<FBody> CreateBoxBody(XMFLOAT3 Size, EObjectType ObjectType)
 {
 	BoxShapeSettings BoxSettings(RVec3(Size.x, Size.y, Size.z));
 	BoxSettings.SetEmbedded();

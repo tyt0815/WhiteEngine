@@ -1,7 +1,7 @@
 #include "Pawn.h"
 #include "Utility/Timer.h"
 
-void APawn::Tick(float Delta)
+void APawn::Tick_PrePhysics(float Delta)
 {
 }
 

@@ -18,3 +18,8 @@ inline XMFLOAT4 ToDXQuatRotation(JPH::Quat JPHQuat)
 {
 	return XMFLOAT4(-JPHQuat.GetX(), -JPHQuat.GetY(), JPHQuat.GetZ(), JPHQuat.GetW());
 }
+
+inline Quat TOJPHQuatRotation(XMFLOAT4 DXQuat)
+{
+	return Quat(-DXQuat.x, -DXQuat.y, DXQuat.z, DXQuat.w);
+}

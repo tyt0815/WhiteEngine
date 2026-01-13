@@ -21,10 +21,10 @@
   <ItemGroup>
     <ClCompile Include="Sources\Actor\Box.cpp" />
     <ClCompile Include="Sources\Actor\Bullet.cpp" />
-    <ClCompile Include="Sources\Actor\Cylinder.cpp" />
-    <ClCompile Include="Sources\Actor\Cylinder.h" />
     <ClCompile Include="Sources\Actor\Floor.cpp" />
-    <ClCompile Include="Sources\Actor\PhysicsSphere.cpp" />
+    <ClCompile Include="Sources\Actor\PhysicsSphere.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Sources\Actor\ProjectileActor.cpp" />
     <ClCompile Include="Sources\Actor\ProjectileBox.cpp" />
     <ClCompile Include="Sources\Actor\ProjectileSpawner.cpp" />
@@ -43,7 +43,9 @@
     <ClInclude Include="Sources\Actor\Box.h" />
     <ClInclude Include="Sources\Actor\Bullet.h" />
     <ClInclude Include="Sources\Actor\Floor.h" />
-    <ClInclude Include="Sources\Actor\PhysicsSphere.h" />
+    <ClInclude Include="Sources\Actor\PhysicsSphere.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Sources\Actor\ProjectileActor.h" />
     <ClInclude Include="Sources\Actor\ProjectileBox.h" />
     <ClInclude Include="Sources\Actor\ProjectileSpawner.h" />

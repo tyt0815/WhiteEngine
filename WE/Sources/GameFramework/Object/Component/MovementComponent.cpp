@@ -1,9 +1,9 @@
 #include "MovementComponent.h"
 #include "GameFramework/Object/Actor/Actor.h"
 
-void WMovementComponent::TickComponent(float DeltaTime)
+void WMovementComponent::TickComponent_PrePhysics(float DeltaTime)
 {
-	Super::TickComponent(DeltaTime);
+	Super::TickComponent_PrePhysics(DeltaTime);
 
 	// 프레임마다 Owner를 이동시킴
 	XMFLOAT4 Quat = GetOwner()->GetActorTransform().GetQuaternionRotationFloat4();

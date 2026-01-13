@@ -48,7 +48,5 @@ void FTestApp::Update(float DeltaTime)
 {
     mWorld->Tick(DeltaTime);
 
-    Physics::Tick(DeltaTime);
-
     mRenderer->Tick(mWorld->GetRenderItemProxyPtr());
 }

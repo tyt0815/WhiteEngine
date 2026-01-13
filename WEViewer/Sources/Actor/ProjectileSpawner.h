@@ -7,7 +7,7 @@ class AProjectileSpawner : public AActor
 	typedef AActor Super;
 public:
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
+	virtual void Tick_PrePhysics(float DeltaTime) override;
 
 private:
 	void SpawnRandomProjectile();

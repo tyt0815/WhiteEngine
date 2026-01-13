@@ -3,6 +3,7 @@
 #include "GameFramework/Object/Component/SceneComponent.h"
 #include "Utility/Class.h"
 #include "Utility/Container.h"
+#include "Physics/PhysicsCore.h"
 
 #include <d3d12.h>
 #include <memory>
@@ -13,19 +14,31 @@ class FMeshGeometry;
 class FMaterial;
 class WCameraComponent;
 
+
+
 class AActor
 {
 public:
+	AActor();
+
 	virtual ~AActor() {};
 
-	virtual void BeginPlay() {};
+	virtual void BeginPlay();
 
-	virtual void Tick(float Delta);
+	virtual void Tick_PrePhysics(float Delta) {};
+
+	void UpdatePhysics();
+
+	virtual void Tick_PostPhysics(float Delta) {};
 
 	template<typename T>
 	T* CreateComponent();
 
 	void SetRootComponent(WSceneComponent* Component);
+
+	void SetActorTransform(FTransform Transform);
+
+	void UpdatePhysicsTransform();
 
 	XMFLOAT3 GetFowardVector() const;
 
@@ -35,8 +48,24 @@ public:
 
 	void Destroy();
 
-private:
+protected:
+	enum class EPhysicsShape : uint8_t
+	{
+		EPS_Sphere,
+		EPS_Box,
+	};
 
+	XMFLOAT3 mBoxPhysicsExtent = { 1.0f, 1.0f, 1.0f };
+
+	float mSpherePhysicsRadius = 1;
+
+	EObjectType mObjectType = EObjectType::EOT_Dynamic;
+
+	EPhysicsShape mActorPhysicsShape = EPhysicsShape::EPS_Box;
+
+	bool mbPhysicSimulate = false;
+
+private:
 	void SetupComponent(WActorComponent* Component);
 
 	void SetupSceneComponent(WSceneComponent* Component);
@@ -46,6 +75,8 @@ private:
 	TUnorderedArray<WSceneComponent*> mAllSceneComponent;
 
 	TUnorderedArray<WActorComponent*> mAllNoneSceneComponent;
+
+	std::unique_ptr<FBody> mBody;
 
 	WSceneComponent* mRootComponent = nullptr;
 
@@ -71,11 +102,6 @@ public:
 		return mRootComponent->GetLocalTransform();
 	}
 
-	inline void SetActorTransform(FTransform Transform)
-	{
-		mRootComponent->SetLocalTransform(Transform);
-	}
-
 	inline XMFLOAT3 GetActorLocation() const
 	{
 		return mRootComponent->GetLocalLocation();
@@ -84,6 +110,7 @@ public:
 	inline void SetActorLocation(XMFLOAT3 Location)
 	{
 		mRootComponent->SetLocalLocation(Location);
+		UpdatePhysicsTransform();
 	}
 
 	inline XMFLOAT3 GetActorRotation() const
@@ -94,6 +121,7 @@ public:
 	inline void SetActorRotation(XMFLOAT3 Rotation)
 	{
 		mRootComponent->SetLocalRotation(Rotation);
+		UpdatePhysicsTransform();
 	}
 
 	inline XMFLOAT3 GetActorScale() const
@@ -104,6 +132,7 @@ public:
 	inline void SetActorScale(XMFLOAT3 Scale)
 	{
 		mRootComponent->SetLocalScale(Scale);
+		UpdatePhysicsTransform();
 	}
 
 	inline WWorld* GetWorld() const

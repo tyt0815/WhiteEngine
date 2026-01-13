@@ -10,9 +10,9 @@ void AProjectileSpawner::BeginPlay()
 	Super::BeginPlay();
 }
 
-void AProjectileSpawner::Tick(float DeltaTime)
+void AProjectileSpawner::Tick_PrePhysics(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
+	Super::Tick_PrePhysics(DeltaTime);
 
 	mCoolDown += DeltaTime;
 	if(mCoolDown > 1)

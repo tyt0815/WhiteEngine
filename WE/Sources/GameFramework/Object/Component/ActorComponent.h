@@ -15,7 +15,9 @@ public:
 public:
 	virtual void SetOwner(AActor* Owner);
 
-	virtual void TickComponent(float DeltaTime) {};
+	virtual void TickComponent_PrePhysics(float DeltaTime) {};
+
+	virtual void TickComponent_PostPhysics(float DeltaTime) {};
 
 	WWorld* GetWorld() const;
 

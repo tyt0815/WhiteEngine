@@ -1,8 +1,8 @@
 #include "Floor.h"
+#include "Box.h"
 #include "GameFramework/Object/World/World.h"
 #include "GameFramework/Object/Component/StaticMeshComponent.h"
 #include "GameFramework/Object/Component/SplineComponent.h"
-#include "Cylinder.h"
 
 AFloor::AFloor()
 {
@@ -15,7 +15,7 @@ AFloor::AFloor()
 	SplineComponent->LoadSplineFromAsset(L"SDA_Up");
 	SplineComponent->SetLocalLocation(XMFLOAT3(0.0f, 5.0f, 5.0f));
 
-	mBody = CreateBoxBody({50, .5, 50}, EObjectType::EOT_Static, false);
+	mBody = CreateBoxBody({50, .5, 50}, EObjectType::EOT_Static);
 	mBody->AddBody();
 	mBody->SetActivate(false);
 }
@@ -26,12 +26,12 @@ void AFloor::BeginPlay()
 
 	mBody->SetPosition({ 0.0f, -3.0f, 0.0f });
 
-	SplineFollowingActor = GetWorld()->SpawnActor<ACylinder>();
+	SplineFollowingActor = GetWorld()->SpawnActor<ABox>();
 }
 
-void AFloor::Tick(float Delta)
+void AFloor::Tick_PrePhysics(float Delta)
 {
-	Super::Tick(Delta);
+	Super::Tick_PrePhysics(Delta);
 
 	SetActorTransform(mBody->GetTransform());
 

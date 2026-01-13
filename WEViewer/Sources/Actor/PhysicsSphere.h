@@ -10,8 +10,5 @@ class APhysicsSphere : public AActor
 public:
 	APhysicsSphere();
 
-	virtual void Tick(float DeltaTiem) override;
-
-private:
-	std::unique_ptr<FBody> mBody;
+	virtual void Tick_PrePhysics(float DeltaTiem) override;
 };

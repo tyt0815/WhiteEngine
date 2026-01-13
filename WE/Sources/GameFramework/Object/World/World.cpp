@@ -1,4 +1,5 @@
 #include "World.h"
+#include "Physics/PhysicsCore.h"
 
 WWorld* gWorld;
 
@@ -17,7 +18,7 @@ void WWorld::Tick(float Delta)
 
 	for (size_t i = 0; i < mAllActors.Size(); ++i)
 	{
-		mAllActors[i]->Tick(Delta);
+		mAllActors[i]->Tick_PrePhysics(Delta);
 	}
 
 	for (size_t i = 0; i < mAllActors.Size(); ++i)
@@ -25,7 +26,27 @@ void WWorld::Tick(float Delta)
 		auto& Components = mAllActors[i]->GetAllComponents();
 		for (size_t j = 0; j < Components.Size(); ++j)
 		{
-			Components[j]->TickComponent(Delta);
+			Components[j]->TickComponent_PrePhysics(Delta);
+		}
+	}
+
+	Physics::Tick(Delta);
+	for (size_t i = 0; i < mAllActors.Size(); ++i)
+	{
+		mAllActors[i]->UpdatePhysics();
+	}
+
+	for (size_t i = 0; i < mAllActors.Size(); ++i)
+	{
+		mAllActors[i]->Tick_PostPhysics(Delta);
+	}
+
+	for (size_t i = 0; i < mAllActors.Size(); ++i)
+	{
+		auto& Components = mAllActors[i]->GetAllComponents();
+		for (size_t j = 0; j < Components.Size(); ++j)
+		{
+			Components[j]->TickComponent_PostPhysics(Delta);
 		}
 	}
 

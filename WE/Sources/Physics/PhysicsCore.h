@@ -49,12 +49,14 @@ public:
 
 	FTransform GetTransform() const;
 
+	void SetTransform(const FTransform& Transform);
+
 private:
 	FBody() = delete;
 
 	JPH::Body* mBody;
 };
 
-std::unique_ptr<FBody> CreateBoxBody(XMFLOAT3 Size, EObjectType ObjectType, bool bActivate);
+std::unique_ptr<FBody> CreateBoxBody(XMFLOAT3 Size, EObjectType ObjectType);
 
 std::unique_ptr<FBody> CreateSphereBody(float Radius, EObjectType ObjectType);
