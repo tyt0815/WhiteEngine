@@ -36,4 +36,10 @@ public:
 
 private:
 	std::vector<T> Array;
+
+public:
+	const std::vector<T>& GetView() const
+	{
+		return Array;
+	}
 };

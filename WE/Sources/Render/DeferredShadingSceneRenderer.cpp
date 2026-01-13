@@ -498,7 +498,7 @@ void FDeferredShadingSceneRenderer::Render(
 	CommandList->RSSetScissorRects(1, &ScissorRect);
 
 	auto* Line3DVB = FrameResource->mLine3DVB.get();
-	UINT IndexCount = RenderItemProxy->mDebugLine3DProxies.Size() * 2;
+	UINT IndexCount = FrameResource->mLine3DVB->GetElementCount();
 
 	// 3. Vertex Buffer View 설정
 	D3D12_VERTEX_BUFFER_VIEW vbv;

@@ -7,6 +7,7 @@
 #include "Utility/Timer.h"
 #include "DirectX/CBVSRVUAVHeap.h"
 #include "MeshGeometry.h"
+#include "Physics/PhysicsDebugRenderer.h"
 
 #include "SkeletalMesh.h"
 
@@ -28,7 +29,7 @@ FFrameResourceBase::FFrameResourceBase(ID3D12Device* Device)
 	mMaterialStructuredBuffer = std::make_unique<TUploadBuffer<FMaterialStructuredBuffer>>(Device, EMT_None, false);
 	mDirectionalLightStructuredBuffer = std::make_unique<TUploadBuffer<FDirectionalLightStructuredBuffer>>(Device, DIR_LIGHTS_NUM, false);
 
-	mLine3DVB = std::make_unique<TUploadBuffer<FLine3DVertex>>(Device, 1000, false);
+	mLine3DVB = std::make_unique<TUploadBuffer<FLine3DVertex>>(Device, 100000, false);
 }
 
 FFrameResourceBase::~FFrameResourceBase()
@@ -713,16 +714,27 @@ void FSceneRenderer::UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightStr
 
 void FSceneRenderer::UpdateDebugLine3DVB(TUploadBuffer<FLine3DVertex>* DebugLine3DVB, const FRenderItemProxy* RenderItemProxy)
 {
-	std::vector<FLine3DVertex> LineVertices;
-	for (int i = 0; i < RenderItemProxy->mDebugLine3DProxies.Size(); ++i)
+	std::vector<FLine3DVertex> LineVertices(DebugLine3DVB->GetElementCount());
+	int Index = 0;
+	for (const auto& Proxy : RenderItemProxy->mDebugLine3DProxies.GetView())
 	{
-		const FDebugLine3DVBProxy& Proxy = RenderItemProxy->mDebugLine3DProxies[i];
 		FLine3DVertex Vertex;
 		Vertex.Position = Proxy.Start;
 		Vertex.Color = Proxy.Color;
-		LineVertices.push_back(Vertex);
+		LineVertices[Index++] = Vertex;
 		Vertex.Position = Proxy.End;
-		LineVertices.push_back(Vertex);
+		LineVertices[Index++] = Vertex;
+	}
+
+	const auto& PhysicsLines = Physics::g_DebugRenderer->GetLinesView();
+	for (const auto& Line : PhysicsLines)
+	{
+		FLine3DVertex Vertex;
+		Vertex.Position = Line.Start;
+		Vertex.Color = Line.Color;
+		LineVertices[Index++] = Vertex;
+		Vertex.Position = Line.End;
+		LineVertices[Index++] = Vertex;
 	}
 
 	DebugLine3DVB->CopyData(0, LineVertices.data(), (UINT)LineVertices.size());
