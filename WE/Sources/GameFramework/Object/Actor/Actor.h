@@ -27,8 +27,6 @@ public:
 
 	virtual void Tick_PrePhysics(float Delta) {};
 
-	void UpdatePhysics();
-
 	virtual void Tick_PostPhysics(float Delta) {};
 
 	template<typename T>
@@ -37,8 +35,6 @@ public:
 	void SetRootComponent(WSceneComponent* Component);
 
 	void SetActorTransform(FTransform Transform);
-
-	void UpdatePhysicsTransform();
 
 	XMFLOAT3 GetFowardVector() const;
 
@@ -49,21 +45,6 @@ public:
 	void Destroy();
 
 protected:
-	enum class EPhysicsShape : uint8_t
-	{
-		EPS_Sphere,
-		EPS_Box,
-	};
-
-	XMFLOAT3 mBoxPhysicsExtent = { 1.0f, 1.0f, 1.0f };
-
-	float mSpherePhysicsRadius = 1;
-
-	EObjectType mObjectType = EObjectType::EOT_Dynamic;
-
-	EPhysicsShape mActorPhysicsShape = EPhysicsShape::EPS_Box;
-
-	bool mbPhysicSimulate = false;
 
 private:
 	void SetupComponent(WActorComponent* Component);
@@ -183,7 +164,8 @@ inline T* AActor::CreateComponent()
 		mAllNoneSceneComponent.Add(ActorComp);
 	}
 
+	ActorComp->BeginPlay();
 	T* Comp = dynamic_cast<T*>(ActorComp);
-
+	
 	return Comp;
 }

@@ -7,38 +7,6 @@ AActor::AActor()
 	
 }
 
-void AActor::BeginPlay()
-{
-	if (mbPhysicSimulate)
-	{
-		switch (mActorPhysicsShape)
-		{
-		case EPhysicsShape::EPS_Box:
-			mBody = CreateBoxBody(mBoxPhysicsExtent, mObjectType);
-			break;
-
-		case EPhysicsShape::EPS_Sphere:
-			mBody = CreateSphereBody(mSpherePhysicsRadius, mObjectType);
-			break;
-
-		default:
-			break;
-		}
-
-		mBody->AddBody();
-
-		mBody->SetTransform(GetActorTransform());
-	}
-}
-
-void AActor::UpdatePhysics()
-{
-	if (mbPhysicSimulate)
-	{
-		SetActorTransform(mBody->GetTransform());
-	}
-}
-
 void AActor::SetRootComponent(WSceneComponent* Component)
 {
 	if (mRootComponent == Component)
@@ -56,16 +24,6 @@ void AActor::SetRootComponent(WSceneComponent* Component)
 void AActor::SetActorTransform(FTransform Transform)
 {
 	mRootComponent->SetLocalTransform(Transform);
-
-	UpdatePhysicsTransform();
-}
-
-void AActor::UpdatePhysicsTransform()
-{
-	if (mbPhysicSimulate)
-	{
-		mBody->SetTransform(GetActorTransform());
-	}
 }
 
 XMFLOAT3 AActor::GetFowardVector() const

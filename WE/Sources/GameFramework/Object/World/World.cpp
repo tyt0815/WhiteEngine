@@ -43,7 +43,11 @@ void WWorld::Tick(float Delta)
 	Physics::Tick(Delta);
 	for (size_t i = 0; i < mAllActors.Size(); ++i)
 	{
-		mAllActors[i]->UpdatePhysics();
+		auto& Components = mAllActors[i]->GetAllComponents();
+		for (size_t j = 0; j < Components.Size(); ++j)
+		{
+			Components[j]->update(Delta);
+		}
 	}
 
 	for (size_t i = 0; i < mAllActors.Size(); ++i)

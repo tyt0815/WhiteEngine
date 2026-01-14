@@ -13,6 +13,8 @@ public:
 	virtual ~WActorComponent() noexcept = default;
 
 public:
+	virtual void BeginPlay() {};
+
 	virtual void SetOwner(AActor* Owner);
 
 	virtual void TickComponent_PrePhysics(float DeltaTime) {};
