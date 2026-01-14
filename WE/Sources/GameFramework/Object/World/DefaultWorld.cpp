@@ -15,5 +15,5 @@ WDefaultWorld::WDefaultWorld()
 	LightActor->GetDirLightComp()->SetColor({ 10.0f, 10.0f, 10.0f });
 
 	AFloor* Floor = SpawnActor<AFloor>();
-	Floor->SetActorLocation(XMFLOAT3(0.0f, -2.0f, 0.0f));
+	Floor->SetActorLocation(XMFLOAT3(0.0f, -5.0f, 0.0f));
 }

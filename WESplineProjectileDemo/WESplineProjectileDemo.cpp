@@ -29,58 +29,146 @@ ASpiralBulletSpawner::ASpiralBulletSpawner()
 {
 	WSceneComponent* RootComponent = CreateComponent<WSceneComponent>();
 	SetRootComponent(RootComponent);
-	mSpiralSpline = CreateComponent<WSplineComponent>();
-	mSpiralSpline->SetupAttachment(GetRootComponent());
-	mSpiralSpline->LoadSplineFromAsset(L"SDA_Spiral");
+	
+	mSplineBullet.Spline = CreateComponent<WSplineComponent>();
+	mSplineBullet.Spline->SetupAttachment(GetRootComponent());
+	mSplineBullet.Spline->LoadSplineFromAsset(L"SDA_Spiral");
 }
 
 void ASpiralBulletSpawner::Tick_PostPhysics(float Delta)
 {
-	ABulletSpawner::Tick_PostPhysics(Delta);
+	ASplineBulletSpawner::Tick_PostPhysics(Delta);
 
 	mCoolDown -= Delta;
 
 	WWorld* World = GetWorld();
 	if (mCoolDown < 0)
 	{
-		ABullet* Bullet = World->SpawnActor<ABullet>();
-		mBullets.Add(Bullet);
-		mBulletDistance.Add(0.0f);
+		mSplineBullet.SpawnBullet(World);
 		mCoolDown = mCoolTime;
 	}
 
-	for (int i = 0; i < mBullets.Size(); ++i)
+	for (int i = 0; i < mSplineBullet.Bullets.Size(); ++i)
 	{
-		if (!World->IsValidActor(mBullets[i]))
+		
+		if (!World->IsValidActor(mSplineBullet.Bullets[i]))
 		{
-			mBullets.RemoveAt(i);
-			mBulletDistance.RemoveAt(i);
+			mSplineBullet.RemoveAt(i);
 			--i;
 			continue;
 		}
 
-		ABullet* Bullet = mBullets[i];
-		float& Dist = mBulletDistance[i];
+		ABullet* Bullet = mSplineBullet.Bullets[i];
+		float& Dist = mSplineBullet.BulletDistance[i];
 
-		float SpeedCoef = mSpiralSpline->GetCustomProperty2AtDistanceAlongSpline(Dist);
+		float SpeedCoef = mSplineBullet.Spline->GetCustomProperty2AtDistanceAlongSpline(Dist);
 
-		Dist = min(Dist + Delta * Bullet->GetVelocity().z * SpeedCoef, mSpiralSpline->GetSplineLength());
+		Dist = min(Dist + Delta * Bullet->GetVelocity().z * SpeedCoef, mSplineBullet.Spline->GetSplineLength());
 
-		Bullet->SetActorTransform(mSpiralSpline->GetWorldTransformAtDistanceAlongSpline(Dist));
+		Bullet->SetActorTransform(mSplineBullet.Spline->GetWorldTransformAtDistanceAlongSpline(Dist));
 
-		if (Dist >= mSpiralSpline->GetSplineLength())
+		if (Dist >= mSplineBullet.Spline->GetSplineLength())
 		{
-			mBullets.RemoveAt(i);
-			mBulletDistance.RemoveAt(i);
+			mSplineBullet.RemoveAt(i);
 			--i;
 			continue;
 		}
 	}
 }
 
+AWaveBulletSpanwer::AWaveBulletSpanwer()
+{
+	WSceneComponent* RootComponent = CreateComponent<WSceneComponent>();
+	SetRootComponent(RootComponent);
+
+	mSplines.resize(4);
+
+	XMFLOAT3 LocationOffset = { 0.5f, 0, 0 };
+	XMFLOAT3 RotationOffset = {0, 20, 90};
+	float k = mSplines.size() / 2.f - 0.5f;
+	for (int i = 0; i < mSplines.size(); ++i)
+	{
+		float v = (i - k);
+		mSplines[i].Spline = CreateComponent<WSplineComponent>();
+		mSplines[i].Spline->SetupAttachment(GetRootComponent());
+		mSplines[i].Spline->LoadSplineFromAsset(L"SDA_Wave");
+		mSplines[i].Spline->SetLocalLocation(XMFLOAT3(LocationOffset.x * v, LocationOffset.y * v, LocationOffset.z * v));
+		mSplines[i].Spline->SetLocalRotation(XMFLOAT3(RotationOffset.x * v, RotationOffset.y * v, RotationOffset.z * v));
+	}
+}
+
+void AWaveBulletSpanwer::Tick_PostPhysics(float Delta)
+{
+	Super::Tick_PostPhysics(Delta);
+
+	mCoolDown -= Delta;
+	if (mCoolDown <= 0)
+	{
+		mCoolDown = mCoolTime;
+
+		for (auto& Spline : mSplines)
+		{
+			Spline.SpawnBullet(GetWorld());
+		}
+	}
+
+	for (auto& Spline : mSplines)
+	{
+		UpdateSplineBullet(&Spline, Delta);
+	}
+}
+
+void AWaveBulletSpanwer::UpdateSplineBullet(FSplineBullet* SplineBullet, float Delta)
+{
+	for (int i = 0; i < SplineBullet->Bullets.Size(); ++i)
+	{
+		if (!GetWorld()->IsValidActor(SplineBullet->Bullets[i]))
+		{
+			SplineBullet->RemoveAt(i);
+			--i;
+			continue;
+		}
+
+		ABullet* Bullet = SplineBullet->Bullets[i];
+		float& Dist = SplineBullet->BulletDistance[i];
+
+		float SpeedCoef = SplineBullet->Spline->GetCustomProperty2AtDistanceAlongSpline(Dist);
+
+		Dist = min(Dist + Delta * Bullet->GetVelocity().z * SpeedCoef, SplineBullet->Spline->GetSplineLength());
+
+		Bullet->SetActorTransform(SplineBullet->Spline->GetWorldTransformAtDistanceAlongSpline(Dist));
+
+		if (Dist >= SplineBullet->Spline->GetSplineLength())
+		{
+			SplineBullet->RemoveAt(i);
+			Bullet->Destroy();
+			--i;
+			continue;
+		}
+	}
+}
 
 WSplineProjectileDemoWorld::WSplineProjectileDemoWorld()
 {
 	ASpiralBulletSpawner* SpiralSpawner = SpawnActor<ASpiralBulletSpawner>();
-	SpiralSpawner->SetActorLocation(XMFLOAT3(5, 2, 10));
+	SpiralSpawner->SetActorLocation(XMFLOAT3(5, -2, 10));
+	SpiralSpawner->SetActorRotation(XMFLOAT3(0, 90, 0));
+
+	AWaveBulletSpanwer* WaveSpawner = SpawnActor<AWaveBulletSpanwer>();
+	WaveSpawner->SetActorLocation(XMFLOAT3(-5, -2, 15));
+	WaveSpawner->SetActorRotation(XMFLOAT3(0, 180, 0));
+}
+
+ABullet* ASplineBulletSpawner::FSplineBullet::SpawnBullet(WWorld* World)
+{
+	ABullet* Bullet = World->SpawnActor<ABullet>();
+	Bullets.Add(Bullet);
+	BulletDistance.Add(0.0f);
+	return Bullet;
+}
+
+void ASplineBulletSpawner::FSplineBullet::RemoveAt(UINT i)
+{
+	Bullets.RemoveAt(i);
+	BulletDistance.RemoveAt(i);
 }

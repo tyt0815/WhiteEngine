@@ -22,23 +22,49 @@ private:
 	WProjectileMovementComponent* mProjectileMovementComponent;
 };
 
-class ABulletSpawner : public AActor
+class ASplineBulletSpawner : public AActor
 {
+protected:
+	class FSplineBullet
+	{
+	public:
+		ABullet* SpawnBullet(WWorld* World);
 
+		void RemoveAt(UINT i);
+
+		WSplineComponent* Spline;
+		TUnorderedArray<ABullet*> Bullets;
+		TUnorderedArray<float> BulletDistance;
+	};
 };
 
-class ASpiralBulletSpawner : public ABulletSpawner
+class ASpiralBulletSpawner : public ASplineBulletSpawner
 {
+	typedef ASplineBulletSpawner Super;
 public:
 	ASpiralBulletSpawner();
 
 	virtual void Tick_PostPhysics(float Delta) override;
 
 private:
-	WSplineComponent* mSpiralSpline;
+	FSplineBullet mSplineBullet;
 
-	TUnorderedArray<ABullet*> mBullets;
-	TUnorderedArray<float> mBulletDistance;
+	float mCoolDown = 0;
+	float mCoolTime = 1;
+};
+
+class AWaveBulletSpanwer : public ASplineBulletSpawner
+{
+	typedef ASplineBulletSpawner Super;
+public:
+	AWaveBulletSpanwer();
+
+	virtual void Tick_PostPhysics(float Delta) override;
+
+private:
+	void UpdateSplineBullet(FSplineBullet* Spline, float Delta);
+
+	std::vector<FSplineBullet> mSplines;
 
 	float mCoolDown = 0;
 	float mCoolTime = 1;
