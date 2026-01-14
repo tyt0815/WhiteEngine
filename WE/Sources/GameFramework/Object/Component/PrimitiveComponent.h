@@ -18,6 +18,8 @@ public:
 
 	void UpdateFromPhysics();
 
+	void ActivatePhysicBody();
+
 protected:
 	virtual void CreatePhysicsBody() = 0;
 
@@ -34,10 +36,10 @@ protected:
 
 	bool mbPhysicSimulate = false;
 
-private:
-	void ActivatePhysicBody();
-
 public:
-
+	__forceinline void SetObjectType(EObjectType Type)
+	{
+		mObjectType = Type;
+	}
 
 };

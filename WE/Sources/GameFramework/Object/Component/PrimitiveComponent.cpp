@@ -13,7 +13,10 @@ void WPrimitiveComponent::BeginComponent()
 {
 	Super::BeginComponent();
 
-	CreatePhysicsBody();
+	if (mBody == nullptr)
+	{
+		CreatePhysicsBody();
+	}
 
 	if (mbPhysicSimulate)
 	{
@@ -60,6 +63,10 @@ void WPrimitiveComponent::UpdateProxies()
 
 void WPrimitiveComponent::ActivatePhysicBody()
 {
-	mBody->AddBody();
-	mBody->SetTransform(GetWorldTransform());
+	mbPhysicSimulate = true;
+
+	if (mBody)
+	{
+		mBody->AddBody();
+	}
 }

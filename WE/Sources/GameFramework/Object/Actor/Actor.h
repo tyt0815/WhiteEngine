@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GameFramework/Object/Component/SceneComponent.h"
+#include "GameFramework/Object/Component/PrimitiveComponent.h"
 #include "Utility/Class.h"
 #include "Utility/Container.h"
 #include "Physics/PhysicsCore.h"
@@ -13,7 +13,6 @@ extern const int gFrameResourcesNum;
 class FMeshGeometry;
 class FMaterial;
 class WCameraComponent;
-class WPrimitiveComponent;
 
 
 class AActor
@@ -167,6 +166,11 @@ inline T* AActor::CreateComponent()
 	if (SceneComp != nullptr)
 	{
 		mAllSceneComponent.Add(SceneComp);
+
+		if (WPrimitiveComponent* PrimitiveComp = dynamic_cast<WPrimitiveComponent*>(SceneComp))
+		{
+			mAllPrimitiveComponents.Add(PrimitiveComp);
+		}		
 	}
 	else
 	{

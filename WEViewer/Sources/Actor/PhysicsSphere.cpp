@@ -1,15 +1,17 @@
 #include "PhysicsSphere.h"
 #include "GameFramework/Object/Component/StaticMeshComponent.h"
+#include "Component/SphereComponent.h"
 
 APhysicsSphere::APhysicsSphere()
 {
-	WStaticMeshComponent* Component = CreateComponent<WStaticMeshComponent>();
-	SetRootComponent(Component);
-	Component->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_RustedIron2Sphere));
+	mSphereComp = CreateComponent<WSphereComponent>();
+	SetRootComponent(mSphereComp);
+	mSphereComp->SetObjectType(EObjectType::EOT_Dynamic);
+	mSphereComp->ActivatePhysicBody();
 
-	//mbPhysicSimulate = true;
-	//mActorPhysicsShape = EPhysicsShape::EPS_Sphere;
-	//mSpherePhysicsRadius = 0.5f;
+	WStaticMeshComponent* Component = CreateComponent<WStaticMeshComponent>();
+	Component->SetupAttachment(GetRootComponent());
+	Component->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_RustedIron2Sphere));
 }
 
 void APhysicsSphere::Tick_PrePhysics(float DeltaTiem)

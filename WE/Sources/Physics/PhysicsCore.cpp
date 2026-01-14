@@ -90,6 +90,9 @@ namespace Physics
 	std::unique_ptr<MyBodyActivationListener> g_BodyActivationListener;
 
 	std::unique_ptr<MyContactListener> g_ContactListener;
+
+	bool g_bDrawShape = true;
+	bool g_bDrawBoundingBox = true;
 }
 
 namespace Physics
@@ -309,8 +312,8 @@ void Physics::Tick(float DeltaTime)
 
 	g_DebugRenderer->Clear();
 	JPH::BodyManager::DrawSettings Settings;
-	Settings.mDrawShape = true;
-	//Settings.mDrawBoundingBox = true;
+	Settings.mDrawShape = g_bDrawShape;
+	Settings.mDrawBoundingBox = g_bDrawBoundingBox;
 
 	g_PhysicsSystem->DrawBodies(Settings, g_DebugRenderer.get());
 }

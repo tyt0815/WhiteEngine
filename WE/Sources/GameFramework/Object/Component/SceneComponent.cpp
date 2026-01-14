@@ -106,7 +106,7 @@ DirectX::XMFLOAT4 WSceneComponent::GetWorldQuatRotation()
 
 DirectX::XMFLOAT3 WSceneComponent::GetWorldLocation()
 {
-	DirectX::XMMATRIX WorldMat = DirectX::XMLoadFloat4x4(&mWorld);
+	DirectX::XMMATRIX WorldMat = GetWorldMatrix();
 	DirectX::XMVECTOR Pos = DirectX::XMLoadFloat3(&mTransform.Translation);
 	Pos = DirectX::XMVectorSetW(Pos, 1.0f);
 	
@@ -115,12 +115,12 @@ DirectX::XMFLOAT3 WSceneComponent::GetWorldLocation()
 	return WorldLocation;
 }
 
-FTransform WSceneComponent::GetWorldTransform() const
+FTransform WSceneComponent::GetWorldTransform()
 {
 	XMVECTOR S;
 	XMVECTOR RQ;
 	XMVECTOR T;
-	XMMATRIX W = XMLoadFloat4x4(&mWorld);
+	XMMATRIX W = GetWorldMatrix();
 	XMMatrixDecompose(&S, &RQ, &T, W);
 	FTransform Transform;
 	XMStoreFloat3(&Transform.Scale, S);

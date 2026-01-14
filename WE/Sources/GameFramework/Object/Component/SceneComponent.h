@@ -30,7 +30,7 @@ public:
 
 	DirectX::XMFLOAT3 GetWorldLocation();
 
-	FTransform GetWorldTransform() const;
+	FTransform GetWorldTransform();
 
 	void UpdateRecursive();
 
@@ -58,8 +58,6 @@ private:
 	DirectX::XMFLOAT4X4 mWorld;
 
 	DirectX::XMFLOAT4X4 mInvWorld;
-
-	DirectX::XMFLOAT4 mWorldQuat;
 
 	WSceneComponent* mParent = nullptr;
 
