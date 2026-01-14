@@ -1,8 +1,8 @@
 #pragma once
 
-#include "GameFramework/Object/World/World.h"
+#include "GameFramework/Object/World/DefaultWorld.h"
 
-class WTestWorld : public WWorld
+class WTestWorld : public WDefaultWorld
 {
 	typedef WWorld Super;
 public:

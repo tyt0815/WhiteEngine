@@ -1,5 +1,6 @@
 #include "World.h"
 #include "Physics/PhysicsCore.h"
+#include "../Pawn/GhostCameraPawn.h"
 
 WWorld* gWorld;
 
@@ -10,6 +11,15 @@ WWorld::WWorld()
 
 WWorld::~WWorld()
 {
+}
+
+void WWorld::BeginPlay()
+{
+	if (mPlayer == nullptr)
+	{
+		APawn* Player = SpawnActor<AGhostCameraPawn>();
+		SetPlayer(Player);
+	}
 }
 
 void WWorld::Tick(float Delta)
@@ -81,6 +91,19 @@ void WWorld::DrawDebugLine(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT4 Color, float L
 	Proxy.Color = Color;
 	Proxy.LifeSpan = LifeSpan;
 	mRenderItemProxy.mDebugLine3DProxies.Add(Proxy);
+}
+
+// TODO: 같은 주소에 Actor 메모리가 할당되면 당글링 포인터도 true를 반환 할 수 있음
+bool WWorld::IsValidActor(AActor* Actor)
+{
+	for (int i = 0; i < mAllActors.Size(); ++i)
+	{
+		if (mAllActors[i].get() == Actor)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 void WWorld::FlushDestroyQueue()

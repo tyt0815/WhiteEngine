@@ -78,6 +78,17 @@ void FMaterialManager::BuildMaterials()
 		"LaminateFlooringBrown_Roughness",
 		FDXMath::Identity4x4()
 	);
+
+	BuildMaterial(
+		EMT_Metal049A,
+		ESM_DefaultLit,
+		EBM_Opaque,
+		"Metal049A_Albedo",
+		"Metal049A_Metalness",
+		"Metal049A_Normal",
+		"Metal049A_Roughness",
+		FDXMath::Identity4x4()
+	);
 }
 
 void FMaterialManager::Internal_BuildMaterial(

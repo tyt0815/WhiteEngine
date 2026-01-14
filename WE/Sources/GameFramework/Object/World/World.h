@@ -13,6 +13,8 @@ public:
 	virtual ~WWorld();
 
 public:
+	virtual void BeginPlay();
+
 	virtual void Tick(float Delta);
 
 	void SetPlayer(APawn* Player);
@@ -23,6 +25,8 @@ public:
 	void DestroyActor(AActor* Actor);
 
 	void DrawDebugLine(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT4 Color, float LifeSpan);
+
+	bool IsValidActor(AActor* Actor);
 
 private:
 	void FlushDestroyQueue();

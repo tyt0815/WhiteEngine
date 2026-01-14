@@ -1,7 +1,6 @@
 #include "GhostCameraPawn.h"
 #include "GameFramework/Object/World/World.h"
 #include "GameFramework/Object/Component/CameraComponent.h"
-#include "../Actor/Bullet.h"
 
 AGhostCameraPawn::AGhostCameraPawn()
 {
@@ -19,7 +18,7 @@ void AGhostCameraPawn::SetupPlayerInput()
 	GetInputSystemManager()->BindKeyboardAction('e', this, &AGhostCameraPawn::MoveUp);
 	GetInputSystemManager()->BindKeyboardAction('q', this, &AGhostCameraPawn::MoveDown);
 	GetInputSystemManager()->BindMouseAction(EMIT_Move, this, &AGhostCameraPawn::Look);
-	GetInputSystemManager()->BindMouseAction(EMIT_LDown, this, &AGhostCameraPawn::Fire);
+	GetInputSystemManager()->BindMouseAction(EMIT_LDown, this, &AGhostCameraPawn::LeftClick);
 }
 
 void AGhostCameraPawn::MoveForward()
@@ -57,12 +56,4 @@ void AGhostCameraPawn::Look(FMouseInputParameter Parameter)
 {
 	AddYawInput(static_cast<float>(Parameter.X));
 	AddPitchInput(static_cast<float>(Parameter.Y));
-}
-
-void AGhostCameraPawn::Fire(FMouseInputParameter Parameter)
-{
-	ABullet* Bullet = GetWorld()->SpawnActor<ABullet>();
-	Bullet->SetActorLocation(GetActorLocation());
-	Bullet->SetActorRotation(GetActorRotation());
-	Bullet->SetLifeSpan(1);
 }

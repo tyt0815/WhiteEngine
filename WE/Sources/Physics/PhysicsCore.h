@@ -1,4 +1,6 @@
+
 #pragma once
+
 #include "ObjectChannel.h"
 #include "DirectX/DXMath.h"
 

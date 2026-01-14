@@ -24,10 +24,12 @@
     <ClCompile Include="Sources\DirectX\Resource.cpp" />
     <ClCompile Include="Sources\DirectX\RTVHeap.cpp" />
     <ClCompile Include="Sources\DirectX\CBVSRVUAVHeap.cpp" />
+    <ClCompile Include="Sources\GameFramework\GameAppImpl.cpp" />
     <ClCompile Include="Sources\GameFramework\GameCore.cpp" />
     <ClCompile Include="Sources\GameFramework\InputSystem\InputSystem.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Actor\Actor.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Actor\DirectionalLight.cpp" />
+    <ClCompile Include="Sources\GameFramework\Object\Actor\Floor.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\ActorComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\CameraComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\DirectionalLightComponent.cpp" />
@@ -38,7 +40,9 @@
     <ClCompile Include="Sources\GameFramework\Object\Component\SceneComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\SplineComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\StaticMeshComponent.cpp" />
+    <ClCompile Include="Sources\GameFramework\Object\Pawn\GhostCameraPawn.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Pawn\Pawn.cpp" />
+    <ClCompile Include="Sources\GameFramework\Object\World\DefaultWorld.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\World\World.cpp" />
     <ClCompile Include="Sources\GameFramework\RenderItemProxy.cpp" />
     <ClCompile Include="Sources\Physics\PhysicsCore.cpp" />
@@ -88,10 +92,12 @@
     <ClInclude Include="Sources\DirectX\Resource.h" />
     <ClInclude Include="Sources\DirectX\RTVHeap.h" />
     <ClInclude Include="Sources\DirectX\CBVSRVUAVHeap.h" />
+    <ClInclude Include="Sources\GameFramework\GameAppImpl.h" />
     <ClInclude Include="Sources\GameFramework\GameCore.h" />
     <ClInclude Include="Sources\GameFramework\InputSystem\InputSystem.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\Actor.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\DirectionalLight.h" />
+    <ClInclude Include="Sources\GameFramework\Object\Actor\Floor.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\ActorComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\CameraComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\DirectionalLightComponent.h" />
@@ -102,7 +108,9 @@
     <ClInclude Include="Sources\GameFramework\Object\Component\SceneComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\SplineComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\StaticMeshComponent.h" />
+    <ClInclude Include="Sources\GameFramework\Object\Pawn\GhostCameraPawn.h" />
     <ClInclude Include="Sources\GameFramework\Object\Pawn\Pawn.h" />
+    <ClInclude Include="Sources\GameFramework\Object\World\DefaultWorld.h" />
     <ClInclude Include="Sources\GameFramework\Object\World\World.h" />
     <ClInclude Include="Sources\GameFramework\RenderItemProxy.h" />
     <ClInclude Include="Sources\Physics\JPHUtility.h" />

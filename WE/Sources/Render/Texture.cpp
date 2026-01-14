@@ -93,6 +93,11 @@ void FTextureManager::LoadTextures(ID3D12Device* Device, ID3D12GraphicsCommandLi
 	LoadTexture("LaminateFlooringBrown_Normal", Device, CommandList);
 	LoadTexture("LaminateFlooringBrown_Roughness",Device, CommandList);
 
+	LoadTexture("Metal049A_Roughness", Device, CommandList);
+	LoadTexture("Metal049A_Albedo", Device, CommandList);
+	LoadTexture("Metal049A_Metalness", Device, CommandList);
+	LoadTexture("Metal049A_Normal", Device, CommandList);
+
 	LoadTexture("SpecularIntegral", Device, CommandList);
 
 	LoadTexture("SnowCube", Device, CommandList);

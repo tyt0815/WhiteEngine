@@ -23,70 +23,16 @@
     <ClCompile Include="Sources\Main.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Actor\Box.cpp">
-      <Filter>Sources\Actor</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Actor\Sphere.cpp">
-      <Filter>Sources\Actor</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Actor\Floor.cpp">
-      <Filter>Sources\Actor</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\World\TestWorld.cpp">
       <Filter>Sources\World</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Pawn\GhostCameraPawn.cpp">
-      <Filter>Sources\Pawn</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Actor\ProjectileSphere.cpp">
-      <Filter>Sources\Actor</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Actor\ProjectileSpawner.cpp">
-      <Filter>Sources\Actor</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Actor\Bullet.cpp">
-      <Filter>Sources\Actor</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Actor\ProjectileBox.cpp">
-      <Filter>Sources\Actor</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Actor\ProjectileActor.cpp">
-      <Filter>Sources\Actor</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Actor\PhysicsSphere.cpp">
       <Filter>Sources\Actor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Sources\Actor\Box.h">
-      <Filter>Sources\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Actor\Sphere.h">
-      <Filter>Sources\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Actor\Floor.h">
-      <Filter>Sources\Actor</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\World\TestWorld.h">
       <Filter>Sources\World</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Pawn\GhostCameraPawn.h">
-      <Filter>Sources\Pawn</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Actor\ProjectileSphere.h">
-      <Filter>Sources\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Actor\ProjectileSpawner.h">
-      <Filter>Sources\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Actor\Bullet.h">
-      <Filter>Sources\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Actor\ProjectileBox.h">
-      <Filter>Sources\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Actor\ProjectileActor.h">
-      <Filter>Sources\Actor</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Actor\PhysicsSphere.h">
       <Filter>Sources\Actor</Filter>

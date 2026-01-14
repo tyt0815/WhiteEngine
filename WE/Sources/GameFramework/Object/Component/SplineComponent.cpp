@@ -2,7 +2,21 @@
 #include "Asset/AssetManager.h"
 #include "Asset/SplineDataAsset.h"
 #include "DirectX/DXMath.h"
+#include "../World/World.h"
 #include <algorithm>
+
+void WSplineComponent::TickComponent_PostPhysics(float Delta)
+{
+	Super::TickComponent_PostPhysics(Delta);
+
+	float d = 0.1f;
+	for (float InputKey = d; InputKey <= mSplineNodes.size(); InputKey += d)
+	{
+		XMFLOAT3 Start = GetWorldTransformAtSplineInputKey(InputKey - d).Translation;
+		XMFLOAT3 End = GetWorldTransformAtSplineInputKey(InputKey).Translation;
+		GetWorld()->DrawDebugLine(Start, End, XMFLOAT4(0, 1, 0, 0), 0);
+	}
+}
 
 void WSplineComponent::AddSplineNode(const FSplineNode& Node)
 {
@@ -14,6 +28,8 @@ void WSplineComponent::AddSplineNode(const FSplineNode& Node)
 		FSplineLUT LUT;
 		LUT.Distance = 0;
 		LUT.Location = Node.ControlPoint;
+		LUT.Property1 = Node.Property1;
+		LUT.Property2 = Node.Property2;
 		mSplineLUT.push_back(LUT);
 	}
 	else
@@ -25,7 +41,24 @@ void WSplineComponent::AddSplineNode(const FSplineNode& Node)
 
 		XMVECTOR Pt0 = FDXMath::CalculateCubicBezier(P0, P1, P2, P3, 0);
 		XMVECTOR Pt1 = FDXMath::CalculateCubicBezier(P0, P1, P2, P3, 1);
-		AdaptiveSampleRecursive(0.0f, 1.0f, 0.005f, Pt0, Pt1, P0, P1, P2, P3, 0);
+
+		FSampleParam Param;
+		Param.t0 = 0.0f;
+		Param.t1 = 1.0f;
+		Param.Tolerance = 0.005f;
+		Param.Pt0 = Pt0;
+		Param.Pt1 = Pt1;
+		Param.P0 = P0;
+		Param.P1 = P1;
+		Param.P2 = P2;
+		Param.P3 = P3;
+
+		Param.Property1_0 = mSplineNodes[NodeIndex - 1].Property1;
+		Param.Property1_1 = mSplineNodes[NodeIndex].Property1;
+		Param.Property2_0 = mSplineNodes[NodeIndex - 1].Property2;
+		Param.Property2_1 = mSplineNodes[NodeIndex].Property2;
+
+		AdaptiveSampleRecursive(Param, 0);
 
 		if (NodeIndex == 1)
 		{
@@ -137,49 +170,10 @@ XMFLOAT3 WSplineComponent::GetLocalRotationAtDistanceAlongSpline(float Distance)
 FTransform WSplineComponent::GetLocalTransformAtDistanceAlongSpline(float Distance)
 {
 	FTransform Transform;
-	if (mSplineLUT.empty())
-	{
-		return Transform;
-	}
+	FSplineLUT LUT = GetSplineLUTAtDistanceAlongSpline(Distance);
 
-	// 1. 범위 클램핑
-	Distance = FDXMath::Clamp(Distance, 0.0f, mSplineLUT.back().Distance);
-
-	// 2. 이진 탐색으로 이터레이터 찾기
-	auto Iter = std::lower_bound(mSplineLUT.begin(), mSplineLUT.end(), Distance,
-		[](const FSplineLUT& LUT, float Value) { return LUT.Distance < Value; }
-	);
-
-	// 3. 예외 처리: 시작점이거나 정확히 일치하는 경우
-	if (Iter == mSplineLUT.begin())
-	{
-		Transform.Translation = Iter->Location;
-		Transform.Rotation = FDXMath::QuaternionToEuler(Iter->Quat);
-		return Transform;
-	}
-
-	// 4. 보간 처리 (it는 Distance보다 큰 첫 번째 점, prevIt은 Distance보다 작은 마지막 점)
-	auto PrevIter = std::prev(Iter);
-
-	float LeftDist = PrevIter->Distance;
-	float RightDist = Iter->Distance;
-
-	// 분모가 0이 되는 것 방지 (매우 가까운 노드 대응)
-	float Delta = RightDist - LeftDist;
-	float Alpha = (Delta > 0.00001f) ? (Distance - LeftDist) / Delta : 0.0f;
-
-	XMVECTOR P0 = XMLoadFloat3(&PrevIter->Location);
-	XMVECTOR P1 = XMLoadFloat3(&Iter->Location);
-	XMVECTOR L = XMVectorLerp(P0, P1, Alpha);
-	XMStoreFloat3(&Transform.Translation, L);
-
-	
-	XMVECTOR Q0 = XMLoadFloat4(&PrevIter->Quat);
-	XMVECTOR Q1 = XMLoadFloat4(&Iter->Quat);
-	XMVECTOR Q = XMQuaternionSlerp(Q0, Q1, Alpha);
-	XMFLOAT4 Quat;
-	XMStoreFloat4(&Quat, Q);
-	Transform.Rotation = FDXMath::QuaternionToEuler(Quat);
+	Transform.Translation = LUT.Location;
+	Transform.Rotation = FDXMath::QuaternionToEuler(LUT.Quat);
 
 	return Transform;
 }
@@ -197,6 +191,16 @@ FTransform WSplineComponent::GetWorldTransformAtDistanceAlongSpline(float Distan
 	Result.SetByTransformMatrix(SM * CW);
 
 	return Result;
+}
+
+float WSplineComponent::GetCustomProperty1AtDistanceAlongSpline(float Distance)
+{
+	return GetSplineLUTAtDistanceAlongSpline(Distance).Property1;
+}
+
+float WSplineComponent::GetCustomProperty2AtDistanceAlongSpline(float Distance)
+{
+	return GetSplineLUTAtDistanceAlongSpline(Distance).Property2;
 }
 
 void WSplineComponent::SelectSplineNodesByInputKey(float InputKey, FSplineNode& LeftNode, FSplineNode& RightNode, float& t)
@@ -224,32 +228,91 @@ void WSplineComponent::SelectBezierPointsByInputKey(float InputKey, XMVECTOR* P0
 	*P3 = XMLoadFloat3(&RightNode.ControlPoint);
 }
 
-void XM_CALLCONV WSplineComponent::AdaptiveSampleRecursive(
-	float t0, float t1, float Tolerance,
-	FXMVECTOR Pt0, FXMVECTOR Pt1,
-	FXMVECTOR P0, GXMVECTOR P1, HXMVECTOR P2, HXMVECTOR P3,
-	UINT Depth
-)
+WSplineComponent::FSplineLUT WSplineComponent::GetSplineLUTAtDistanceAlongSpline(float Distance)
 {
-	float tMid = (t0 + t1) / 2;
-
-	XMVECTOR PtMid = FDXMath::CalculateCubicBezier(P0, P1, P2, P3, tMid);
-	XMVECTOR PMid = XMVectorDivide(XMVectorAdd(Pt0, Pt1), XMVectorReplicate(2.0f));
-
-	float Distance = XMVector3Length(XMVectorSubtract(PtMid, PMid)).m128_f32[0];
-
-	if (Distance > Tolerance && Depth < 10)
+	if (mSplineLUT.empty())
 	{
-		AdaptiveSampleRecursive(t0, tMid, Tolerance, Pt0, PtMid, P0, P1, P2, P3, Depth + 1);
-		AdaptiveSampleRecursive(tMid, t1, Tolerance, PtMid, Pt1, P0, P1, P2, P3, Depth + 1);
+		return FSplineLUT();
+	}
+
+	// 1. 범위 클램핑
+	Distance = FDXMath::Clamp(Distance, 0.0f, mSplineLUT.back().Distance);
+
+	// 2. 이진 탐색으로 이터레이터 찾기
+	auto Iter = std::lower_bound(mSplineLUT.begin(), mSplineLUT.end(), Distance,
+		[](const FSplineLUT& LUT, float Value) { return LUT.Distance < Value; }
+	);
+
+	// 3. 예외 처리: 시작점이거나 정확히 일치하는 경우
+	if (Iter == mSplineLUT.begin())
+	{
+		return *Iter;
+	}
+
+	// 4. 보간 처리 (it는 Distance보다 큰 첫 번째 점, prevIt은 Distance보다 작은 마지막 점)
+	auto PrevIter = std::prev(Iter);
+
+	float LeftDist = PrevIter->Distance;
+	float RightDist = Iter->Distance;
+
+	// 분모가 0이 되는 것 방지 (매우 가까운 노드 대응)
+	float Delta = RightDist - LeftDist;
+	float Alpha = (Delta > 0.00001f) ? (Distance - LeftDist) / Delta : 0.0f;
+
+	FSplineLUT LUT;
+
+	XMVECTOR P0 = XMLoadFloat3(&PrevIter->Location);
+	XMVECTOR P1 = XMLoadFloat3(&Iter->Location);
+	XMVECTOR L = XMVectorLerp(P0, P1, Alpha);
+	XMStoreFloat3(&LUT.Location , L);
+
+
+	XMVECTOR Q0 = XMLoadFloat4(&PrevIter->Quat);
+	XMVECTOR Q1 = XMLoadFloat4(&Iter->Quat);
+	XMVECTOR Q = XMQuaternionSlerp(Q0, Q1, Alpha);
+	XMStoreFloat4(&LUT.Quat, Q);
+
+	LUT.Distance = Distance;
+	LUT.Property1 = FDXMath::Lerp(PrevIter->Property1, Iter->Property1, Alpha);
+	LUT.Property2 = FDXMath::Lerp(PrevIter->Property2, Iter->Property2, Alpha);
+
+	return LUT;
+}
+
+void WSplineComponent::AdaptiveSampleRecursive(const FSampleParam& Param, UINT Depth)
+{
+	float tMid = (Param.t0 + Param.t1) / 2;
+
+	XMVECTOR PtMid = FDXMath::CalculateCubicBezier(Param.P0, Param.P1, Param.P2, Param.P3, tMid);
+	XMVECTOR PMid = XMVectorDivide(XMVectorAdd(Param.Pt0, Param.Pt1), XMVectorReplicate(2.0f));
+
+	float Distance = XMVectorGetX(XMVector3Length(XMVectorSubtract(PtMid, PMid)));
+
+	if (Distance > Param.Tolerance && Depth < 10)
+	{
+		float Property1Mid = (Param.Property1_0 + Param.Property1_1) / 2.0f;
+		float Property2Mid = (Param.Property2_0 + Param.Property2_1) / 2.0f;
+
+		FSampleParam LeftParam = Param;
+		LeftParam.t1 = tMid;
+		LeftParam.Pt1 = PtMid;
+		LeftParam.Property1_1 = Property1Mid;
+		LeftParam.Property2_1 = Property2Mid;
+		AdaptiveSampleRecursive(LeftParam, Depth + 1);
+		FSampleParam RightParam = Param;
+		RightParam.t0 = tMid;
+		RightParam.Pt0 = PtMid;
+		RightParam.Property1_0 = Property1Mid;
+		RightParam.Property2_0 = Property2Mid;
+		AdaptiveSampleRecursive(RightParam, Depth + 1);
 	}
 	else
 	{
 		FSplineLUT LUT;
-		XMStoreFloat3(&LUT.Location, Pt1);
-		LUT.Distance = mSplineLUT.back().Distance +  XMVector3Length(XMVectorSubtract(Pt1, Pt0)).m128_f32[0];
+		XMStoreFloat3(&LUT.Location, Param.Pt1);
+		LUT.Distance = mSplineLUT.back().Distance +  XMVector3Length(XMVectorSubtract(Param.Pt1, Param.Pt0)).m128_f32[0];
 
-		XMVECTOR Tangent = XMVector3Normalize(Pt1 - Pt0); // 진행 방향
+		XMVECTOR Tangent = XMVector3Normalize(Param.Pt1 - Param.Pt0); // 진행 방향
 		XMVECTOR Up = XMVectorSet(0, 1, 0, 0);
 		XMVECTOR Right;
 		if (XMVector3Dot(Tangent, Up).m128_f32[0] > 0.9f)
@@ -270,6 +333,9 @@ void XM_CALLCONV WSplineComponent::AdaptiveSampleRecursive(
 		RotMat.r[3] = XMVectorSet(0, 0, 0, 1);
 
 		XMStoreFloat4(&LUT.Quat, XMQuaternionRotationMatrix(RotMat));
+
+		LUT.Property1 = Param.Property1_1;
+		LUT.Property2 = Param.Property2_1;
 
 		mSplineLUT.push_back(LUT);
 	}

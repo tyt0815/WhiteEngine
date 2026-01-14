@@ -57,7 +57,6 @@ namespace GameCore
 		GetMeshGeometryManager();
 		GetTextureManager();
 		FShapeDrawer::GetInstance();
-		FAssetManager::GetInstance()->LoadAssets();
 
 		Game.Startup();
 	}

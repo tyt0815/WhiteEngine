@@ -12,6 +12,10 @@ void WStaticMeshComponent::UpdateConstantBufferIndex()
 {
 	Super::UpdateConstantBufferIndex();
 
+	if (mStaticMesh.Geometry == nullptr)
+	{
+		return;
+	}
 	mStaticMeshProxyIndecies.clear();
 	mSubmeshCBIndices.clear();
 	WWorld* World = GetWorld();
@@ -25,6 +29,11 @@ void WStaticMeshComponent::UpdateConstantBufferIndex()
 void WStaticMeshComponent::UpdateProxies()
 {
 	Super::UpdateProxies();
+
+	if (mStaticMesh.Geometry == nullptr)
+	{
+		return;
+	}
 
 	WWorld* World = GetWorld();
 	for (int i = 0; i < mStaticMesh.Geometry->DrawArgs.size(); ++i)

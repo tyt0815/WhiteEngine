@@ -12,8 +12,6 @@ public:
 
 	virtual void BeginPlay() override;
 
-	virtual void Tick_PrePhysics(float Delta) override;
-
 private:
 	std::unique_ptr<FBody> mBody;
 
