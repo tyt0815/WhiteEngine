@@ -26,6 +26,11 @@ void WSplineComponent::AddSplineNode(const FSplineNode& Node)
 		XMVECTOR Pt0 = FDXMath::CalculateCubicBezier(P0, P1, P2, P3, 0);
 		XMVECTOR Pt1 = FDXMath::CalculateCubicBezier(P0, P1, P2, P3, 1);
 		AdaptiveSampleRecursive(0.0f, 1.0f, 0.005f, Pt0, Pt1, P0, P1, P2, P3, 0);
+
+		if (NodeIndex == 1)
+		{
+			mSplineLUT[0].Quat = mSplineLUT[1].Quat;
+		}
 	}
 }
 
@@ -85,8 +90,6 @@ XMFLOAT3 WSplineComponent::GetLocalRotationAtSplineInputKey(float InputKey)
 	{
 		R = XMVector3Normalize(XMVector3Cross(F, XMVectorSet(0, 1, 0, 0)));
 		U = XMVector3Cross(F, R);
-		/*U = XMVector3Normalize(XMVector3Cross(F, XMVectorSet(1, 0, 0, 0)));
-		R = XMVector3Cross(U, F);*/
 	}
 	else
 	{
@@ -123,9 +126,20 @@ FTransform WSplineComponent::GetWorldTransformAtSplineInputKey(float InputKey)
 
 XMFLOAT3 WSplineComponent::GetLocalLocationAtDistanceAlongSpline(float Distance)
 {
+	return GetLocalTransformAtDistanceAlongSpline(Distance).Translation;
+}
+
+XMFLOAT3 WSplineComponent::GetLocalRotationAtDistanceAlongSpline(float Distance)
+{
+	return GetLocalTransformAtDistanceAlongSpline(Distance).Rotation;
+}
+
+FTransform WSplineComponent::GetLocalTransformAtDistanceAlongSpline(float Distance)
+{
+	FTransform Transform;
 	if (mSplineLUT.empty())
 	{
-		return { 0.0f, 0.0f, 0.0f };
+		return Transform;
 	}
 
 	// 1. 범위 클램핑
@@ -139,7 +153,9 @@ XMFLOAT3 WSplineComponent::GetLocalLocationAtDistanceAlongSpline(float Distance)
 	// 3. 예외 처리: 시작점이거나 정확히 일치하는 경우
 	if (Iter == mSplineLUT.begin())
 	{
-		return Iter->Location;
+		Transform.Translation = Iter->Location;
+		Transform.Rotation = FDXMath::QuaternionToEuler(Iter->Quat);
+		return Transform;
 	}
 
 	// 4. 보간 처리 (it는 Distance보다 큰 첫 번째 점, prevIt은 Distance보다 작은 마지막 점)
@@ -151,21 +167,19 @@ XMFLOAT3 WSplineComponent::GetLocalLocationAtDistanceAlongSpline(float Distance)
 	// 분모가 0이 되는 것 방지 (매우 가까운 노드 대응)
 	float Delta = RightDist - LeftDist;
 	float Alpha = (Delta > 0.00001f) ? (Distance - LeftDist) / Delta : 0.0f;
-	
+
 	XMVECTOR P0 = XMLoadFloat3(&PrevIter->Location);
 	XMVECTOR P1 = XMLoadFloat3(&Iter->Location);
 	XMVECTOR L = XMVectorLerp(P0, P1, Alpha);
-	XMFLOAT3 Location;
-	XMStoreFloat3(&Location, L);
-	return Location;
-}
+	XMStoreFloat3(&Transform.Translation, L);
 
-FTransform WSplineComponent::GetLocalTransformAtDistanceAlongSpline(float Distance)
-{
-	FTransform Transform;
-	Transform.Translation = GetLocalLocationAtDistanceAlongSpline(Distance);
-	// TODO: Rotation도 저장 해야함.
-	// Transform.Rotation = GetLocalRotationAtSplineInputKey(GetSplineLUTByDistance(Distance).InputKey);
+	
+	XMVECTOR Q0 = XMLoadFloat4(&PrevIter->Quat);
+	XMVECTOR Q1 = XMLoadFloat4(&Iter->Quat);
+	XMVECTOR Q = XMQuaternionSlerp(Q0, Q1, Alpha);
+	XMFLOAT4 Quat;
+	XMStoreFloat4(&Quat, Q);
+	Transform.Rotation = FDXMath::QuaternionToEuler(Quat);
 
 	return Transform;
 }
@@ -234,6 +248,29 @@ void XM_CALLCONV WSplineComponent::AdaptiveSampleRecursive(
 		FSplineLUT LUT;
 		XMStoreFloat3(&LUT.Location, Pt1);
 		LUT.Distance = mSplineLUT.back().Distance +  XMVector3Length(XMVectorSubtract(Pt1, Pt0)).m128_f32[0];
+
+		XMVECTOR Tangent = XMVector3Normalize(Pt1 - Pt0); // 진행 방향
+		XMVECTOR Up = XMVectorSet(0, 1, 0, 0);
+		XMVECTOR Right;
+		if (XMVector3Dot(Tangent, Up).m128_f32[0] > 0.9f)
+		{
+			Right = XMVector3Normalize(XMVector3Cross(Tangent, XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f)));
+		}
+		else
+		{
+			Right = XMVector3Normalize(XMVector3Cross(Up, Tangent));
+		}
+		 
+		Up = XMVector3Cross(Tangent, Right); // 실제 수직 벡터 재계산
+
+		XMMATRIX RotMat;
+		RotMat.r[0] = Right;
+		RotMat.r[1] = Up;
+		RotMat.r[2] = Tangent;
+		RotMat.r[3] = XMVectorSet(0, 0, 0, 1);
+
+		XMStoreFloat4(&LUT.Quat, XMQuaternionRotationMatrix(RotMat));
+
 		mSplineLUT.push_back(LUT);
 	}
 }

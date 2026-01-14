@@ -18,6 +18,7 @@ class WSplineComponent : public WSceneComponent
 	{
 		XMFLOAT3 Location;
 		float Distance;
+		XMFLOAT4 Quat;
 	};
 
 public:
@@ -35,6 +36,8 @@ public:
 	FTransform GetWorldTransformAtSplineInputKey(float InputKey);
 
 	XMFLOAT3 GetLocalLocationAtDistanceAlongSpline(float Distance);
+
+	XMFLOAT3 GetLocalRotationAtDistanceAlongSpline(float Distance);
 
 	FTransform GetLocalTransformAtDistanceAlongSpline(float Distance);
 
