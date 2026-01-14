@@ -9,11 +9,11 @@ AFloor::AFloor()
 	SetRootComponent(Component);
 	Component->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_DefaultFloor));
 
-	mBoxPhysicsExtent = { 50, 0.5f, 50 };
+	//mBoxPhysicsExtent = { 50, 0.5f, 50 };
 
-	mObjectType = EObjectType::EOT_Static;
-	mActorPhysicsShape = EPhysicsShape::EPS_Box;
-	mbPhysicSimulate = true;
+	//mObjectType = EObjectType::EOT_Static;
+	//mActorPhysicsShape = EPhysicsShape::EPS_Box;
+	//mbPhysicSimulate = true;
 }
 
 void AFloor::BeginPlay()

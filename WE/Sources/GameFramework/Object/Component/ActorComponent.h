@@ -13,7 +13,7 @@ public:
 	virtual ~WActorComponent() noexcept = default;
 
 public:
-	virtual void BeginPlay() {};
+	virtual void BeginComponent() {};
 
 	virtual void SetOwner(AActor* Owner);
 

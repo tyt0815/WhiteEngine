@@ -13,7 +13,7 @@ extern const int gFrameResourcesNum;
 class FMeshGeometry;
 class FMaterial;
 class WCameraComponent;
-
+class WPrimitiveComponent;
 
 
 class AActor
@@ -25,9 +25,13 @@ public:
 
 	virtual void BeginPlay();
 
-	virtual void Tick_PrePhysics(float Delta) {};
+	virtual void Tick_PrePhysics(float Delta);
 
-	virtual void Tick_PostPhysics(float Delta) {};
+	virtual void Tick_PostPhysics(float Delta);
+
+	void UpdateComponentsToPhysics();
+
+	void UpdateComponentsFromPhysics();
 
 	template<typename T>
 	T* CreateComponent();
@@ -47,6 +51,12 @@ public:
 protected:
 
 private:
+	void BeginComponents();
+
+	void TickComponents_PrePhysics(float Delta);
+
+	void TickComponents_PostPhysics(float Delta);
+
 	void SetupComponent(WActorComponent* Component);
 
 	void SetupSceneComponent(WSceneComponent* Component);
@@ -56,6 +66,8 @@ private:
 	TUnorderedArray<WSceneComponent*> mAllSceneComponent;
 
 	TUnorderedArray<WActorComponent*> mAllNoneSceneComponent;
+
+	TUnorderedArray<WPrimitiveComponent*> mAllPrimitiveComponents;
 
 	std::unique_ptr<FBody> mBody;
 
@@ -91,7 +103,6 @@ public:
 	inline void SetActorLocation(XMFLOAT3 Location)
 	{
 		mRootComponent->SetLocalLocation(Location);
-		UpdatePhysicsTransform();
 	}
 
 	inline XMFLOAT3 GetActorRotation() const
@@ -102,7 +113,6 @@ public:
 	inline void SetActorRotation(XMFLOAT3 Rotation)
 	{
 		mRootComponent->SetLocalRotation(Rotation);
-		UpdatePhysicsTransform();
 	}
 
 	inline XMFLOAT3 GetActorScale() const
@@ -113,7 +123,6 @@ public:
 	inline void SetActorScale(XMFLOAT3 Scale)
 	{
 		mRootComponent->SetLocalScale(Scale);
-		UpdatePhysicsTransform();
 	}
 
 	inline WWorld* GetWorld() const
@@ -164,8 +173,9 @@ inline T* AActor::CreateComponent()
 		mAllNoneSceneComponent.Add(ActorComp);
 	}
 
-	ActorComp->BeginPlay();
 	T* Comp = dynamic_cast<T*>(ActorComp);
+
+	assert(mWorld == nullptr);
 	
 	return Comp;
 }

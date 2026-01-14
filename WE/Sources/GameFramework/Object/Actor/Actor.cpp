@@ -1,10 +1,42 @@
 #include "Actor.h"
 #include "GameFramework/Object/Component/SceneComponent.h"
 #include "GameFramework/Object/World/World.h"
+#include "Component/PrimitiveComponent.h"
 
 AActor::AActor()
 {
 	
+}
+
+void AActor::BeginPlay()
+{
+	BeginComponents();
+}
+
+void AActor::Tick_PrePhysics(float Delta)
+{
+	TickComponents_PrePhysics(Delta);
+}
+
+void AActor::Tick_PostPhysics(float Delta)
+{
+	TickComponents_PostPhysics(Delta);
+}
+
+void AActor::UpdateComponentsToPhysics()
+{
+	for (auto& Comp : mAllPrimitiveComponents.GetView())
+	{
+		Comp->UpdateToPhysics();
+	}
+}
+
+void AActor::UpdateComponentsFromPhysics()
+{
+	for (auto& Comp : mAllPrimitiveComponents.GetView())
+	{
+		Comp->UpdateFromPhysics();
+	}
 }
 
 void AActor::SetRootComponent(WSceneComponent* Component)
@@ -65,6 +97,30 @@ XMFLOAT3 AActor::GetUpVector() const
 void AActor::Destroy()
 {
 	GetWorld()->DestroyActor(this);
+}
+
+void AActor::BeginComponents()
+{
+	for (int i = 0; i < mAllComponents.Size(); ++i)
+	{
+		mAllComponents[i]->BeginComponent();
+	}
+}
+
+void AActor::TickComponents_PrePhysics(float Delta)
+{
+	for (int i = 0; i < mAllComponents.Size(); ++i)
+	{
+		mAllComponents[i]->TickComponent_PrePhysics(Delta);
+	}
+}
+
+void AActor::TickComponents_PostPhysics(float Delta)
+{
+	for (int i = 0; i < mAllComponents.Size(); ++i)
+	{
+		mAllComponents[i]->TickComponent_PostPhysics(Delta);
+	}
 }
 
 void AActor::SetupComponent(WActorComponent* Component)

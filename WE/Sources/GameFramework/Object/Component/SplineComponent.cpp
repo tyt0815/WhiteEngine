@@ -145,7 +145,7 @@ FTransform WSplineComponent::GetLocalTransformAtSplineInputKey(float InputKey)
 
 FTransform WSplineComponent::GetWorldTransformAtSplineInputKey(float InputKey)
 {
-	XMFLOAT4X4 ComponentWorld = GetWorldMatrix();
+	XMFLOAT4X4 ComponentWorld = GetWorldFloat4x4();
 	XMMATRIX CW = XMLoadFloat4x4(&ComponentWorld);
 
 	FTransform SplineTransform = GetLocalTransformAtSplineInputKey(InputKey);
@@ -181,8 +181,7 @@ FTransform WSplineComponent::GetLocalTransformAtDistanceAlongSpline(float Distan
 // TODO
 FTransform WSplineComponent::GetWorldTransformAtDistanceAlongSpline(float Distance)
 {
-	XMFLOAT4X4 ComponentWorld = GetWorldMatrix();
-	XMMATRIX CW = XMLoadFloat4x4(&ComponentWorld);
+	XMMATRIX CW = GetWorldMatrix();
 
 	FTransform SplineTransform = GetLocalTransformAtDistanceAlongSpline(Distance);
 	XMMATRIX SM = SplineTransform.GetTransformMatrix();

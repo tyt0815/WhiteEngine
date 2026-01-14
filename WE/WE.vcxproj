@@ -372,7 +372,7 @@
       </PrecompiledHeaderFile>
       <PreprocessorDefinitions>PROJECT_DIR=R"($(ProjectDir))";PROJECT_DIR_W=LR"($(ProjectDir))";SOLUTION_DIR=R"($(SolutionDir))";SOLUTION_DIR_W=LR"($(SolutionDir))";JPH_FLOATING_POINT_EXCEPTIONS_ENABLED=1;JPH_OBJECT_STREAM=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>$(ProjectDir)Sources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Sources;$(ProjectDir)Sources/GameFramework/Object;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -393,7 +393,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PreprocessorDefinitions>PROJECT_DIR=R"($(ProjectDir))";PROJECT_DIR_W=LR"($(ProjectDir))";JPH_STATIC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>$(ProjectDir)Sources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Sources;$(ProjectDir)Sources/GameFramework/Object;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

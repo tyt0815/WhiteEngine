@@ -6,6 +6,60 @@ void WSceneComponent::SetupAttachment(WSceneComponent* Parent)
 	Parent->mChilds.push_back(this);
 }
 
+void WSceneComponent::UpdateWorldMatrix()
+{
+	if (mbDirty)
+	{
+		XMMATRIX L = mTransform.GetTransformMatrix(); // 내 로컬 행렬
+		XMMATRIX W;
+
+		if (mParent == nullptr)
+		{
+			W = L;
+		}
+		else
+		{
+			// 부모의 WorldMatrix를 가져옴 (재귀)
+			XMMATRIX PW = mParent->GetWorldMatrix();
+			// World = Local * ParentWorld
+			W = XMMatrixMultiply(L, PW);
+		}
+
+		// 결과 저장 및 역행렬 미리 계산
+		XMMATRIX InvW = FDXMath::GetInverseMatrix(W);
+		XMStoreFloat4x4(&mWorld, W);
+		XMStoreFloat4x4(&mInvWorld, InvW);
+
+		mbDirty = false;
+	}
+}
+
+DirectX::XMFLOAT4X4 WSceneComponent::GetWorldFloat4x4()
+{
+	UpdateWorldMatrix();
+	return mWorld;
+}
+
+DirectX::XMFLOAT4X4 WSceneComponent::GetInverseWorldFloat4x4()
+{
+	UpdateWorldMatrix();
+	return mInvWorld;
+}
+
+DirectX::XMMATRIX XM_CALLCONV WSceneComponent::GetWorldMatrix()
+{
+	UpdateWorldMatrix();
+	DirectX::XMMATRIX M = XMLoadFloat4x4(&mWorld);
+	return M;
+}
+
+DirectX::XMMATRIX XM_CALLCONV WSceneComponent::GetInverseWorldMatrix()
+{
+	UpdateWorldMatrix();
+	DirectX::XMMATRIX M = XMLoadFloat4x4(&mInvWorld);
+	return M;
+}
+
 void WSceneComponent::UpdateRecursive()
 {
 	Update();
@@ -83,31 +137,74 @@ void WSceneComponent::SetLocalRotation(DirectX::XMFLOAT3 Rotation)
 	mTransform.Rotation.x = fmodf(mTransform.Rotation.x, 360.0f);
 	mTransform.Rotation.y = fmodf(mTransform.Rotation.y, 360.0f);	
 	mTransform.Rotation.z = fmodf(mTransform.Rotation.z, 360.0f);
+	
+
+	PropagateWorldMatrixDirty();
+}
+
+void WSceneComponent::SetLocalTransform(const FTransform& Transform)
+{
+	mTransform = Transform;
+
+	PropagateWorldMatrixDirty();
+}
+
+void WSceneComponent::SetLocalLocation(DirectX::XMFLOAT3 Location)
+{
+	mTransform.Translation = Location;
+
+	PropagateWorldMatrixDirty();
+}
+
+void WSceneComponent::SetLocalScale(DirectX::XMFLOAT3 Scale)
+{
+	mTransform.Scale = Scale;
+
+	PropagateWorldMatrixDirty();
+}
+
+void WSceneComponent::SetWorldTransform(FTransform Transform)
+{
+	if (mParent == nullptr)
+	{
+		SetLocalTransform(Transform);
+	}
+	else
+	{
+		XMMATRIX InvW = mParent->GetInverseWorldMatrix();
+		XMMATRIX W = Transform.GetTransformMatrix();
+		XMMATRIX M = W * InvW;
+		XMVECTOR T;
+		XMVECTOR QR;
+		XMVECTOR S;
+		XMMatrixDecompose(&S, &QR, &T, M);
+		XMFLOAT4 Quat;
+		XMStoreFloat4(&Quat, QR);
+		XMStoreFloat3(&Transform.Translation, T);
+		Transform.Rotation = FDXMath::QuaternionToEuler(Quat);
+		XMStoreFloat3(&Transform.Scale, S);
+
+		SetLocalTransform(Transform);
+	}
+}
+
+void WSceneComponent::PropagateWorldMatrixDirty()
+{
+	// 최적화: 내가 이미 Dirty라면 내 자식들도 이미 Dirty일 것이므로 중복 전파 중단
+	if (mbDirty)
+	{
+		return;
+	}
+
 	mbDirty = true;
+	for (WSceneComponent* Child : mChilds)
+	{
+		// 핵심: 나(this)가 아니라 Child의 함수를 호출해야 함
+		Child->PropagateWorldMatrixDirty();
+	}
 }
 
 void WSceneComponent::Update()
 {
-	UpdateWorldMatrix();
-}
-
-void WSceneComponent::UpdateWorldMatrix()
-{
-	if (mbDirty || (mParent && mParent->mbDirty))
-	{
-		XMFLOAT4X4 ParentWorld;
-		if (mParent)
-		{
-			ParentWorld = mParent->GetWorldMatrix();
-		}
-		else
-		{
-			ParentWorld = FDXMath::Identity4x4();
-		}
-		XMMATRIX ParentWorldMat = XMLoadFloat4x4(&ParentWorld);
-		XMFLOAT4X4 Local = mTransform.GetTransformFloat4x4();
-		XMMATRIX LocalMat = XMLoadFloat4x4(&Local);
-		XMStoreFloat4x4(&mWorld, LocalMat* ParentWorldMat);
-		mbDirty = true;
-	}
+	
 }

@@ -28,40 +28,24 @@ void WWorld::Tick(float Delta)
 
 	for (size_t i = 0; i < mAllActors.Size(); ++i)
 	{
+		// Tick Component 가 포함되어 있음
 		mAllActors[i]->Tick_PrePhysics(Delta);
 	}
 
-	for (size_t i = 0; i < mAllActors.Size(); ++i)
+	for (auto& Actor : mAllActors.GetView())
 	{
-		auto& Components = mAllActors[i]->GetAllComponents();
-		for (size_t j = 0; j < Components.Size(); ++j)
-		{
-			Components[j]->TickComponent_PrePhysics(Delta);
-		}
+		Actor->UpdateComponentsToPhysics();
 	}
-
 	Physics::Tick(Delta);
-	for (size_t i = 0; i < mAllActors.Size(); ++i)
+	for (auto& Actor : mAllActors.GetView())
 	{
-		auto& Components = mAllActors[i]->GetAllComponents();
-		for (size_t j = 0; j < Components.Size(); ++j)
-		{
-			Components[j]->update(Delta);
-		}
+		Actor->UpdateComponentsFromPhysics();
 	}
 
 	for (size_t i = 0; i < mAllActors.Size(); ++i)
 	{
+		// Tick Component 가 포함되어 있음
 		mAllActors[i]->Tick_PostPhysics(Delta);
-	}
-
-	for (size_t i = 0; i < mAllActors.Size(); ++i)
-	{
-		auto& Components = mAllActors[i]->GetAllComponents();
-		for (size_t j = 0; j < Components.Size(); ++j)
-		{
-			Components[j]->TickComponent_PostPhysics(Delta);
-		}
 	}
 
 	FlushDestroyQueue();

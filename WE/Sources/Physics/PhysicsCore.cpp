@@ -298,8 +298,14 @@ void Physics::Cleanup()
 
 void Physics::Tick(float DeltaTime)
 {
-	int steps = max(1, static_cast<int>(DeltaTime / (1.0f / 60.0f)));
-	g_PhysicsSystem->Update(DeltaTime, steps, g_TempAllocator.get(), g_JobSystem.get());
+	constexpr float FixedTimeStep = 1.0f / 60.0f;
+	static float AccumulatedTime = 0;
+	AccumulatedTime += DeltaTime;
+
+	for(int Step = 0; Step < 5 && AccumulatedTime >= FixedTimeStep; ++Step, AccumulatedTime -= FixedTimeStep)
+	{
+		g_PhysicsSystem->Update(FixedTimeStep, 1, g_TempAllocator.get(), g_JobSystem.get());
+	}
 
 	g_DebugRenderer->Clear();
 	JPH::BodyManager::DrawSettings Settings;

@@ -14,7 +14,15 @@ public:
 	virtual ~WSceneComponent() noexcept override {};
 
 public:
-	void UpdateRecursive();
+	void UpdateWorldMatrix();
+
+	DirectX::XMFLOAT4X4 GetWorldFloat4x4();
+
+	DirectX::XMFLOAT4X4 GetInverseWorldFloat4x4();
+
+	DirectX::XMMATRIX XM_CALLCONV GetWorldMatrix();
+
+	DirectX::XMMATRIX XM_CALLCONV GetInverseWorldMatrix();
 
 	DirectX::XMFLOAT4 GetLocalQuatRotation();
 
@@ -24,19 +32,32 @@ public:
 
 	FTransform GetWorldTransform() const;
 
+	void UpdateRecursive();
+
 	void SetupAttachment(WSceneComponent* Parent);
 
 	void SetLocalRotation(DirectX::XMFLOAT3 Rotation);
+
+	void SetLocalTransform(const FTransform& Transform);
+
+	void SetLocalLocation(DirectX::XMFLOAT3 Location);
+
+	void SetLocalScale(DirectX::XMFLOAT3 Scale);
+
+	void SetWorldTransform(FTransform Transform);
+
+	void PropagateWorldMatrixDirty();
 
 protected:
 	virtual void Update();
 	bool mbDirty = true;
 
 private:
-	void UpdateWorldMatrix();
 	FTransform mTransform;
 
 	DirectX::XMFLOAT4X4 mWorld;
+
+	DirectX::XMFLOAT4X4 mInvWorld;
 
 	DirectX::XMFLOAT4 mWorldQuat;
 
@@ -45,41 +66,25 @@ private:
 	std::vector<WSceneComponent*> mChilds;
 
 public:
-	inline DirectX::XMFLOAT4X4 GetWorldMatrix()
-	{
-		return mWorld;
-	}
 	inline FTransform GetLocalTransform() const
 	{
 		return mTransform;
-	}
-	inline void SetLocalTransform(const FTransform& Transform)
-	{
-		mTransform = Transform;
-		mbDirty = true;
 	}
 	inline DirectX::XMFLOAT3 GetLocalLocation() const
 	{
 		return mTransform.Translation;
 	}
-	inline void SetLocalLocation(DirectX::XMFLOAT3 Location)
-	{
-		mTransform.Translation = Location;
-		mbDirty = true;
-	}
+
 	inline DirectX::XMFLOAT3 GetLocalRotation() const
 	{
 		return mTransform.Rotation;
 	}
+
 	inline DirectX::XMFLOAT3 GetLocalScale() const
 	{
 		return mTransform.Scale;
 	}
-	inline void SetLocalScale(DirectX::XMFLOAT3 Scale)
-	{
-		mTransform.Scale = Scale;
-		mbDirty = true;
-	}
+
 	inline bool IsDirty() const
 	{
 		return mbDirty;

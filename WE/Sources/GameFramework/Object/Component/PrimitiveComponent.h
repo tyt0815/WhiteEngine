@@ -8,15 +8,15 @@ class WPrimitiveComponent : public WSceneComponent
 public:
 	WPrimitiveComponent();
 
-	virtual void BeginPlay() override;
+	virtual void BeginComponent() override;
 
 protected:
 	virtual void Update() override;
 
 public:
-	void UpdatePhysics();
+	void UpdateToPhysics();
 
-	void UpdatePhysicsTransform();
+	void UpdateFromPhysics();
 
 protected:
 	virtual void CreatePhysicsBody() = 0;
@@ -38,4 +38,6 @@ private:
 	void ActivatePhysicBody();
 
 public:
+
+
 };

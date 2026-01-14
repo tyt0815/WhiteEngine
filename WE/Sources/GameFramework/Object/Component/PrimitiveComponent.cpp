@@ -9,9 +9,9 @@ WPrimitiveComponent::WPrimitiveComponent()
 
 }
 
-void WPrimitiveComponent::BeginPlay()
+void WPrimitiveComponent::BeginComponent()
 {
-	Super::BeginPlay();
+	Super::BeginComponent();
 
 	CreatePhysicsBody();
 
@@ -30,19 +30,19 @@ void WPrimitiveComponent::Update()
 	UpdateProxies();
 }
 
-void WPrimitiveComponent::UpdatePhysics()
-{
-	if (mbPhysicSimulate)
-	{
-		this->SetWorldTransform(mBody->GetTransform());
-	}
-}
-
-void WPrimitiveComponent::UpdatePhysicsTransform()
+void WPrimitiveComponent::UpdateToPhysics()
 {
 	if (mbPhysicSimulate)
 	{
 		mBody->SetTransform(GetWorldTransform());
+	}
+}
+
+void WPrimitiveComponent::UpdateFromPhysics()
+{
+	if (mbPhysicSimulate)
+	{
+		this->SetWorldTransform(mBody->GetTransform());
 	}
 }
 
@@ -55,7 +55,7 @@ void WPrimitiveComponent::UpdateConstantBufferIndex()
 void WPrimitiveComponent::UpdateProxies()
 {
 	FMeshCBProxy* MeshCbProxy = GetWorld()->GetMeshCBProxy(mMeshCBIndex);
-	MeshCbProxy->World = GetWorldMatrix();
+	MeshCbProxy->World = GetWorldFloat4x4();
 }
 
 void WPrimitiveComponent::ActivatePhysicBody()

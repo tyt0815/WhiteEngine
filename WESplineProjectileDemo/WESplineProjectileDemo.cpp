@@ -148,17 +148,6 @@ void AWaveBulletSpanwer::UpdateSplineBullet(FSplineBullet* SplineBullet, float D
 	}
 }
 
-WSplineProjectileDemoWorld::WSplineProjectileDemoWorld()
-{
-	ASpiralBulletSpawner* SpiralSpawner = SpawnActor<ASpiralBulletSpawner>();
-	SpiralSpawner->SetActorLocation(XMFLOAT3(5, -2, 10));
-	SpiralSpawner->SetActorRotation(XMFLOAT3(0, 90, 0));
-
-	AWaveBulletSpanwer* WaveSpawner = SpawnActor<AWaveBulletSpanwer>();
-	WaveSpawner->SetActorLocation(XMFLOAT3(-5, -2, 15));
-	WaveSpawner->SetActorRotation(XMFLOAT3(0, 180, 0));
-}
-
 ABullet* ASplineBulletSpawner::FSplineBullet::SpawnBullet(WWorld* World)
 {
 	ABullet* Bullet = World->SpawnActor<ABullet>();
@@ -171,4 +160,15 @@ void ASplineBulletSpawner::FSplineBullet::RemoveAt(UINT i)
 {
 	Bullets.RemoveAt(i);
 	BulletDistance.RemoveAt(i);
+}
+
+WSplineProjectileDemoWorld::WSplineProjectileDemoWorld()
+{
+	ASpiralBulletSpawner* SpiralSpawner = SpawnActor<ASpiralBulletSpawner>();
+	SpiralSpawner->SetActorLocation(XMFLOAT3(5, -2, 10));
+	SpiralSpawner->SetActorRotation(XMFLOAT3(0, 90, 0));
+
+	AWaveBulletSpanwer* WaveSpawner = SpawnActor<AWaveBulletSpanwer>();
+	WaveSpawner->SetActorLocation(XMFLOAT3(-5, -2, 15));
+	WaveSpawner->SetActorRotation(XMFLOAT3(0, 180, 0));
 }
