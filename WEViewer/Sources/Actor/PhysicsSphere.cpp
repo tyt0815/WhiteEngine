@@ -8,6 +8,7 @@ APhysicsSphere::APhysicsSphere()
 	SetRootComponent(mSphereComp);
 	mSphereComp->SetObjectType(EObjectType::EOT_Dynamic);
 	mSphereComp->ActivatePhysicBody();
+	mSphereComp->SetRadius(0.5f);
 
 	WStaticMeshComponent* Component = CreateComponent<WStaticMeshComponent>();
 	Component->SetupAttachment(GetRootComponent());

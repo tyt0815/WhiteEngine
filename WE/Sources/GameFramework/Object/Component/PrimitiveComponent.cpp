@@ -18,6 +18,12 @@ void WPrimitiveComponent::BeginComponent()
 		CreatePhysicsBody();
 	}
 
+	if (mBody)
+	{
+		mBody->mOnHitDelegate.Bind(this, &WPrimitiveComponent::OnComponentHit_Internal);
+		mBody->mOnBeginOverlapDelgate.Bind(this, &WPrimitiveComponent::OnComponentBeginOverlap_Internal);
+	}
+
 	if (mbPhysicSimulate)
 	{
 		ActivatePhysicBody();
@@ -69,4 +75,14 @@ void WPrimitiveComponent::ActivatePhysicBody()
 	{
 		mBody->AddBody();
 	}
+}
+
+void WPrimitiveComponent::OnComponentHit_Internal()
+{
+	mOnHitDelegate.Execute();
+}
+
+void WPrimitiveComponent::OnComponentBeginOverlap_Internal()
+{
+	mOnBeginOverlapDelegate.Execute();
 }

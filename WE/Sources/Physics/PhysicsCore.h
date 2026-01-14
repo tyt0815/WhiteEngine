@@ -3,6 +3,7 @@
 
 #include "ObjectChannel.h"
 #include "DirectX/DXMath.h"
+#include "Utility/Delegate.h"
 
 #include <memory>
 
@@ -34,7 +35,7 @@ enum class EObjectType : uint8_t
 class FBody final
 {
 public:
-	FBody(const JPH::BodyCreationSettings& Settings);
+	FBody(JPH::BodyCreationSettings Settings);
 
 	~FBody();
 
@@ -52,6 +53,9 @@ public:
 	FTransform GetTransform() const;
 
 	void SetTransform(const FTransform& Transform);
+
+	FDelegate mOnHitDelegate;
+	FDelegate mOnBeginOverlapDelgate;
 
 private:
 	FBody() = delete;

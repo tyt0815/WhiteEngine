@@ -6,6 +6,9 @@ class WSphereComponent : public WPrimitiveComponent
 protected:
 	void CreatePhysicsBody() override;
 
+public:
+	void SetRadius(float Value);
+
 protected:
-	float mRadius = 1;
+	float mRadius = 0.5f;
 };

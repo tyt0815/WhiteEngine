@@ -236,6 +236,9 @@
     <ClCompile Include="Sources\GameFramework\Object\Component\SphereComponent.cpp">
       <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Utility\Delegate.cpp">
+      <Filter>Sources\Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -441,6 +444,9 @@
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\Component\SphereComponent.h">
       <Filter>Sources\GameFramework\Object\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Utility\Delegate.h">
+      <Filter>Sources\Utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

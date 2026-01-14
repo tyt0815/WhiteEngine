@@ -13,10 +13,7 @@ public:
 	virtual void BeginPlay() override;
 
 private:
-	std::unique_ptr<FBody> mBody;
+	class WBoxComponent* mBoxComp;
 
-	class WSplineComponent* SplineComponent;
-	AActor* SplineFollowingActor;
-
-	float mCurrSplineDist = 0;
+	class WStaticMeshComponent* StaticMeshComp;
 };

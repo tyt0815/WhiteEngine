@@ -20,6 +20,10 @@ public:
 
 	void ActivatePhysicBody();
 
+	FDelegate mOnHitDelegate;
+
+	FDelegate mOnBeginOverlapDelegate;
+
 protected:
 	virtual void CreatePhysicsBody() = 0;
 
@@ -35,6 +39,11 @@ protected:
 	EObjectType mObjectType = EObjectType::EOT_Dynamic;
 
 	bool mbPhysicSimulate = false;
+
+private:
+	void OnComponentHit_Internal();
+
+	void OnComponentBeginOverlap_Internal();
 
 public:
 	__forceinline void SetObjectType(EObjectType Type)

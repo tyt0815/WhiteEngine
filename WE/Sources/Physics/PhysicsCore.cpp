@@ -44,6 +44,18 @@ public:
 
 	virtual void			OnContactAdded(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings) override
 	{
+		FBody* Body1 = reinterpret_cast<FBody*>(inBody1.GetUserData());
+		FBody* Body2 = reinterpret_cast<FBody*>(inBody2.GetUserData());
+		if (inBody1.IsSensor() || inBody2.IsSensor())
+		{
+			Body1->mOnBeginOverlapDelgate.Execute();
+			Body2->mOnBeginOverlapDelgate.Execute();
+		}
+		else
+		{
+			Body1->mOnHitDelegate.Execute();
+			Body2->mOnHitDelegate.Execute();
+		}
 		OutputDebugStringA("A contact was added\n");
 	}
 
@@ -140,8 +152,9 @@ inline EMotionType ToMotionType(EObjectType ObjectType)
 	return static_cast<EMotionType>(ObjectType);
 }
 
-FBody::FBody(const BodyCreationSettings& Settings)
+FBody::FBody(BodyCreationSettings Settings)
 {
+	Settings.mUserData = reinterpret_cast<JPH::uint64>(this);
 	mBody = Physics::GetBodyInterface()->CreateBody(Settings);
 }
 

@@ -2,18 +2,19 @@
 #include "GameFramework/Object/World/World.h"
 #include "GameFramework/Object/Component/StaticMeshComponent.h"
 #include "GameFramework/Object/Component/SplineComponent.h"
+#include "Component/BoxComponent.h"
 
 AFloor::AFloor()
 {
-	WStaticMeshComponent* Component = CreateComponent<WStaticMeshComponent>();
-	SetRootComponent(Component);
-	Component->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_DefaultFloor));
+	mBoxComp = CreateComponent<WBoxComponent>();
+	SetRootComponent(mBoxComp);
+	mBoxComp->ActivatePhysicBody();
+	mBoxComp->SetExtent(XMFLOAT3(50, 0.5f, 50));
+	mBoxComp->SetObjectType(EObjectType::EOT_Static);
 
-	//mBoxPhysicsExtent = { 50, 0.5f, 50 };
-
-	//mObjectType = EObjectType::EOT_Static;
-	//mActorPhysicsShape = EPhysicsShape::EPS_Box;
-	//mbPhysicSimulate = true;
+	StaticMeshComp = CreateComponent<WStaticMeshComponent>();
+	StaticMeshComp->SetupAttachment(GetRootComponent());
+	StaticMeshComp->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_DefaultFloor));
 }
 
 void AFloor::BeginPlay()

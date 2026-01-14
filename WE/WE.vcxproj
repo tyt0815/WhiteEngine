@@ -73,6 +73,7 @@
     <ClCompile Include="Sources\Render\StaticMesh.cpp" />
     <ClCompile Include="Sources\Render\Texture.cpp" />
     <ClCompile Include="Sources\Render\UnorderedAccessTexture2D.cpp" />
+    <ClCompile Include="Sources\Utility\Delegate.cpp" />
     <ClCompile Include="Sources\Utility\FileIO.cpp" />
     <ClCompile Include="Sources\Utility\Timer.cpp" />
     <ClCompile Include="Sources\Window\Window.cpp" />
@@ -149,6 +150,7 @@
     <ClInclude Include="Sources\Render\UploadBuffer.h" />
     <ClInclude Include="Sources\Utility\Class.h" />
     <ClInclude Include="Sources\Utility\Container.h" />
+    <ClInclude Include="Sources\Utility\Delegate.h" />
     <ClInclude Include="Sources\Utility\FileIO.h" />
     <ClInclude Include="Sources\Utility\String.h" />
     <ClInclude Include="Sources\Utility\Timer.h" />
