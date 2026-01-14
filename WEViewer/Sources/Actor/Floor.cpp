@@ -40,12 +40,13 @@ void AFloor::Tick_PrePhysics(float Delta)
 	static std::array<std::wstring, 4> AssetNames = { L"SDA_Up" , L"SDA_Forward" , L"SDA_Right", L"SDA_ProjectilePath"};
 	static int AssetSelector = 0;
 
-	mSplineAlpha += Delta;
-	SplineFollowingActor->SetActorTransform(SplineComponent->GetWorldTransformAtSplineInputKey(mSplineAlpha));
-	if (mSplineAlpha > SplineComponent->GetControllPointNum())
+	mCurrSplineDist += Delta;
+
+	SplineFollowingActor->SetActorTransform(SplineComponent->GetWorldTransformAtDistanceAlongSpline(mCurrSplineDist));
+	if (mCurrSplineDist > SplineComponent->GetSplineLength())
 	{
 		AssetSelector = (AssetSelector + 1) % AssetNames.size();
 		SplineComponent->LoadSplineFromAsset(AssetNames[AssetSelector]);
-		mSplineAlpha = 0;
+		mCurrSplineDist = 0;
 	}
 }

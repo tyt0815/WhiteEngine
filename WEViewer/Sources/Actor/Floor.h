@@ -19,5 +19,6 @@ private:
 
 	class WSplineComponent* SplineComponent;
 	AActor* SplineFollowingActor;
-	float mSplineAlpha = 0;
+
+	float mCurrSplineDist = 0;
 };
