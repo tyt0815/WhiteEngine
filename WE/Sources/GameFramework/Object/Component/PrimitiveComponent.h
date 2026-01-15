@@ -2,6 +2,10 @@
 #include "SceneComponent.h"
 #include "Physics/PhysicsBody.h"
 #include "Physics/ObjectChannel.h"
+#include "Utility/Delegate.h"
+
+DECLARE_DELEGATE_OneParam(FComponentHitDelegate, class WPrimitiveComponent*);
+DECLARE_DELEGATE_OneParam(FComponentBeginOverlapDelegate, class WPrimitiveComponent*);
 
 using EMotionType = JPH::EMotionType;
 
@@ -38,6 +42,12 @@ public:
 
 	void SetObjectChannel(EObjectChannel::EObjectChannel ObjectChannel);
 
+	void GenerateOverlapEvent();
+
+	FComponentHitDelegate mOnHitDelegate;
+
+	FComponentBeginOverlapDelegate mOnBeginOverlapDelegate;
+
 protected:
 	virtual JPH::BodyCreationSettings CreatePhysicsBodySettings() = 0;
 
@@ -56,10 +66,7 @@ protected:
 
 	EObjectChannel::EObjectChannel mObjectChannel = EObjectChannel::EOC_Moving;
 
+	bool mbGenerateOverlapEvent = false;
+
 	bool mbPhysicSimulate = false;
-
-private:
-	void OnComponentHit_Internal();
-
-	void OnComponentBeginOverlap_Internal();
 };

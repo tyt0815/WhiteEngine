@@ -10,7 +10,7 @@ AFloor::AFloor()
 	SetRootComponent(mBoxComp);
 	mBoxComp->ActivatePhysicBody();
 	mBoxComp->SetExtent(XMFLOAT3(50, 0.5f, 50));
-	mBoxComp->SetMotionType(EMotionType::Static);
+	mBoxComp->SetMotionType(EMotionType::Kinematic);
 	mBoxComp->SetObjectChannel(EObjectChannel::EOC_NonMoving);
 
 	StaticMeshComp = CreateComponent<WStaticMeshComponent>();

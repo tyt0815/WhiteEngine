@@ -25,6 +25,7 @@
 #include <cassert>
 
 #include "Component/PrimitiveComponent.h"
+#include "World/World.h"
 
 
 
@@ -46,23 +47,24 @@ public:
 
 	virtual void			OnContactAdded(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings) override
 	{
-		WPrimitiveComponent* Comp1 = reinterpret_cast<WPrimitiveComponent*>(inBody1.GetUserData());
-		WPrimitiveComponent* Comp2 = reinterpret_cast<WPrimitiveComponent*>(inBody2.GetUserData());
-		if (inBody1.IsSensor() || inBody2.IsSensor())
-		{
-			//Body1->mOnBeginOverlapDelgate.Execute();
-			//Body2->mOnBeginOverlapDelgate.Execute();
-		}
-		else
-		{
-			//Body1->mOnHitDelegate.Execute();
-			//Body2->mOnHitDelegate.Execute();
-		}
 		OutputDebugStringA("A contact was added\n");
 	}
 
 	virtual void			OnContactPersisted(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings) override
 	{
+		FContactInfo Info;
+		Info.Comp1 = reinterpret_cast<WPrimitiveComponent*>(inBody1.GetUserData());
+		Info.Comp2 = reinterpret_cast<WPrimitiveComponent*>(inBody2.GetUserData());
+		WWorld* World = Info.Comp1->GetWorld();
+
+		if (inBody1.IsSensor() || inBody2.IsSensor())
+		{
+			World->EnqueueOnBeginOverlapEvent(Info);
+		}
+		else
+		{
+			World->EnqueueOnHitEvent(Info);
+		}
 		OutputDebugStringA("A contact was persisted\n");
 	}
 
@@ -105,8 +107,8 @@ namespace Physics
 
 	std::unique_ptr<MyContactListener> g_ContactListener;
 
-	bool g_bDrawShape = false;
-	bool g_bDrawBoundingBox = true;
+	bool g_bDrawShape = true;
+	bool g_bDrawBoundingBox = false;
 }
 
 namespace Physics

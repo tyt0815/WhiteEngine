@@ -6,6 +6,29 @@
 class WStaticMeshComponent;
 class WProjectileMovementComponent;
 class WSplineComponent;
+class WBoxComponent;
+
+class AHitReactor : public AActor
+{
+	typedef AActor Super;
+public:
+	AHitReactor();
+
+	virtual void BeginPlay() override;
+
+public:
+	void AddTeleportTargets(const std::vector<WSplineComponent*>& NewTargets);
+
+	void RandomTeleport();
+
+private:
+	WBoxComponent* mHitBoxComp;
+	WStaticMeshComponent* mSMComp;
+
+	void OnOverlapEvent(WPrimitiveComponent* Other);
+
+	std::vector<WSplineComponent*> mTeleportTargets;
+};
 
 class AProjectileActor : public AActor
 {
@@ -16,17 +39,24 @@ public:
 
 protected:
 	WProjectileMovementComponent* mProjectileMovementComponent;
+	
 };
 
 class ABullet : public AProjectileActor
 {
+	typedef AProjectileActor Super;
 public:
 	ABullet();
+
+	virtual void BeginPlay() override;
 
 protected:
 
 private:
+	WBoxComponent* mHitBoxComp;
 	WStaticMeshComponent* mStaticMesh;
+
+	void OnOverlap(WPrimitiveComponent* Other);
 };
 
 class ARingProjectile : public AProjectileActor
@@ -76,6 +106,9 @@ public:
 	AWaveBulletSpanwer();
 
 	virtual void Tick_PostPhysics(float Delta) override;
+
+public:
+	std::vector<WSplineComponent*> GetSplines() const;
 
 private:
 	void UpdateSplineBullet(FSplineBullet* Spline, float Delta);

@@ -87,6 +87,7 @@ public:
 		return a + RandF()*(b-a);
 	}
 
+	// [a, b]
 	inline static int Rand(int a, int b)
     {
         return a + rand() % ((b - a) + 1);

@@ -36,7 +36,7 @@ void WPrimitiveComponent::Update()
 
 void WPrimitiveComponent::UpdateToPhysics()
 {
-	if (mbPhysicSimulate)
+	if (mbPhysicSimulate && mMotionType != EMotionType::Static)
 	{
 		mBody->SetTransform(GetWorldTransform());
 	}
@@ -44,7 +44,7 @@ void WPrimitiveComponent::UpdateToPhysics()
 
 void WPrimitiveComponent::UpdateFromPhysics()
 {
-	if (mbPhysicSimulate)
+	if (mbPhysicSimulate && mMotionType != EMotionType::Static)
 	{
 		this->SetWorldTransform(mBody->GetTransform());
 	}
@@ -52,7 +52,10 @@ void WPrimitiveComponent::UpdateFromPhysics()
 
 void WPrimitiveComponent::CreatePhysicsBody()
 {
-	mBody->CreateBody(CreatePhysicsBodySettings());
+	auto Settings = CreatePhysicsBodySettings();
+	Settings.mUserData = reinterpret_cast<JPH::uint64>(this);
+	Settings.mIsSensor = mbGenerateOverlapEvent;
+	mBody->CreateBody(Settings);
 }
 
 void WPrimitiveComponent::UpdateConstantBufferIndex()
@@ -85,4 +88,9 @@ void WPrimitiveComponent::SetMotionType(EMotionType MotionType)
 void WPrimitiveComponent::SetObjectChannel(EObjectChannel::EObjectChannel ObjectChannel)
 {
 	mObjectChannel = ObjectChannel;
+}
+
+void WPrimitiveComponent::GenerateOverlapEvent()
+{
+	mbGenerateOverlapEvent = true;
 }

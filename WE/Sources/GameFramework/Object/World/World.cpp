@@ -41,6 +41,18 @@ void WWorld::Tick(float Delta)
 	{
 		Actor->UpdateComponentsFromPhysics();
 	}
+	for (const FContactInfo& Info : mOnBeginOverlapEventQueue)
+	{
+		Info.Comp1->mOnBeginOverlapDelegate.Execute(Info.Comp2);
+		Info.Comp2->mOnBeginOverlapDelegate.Execute(Info.Comp1);
+	}
+	mOnBeginOverlapEventQueue.clear();
+	for (const FContactInfo& Info : mOnHitEventQueue)
+	{
+		Info.Comp1->mOnHitDelegate.Execute(Info.Comp2);
+		Info.Comp2->mOnHitDelegate.Execute(Info.Comp1);
+	}
+	mOnHitEventQueue.clear();
 
 	for (size_t i = 0; i < mAllActors.Size(); ++i)
 	{
@@ -92,6 +104,16 @@ bool WWorld::IsValidActor(AActor* Actor)
 		}
 	}
 	return false;
+}
+
+void WWorld::EnqueueOnBeginOverlapEvent(const FContactInfo& Info)
+{
+	mOnBeginOverlapEventQueue.emplace_back(Info);
+}
+
+void WWorld::EnqueueOnHitEvent(const FContactInfo& Info)
+{
+	mOnHitEventQueue.emplace_back(Info);
 }
 
 void WWorld::FlushDestroyQueue()

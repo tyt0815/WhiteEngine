@@ -5,6 +5,12 @@
 #include "Utility/Container.h"
 #include "Utility/Class.h"
 
+struct FContactInfo
+{
+	WPrimitiveComponent* Comp1;
+	WPrimitiveComponent* Comp2;
+};
+
 class WWorld
 {
 public:
@@ -28,10 +34,18 @@ public:
 
 	bool IsValidActor(AActor* Actor);
 
+	void EnqueueOnBeginOverlapEvent(const FContactInfo& Info);
+
+	void EnqueueOnHitEvent(const FContactInfo& Info);
+
 private:
 	void FlushDestroyQueue();
 
 	TUnorderedArray<std::unique_ptr<AActor>> mAllActors;
+
+	std::vector<FContactInfo> mOnBeginOverlapEventQueue;
+
+	std::vector<FContactInfo> mOnHitEventQueue;
 
 	std::vector<AActor*> DestroyQueue;
 

@@ -1,48 +1,4 @@
 #pragma once
-//#include <functional>
-//
-//class FDelegate
-//{
-//public:
-//	template<typename T>
-//	void Bind(T* ObjectPtr, void(T::* ActionFunction)())
-//	{
-//		mBoundFunction = std::bind(ActionFunction, ObjectPtr);
-//	}
-//
-//	__forceinline void Execute()
-//	{
-//		if (mBoundFunction)
-//		{
-//			mBoundFunction();
-//		}
-//	}
-//
-//private:
-//	std::function<void()> mBoundFunction;
-//};
-//
-//#define ONE_PARAM(TYPE1, TYPE2) TYPE1 Param1, TYPE2 Param2
-//#define TWO_PARAM(TYPE1, TYPE2, TYPE3) TYPE1 Param1, TYPE2 Param2, TYPE3 Param3
-//
-//#define DECLARE_BIND_FUNCTION(PARAMS) template<typename T>\
-//void Bind(T* ObjectPtr, void(T::* Function)(PARAMS))\
-//{ std::function<void(PARAMS)> BoundFunction = std::bind(Function, ObjectPtr)}
-//
-//#define DECLARE_PUBLIC
-//
-//#define DECLARE_CLASS(CLASSNAME, CONTENTS) class CLASSNAME { CONTENTS };
-//
-//#define IMPLEMENT_DELEGATE(CLASSNAME) DECLARE_CLASS(CLASSNAME, );
-//
-//IMPLEMENT_DELEGATE(FTestDelegate);
-//
-//#define BEGIN_CLASS(CLASSNAME) class CLASSNAME {
-//#define END_CLASS(CLASSNAME) };
-//
-//#define BEGIN_FUNCTION(RETURNTYPE, FUNCNAME, PARAMS) RETURNTYPE FUNCNAME(PARAMS){
-//#define END_FUNCTION()};
-
 #include <functional>
 
 // 가변 인자 템플릿을 사용하여 모든 파라미터 개수를 수용하는 베이스 클래스

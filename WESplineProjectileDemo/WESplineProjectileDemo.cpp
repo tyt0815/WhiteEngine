@@ -4,8 +4,58 @@
 #include "Component/StaticMeshComponent.h"
 #include "Component/ProjectileMovementComponent.h"
 #include "Component/SplineComponent.h"
+#include "Component/BoxComponent.h"
 
 CREATE_APPLICATION_BY_WORLD(WSplineProjectileDemoWorld)
+
+AHitReactor::AHitReactor()
+{
+	mHitBoxComp = CreateComponent<WBoxComponent>();
+	SetRootComponent(mHitBoxComp);
+	mHitBoxComp->ActivatePhysicBody();
+	mHitBoxComp->GenerateOverlapEvent();
+	mHitBoxComp->SetExtent(XMFLOAT3(.33f, .33f, .33f));
+	mHitBoxComp->SetMotionType(EMotionType::Kinematic);
+	mHitBoxComp->SetObjectChannel(EObjectChannel::EOC_Moving);
+
+	mSMComp = CreateComponent<WStaticMeshComponent>();
+	mSMComp->SetupAttachment(GetRootComponent());
+	mSMComp->SetStaticMesh(FStaticMeshManager::GetInstance()->GetStaticMesh(EStaticMeshType::ESMT_ScuffedGoldBox));
+	mSMComp->SetLocalScale(XMFLOAT3(0.6f, 0.6f, 0.6f));
+}
+
+void AHitReactor::BeginPlay()
+{
+	Super::BeginPlay();
+
+	mHitBoxComp->mOnBeginOverlapDelegate.Bind(this, &AHitReactor::OnOverlapEvent);
+}
+
+void AHitReactor::AddTeleportTargets(const std::vector<WSplineComponent*>& NewTargets)
+{
+	mTeleportTargets.insert(mTeleportTargets.begin(), NewTargets.begin(), NewTargets.end());
+}
+
+void AHitReactor::OnOverlapEvent(WPrimitiveComponent* Other)
+{
+	RandomTeleport();
+}
+
+void AHitReactor::RandomTeleport()
+{
+	if (mTeleportTargets.size() < 1)
+	{
+		return;
+	}
+
+	int i = FDXMath::Rand(0, mTeleportTargets.size() - 1);
+
+	WSplineComponent* Spline = mTeleportTargets[i];
+
+	float InputKey = FDXMath::RandF() * (Spline->GetControllPointNum() - 1);
+
+	SetActorLocation(Spline->GetWorldTransformAtSplineInputKey(InputKey).Translation);
+}
 
 AProjectileActor::AProjectileActor()
 {
@@ -21,12 +71,29 @@ XMFLOAT3 AProjectileActor::GetVelocity()
 
 ABullet::ABullet()
 {
-	WSceneComponent* DummyRoot = CreateComponent<WSceneComponent>();
-	SetRootComponent(DummyRoot);
+	mHitBoxComp = CreateComponent<WBoxComponent>();
+	SetRootComponent(mHitBoxComp);
+	mHitBoxComp->ActivatePhysicBody();
+	mHitBoxComp->SetExtent(XMFLOAT3(.15f, .15f, .5));
+	mHitBoxComp->SetMotionType(EMotionType::Kinematic);
+	mHitBoxComp->SetObjectChannel(EObjectChannel::EOC_Moving);
+
 	mStaticMesh = CreateComponent<WStaticMeshComponent>();
 	mStaticMesh->SetStaticMesh(FStaticMeshManager::GetInstance()->GetStaticMesh(EStaticMeshType::ESMT_MetalCylinder));
 	mStaticMesh->SetLocalRotation(XMFLOAT3(90, 0, 0));
 	mStaticMesh->SetupAttachment(GetRootComponent());
+}
+
+void ABullet::BeginPlay()
+{
+	Super::BeginPlay();
+
+	mHitBoxComp->mOnBeginOverlapDelegate.Bind(this, &ABullet::OnOverlap);
+}
+
+void ABullet::OnOverlap(WPrimitiveComponent* Other)
+{
+	Destroy();
 }
 
 ARingProjectile::ARingProjectile()
@@ -136,6 +203,16 @@ void AWaveBulletSpanwer::Tick_PostPhysics(float Delta)
 	}
 }
 
+std::vector<WSplineComponent*> AWaveBulletSpanwer::GetSplines() const
+{
+	std::vector<WSplineComponent*> Splines;
+	for (const auto& s : mSplines)
+	{
+		Splines.push_back(s.Spline);
+	}
+	return Splines;
+}
+
 void AWaveBulletSpanwer::UpdateSplineBullet(FSplineBullet* SplineBullet, float Delta)
 {
 	for (int i = 0; i < SplineBullet->Bullets.Size(); ++i)
@@ -192,4 +269,12 @@ WSplineProjectileDemoWorld::WSplineProjectileDemoWorld()
 
 	ARingProjectile* Ring = SpawnActor<ARingProjectile>();
 	Ring->SetActorLocation(XMFLOAT3(0, 0, 0));
+
+	AHitReactor* HitReactor = SpawnActor<AHitReactor>();
+	HitReactor->SetActorLocation(XMFLOAT3(0.0f, 0.0f, 5.0f));
+
+	auto WaveSplines = WaveSpawner->GetSplines();
+	HitReactor->AddTeleportTargets(WaveSpawner->GetSplines());
+	HitReactor->RandomTeleport();
+	HitReactor->RandomTeleport();
 }
