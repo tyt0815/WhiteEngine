@@ -6,7 +6,7 @@ APhysicsSphere::APhysicsSphere()
 {
 	mSphereComp = CreateComponent<WSphereComponent>();
 	SetRootComponent(mSphereComp);
-	mSphereComp->SetObjectType(EObjectType::EOT_Dynamic);
+	mSphereComp->SetMotionType(EMotionType::Dynamic);
 	mSphereComp->ActivatePhysicBody();
 	mSphereComp->SetRadius(0.5f);
 

@@ -47,6 +47,7 @@
     <ClCompile Include="Sources\GameFramework\Object\World\DefaultWorld.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\World\World.cpp" />
     <ClCompile Include="Sources\GameFramework\RenderItemProxy.cpp" />
+    <ClCompile Include="Sources\Physics\PhysicsBody.cpp" />
     <ClCompile Include="Sources\Physics\PhysicsCore.cpp" />
     <ClCompile Include="Sources\Physics\PhysicsDebugRenderer.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -120,6 +121,7 @@
     <ClInclude Include="Sources\GameFramework\RenderItemProxy.h" />
     <ClInclude Include="Sources\Physics\JPHUtility.h" />
     <ClInclude Include="Sources\Physics\ObjectChannel.h" />
+    <ClInclude Include="Sources\Physics\PhysicsBody.h" />
     <ClInclude Include="Sources\Physics\PhysicsCore.h" />
     <ClInclude Include="Sources\Physics\PhysicsDebugRenderer.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>

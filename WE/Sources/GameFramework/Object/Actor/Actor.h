@@ -68,8 +68,6 @@ private:
 
 	TUnorderedArray<WPrimitiveComponent*> mAllPrimitiveComponents;
 
-	std::unique_ptr<FBody> mBody;
-
 	WSceneComponent* mRootComponent = nullptr;
 
 	WWorld* mWorld = nullptr;

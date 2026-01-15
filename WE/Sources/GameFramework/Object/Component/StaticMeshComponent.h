@@ -15,7 +15,7 @@ protected:
 
 	virtual void UpdateProxies() override;
 
-	virtual void CreatePhysicsBody() override {};		// TODO
+	virtual JPH::BodyCreationSettings CreatePhysicsBodySettings() override; // TODO
 
 public:
 	void SetStaticMesh(const FStaticMesh& StaticMesh);

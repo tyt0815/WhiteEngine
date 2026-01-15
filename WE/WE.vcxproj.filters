@@ -239,6 +239,9 @@
     <ClCompile Include="Sources\Utility\Delegate.cpp">
       <Filter>Sources\Utility</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Physics\PhysicsBody.cpp">
+      <Filter>Sources\Physics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -447,6 +450,9 @@
     </ClInclude>
     <ClInclude Include="Sources\Utility\Delegate.h">
       <Filter>Sources\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Physics\PhysicsBody.h">
+      <Filter>Sources\Physics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

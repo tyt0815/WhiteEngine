@@ -4,6 +4,8 @@
 
 extern const int gFrameResourcesNum;
 
+using namespace JPH;
+
 WStaticMeshComponent::WStaticMeshComponent()
 {
 }
@@ -51,6 +53,18 @@ void WStaticMeshComponent::UpdateProxies()
 		FSubmeshCBProxy* SubmeshCBProxy = World->GetSubmeshCBProxy(mSubmeshCBIndices[i]);
 		SubmeshCBProxy->MaterialIndex = mStaticMesh.Material->Type;
 	}
+}
+
+#include <Jolt/Physics/Collision/Shape/BoxShape.h>
+JPH::BodyCreationSettings WStaticMeshComponent::CreatePhysicsBodySettings()
+{
+	// TODO: 임시로 Box 형태로 만듦
+	BoxShapeSettings BoxSettings(RVec3(1, 1, 1));
+	BoxSettings.SetEmbedded();
+	ShapeSettings::ShapeResult ShapeResult = BoxSettings.Create();
+	ShapeRefC Shape = ShapeResult.Get();
+
+	return JPH::BodyCreationSettings(Shape, RVec3(), Quat::sIdentity(), mMotionType, mObjectChannel);
 }
 
 void WStaticMeshComponent::SetStaticMesh(const FStaticMesh& StaticMesh)

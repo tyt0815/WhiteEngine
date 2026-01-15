@@ -51,9 +51,9 @@ inline FInputSystemManager* GetInputSystemManager()
 }
 
 template<typename T>
-inline void FInputSystemManager::BindMouseAction(EMouseInputType Type, T* ObjectPtr, void(T::* ActionFunction)(FMouseInputParameter))
+inline void FInputSystemManager::BindMouseAction(EMouseInputType Type, T* ObjectPtr, void(T::* ActionFunction)(FMouseInputParameter a))
 {
-	std::function<void(FMouseInputParameter)> BoundFunction = std::bind(ActionFunction, ObjectPtr, std::placeholders::_1);
+	std::function<void(FMouseInputParameter a)> BoundFunction = std::bind(ActionFunction, ObjectPtr, std::placeholders::_1);
 	mMouseActions[Type].push_back(BoundFunction);
 }
 

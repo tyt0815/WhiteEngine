@@ -4,7 +4,7 @@
 class WBoxComponent : public WPrimitiveComponent
 {
 protected:
-	void CreatePhysicsBody() override;
+	virtual JPH::BodyCreationSettings CreatePhysicsBodySettings() override;
 
 public:
 	void SetExtent(XMFLOAT3 Extent);

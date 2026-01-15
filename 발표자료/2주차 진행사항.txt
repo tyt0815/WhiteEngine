@@ -7,3 +7,8 @@ Blender로 부터 Spline Data 추출 스크립트 작성
 
 2026-01-13
 디버그 렌더러
+물리 모듈
+
+2026-01-14
+Spline Proejctile
+물리 모듈

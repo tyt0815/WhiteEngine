@@ -24,6 +24,8 @@
 #include <sstream>
 #include <cassert>
 
+#include "Component/PrimitiveComponent.h"
+
 
 
 using namespace JPH;
@@ -44,17 +46,17 @@ public:
 
 	virtual void			OnContactAdded(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings) override
 	{
-		FBody* Body1 = reinterpret_cast<FBody*>(inBody1.GetUserData());
-		FBody* Body2 = reinterpret_cast<FBody*>(inBody2.GetUserData());
+		WPrimitiveComponent* Comp1 = reinterpret_cast<WPrimitiveComponent*>(inBody1.GetUserData());
+		WPrimitiveComponent* Comp2 = reinterpret_cast<WPrimitiveComponent*>(inBody2.GetUserData());
 		if (inBody1.IsSensor() || inBody2.IsSensor())
 		{
-			Body1->mOnBeginOverlapDelgate.Execute();
-			Body2->mOnBeginOverlapDelgate.Execute();
+			//Body1->mOnBeginOverlapDelgate.Execute();
+			//Body2->mOnBeginOverlapDelgate.Execute();
 		}
 		else
 		{
-			Body1->mOnHitDelegate.Execute();
-			Body2->mOnHitDelegate.Execute();
+			//Body1->mOnHitDelegate.Execute();
+			//Body2->mOnHitDelegate.Execute();
 		}
 		OutputDebugStringA("A contact was added\n");
 	}
@@ -103,7 +105,7 @@ namespace Physics
 
 	std::unique_ptr<MyContactListener> g_ContactListener;
 
-	bool g_bDrawShape = true;
+	bool g_bDrawShape = false;
 	bool g_bDrawBoundingBox = true;
 }
 
@@ -140,78 +142,10 @@ namespace Physics
 		return true;
 	};
 
-	inline BodyInterface* GetBodyInterface()
+	BodyInterface* GetBodyInterface()
 	{
 		return &g_PhysicsSystem->GetBodyInterface();
 	}
-}
-
-// 함수 본문
-inline EMotionType ToMotionType(EObjectType ObjectType) 
-{
-	return static_cast<EMotionType>(ObjectType);
-}
-
-FBody::FBody(BodyCreationSettings Settings)
-{
-	Settings.mUserData = reinterpret_cast<JPH::uint64>(this);
-	mBody = Physics::GetBodyInterface()->CreateBody(Settings);
-}
-
-FBody::~FBody()
-{
-	RemoveBody();
-	Physics::GetBodyInterface()->DestroyBody(mBody->GetID());
-}
-
-void FBody::AddBody(bool bActivate)
-{
-	Physics::GetBodyInterface()->AddBody(mBody->GetID(), bActivate ? JPH::EActivation::Activate : JPH::EActivation::DontActivate);
-}
-
-void FBody::RemoveBody()
-{
-	Physics::GetBodyInterface()->RemoveBody(mBody->GetID());
-}
-
-void FBody::SetPosition(XMFLOAT3 Position)
-{
-	Physics::GetBodyInterface()->SetPosition(mBody->GetID(), ToJPHPosition(Position), EActivation::Activate);
-}
-
-void FBody::SetMotiontype(EObjectType ObjectType)
-{
-	Physics::GetBodyInterface()->SetMotionType(mBody->GetID(), ToMotionType(ObjectType), JPH::EActivation::Activate);
-}
-
-void FBody::SetActivate(bool bActivate)
-{
-	bActivate ?
-		Physics::GetBodyInterface()->ActivateBody(mBody->GetID()) :
-		Physics::GetBodyInterface()->DeactivateBody(mBody->GetID());
-}
-
-FTransform FBody::GetTransform() const
-{
-	RVec3 Location = Physics::GetBodyInterface()->GetCenterOfMassPosition(mBody->GetID());
-	JPH::Quat QuatRotation = Physics::GetBodyInterface()->GetRotation(mBody->GetID());
-
-	FTransform Transform = FTransform::Default;
-	Transform.Translation = ToDXLocation(Location);
-	Transform.SetRotationByQuat(ToDXQuatRotation(QuatRotation));
-
-	return Transform;
-}
-
-void FBody::SetTransform(const FTransform& Transform)
-{
-	RVec3 Pos = ToJPHPosition(Transform.Translation);
-	Quat Quat = TOJPHQuatRotation(Transform.GetQuaternionRotationFloat4());
-
-	BodyInterface* BI = Physics::GetBodyInterface();
-
-	JPH::EActivation Activation = BI->IsActive(mBody->GetID()) ? EActivation::Activate : EActivation::DontActivate;
-	Physics::GetBodyInterface()->SetPositionAndRotation(mBody->GetID(), Pos, Quat, Activation);
 }
 
 void Physics::Startup()
@@ -329,26 +263,4 @@ void Physics::Tick(float DeltaTime)
 	Settings.mDrawBoundingBox = g_bDrawBoundingBox;
 
 	g_PhysicsSystem->DrawBodies(Settings, g_DebugRenderer.get());
-}
-
-std::unique_ptr<FBody> CreateBody(ShapeSettings::ShapeResult ShapeResult, EObjectType ObjectType, JPH::ObjectLayer ObjectChannel)
-{
-	ShapeRefC SphereShape = ShapeResult.Get();
-	BodyCreationSettings Settings(SphereShape, RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(), ToMotionType(ObjectType), ObjectChannel);
-	return std::move(std::make_unique<FBody>(Settings));
-}
-
-std::unique_ptr<FBody> CreateBoxBody(XMFLOAT3 Size, EObjectType ObjectType)
-{
-	BoxShapeSettings BoxSettings(RVec3(Size.x, Size.y, Size.z));
-	BoxSettings.SetEmbedded();
-	return std::move(CreateBody(BoxSettings.Create(), ObjectType, EObjectChannel::NON_MOVING));
-}
-
-std::unique_ptr<FBody> CreateSphereBody(float Radius, EObjectType ObjectType)
-{
-	SphereShapeSettings SphereSettings(Radius);
-	SphereSettings.SetEmbedded();
-
-	return std::move(CreateBody(SphereSettings.Create(), ObjectType, EObjectChannel::MOVING));
 }

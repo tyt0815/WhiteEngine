@@ -1,8 +1,16 @@
 #include "BoxComponent.h"
+#include <Jolt/Physics/Collision/Shape/BoxShape.h>
 
-void WBoxComponent::CreatePhysicsBody()
+using namespace JPH;
+
+JPH::BodyCreationSettings WBoxComponent::CreatePhysicsBodySettings()
 {
-	mBody = CreateBoxBody(mExtent, mObjectType);
+	BoxShapeSettings BoxSettings(RVec3(mExtent.x, mExtent.y, mExtent.z));
+	BoxSettings.SetEmbedded();
+	ShapeSettings::ShapeResult ShapeResult = BoxSettings.Create();
+	ShapeRefC Shape = ShapeResult.Get();
+
+	return JPH::BodyCreationSettings(Shape, RVec3(), Quat::sIdentity(), mMotionType, mObjectChannel);
 }
 
 void WBoxComponent::SetExtent(XMFLOAT3 Extent)

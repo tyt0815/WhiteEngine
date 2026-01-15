@@ -1,6 +1,20 @@
 #pragma once
 #include "SceneComponent.h"
-#include "Physics/PhysicsCore.h"
+#include "Physics/PhysicsBody.h"
+#include "Physics/ObjectChannel.h"
+
+using EMotionType = JPH::EMotionType;
+
+namespace EObjectChannel
+{
+	enum EObjectChannel : JPH::ObjectLayer
+	{
+		// ObjectChannel의 값들과 일치해야함
+		EOC_NonMoving = 0,
+		EOC_Moving,
+		EOC_ChannelNum
+	};
+}
 
 class WPrimitiveComponent : public WSceneComponent
 {
@@ -20,12 +34,14 @@ public:
 
 	void ActivatePhysicBody();
 
-	FDelegate mOnHitDelegate;
+	void SetMotionType(EMotionType MotionType);
 
-	FDelegate mOnBeginOverlapDelegate;
+	void SetObjectChannel(EObjectChannel::EObjectChannel ObjectChannel);
 
 protected:
-	virtual void CreatePhysicsBody() = 0;
+	virtual JPH::BodyCreationSettings CreatePhysicsBodySettings() = 0;
+
+	void CreatePhysicsBody();
 
 	virtual void UpdateConstantBufferIndex();
 
@@ -34,9 +50,11 @@ protected:
 	size_t mMeshCBIndex;
 
 	// Physics
-	std::unique_ptr<FBody> mBody;
+	std::unique_ptr<FPhysicsBody> mBody;
 
-	EObjectType mObjectType = EObjectType::EOT_Dynamic;
+	EMotionType mMotionType = JPH::EMotionType::Dynamic;
+
+	EObjectChannel::EObjectChannel mObjectChannel = EObjectChannel::EOC_Moving;
 
 	bool mbPhysicSimulate = false;
 
@@ -44,11 +62,4 @@ private:
 	void OnComponentHit_Internal();
 
 	void OnComponentBeginOverlap_Internal();
-
-public:
-	__forceinline void SetObjectType(EObjectType Type)
-	{
-		mObjectType = Type;
-	}
-
 };

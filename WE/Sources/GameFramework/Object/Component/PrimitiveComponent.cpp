@@ -4,7 +4,8 @@
 
 extern const int gFrameResourcesNum;
 
-WPrimitiveComponent::WPrimitiveComponent()
+WPrimitiveComponent::WPrimitiveComponent():
+	mBody(std::make_unique<FPhysicsBody>(this))
 {
 
 }
@@ -13,15 +14,9 @@ void WPrimitiveComponent::BeginComponent()
 {
 	Super::BeginComponent();
 
-	if (mBody == nullptr)
+	if (!mBody->IsValid())
 	{
 		CreatePhysicsBody();
-	}
-
-	if (mBody)
-	{
-		mBody->mOnHitDelegate.Bind(this, &WPrimitiveComponent::OnComponentHit_Internal);
-		mBody->mOnBeginOverlapDelgate.Bind(this, &WPrimitiveComponent::OnComponentBeginOverlap_Internal);
 	}
 
 	if (mbPhysicSimulate)
@@ -55,6 +50,11 @@ void WPrimitiveComponent::UpdateFromPhysics()
 	}
 }
 
+void WPrimitiveComponent::CreatePhysicsBody()
+{
+	mBody->CreateBody(CreatePhysicsBodySettings());
+}
+
 void WPrimitiveComponent::UpdateConstantBufferIndex()
 {
 	WWorld* World = GetWorld();
@@ -71,18 +71,18 @@ void WPrimitiveComponent::ActivatePhysicBody()
 {
 	mbPhysicSimulate = true;
 
-	if (mBody)
+	if (mBody->IsValid())
 	{
 		mBody->AddBody();
 	}
 }
 
-void WPrimitiveComponent::OnComponentHit_Internal()
+void WPrimitiveComponent::SetMotionType(EMotionType MotionType)
 {
-	mOnHitDelegate.Execute();
+	mMotionType = MotionType;
 }
 
-void WPrimitiveComponent::OnComponentBeginOverlap_Internal()
+void WPrimitiveComponent::SetObjectChannel(EObjectChannel::EObjectChannel ObjectChannel)
 {
-	mOnBeginOverlapDelegate.Execute();
+	mObjectChannel = ObjectChannel;
 }
