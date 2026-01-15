@@ -8,8 +8,11 @@
 
 #include "SkeletalMesh.h"
 
+#pragma comment(lib, "libfbxsdk.lib")
+
 FMeshGeometryManager::FMeshGeometryManager()
 {
+
 	GetDXResourceManagerPtr()->ExecuteAndFlushCommand(&FMeshGeometryManager::BuildMeshGeometries, this);
 }
 
@@ -29,6 +32,8 @@ void FMeshGeometryManager::BuildMeshGeometries(ID3D12Device* Device, ID3D12Graph
 
 	BuildBillboardPoints(Device, CommandList);
 	BuildRectangle(Device, CommandList);
+
+	LoadFbxs(Device, CommandList);;
 
 	FSkeletalMesh* SkeletalMesh = FSkeletalMeshManager::GetInstance()->mSkeletalMesh.get();
 
@@ -208,4 +213,167 @@ void FMeshGeometryManager::BuildRectangle(ID3D12Device* Device, ID3D12GraphicsCo
 		Device,
 		CommandList
 	);
+}
+
+void FMeshGeometryManager::LoadFbxs(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
+{
+	// 1. FBX SDK 관리자 및 임포터 초기화
+	FbxManager* lSdkManager = FbxManager::Create();
+	FbxIOSettings* ios = FbxIOSettings::Create(lSdkManager, IOSROOT);
+	lSdkManager->SetIOSettings(ios);
+
+	FbxImporter* lImporter = FbxImporter::Create(lSdkManager, "");
+
+	std::string FBXDir = SOLUTION_DIR;
+	FBXDir += "/Resources/FBX";
+	LoadFbx("Ring", FBXDir + "/Ring.fbx", lSdkManager, lImporter, Device, CommandList);;
+
+
+	lSdkManager->Destroy();
+}
+
+void FMeshGeometryManager::LoadFbx(
+	const std::string& Name,
+	const std::string& FilePath,
+	fbxsdk::FbxManager* lSdkManager,
+	fbxsdk::FbxImporter* lImporter,
+	ID3D12Device* Device,
+	ID3D12GraphicsCommandList* CommandList
+)
+{
+	std::string fileName(FilePath.begin(), FilePath.end());
+
+	if (!lImporter->Initialize(fileName.c_str(), -1, lSdkManager->GetIOSettings())) {
+		return;
+	}
+
+	FbxScene* lScene = FbxScene::Create(lSdkManager, "myScene");
+	lImporter->Import(lScene);
+
+	// Importer는 Import 직후 Destroy해도 씬 데이터는 lScene에 남습니다.
+	lImporter->Destroy();
+
+	FbxNode* lRootNode = lScene->GetRootNode();
+	if (!lRootNode) return;
+
+	// 전체 데이터를 담을 컨테이너
+	std::vector<FVertex> AllVertices;
+	std::vector<std::uint32_t> AllIndices;
+	std::vector<FSubmeshGeometry> Submeshes;
+
+	// 씬 전체를 순회하며 메시 노드 추출 (재귀 대신 간단한 스택/루프 구조)
+	std::vector<FbxNode*> NodeStack;
+	NodeStack.push_back(lRootNode);
+
+	while (!NodeStack.empty())
+	{
+		FbxNode* currentNode = NodeStack.back();
+		NodeStack.pop_back();
+
+		// 자식 노드들을 스택에 추가
+		for (int i = 0; i < currentNode->GetChildCount(); ++i)
+			NodeStack.push_back(currentNode->GetChild(i));
+
+		FbxMesh* lMesh = currentNode->GetMesh();
+		if (lMesh)
+		{
+			FbxGeometryElementUV* leUV = lMesh->GetElementUV(0);
+			FbxGeometryElementNormal* leNormal = lMesh->GetElementNormal(0);
+			FbxGeometryElementTangent* leTangent = lMesh->GetElementTangent(0);
+
+			FSubmeshGeometry Submesh;
+			// 현재까지 쌓인 데이터 이후부터가 이 서브메시의 시작점
+			Submesh.BaseVertexLocation = (UINT)AllVertices.size();
+			Submesh.StartIndexLocation = (UINT)AllIndices.size();
+
+			// 1. 정점 데이터 추출
+			int lControlPointsCount = lMesh->GetControlPointsCount();
+			FbxVector4* lControlPoints = lMesh->GetControlPoints();
+
+			for (int i = 0; i < lControlPointsCount; ++i)
+			{
+				FVertex v;
+				v.Pos = { (float)lControlPoints[i][0], (float)lControlPoints[i][1], (float)lControlPoints[i][2] };
+
+				// 기본값 채우기 (노멀 추출 로직은 나중에 추가 가능)
+				v.Normal = { 0.0f, 1.0f, 0.0f };
+				v.TangentU = { 1.0f, 0.0f, 0.0f };
+				v.TexC = { 0.0f, 0.0f }; // 기본값
+
+
+				// --- 1. Normal 추출 ---
+				if (leNormal)
+				{
+					int nIdx = (leNormal->GetMappingMode() == FbxGeometryElement::eByControlPoint) ? i : i; // 단순화된 인덱스
+					if (leNormal->GetReferenceMode() == FbxGeometryElement::eIndexToDirect)
+						nIdx = leNormal->GetIndexArray().GetAt(i);
+
+					FbxVector4 norm = leNormal->GetDirectArray().GetAt(nIdx);
+					v.Normal = { (float)norm[0], (float)norm[1], (float)norm[2] };
+				}
+
+				// --- 2. UV 추출 ---
+				if (leUV)
+				{
+					int uvIdx = (leUV->GetMappingMode() == FbxGeometryElement::eByControlPoint) ? i : i;
+					if (leUV->GetReferenceMode() == FbxGeometryElement::eIndexToDirect)
+						uvIdx = leUV->GetIndexArray().GetAt(i);
+
+					FbxVector2 uv = leUV->GetDirectArray().GetAt(uvIdx);
+					v.TexC = { (float)uv[0], 1.0f - (float)uv[1] }; // DX 좌표계 반전
+				}
+
+				// --- 3. Tangent 추출 ---
+				if (leTangent)
+				{
+					int tIdx = (leTangent->GetMappingMode() == FbxGeometryElement::eByControlPoint) ? i : i;
+					if (leTangent->GetReferenceMode() == FbxGeometryElement::eIndexToDirect)
+						tIdx = leTangent->GetIndexArray().GetAt(i);
+
+					FbxVector4 tan = leTangent->GetDirectArray().GetAt(tIdx);
+					v.TangentU = { (float)tan[0], (float)tan[1], (float)tan[2] };
+				}
+				else {
+					v.TangentU = { 1.0f, 0.0f, 0.0f }; // 없으면 기본값
+				}
+
+				AllVertices.push_back(v);
+			}
+
+			// 2. 인덱스 데이터 추출
+			int lPolygonCount = lMesh->GetPolygonCount();
+			for (int i = 0; i < lPolygonCount; i++)
+			{
+				// FBX Export시 Triangulate를 체크했다면 항상 3개씩 들어옵니다.
+				for (int j = 0; j < 3; j++)
+				{
+					AllIndices.push_back((std::uint32_t)lMesh->GetPolygonVertex(i, j));
+				}
+			}
+
+			// 이번 메시에 추가된 인덱스 개수 계산
+			Submesh.IndexCount = (UINT)AllIndices.size() - Submesh.StartIndexLocation;
+
+			// 유효한 메시 데이터가 있다면 서브메시 목록에 추가
+			if (Submesh.IndexCount > 0)
+				Submeshes.push_back(Submesh);
+		}
+	}
+
+	// 3. 통합된 데이터로 메시 지오메트리 빌드
+	if (!AllVertices.empty())
+	{
+		BuildMeshGeometryU32(
+			Name,
+			AllVertices,
+			AllIndices,
+			Submeshes,
+			D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+			Device,
+			CommandList
+		);
+	}
+
+	// Scene 데이터 정리
+	lScene->Destroy();
 }

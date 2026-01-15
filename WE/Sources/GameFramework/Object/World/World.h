@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GameFramework/Object/Pawn/Pawn.h"
+#include "Pawn/Pawn.h"
 #include "GameFramework/RenderItemProxy.h"
 #include "Utility/Container.h"
 #include "Utility/Class.h"

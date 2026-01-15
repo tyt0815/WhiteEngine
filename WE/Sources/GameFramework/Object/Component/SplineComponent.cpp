@@ -9,12 +9,19 @@ void WSplineComponent::TickComponent_PostPhysics(float Delta)
 {
 	Super::TickComponent_PostPhysics(Delta);
 
-	float d = 0.1f;
-	for (float InputKey = d; InputKey <= mSplineNodes.size(); InputKey += d)
+	const XMFLOAT4 DebugColors[] = {
+		{1, 0, 0, 1}, {0, 1, 0, 1}, {0, 0, 1, 1},
+		{1, 1, 0, 1}, {1, 0, 1, 1}, {0, 1, 1, 1}
+	};
+	
+	int ColorSelector = 0;
+
+	for (int i = 0; i < mSplineLUT.size() - 1; ++i)
 	{
-		XMFLOAT3 Start = GetWorldTransformAtSplineInputKey(InputKey - d).Translation;
-		XMFLOAT3 End = GetWorldTransformAtSplineInputKey(InputKey).Translation;
-		GetWorld()->DrawDebugLine(Start, End, XMFLOAT4(0, 1, 0, 0), 0);
+		XMFLOAT3 Start = GetWorldTransformAtDistanceAlongSpline(mSplineLUT[i].Distance).Translation;
+		XMFLOAT3 End = GetWorldTransformAtDistanceAlongSpline(mSplineLUT[i + 1].Distance).Translation;
+		GetWorld()->DrawDebugLine(Start, End, DebugColors[ColorSelector], 0);
+		ColorSelector = (ColorSelector + 1) % 6;
 	}
 }
 

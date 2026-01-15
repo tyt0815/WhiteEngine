@@ -3,6 +3,7 @@
 #include "GameCore.h"
 #include "Physics/PhysicsCore.h"
 #include "Asset/AssetManager.h"
+#include "Render/MeshGeometry.h"
 
 class FGameAppImpl : public GameCore::IGameApp
 {
@@ -28,6 +29,7 @@ private:
 	{\
 		Physics::Startup();\
 		FAssetManager::GetInstance()->LoadAssets();\
+		GetMeshGeometryManager();\
 		FGameAppImpl App(new WorldClass());\
 		return GameCore::RunApplication(App, L#WorldClass, hInstance, nCmdShow);\
 	}

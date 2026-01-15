@@ -6,6 +6,7 @@
 #include <memory>
 #include <unordered_map>
 #include <wrl.h>
+#include <fbxsdk.h>
 #include "GeometryGenerator.h"
 #include "DirectX/DXMath.h"
 #include "DirectX/DXUtility.h"
@@ -130,8 +131,17 @@ private:
 	void BuildSkullMeshGeometry(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 	void BuildBillboardPoints(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 	void BuildRectangle(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
-	void BuildLine3D(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 	std::unordered_map<std::string, std::unique_ptr<FMeshGeometry>> mMeshGeometries;
+
+	void LoadFbxs(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
+	void LoadFbx(
+		const std::string& Name,
+		const std::string& FilePath,
+		FbxManager* lSdkManager,
+		FbxImporter* lImporter,
+		ID3D12Device* Device,
+		ID3D12GraphicsCommandList* CommandList
+	);
 public:
 	inline FMeshGeometry* GetMeshGeometry(std::string Name)
 	{

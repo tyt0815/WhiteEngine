@@ -7,6 +7,18 @@
 
 CREATE_APPLICATION_BY_WORLD(WSplineProjectileDemoWorld)
 
+AProjectileActor::AProjectileActor()
+{
+	mProjectileMovementComponent = CreateComponent<WProjectileMovementComponent>();
+	mProjectileMovementComponent->mVelocity = XMFLOAT3(0, 0, 10);
+	mProjectileMovementComponent->SetLifeSpan(10.0f);
+}
+
+XMFLOAT3 AProjectileActor::GetVelocity()
+{
+	return mProjectileMovementComponent->mVelocity;
+}
+
 ABullet::ABullet()
 {
 	WSceneComponent* DummyRoot = CreateComponent<WSceneComponent>();
@@ -15,15 +27,21 @@ ABullet::ABullet()
 	mStaticMesh->SetStaticMesh(FStaticMeshManager::GetInstance()->GetStaticMesh(EStaticMeshType::ESMT_MetalCylinder));
 	mStaticMesh->SetLocalRotation(XMFLOAT3(90, 0, 0));
 	mStaticMesh->SetupAttachment(GetRootComponent());
-	mProjectileMovementComponent = CreateComponent<WProjectileMovementComponent>();
-	mProjectileMovementComponent->mVelocity = XMFLOAT3(0, 0, 10);
-	mProjectileMovementComponent->SetLifeSpan(10.0f);
 }
 
-XMFLOAT3 ABullet::GetVelocity()
+ARingProjectile::ARingProjectile()
 {
-	return mProjectileMovementComponent->mVelocity;
+	WSceneComponent* DummyRoot = CreateComponent<WSceneComponent>();
+	SetRootComponent(DummyRoot);
+	mStaticMesh = CreateComponent<WStaticMeshComponent>();
+	mStaticMesh->SetupAttachment(GetRootComponent());
+	mStaticMesh->SetStaticMesh(FStaticMeshManager::GetInstance()->GetStaticMesh(EStaticMeshType::ESMT_MetalRing));
+	mStaticMesh->SetLocalRotation(XMFLOAT3(90, 0, 0));
+
+	mProjectileMovementComponent->mVelocity = XMFLOAT3(0, 0, 0);
+	mProjectileMovementComponent->SetLifeSpan(1000.0f);
 }
+
 
 ASpiralBulletSpawner::ASpiralBulletSpawner()
 {
@@ -171,4 +189,7 @@ WSplineProjectileDemoWorld::WSplineProjectileDemoWorld()
 	AWaveBulletSpanwer* WaveSpawner = SpawnActor<AWaveBulletSpanwer>();
 	WaveSpawner->SetActorLocation(XMFLOAT3(-5, -2, 15));
 	WaveSpawner->SetActorRotation(XMFLOAT3(0, 180, 0));
+
+	ARingProjectile* Ring = SpawnActor<ARingProjectile>();
+	Ring->SetActorLocation(XMFLOAT3(0, 0, 0));
 }

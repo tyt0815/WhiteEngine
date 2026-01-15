@@ -1,25 +1,41 @@
 #pragma once
-#include "GameFramework/Object/World/DefaultWorld.h"
-#include "GameFramework/Object/Actor/Actor.h"
+#include "World/DefaultWorld.h"
+#include "Actor/Actor.h"
 #include "Render/StaticMesh.h"
 
 class WStaticMeshComponent;
 class WProjectileMovementComponent;
 class WSplineComponent;
 
-class ABullet : public AActor
+class AProjectileActor : public AActor
+{
+public:
+	AProjectileActor();
+
+	XMFLOAT3 GetVelocity();
+
+protected:
+	WProjectileMovementComponent* mProjectileMovementComponent;
+};
+
+class ABullet : public AProjectileActor
 {
 public:
 	ABullet();
-
-public:
-	XMFLOAT3 GetVelocity();
 
 protected:
 
 private:
 	WStaticMeshComponent* mStaticMesh;
-	WProjectileMovementComponent* mProjectileMovementComponent;
+};
+
+class ARingProjectile : public AProjectileActor
+{
+public:
+	ARingProjectile();
+
+private:
+	WStaticMeshComponent* mStaticMesh;
 };
 
 class ASplineBulletSpawner : public AActor
