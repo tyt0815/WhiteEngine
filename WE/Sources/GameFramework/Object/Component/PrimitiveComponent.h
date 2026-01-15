@@ -4,8 +4,8 @@
 #include "Physics/ObjectChannel.h"
 #include "Utility/Delegate.h"
 
-DECLARE_DELEGATE_OneParam(FComponentHitDelegate, class WPrimitiveComponent*);
-DECLARE_DELEGATE_OneParam(FComponentBeginOverlapDelegate, class WPrimitiveComponent*);
+DECLARE_DELEGATE_TwoParams(FComponentHitDelegate, class WPrimitiveComponent*, XMFLOAT3);
+DECLARE_DELEGATE_TwoParams(FComponentBeginOverlapDelegate, class WPrimitiveComponent*, XMFLOAT3);
 
 using EMotionType = JPH::EMotionType;
 

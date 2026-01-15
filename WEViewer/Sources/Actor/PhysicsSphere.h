@@ -19,7 +19,7 @@ public:
 	
 
 private:
-	void OnHit(WPrimitiveComponent* Other);
+	void OnHit(WPrimitiveComponent* Other, XMFLOAT3 ImpactPoint);
 
 	WSphereComponent* mSphereComp;
 };

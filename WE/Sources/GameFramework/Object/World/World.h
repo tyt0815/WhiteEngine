@@ -9,6 +9,8 @@ struct FContactInfo
 {
 	WPrimitiveComponent* Comp1;
 	WPrimitiveComponent* Comp2;
+	XMFLOAT3 ImpactPoint1;
+	XMFLOAT3 ImpactPoint2;
 };
 
 class WWorld

@@ -27,7 +27,7 @@ void APhysicsSphere::Tick_PrePhysics(float DeltaTiem)
 	Super::Tick_PrePhysics(DeltaTiem);
 }
 
-void APhysicsSphere::OnHit(WPrimitiveComponent* Other)
+void APhysicsSphere::OnHit(WPrimitiveComponent* Other, XMFLOAT3 ImpactPoint)
 {
 	Destroy();
 }

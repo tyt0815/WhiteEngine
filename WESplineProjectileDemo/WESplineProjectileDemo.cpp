@@ -27,18 +27,11 @@ AHitReactor::AHitReactor()
 void AHitReactor::BeginPlay()
 {
 	Super::BeginPlay();
-
-	mHitBoxComp->mOnBeginOverlapDelegate.Bind(this, &AHitReactor::OnOverlapEvent);
 }
 
 void AHitReactor::AddTeleportTargets(const std::vector<WSplineComponent*>& NewTargets)
 {
 	mTeleportTargets.insert(mTeleportTargets.begin(), NewTargets.begin(), NewTargets.end());
-}
-
-void AHitReactor::OnOverlapEvent(WPrimitiveComponent* Other)
-{
-	RandomTeleport();
 }
 
 void AHitReactor::RandomTeleport()
@@ -48,7 +41,7 @@ void AHitReactor::RandomTeleport()
 		return;
 	}
 
-	int i = FDXMath::Rand(0, mTeleportTargets.size() - 1);
+	int i = FDXMath::Rand(0, int(mTeleportTargets.size() - 1));
 
 	WSplineComponent* Spline = mTeleportTargets[i];
 
@@ -91,8 +84,12 @@ void ABullet::BeginPlay()
 	mHitBoxComp->mOnBeginOverlapDelegate.Bind(this, &ABullet::OnOverlap);
 }
 
-void ABullet::OnOverlap(WPrimitiveComponent* Other)
+void ABullet::OnOverlap(WPrimitiveComponent* Other, XMFLOAT3 ImpactPoint)
 {
+	if (AHitReactor* Reactor = dynamic_cast<AHitReactor*>(Other->GetOwner()))
+	{
+		Reactor->RandomTeleport();
+	}
 	Destroy();
 }
 
@@ -105,8 +102,67 @@ ARingProjectile::ARingProjectile()
 	mStaticMesh->SetStaticMesh(FStaticMeshManager::GetInstance()->GetStaticMesh(EStaticMeshType::ESMT_MetalRing));
 	mStaticMesh->SetLocalRotation(XMFLOAT3(90, 0, 0));
 
-	mProjectileMovementComponent->mVelocity = XMFLOAT3(0, 0, 0);
-	mProjectileMovementComponent->SetLifeSpan(1000.0f);
+	mProjectileMovementComponent->mVelocity = XMFLOAT3(0, 0, 5);
+	mProjectileMovementComponent->SetLifeSpan(10.0f);
+
+
+	// Ring의 HitBox를 설정한다. 여러개의 BoxComponent로 Ring 모양의 히트박스를 만든다.
+	const int SegmentCoef = 5;
+	const int NumSegments = 4 * SegmentCoef;	// NumSegments는 4의 배수로 설정한다.
+	const float AngleDelta = FDXMath::Pi / 2 / (NumSegments / 4);
+	const float Radius = 2;
+	const XMFLOAT3 Extent = { 0.25f, 2.0f / (NumSegments / 4), 0.25f };
+
+	float Angle = 0;
+	for (int i = 0; i < NumSegments; ++i, Angle += AngleDelta)
+	{
+		WBoxComponent* HitBox = CreateComponent<WBoxComponent>();
+		HitBox->SetupAttachment(GetRootComponent());
+		HitBox->ActivatePhysicBody();
+		HitBox->SetExtent(Extent);
+		HitBox->SetMotionType(EMotionType::Kinematic);
+		HitBox->SetObjectChannel(EObjectChannel::EOC_Moving);
+
+		float x = cosf(Angle) * Radius;
+		float y = sinf(Angle) * Radius;
+		HitBox->SetLocalLocation(XMFLOAT3(x, y, 0));
+		HitBox->SetLocalRotation(XMFLOAT3(0, 0, Angle * (180 / FDXMath::Pi)));
+
+		mHitBoxes.push_back(HitBox);
+	}
+}
+
+void ARingProjectile::BeginPlay()
+{
+	Super::BeginPlay();
+	for (WBoxComponent* HitBox : mHitBoxes)
+	{
+		HitBox->mOnBeginOverlapDelegate.Bind(this, &ARingProjectile::OnOverlapEvent);
+	}
+}
+
+void ARingProjectile::Tick_PostPhysics(float Delta)
+{
+	Super::Tick_PostPhysics(Delta);
+}
+
+void ARingProjectile::OnOverlapEvent(WPrimitiveComponent* Other, XMFLOAT3 ImpactPoint)
+{
+	if (std::find(ActorsToIgnore.begin(), ActorsToIgnore.end(), Other->GetOwner()) != ActorsToIgnore.end())
+	{
+		return;
+	}
+
+	ActorsToIgnore.push_back(Other->GetOwner());
+
+	static int ColorSelector = 0;
+	const XMFLOAT4 DebugColors[] = {
+		{1, 0, 0, 1}, {0, 1, 0, 1}, {0, 0, 1, 1},
+		{1, 1, 0, 1}, {1, 0, 1, 1}, {0, 1, 1, 1}
+	};
+
+	GetWorld()->DrawDebugLine(GetActorLocation(), ImpactPoint, DebugColors[ColorSelector], 3);
+	ColorSelector = (ColorSelector + 1) % 6;
 }
 
 
@@ -257,6 +313,61 @@ void ASplineBulletSpawner::FSplineBullet::RemoveAt(UINT i)
 	BulletDistance.RemoveAt(i);
 }
 
+ARingProjectileSpawner::ARingProjectileSpawner()
+{
+	WSceneComponent* RootComponent = CreateComponent<WSceneComponent>();
+	SetRootComponent(RootComponent);
+
+	mSpline = CreateComponent<WSplineComponent>();
+	mSpline->SetupAttachment(RootComponent);
+	mSpline->LoadSplineFromAsset(L"SDA_RingPath");
+}
+
+void ARingProjectileSpawner::Tick_PostPhysics(float Delta)
+{
+	Super::Tick_PostPhysics(Delta);
+
+	mCoolDown -= Delta;
+
+	WWorld* World = GetWorld();
+	if (mCoolDown < 0)
+	{
+		mRings.Add(World->SpawnActor<ARingProjectile>());
+		mDists.Add(0.0f);
+		mCoolDown = mCoolTime;
+	}
+
+	for (int i = 0; i < mRings.Size(); ++i)
+	{
+
+		if (!World->IsValidActor(mRings[i]))
+		{
+			mRings.RemoveAt(i);
+			mDists.RemoveAt(i);
+			--i;
+			continue;
+		}
+
+		ARingProjectile* Ring = mRings[i];
+		float& Dist = mDists[i];
+
+		float SpeedCoef = mSpline->GetCustomProperty2AtDistanceAlongSpline(Dist);
+
+		Dist = min(Dist + Delta * Ring->GetVelocity().z * SpeedCoef, mSpline->GetSplineLength());
+
+		Ring->SetActorTransform(mSpline->GetWorldTransformAtDistanceAlongSpline(Dist));
+
+		if (Dist >= mSpline->GetSplineLength())
+		{
+			mRings.RemoveAt(i);
+			mDists.RemoveAt(i);
+			--i;
+			continue;
+		}
+	}
+}
+
+
 WSplineProjectileDemoWorld::WSplineProjectileDemoWorld()
 {
 	ASpiralBulletSpawner* SpiralSpawner = SpawnActor<ASpiralBulletSpawner>();
@@ -267,14 +378,15 @@ WSplineProjectileDemoWorld::WSplineProjectileDemoWorld()
 	WaveSpawner->SetActorLocation(XMFLOAT3(-5, -2, 15));
 	WaveSpawner->SetActorRotation(XMFLOAT3(0, 180, 0));
 
-	ARingProjectile* Ring = SpawnActor<ARingProjectile>();
-	Ring->SetActorLocation(XMFLOAT3(0, 0, 0));
-
-	AHitReactor* HitReactor = SpawnActor<AHitReactor>();
-	HitReactor->SetActorLocation(XMFLOAT3(0.0f, 0.0f, 5.0f));
-
+	AHitReactor* BulletHitReactor = SpawnActor<AHitReactor>();
 	auto WaveSplines = WaveSpawner->GetSplines();
-	HitReactor->AddTeleportTargets(WaveSpawner->GetSplines());
-	HitReactor->RandomTeleport();
-	HitReactor->RandomTeleport();
+	BulletHitReactor->AddTeleportTargets(WaveSpawner->GetSplines());
+	BulletHitReactor->RandomTeleport();
+
+	ARingProjectileSpawner* RingSpawner = SpawnActor <ARingProjectileSpawner>();
+	RingSpawner->SetActorLocation(XMFLOAT3(-5, -2, 20));
+	RingSpawner->SetActorRotation(XMFLOAT3(0, 90, 0));
+
+	AHitReactor* RingHitReactor = SpawnActor<AHitReactor>();
+	RingHitReactor->SetActorLocation(XMFLOAT3(5, -2, 20));
 }

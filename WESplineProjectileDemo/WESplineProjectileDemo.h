@@ -25,8 +25,6 @@ private:
 	WBoxComponent* mHitBoxComp;
 	WStaticMeshComponent* mSMComp;
 
-	void OnOverlapEvent(WPrimitiveComponent* Other);
-
 	std::vector<WSplineComponent*> mTeleportTargets;
 };
 
@@ -56,16 +54,27 @@ private:
 	WBoxComponent* mHitBoxComp;
 	WStaticMeshComponent* mStaticMesh;
 
-	void OnOverlap(WPrimitiveComponent* Other);
+	void OnOverlap(WPrimitiveComponent* Other, XMFLOAT3 ImpactPoint);
 };
 
 class ARingProjectile : public AProjectileActor
 {
+	typedef AProjectileActor Super;
 public:
 	ARingProjectile();
 
+	virtual void BeginPlay() override;
+
+	virtual void Tick_PostPhysics(float Delta) override;
+
 private:
+	void OnOverlapEvent(WPrimitiveComponent* Other, XMFLOAT3 ImpactPoint);
+
 	WStaticMeshComponent* mStaticMesh;
+
+	std::vector<WBoxComponent*> mHitBoxes;
+
+	std::vector<AActor*> ActorsToIgnore;
 };
 
 class ASplineBulletSpawner : public AActor
@@ -117,6 +126,24 @@ private:
 
 	float mCoolDown = 0;
 	float mCoolTime = 1;
+};
+
+class ARingProjectileSpawner : public AActor
+{
+	typedef AActor Super;
+public:
+	ARingProjectileSpawner();
+
+	virtual void Tick_PostPhysics(float Delta) override;
+
+private:
+	WSplineComponent* mSpline;
+
+	TUnorderedArray<ARingProjectile*> mRings;
+	TUnorderedArray<float> mDists;
+
+	float mCoolDown = 0;
+	float mCoolTime = 3;
 };
 
 class WSplineProjectileDemoWorld : public WDefaultWorld

@@ -43,14 +43,14 @@ void WWorld::Tick(float Delta)
 	}
 	for (const FContactInfo& Info : mOnBeginOverlapEventQueue)
 	{
-		Info.Comp1->mOnBeginOverlapDelegate.Execute(Info.Comp2);
-		Info.Comp2->mOnBeginOverlapDelegate.Execute(Info.Comp1);
+		Info.Comp1->mOnBeginOverlapDelegate.Execute(Info.Comp2, Info.ImpactPoint1);
+		Info.Comp2->mOnBeginOverlapDelegate.Execute(Info.Comp1, Info.ImpactPoint2);
 	}
 	mOnBeginOverlapEventQueue.clear();
 	for (const FContactInfo& Info : mOnHitEventQueue)
 	{
-		Info.Comp1->mOnHitDelegate.Execute(Info.Comp2);
-		Info.Comp2->mOnHitDelegate.Execute(Info.Comp1);
+		Info.Comp1->mOnHitDelegate.Execute(Info.Comp2, Info.ImpactPoint1);
+		Info.Comp2->mOnHitDelegate.Execute(Info.Comp1, Info.ImpactPoint2);
 	}
 	mOnHitEventQueue.clear();
 

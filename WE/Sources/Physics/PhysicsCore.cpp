@@ -47,14 +47,11 @@ public:
 
 	virtual void			OnContactAdded(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings) override
 	{
-		OutputDebugStringA("A contact was added\n");
-	}
-
-	virtual void			OnContactPersisted(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings) override
-	{
 		FContactInfo Info;
 		Info.Comp1 = reinterpret_cast<WPrimitiveComponent*>(inBody1.GetUserData());
 		Info.Comp2 = reinterpret_cast<WPrimitiveComponent*>(inBody2.GetUserData());
+		Info.ImpactPoint1 = ToDXLocation(inManifold.GetWorldSpaceContactPointOn1(0));
+		Info.ImpactPoint2 = ToDXLocation(inManifold.GetWorldSpaceContactPointOn2(0));
 		WWorld* World = Info.Comp1->GetWorld();
 
 		if (inBody1.IsSensor() || inBody2.IsSensor())
@@ -65,6 +62,12 @@ public:
 		{
 			World->EnqueueOnHitEvent(Info);
 		}
+		OutputDebugStringA("A contact was added\n");
+	}
+
+	virtual void			OnContactPersisted(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings) override
+	{
+
 		OutputDebugStringA("A contact was persisted\n");
 	}
 
