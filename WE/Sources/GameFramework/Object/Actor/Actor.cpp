@@ -25,7 +25,7 @@ void AActor::Tick_PostPhysics(float Delta)
 
 void AActor::UpdateComponentsToPhysics()
 {
-	for (auto& Comp : mAllPrimitiveComponents.GetView())
+	for (auto& Comp : mAllPhysicsComponents.GetView())
 	{
 		Comp->UpdateToPhysics();
 	}
@@ -33,7 +33,7 @@ void AActor::UpdateComponentsToPhysics()
 
 void AActor::UpdateComponentsFromPhysics()
 {
-	for (auto& Comp : mAllPrimitiveComponents.GetView())
+	for (auto& Comp : mAllPhysicsComponents.GetView())
 	{
 		Comp->UpdateFromPhysics();
 	}

@@ -24,7 +24,7 @@
 #include <sstream>
 #include <cassert>
 
-#include "Component/PrimitiveComponent.h"
+#include "Component/PhysicsComponent.h"
 #include "World/World.h"
 
 
@@ -48,8 +48,8 @@ public:
 	virtual void			OnContactAdded(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings) override
 	{
 		FContactInfo Info;
-		Info.Comp1 = reinterpret_cast<WPrimitiveComponent*>(inBody1.GetUserData());
-		Info.Comp2 = reinterpret_cast<WPrimitiveComponent*>(inBody2.GetUserData());
+		Info.Comp1 = reinterpret_cast<WPhysicsComponent*>(inBody1.GetUserData());
+		Info.Comp2 = reinterpret_cast<WPhysicsComponent*>(inBody2.GetUserData());
 		Info.ImpactPoint1 = ToDXLocation(inManifold.GetWorldSpaceContactPointOn1(0));
 		Info.ImpactPoint2 = ToDXLocation(inManifold.GetWorldSpaceContactPointOn2(0));
 		WWorld* World = Info.Comp1->GetWorld();

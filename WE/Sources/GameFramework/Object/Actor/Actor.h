@@ -1,6 +1,7 @@
 #pragma once
 
-#include "GameFramework/Object/Component/PrimitiveComponent.h"
+#include "GameFramework/Object/Component/SceneComponent.h"
+#include "Component/PhysicsComponent.h"
 #include "Utility/Class.h"
 #include "Utility/Container.h"
 #include "Physics/PhysicsCore.h"
@@ -66,7 +67,7 @@ private:
 
 	TUnorderedArray<WActorComponent*> mAllNoneSceneComponent;
 
-	TUnorderedArray<WPrimitiveComponent*> mAllPrimitiveComponents;
+	TUnorderedArray<WPhysicsComponent*> mAllPhysicsComponents;
 
 	WSceneComponent* mRootComponent = nullptr;
 
@@ -165,9 +166,9 @@ inline T* AActor::CreateComponent()
 	{
 		mAllSceneComponent.Add(SceneComp);
 
-		if (WPrimitiveComponent* PrimitiveComp = dynamic_cast<WPrimitiveComponent*>(SceneComp))
+		if (WPhysicsComponent* PhysicsComp = dynamic_cast<WPhysicsComponent*>(SceneComp))
 		{
-			mAllPrimitiveComponents.Add(PrimitiveComp);
+			mAllPhysicsComponents.Add(PhysicsComp);
 		}		
 	}
 	else

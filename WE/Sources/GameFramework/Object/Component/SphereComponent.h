@@ -1,7 +1,7 @@
 #pragma once
-#include "PrimitiveComponent.h"
+#include "PhysicsComponent.h"
 
-class WSphereComponent : public WPrimitiveComponent
+class WSphereComponent : public WPhysicsComponent
 {
 protected:
 	virtual JPH::BodyCreationSettings CreatePhysicsBodySettings() override;

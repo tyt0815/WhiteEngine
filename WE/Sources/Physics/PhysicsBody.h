@@ -4,12 +4,12 @@
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include "DirectX/DXMath.h"
 
-class WPrimitiveComponent;
+class WPhysicsComponent;
 
 class FPhysicsBody
 {
 public:
-	FPhysicsBody(WPrimitiveComponent* Owner) : mOwner(Owner) {};
+	FPhysicsBody(WPhysicsComponent* Owner) : mOwner(Owner) {};
 
 	~FPhysicsBody();
 
@@ -35,7 +35,7 @@ private:
 
 	JPH::Body* mBody;
 
-	WPrimitiveComponent* mOwner;
+	WPhysicsComponent* mOwner;
 
 public:
 	__forceinline bool IsValid() const

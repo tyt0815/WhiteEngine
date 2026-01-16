@@ -242,6 +242,9 @@
     <ClCompile Include="Sources\Physics\PhysicsBody.cpp">
       <Filter>Sources\Physics</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Component\PhysicsComponent.cpp">
+      <Filter>Sources\GameFramework\Object\Component</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -453,6 +456,9 @@
     </ClInclude>
     <ClInclude Include="Sources\Physics\PhysicsBody.h">
       <Filter>Sources\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Component\PhysicsComponent.h">
+      <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

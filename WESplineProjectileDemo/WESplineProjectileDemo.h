@@ -54,7 +54,7 @@ private:
 	WBoxComponent* mHitBoxComp;
 	WStaticMeshComponent* mStaticMesh;
 
-	void OnOverlap(WPrimitiveComponent* Other, XMFLOAT3 ImpactPoint);
+	void OnOverlap(WPhysicsComponent* Other, XMFLOAT3 ImpactPoint);
 };
 
 class ARingProjectile : public AProjectileActor
@@ -68,7 +68,7 @@ public:
 	virtual void Tick_PostPhysics(float Delta) override;
 
 private:
-	void OnOverlapEvent(WPrimitiveComponent* Other, XMFLOAT3 ImpactPoint);
+	void OnOverlapEvent(WPhysicsComponent* Other, XMFLOAT3 ImpactPoint);
 
 	WStaticMeshComponent* mStaticMesh;
 

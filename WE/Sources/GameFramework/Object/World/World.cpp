@@ -1,6 +1,7 @@
 #include "World.h"
 #include "Physics/PhysicsCore.h"
 #include "../Pawn/GhostCameraPawn.h"
+#include "Component/PhysicsComponent.h"
 
 WWorld* gWorld;
 

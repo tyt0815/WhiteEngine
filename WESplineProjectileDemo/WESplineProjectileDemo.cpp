@@ -84,7 +84,7 @@ void ABullet::BeginPlay()
 	mHitBoxComp->mOnBeginOverlapDelegate.Bind(this, &ABullet::OnOverlap);
 }
 
-void ABullet::OnOverlap(WPrimitiveComponent* Other, XMFLOAT3 ImpactPoint)
+void ABullet::OnOverlap(WPhysicsComponent* Other, XMFLOAT3 ImpactPoint)
 {
 	if (AHitReactor* Reactor = dynamic_cast<AHitReactor*>(Other->GetOwner()))
 	{
@@ -146,7 +146,7 @@ void ARingProjectile::Tick_PostPhysics(float Delta)
 	Super::Tick_PostPhysics(Delta);
 }
 
-void ARingProjectile::OnOverlapEvent(WPrimitiveComponent* Other, XMFLOAT3 ImpactPoint)
+void ARingProjectile::OnOverlapEvent(WPhysicsComponent* Other, XMFLOAT3 ImpactPoint)
 {
 	if (std::find(ActorsToIgnore.begin(), ActorsToIgnore.end(), Other->GetOwner()) != ActorsToIgnore.end())
 	{

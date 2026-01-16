@@ -5,10 +5,12 @@
 #include "Utility/Container.h"
 #include "Utility/Class.h"
 
+class WPhysicsComponent;
+
 struct FContactInfo
 {
-	WPrimitiveComponent* Comp1;
-	WPrimitiveComponent* Comp2;
+	WPhysicsComponent* Comp1;
+	WPhysicsComponent* Comp2;
 	XMFLOAT3 ImpactPoint1;
 	XMFLOAT3 ImpactPoint2;
 };
