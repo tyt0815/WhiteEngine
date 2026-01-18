@@ -1,11 +1,12 @@
 #pragma once
 
 #include "DirectX/DXMath.h"
+#include "Utility/Memory.h"
 
 class AActor;
 class WWorld;
 
-class WActorComponent
+class WActorComponent : public std::enable_shared_from_this<WActorComponent>
 {
 public:
 	WActorComponent() {};
@@ -15,7 +16,7 @@ public:
 public:
 	virtual void BeginComponent() {};
 
-	virtual void SetOwner(AActor* Owner);
+	virtual void SetOwner(TWeakPtr<AActor> Owner);
 
 	virtual void TickComponent_PrePhysics(float DeltaTime) {};
 
@@ -23,12 +24,22 @@ public:
 
 	WWorld* GetWorld() const;
 
-private:
-	AActor* mOwner = nullptr;
+	TWeakPtr<AActor> mOwner;
 
 public:
-	inline AActor* GetOwner() const
+	inline TWeakPtr<AActor> GetOwner() const
 	{
 		return mOwner;
+	}
+	
+	template<typename T>
+	__forceinline TWeakPtr<T> GetWeakPtr()
+	{
+		return Cast<T>(shared_from_this());
+	}
+
+	__forceinline TWeakPtr<WActorComponent> GetWeakPtr()
+	{
+		return GetWeakPtr<WActorComponent>();
 	}
 };

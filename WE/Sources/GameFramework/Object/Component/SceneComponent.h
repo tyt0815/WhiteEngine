@@ -34,7 +34,7 @@ public:
 
 	void UpdateRecursive();
 
-	void SetupAttachment(WSceneComponent* Parent);
+	void SetupAttachment(TWeakPtr<WSceneComponent> Parent);
 
 	void SetLocalRotation(DirectX::XMFLOAT3 Rotation);
 
@@ -59,9 +59,9 @@ private:
 
 	DirectX::XMFLOAT4X4 mInvWorld;
 
-	WSceneComponent* mParent = nullptr;
+	TWeakPtr<WSceneComponent> mParent;
 
-	std::vector<WSceneComponent*> mChilds;
+	std::vector<TWeakPtr<WSceneComponent>> mChilds;
 
 public:
 	inline FTransform GetLocalTransform() const

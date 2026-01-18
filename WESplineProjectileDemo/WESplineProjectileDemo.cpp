@@ -12,16 +12,22 @@ AHitReactor::AHitReactor()
 {
 	mHitBoxComp = CreateComponent<WBoxComponent>();
 	SetRootComponent(mHitBoxComp);
-	mHitBoxComp->ActivatePhysicBody();
-	mHitBoxComp->GenerateOverlapEvent();
-	mHitBoxComp->SetExtent(XMFLOAT3(.33f, .33f, .33f));
-	mHitBoxComp->SetMotionType(EMotionType::Kinematic);
-	mHitBoxComp->SetObjectChannel(EObjectChannel::EOC_Moving);
+	if (auto HitBox = mHitBoxComp.lock())
+	{
+		HitBox->ActivatePhysicBody();
+		HitBox->GenerateOverlapEvent();
+		HitBox->SetExtent(XMFLOAT3(.33f, .33f, .33f));
+		HitBox->SetMotionType(EMotionType::Kinematic);
+		HitBox->SetObjectChannel(EObjectChannel::EOC_Moving);
+	}
 
 	mSMComp = CreateComponent<WStaticMeshComponent>();
-	mSMComp->SetupAttachment(GetRootComponent());
-	mSMComp->SetStaticMesh(FStaticMeshManager::GetInstance()->GetStaticMesh(EStaticMeshType::ESMT_ScuffedGoldBox));
-	mSMComp->SetLocalScale(XMFLOAT3(0.6f, 0.6f, 0.6f));
+	if (auto SMComp = mSMComp.lock())
+	{
+		SMComp->SetupAttachment(GetRootComponent());
+		SMComp->SetStaticMesh(FStaticMeshManager::GetInstance()->GetStaticMesh(EStaticMeshType::ESMT_ScuffedGoldBox));
+		SMComp->SetLocalScale(XMFLOAT3(0.6f, 0.6f, 0.6f));
+	}
 }
 
 void AHitReactor::BeginPlay()
@@ -29,7 +35,7 @@ void AHitReactor::BeginPlay()
 	Super::BeginPlay();
 }
 
-void AHitReactor::AddTeleportTargets(const std::vector<WSplineComponent*>& NewTargets)
+void AHitReactor::AddTeleportTargets(const std::vector<TWeakPtr<WSplineComponent>>& NewTargets)
 {
 	mTeleportTargets.insert(mTeleportTargets.begin(), NewTargets.begin(), NewTargets.end());
 }
@@ -43,67 +49,85 @@ void AHitReactor::RandomTeleport()
 
 	int i = FDXMath::Rand(0, int(mTeleportTargets.size() - 1));
 
-	WSplineComponent* Spline = mTeleportTargets[i];
+	if (auto Spline = mTeleportTargets[i].lock())
+	{
+		float InputKey = FDXMath::RandF() * (Spline->GetControllPointNum() - 1);
 
-	float InputKey = FDXMath::RandF() * (Spline->GetControllPointNum() - 1);
-
-	SetActorLocation(Spline->GetWorldTransformAtSplineInputKey(InputKey).Translation);
+		SetActorLocation(Spline->GetWorldTransformAtSplineInputKey(InputKey).Translation);
+	}
 }
 
 AProjectileActor::AProjectileActor()
 {
 	mProjectileMovementComponent = CreateComponent<WProjectileMovementComponent>();
-	mProjectileMovementComponent->mVelocity = XMFLOAT3(0, 0, 10);
-	mProjectileMovementComponent->SetLifeSpan(10.0f);
+	if (auto Comp = mProjectileMovementComponent.lock())
+	{
+		Comp->mVelocity = XMFLOAT3(0, 0, 10);
+		Comp->SetLifeSpan(10.0f);
+	}
 }
 
 XMFLOAT3 AProjectileActor::GetVelocity()
 {
-	return mProjectileMovementComponent->mVelocity;
+	return !mProjectileMovementComponent.expired() ? mProjectileMovementComponent.lock()->mVelocity : XMFLOAT3();
 }
 
 ABullet::ABullet()
 {
 	mHitBoxComp = CreateComponent<WBoxComponent>();
 	SetRootComponent(mHitBoxComp);
-	mHitBoxComp->ActivatePhysicBody();
-	mHitBoxComp->SetExtent(XMFLOAT3(.15f, .15f, .5));
-	mHitBoxComp->SetMotionType(EMotionType::Kinematic);
-	mHitBoxComp->SetObjectChannel(EObjectChannel::EOC_Moving);
+	if (auto HitBoxComp = mHitBoxComp.lock())
+	{
+		HitBoxComp->ActivatePhysicBody();
+		HitBoxComp->SetExtent(XMFLOAT3(.15f, .15f, .5));
+		HitBoxComp->SetMotionType(EMotionType::Kinematic);
+		HitBoxComp->SetObjectChannel(EObjectChannel::EOC_Moving);
+	}
+
 
 	mStaticMesh = CreateComponent<WStaticMeshComponent>();
-	mStaticMesh->SetStaticMesh(FStaticMeshManager::GetInstance()->GetStaticMesh(EStaticMeshType::ESMT_MetalCylinder));
-	mStaticMesh->SetLocalRotation(XMFLOAT3(90, 0, 0));
-	mStaticMesh->SetupAttachment(GetRootComponent());
+	if (auto StaticMesh = mStaticMesh.lock())
+	{
+		StaticMesh->SetStaticMesh(FStaticMeshManager::GetInstance()->GetStaticMesh(EStaticMeshType::ESMT_MetalCylinder));
+		StaticMesh->SetLocalRotation(XMFLOAT3(90, 0, 0));
+		StaticMesh->SetupAttachment(GetRootComponent());
+	}
 }
 
 void ABullet::BeginPlay()
 {
 	Super::BeginPlay();
 
-	mHitBoxComp->mOnBeginOverlapDelegate.Bind(this, &ABullet::OnOverlap);
+	mHitBoxComp.lock()->mOnBeginOverlapDelegate.Bind(this, &ABullet::OnOverlap);
 }
 
-void ABullet::OnOverlap(WPhysicsComponent* Other, XMFLOAT3 ImpactPoint)
+void ABullet::OnOverlap(TWeakPtr<WPhysicsComponent> Other, XMFLOAT3 ImpactPoint)
 {
-	if (AHitReactor* Reactor = dynamic_cast<AHitReactor*>(Other->GetOwner()))
+	if (auto OtherComp = Other.lock())
 	{
-		Reactor->RandomTeleport();
+		if (auto Reactor = Cast<AHitReactor>(OtherComp))
+		{
+			Reactor->RandomTeleport();
+		}
+		Destroy();
 	}
-	Destroy();
 }
 
 ARingProjectile::ARingProjectile()
 {
-	WSceneComponent* DummyRoot = CreateComponent<WSceneComponent>();
-	SetRootComponent(DummyRoot);
 	mStaticMesh = CreateComponent<WStaticMeshComponent>();
-	mStaticMesh->SetupAttachment(GetRootComponent());
-	mStaticMesh->SetStaticMesh(FStaticMeshManager::GetInstance()->GetStaticMesh(EStaticMeshType::ESMT_MetalRing));
-	mStaticMesh->SetLocalRotation(XMFLOAT3(90, 0, 0));
+	if (auto StaticMesh = mStaticMesh.lock())
+	{
+		StaticMesh->SetupAttachment(GetRootComponent());
+		StaticMesh->SetStaticMesh(FStaticMeshManager::GetInstance()->GetStaticMesh(EStaticMeshType::ESMT_MetalRing));
+		StaticMesh->SetLocalRotation(XMFLOAT3(90, 0, 0));
+	}
 
-	mProjectileMovementComponent->mVelocity = XMFLOAT3(0, 0, 5);
-	mProjectileMovementComponent->SetLifeSpan(10.0f);
+	if (auto ProjectileMovementComponent = mProjectileMovementComponent.lock())
+	{
+		ProjectileMovementComponent->mVelocity = XMFLOAT3(0, 0, 5);
+		ProjectileMovementComponent->SetLifeSpan(10.0f);
+	}
 
 
 	// Ring의 HitBox를 설정한다. 여러개의 BoxComponent로 Ring 모양의 히트박스를 만든다.
@@ -116,28 +140,35 @@ ARingProjectile::ARingProjectile()
 	float Angle = 0;
 	for (int i = 0; i < NumSegments; ++i, Angle += AngleDelta)
 	{
-		WBoxComponent* HitBox = CreateComponent<WBoxComponent>();
-		HitBox->SetupAttachment(GetRootComponent());
-		HitBox->ActivatePhysicBody();
-		HitBox->SetExtent(Extent);
-		HitBox->SetMotionType(EMotionType::Kinematic);
-		HitBox->SetObjectChannel(EObjectChannel::EOC_Moving);
+		TWeakPtr<WBoxComponent> HitBoxComponent = CreateComponent<WBoxComponent>();
+		if (auto HitBox = HitBoxComponent.lock())
+		{
+			HitBox->SetupAttachment(GetRootComponent());
+			HitBox->ActivatePhysicBody();
+			HitBox->SetExtent(Extent);
+			HitBox->SetMotionType(EMotionType::Kinematic);
+			HitBox->SetObjectChannel(EObjectChannel::EOC_Moving);
 
-		float x = cosf(Angle) * Radius;
-		float y = sinf(Angle) * Radius;
-		HitBox->SetLocalLocation(XMFLOAT3(x, y, 0));
-		HitBox->SetLocalRotation(XMFLOAT3(0, 0, Angle * (180 / FDXMath::Pi)));
+			float x = cosf(Angle) * Radius;
+			float y = sinf(Angle) * Radius;
+			HitBox->SetLocalLocation(XMFLOAT3(x, y, 0));
+			HitBox->SetLocalRotation(XMFLOAT3(0, 0, Angle * (180 / FDXMath::Pi)));
 
-		mHitBoxes.push_back(HitBox);
+			mHitBoxes.push_back(HitBox);
+		}
 	}
 }
 
 void ARingProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-	for (WBoxComponent* HitBox : mHitBoxes)
+
+	for (TWeakPtr<WBoxComponent> HitBoxWeak : mHitBoxes)
 	{
-		HitBox->mOnBeginOverlapDelegate.Bind(this, &ARingProjectile::OnOverlapEvent);
+		if (auto HitBox = HitBoxWeak.lock())
+		{
+			HitBox->mOnBeginOverlapDelegate.Bind(this, &ARingProjectile::OnOverlapEvent);
+		}
 	}
 }
 
@@ -146,14 +177,23 @@ void ARingProjectile::Tick_PostPhysics(float Delta)
 	Super::Tick_PostPhysics(Delta);
 }
 
-void ARingProjectile::OnOverlapEvent(WPhysicsComponent* Other, XMFLOAT3 ImpactPoint)
+void ARingProjectile::OnOverlapEvent(TWeakPtr<WPhysicsComponent> Other, XMFLOAT3 ImpactPoint)
 {
-	if (std::find(ActorsToIgnore.begin(), ActorsToIgnore.end(), Other->GetOwner()) != ActorsToIgnore.end())
+	if (Other.expired())
 	{
 		return;
 	}
+	TSharedPtr<WPhysicsComponent> sp = Other.lock();
 
-	ActorsToIgnore.push_back(Other->GetOwner());
+	for (auto ActorToIgnore : ActorsToIgnore)
+	{
+		if (!ActorToIgnore.expired() && ActorToIgnore.lock().get() == sp->GetOwner().lock().get())
+		{
+			return;
+		}
+	}
+
+	ActorsToIgnore.push_back(sp->GetOwner());
 
 	static int ColorSelector = 0;
 	const XMFLOAT4 DebugColors[] = {
@@ -165,15 +205,15 @@ void ARingProjectile::OnOverlapEvent(WPhysicsComponent* Other, XMFLOAT3 ImpactPo
 	ColorSelector = (ColorSelector + 1) % 6;
 }
 
-
 ASpiralBulletSpawner::ASpiralBulletSpawner()
-{
-	WSceneComponent* RootComponent = CreateComponent<WSceneComponent>();
-	SetRootComponent(RootComponent);
-	
+{	
 	mSplineBullet.Spline = CreateComponent<WSplineComponent>();
-	mSplineBullet.Spline->SetupAttachment(GetRootComponent());
-	mSplineBullet.Spline->LoadSplineFromAsset(L"SDA_Spiral");
+	if (auto Spline = mSplineBullet.Spline.lock())
+	{
+		Spline->SetupAttachment(GetRootComponent());
+		Spline->LoadSplineFromAsset(L"SDA_Spiral");
+	}
+	
 }
 
 void ASpiralBulletSpawner::Tick_PostPhysics(float Delta)
@@ -189,39 +229,39 @@ void ASpiralBulletSpawner::Tick_PostPhysics(float Delta)
 		mCoolDown = mCoolTime;
 	}
 
-	for (int i = 0; i < mSplineBullet.Bullets.Size(); ++i)
+	if (auto Spline = mSplineBullet.Spline.lock())
 	{
-		
-		if (!World->IsValidActor(mSplineBullet.Bullets[i]))
+		for (int i = 0; i < mSplineBullet.Bullets.size(); ++i)
 		{
-			mSplineBullet.RemoveAt(i);
-			--i;
-			continue;
-		}
+			if (auto Bullet = mSplineBullet.Bullets[i].lock())
+			{
+				float& Dist = mSplineBullet.BulletDistance[i];
 
-		ABullet* Bullet = mSplineBullet.Bullets[i];
-		float& Dist = mSplineBullet.BulletDistance[i];
+				float SpeedCoef = Spline->GetCustomProperty2AtDistanceAlongSpline(Dist);
 
-		float SpeedCoef = mSplineBullet.Spline->GetCustomProperty2AtDistanceAlongSpline(Dist);
+				Dist = min(Dist + Delta * Bullet->GetVelocity().z * SpeedCoef, Spline->GetSplineLength());
 
-		Dist = min(Dist + Delta * Bullet->GetVelocity().z * SpeedCoef, mSplineBullet.Spline->GetSplineLength());
+				Bullet->SetActorTransform(Spline->GetWorldTransformAtDistanceAlongSpline(Dist));
 
-		Bullet->SetActorTransform(mSplineBullet.Spline->GetWorldTransformAtDistanceAlongSpline(Dist));
-
-		if (Dist >= mSplineBullet.Spline->GetSplineLength())
-		{
-			mSplineBullet.RemoveAt(i);
-			--i;
-			continue;
+				if (Dist >= Spline->GetSplineLength())
+				{
+					mSplineBullet.RemoveAt(i);
+					--i;
+					continue;
+				}
+			}
+			else
+			{
+				mSplineBullet.RemoveAt(i);
+				--i;
+				continue;
+			}
 		}
 	}
 }
 
 AWaveBulletSpanwer::AWaveBulletSpanwer()
 {
-	WSceneComponent* RootComponent = CreateComponent<WSceneComponent>();
-	SetRootComponent(RootComponent);
-
 	mSplines.resize(4);
 
 	XMFLOAT3 LocationOffset = { 0.5f, 0, 0 };
@@ -231,10 +271,13 @@ AWaveBulletSpanwer::AWaveBulletSpanwer()
 	{
 		float v = (i - k);
 		mSplines[i].Spline = CreateComponent<WSplineComponent>();
-		mSplines[i].Spline->SetupAttachment(GetRootComponent());
-		mSplines[i].Spline->LoadSplineFromAsset(L"SDA_Wave");
-		mSplines[i].Spline->SetLocalLocation(XMFLOAT3(LocationOffset.x * v, LocationOffset.y * v, LocationOffset.z * v));
-		mSplines[i].Spline->SetLocalRotation(XMFLOAT3(RotationOffset.x * v, RotationOffset.y * v, RotationOffset.z * v));
+		if (auto Spline = mSplines[i].Spline.lock())
+		{
+			Spline->SetupAttachment(GetRootComponent());
+			Spline->LoadSplineFromAsset(L"SDA_Wave");
+			Spline->SetLocalLocation(XMFLOAT3(LocationOffset.x * v, LocationOffset.y * v, LocationOffset.z * v));
+			Spline->SetLocalRotation(XMFLOAT3(RotationOffset.x * v, RotationOffset.y * v, RotationOffset.z * v));
+		}
 	}
 }
 
@@ -259,9 +302,9 @@ void AWaveBulletSpanwer::Tick_PostPhysics(float Delta)
 	}
 }
 
-std::vector<WSplineComponent*> AWaveBulletSpanwer::GetSplines() const
+std::vector<TWeakPtr<WSplineComponent>> AWaveBulletSpanwer::GetSplines() const
 {
-	std::vector<WSplineComponent*> Splines;
+	std::vector<TWeakPtr<WSplineComponent>> Splines;
 	for (const auto& s : mSplines)
 	{
 		Splines.push_back(s.Spline);
@@ -271,56 +314,63 @@ std::vector<WSplineComponent*> AWaveBulletSpanwer::GetSplines() const
 
 void AWaveBulletSpanwer::UpdateSplineBullet(FSplineBullet* SplineBullet, float Delta)
 {
-	for (int i = 0; i < SplineBullet->Bullets.Size(); ++i)
+	if (auto Spline = SplineBullet->Spline.lock())
 	{
-		if (!GetWorld()->IsValidActor(SplineBullet->Bullets[i]))
+		for (int i = 0; i < SplineBullet->Bullets.size(); ++i)
 		{
-			SplineBullet->RemoveAt(i);
-			--i;
-			continue;
-		}
+			if (auto Bullet = SplineBullet->Bullets[i].lock())
+			{
 
-		ABullet* Bullet = SplineBullet->Bullets[i];
-		float& Dist = SplineBullet->BulletDistance[i];
+				float& Dist = SplineBullet->BulletDistance[i];
 
-		float SpeedCoef = SplineBullet->Spline->GetCustomProperty2AtDistanceAlongSpline(Dist);
+				float SpeedCoef = Spline->GetCustomProperty2AtDistanceAlongSpline(Dist);
 
-		Dist = min(Dist + Delta * Bullet->GetVelocity().z * SpeedCoef, SplineBullet->Spline->GetSplineLength());
+				Dist = min(Dist + Delta * Bullet->GetVelocity().z * SpeedCoef, Spline->GetSplineLength());
 
-		Bullet->SetActorTransform(SplineBullet->Spline->GetWorldTransformAtDistanceAlongSpline(Dist));
+				Bullet->SetActorTransform(Spline->GetWorldTransformAtDistanceAlongSpline(Dist));
 
-		if (Dist >= SplineBullet->Spline->GetSplineLength())
-		{
-			SplineBullet->RemoveAt(i);
-			Bullet->Destroy();
-			--i;
-			continue;
+				if (Dist >= Spline->GetSplineLength())
+				{
+					SplineBullet->RemoveAt(i);
+					Bullet->Destroy();
+					--i;
+					continue;
+				}
+			}
+			else
+			{
+				SplineBullet->RemoveAt(i);
+				--i;
+				continue;
+			}
 		}
 	}
 }
 
-ABullet* ASplineBulletSpawner::FSplineBullet::SpawnBullet(WWorld* World)
+TWeakPtr<ABullet> ASplineBulletSpawner::FSplineBullet::SpawnBullet(WWorld* World)
 {
-	ABullet* Bullet = World->SpawnActor<ABullet>();
-	Bullets.Add(Bullet);
-	BulletDistance.Add(0.0f);
+	TWeakPtr<ABullet> Bullet = World->SpawnActor<ABullet>();
+	Bullets.emplace_back(Bullet);
+	BulletDistance.emplace_back(0.0f);
 	return Bullet;
 }
 
 void ASplineBulletSpawner::FSplineBullet::RemoveAt(UINT i)
 {
-	Bullets.RemoveAt(i);
-	BulletDistance.RemoveAt(i);
+	Bullets[i] = Bullets.back();
+	Bullets.pop_back();
+	BulletDistance[i] = BulletDistance.back();
+	BulletDistance.pop_back();
 }
 
 ARingProjectileSpawner::ARingProjectileSpawner()
 {
-	WSceneComponent* RootComponent = CreateComponent<WSceneComponent>();
-	SetRootComponent(RootComponent);
-
 	mSpline = CreateComponent<WSplineComponent>();
-	mSpline->SetupAttachment(RootComponent);
-	mSpline->LoadSplineFromAsset(L"SDA_RingPath");
+	if (auto Spline = mSpline.lock())
+	{
+		Spline->SetupAttachment(GetRootComponent());
+		Spline->LoadSplineFromAsset(L"SDA_RingPath");
+	}
 }
 
 void ARingProjectileSpawner::Tick_PostPhysics(float Delta)
@@ -332,37 +382,44 @@ void ARingProjectileSpawner::Tick_PostPhysics(float Delta)
 	WWorld* World = GetWorld();
 	if (mCoolDown < 0)
 	{
-		mRings.Add(World->SpawnActor<ARingProjectile>());
-		mDists.Add(0.0f);
+		mRings.emplace_back(World->SpawnActor<ARingProjectile>());
+		mDists.emplace_back(0.0f);
 		mCoolDown = mCoolTime;
 	}
 
-	for (int i = 0; i < mRings.Size(); ++i)
+	if (auto Spline = mSpline.lock())
 	{
-
-		if (!World->IsValidActor(mRings[i]))
+		for (int i = 0; i < mRings.size(); ++i)
 		{
-			mRings.RemoveAt(i);
-			mDists.RemoveAt(i);
-			--i;
-			continue;
-		}
+			if (auto Ring = mRings[i].lock())
+			{
+				float& Dist = mDists[i];
 
-		ARingProjectile* Ring = mRings[i];
-		float& Dist = mDists[i];
+				float SpeedCoef = Spline->GetCustomProperty2AtDistanceAlongSpline(Dist);
 
-		float SpeedCoef = mSpline->GetCustomProperty2AtDistanceAlongSpline(Dist);
+				Dist = min(Dist + Delta * Ring->GetVelocity().z * SpeedCoef, Spline->GetSplineLength());
 
-		Dist = min(Dist + Delta * Ring->GetVelocity().z * SpeedCoef, mSpline->GetSplineLength());
+				Ring->SetActorTransform(Spline->GetWorldTransformAtDistanceAlongSpline(Dist));
 
-		Ring->SetActorTransform(mSpline->GetWorldTransformAtDistanceAlongSpline(Dist));
-
-		if (Dist >= mSpline->GetSplineLength())
-		{
-			mRings.RemoveAt(i);
-			mDists.RemoveAt(i);
-			--i;
-			continue;
+				if (Dist >= Spline->GetSplineLength())
+				{
+					mRings[i] = mRings.back();
+					mRings.pop_back();
+					mDists[i] = mDists.back();
+					mDists.pop_back();
+					--i;
+					continue;
+				}
+			}
+			else
+			{
+				mRings[i] = mRings.back();
+				mRings.pop_back();
+				mDists[i] = mDists.back();
+				mDists.pop_back();
+				--i;
+				continue;
+			}
 		}
 	}
 }
@@ -370,23 +427,37 @@ void ARingProjectileSpawner::Tick_PostPhysics(float Delta)
 
 WSplineProjectileDemoWorld::WSplineProjectileDemoWorld()
 {
-	ASpiralBulletSpawner* SpiralSpawner = SpawnActor<ASpiralBulletSpawner>();
-	SpiralSpawner->SetActorLocation(XMFLOAT3(5, -2, 10));
-	SpiralSpawner->SetActorRotation(XMFLOAT3(0, 90, 0));
+	TWeakPtr<ASpiralBulletSpawner> SpiralSpawner = SpawnActor<ASpiralBulletSpawner>();
+	if (auto Actor = SpiralSpawner.lock())
+	{
+		Actor->SetActorLocation(XMFLOAT3(5, -2, 10));
+		Actor->SetActorRotation(XMFLOAT3(0, 90, 0));
+	}
 
-	AWaveBulletSpanwer* WaveSpawner = SpawnActor<AWaveBulletSpanwer>();
-	WaveSpawner->SetActorLocation(XMFLOAT3(-5, -2, 15));
-	WaveSpawner->SetActorRotation(XMFLOAT3(0, 180, 0));
+	TWeakPtr<AWaveBulletSpanwer> WaveSpawner = SpawnActor<AWaveBulletSpanwer>();
+	if (auto Actor = WaveSpawner.lock())
+	{
+		Actor->SetActorLocation(XMFLOAT3(-5, -2, 15));
+		Actor->SetActorRotation(XMFLOAT3(0, 180, 0));
 
-	AHitReactor* BulletHitReactor = SpawnActor<AHitReactor>();
-	auto WaveSplines = WaveSpawner->GetSplines();
-	BulletHitReactor->AddTeleportTargets(WaveSpawner->GetSplines());
-	BulletHitReactor->RandomTeleport();
+		TWeakPtr<AHitReactor> BulletHitReactor = SpawnActor<AHitReactor>();
+		if (auto HitReactor = BulletHitReactor.lock())
+		{
+			HitReactor->AddTeleportTargets(Actor->GetSplines());
+			HitReactor->RandomTeleport();
+		}
+	}
 
-	ARingProjectileSpawner* RingSpawner = SpawnActor <ARingProjectileSpawner>();
-	RingSpawner->SetActorLocation(XMFLOAT3(-5, -2, 20));
-	RingSpawner->SetActorRotation(XMFLOAT3(0, 90, 0));
+	TWeakPtr<ARingProjectileSpawner> RingSpawner = SpawnActor <ARingProjectileSpawner>();
+	if (auto Actor = WaveSpawner.lock())
+	{
+		Actor->SetActorLocation(XMFLOAT3(-5, -2, 20));
+		Actor->SetActorRotation(XMFLOAT3(0, 90, 0));
+	}
 
-	AHitReactor* RingHitReactor = SpawnActor<AHitReactor>();
-	RingHitReactor->SetActorLocation(XMFLOAT3(5, -2, 20));
+	TWeakPtr<AHitReactor> RingHitReactor = SpawnActor<AHitReactor>();
+	if (auto Actor = WaveSpawner.lock())
+	{
+		Actor->SetActorLocation(XMFLOAT3(5, -2, 20));
+	}
 }

@@ -9,8 +9,8 @@ class WPhysicsComponent;
 
 struct FContactInfo
 {
-	WPhysicsComponent* Comp1;
-	WPhysicsComponent* Comp2;
+	TWeakPtr<WPhysicsComponent> Comp1;
+	TWeakPtr<WPhysicsComponent> Comp2;
 	XMFLOAT3 ImpactPoint1;
 	XMFLOAT3 ImpactPoint2;
 };
@@ -27,16 +27,16 @@ public:
 
 	virtual void Tick(float Delta);
 
-	void SetPlayer(APawn* Player);
+	TWeakPtr<WCameraComponent> GetPlayerCamera() const;
+
+	void SetPlayer(TWeakPtr<APawn> Player);
 
 	template<typename T>
-	T* SpawnActor();
+	TWeakPtr<T> SpawnActor();
 
-	void DestroyActor(AActor* Actor);
+	void DestroyActor(const TSharedPtr<AActor>& Actor);
 
 	void DrawDebugLine(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT4 Color, float LifeSpan);
-
-	bool IsValidActor(AActor* Actor);
 
 	void EnqueueOnBeginOverlapEvent(const FContactInfo& Info);
 
@@ -45,27 +45,22 @@ public:
 private:
 	void FlushDestroyQueue();
 
-	TUnorderedArray<TUniquePtr<AActor>> mAllActors;
+	TArray<TSharedPtr<AActor>> mAllActors;
 
 	std::vector<FContactInfo> mOnBeginOverlapEventQueue;
 
 	std::vector<FContactInfo> mOnHitEventQueue;
 
-	std::vector<AActor*> DestroyQueue;
+	std::vector<TSharedPtr<AActor>> DestroyQueue;
 
-	APawn* mPlayer = nullptr;
+	TWeakPtr<APawn> mPlayer;
 
 	FRenderItemProxy mRenderItemProxy;
 
 public:
-	inline APawn* GetPlayer() const
+	inline TWeakPtr<APawn> GetPlayer() const
 	{
 		return mPlayer;
-	}
-
-	inline WCameraComponent* GetPlayerCamera() const
-	{
-		return mPlayer->GetCameraComponent();
 	}
 
 	inline FMeshCBProxy* GetMeshCBProxy(size_t i)
@@ -122,20 +117,16 @@ inline WWorld* GetWorld()
 }
 
 template<typename T>
-inline T* WWorld::SpawnActor()
+inline TWeakPtr<T> WWorld::SpawnActor()
 {
-	UINT Index = (UINT)mAllActors.Add(MakeUnique<T>());
-	T* Actor = dynamic_cast<T*>(mAllActors[Index].get());
+	TSharedPtr<T> Actor = MakeShared<T>();
+	UINT64 ActorId = mAllActors.size();
+	mAllActors.emplace_back(Actor);
+	
+
 	Actor->SetWorld(this);
-	Actor->SetActorId(Index);
-
-	if (Actor->GetRootComponent() == nullptr)
-	{
-		WSceneComponent* DummyRoot = Actor->CreateComponent<WSceneComponent>();
-		Actor->SetRootComponent(DummyRoot);
-	}
-
+	Actor->SetActorId(ActorId);
 	Actor->BeginPlay();
 
-	return Actor;
+	return TWeakPtr<T>(Actor);
 }

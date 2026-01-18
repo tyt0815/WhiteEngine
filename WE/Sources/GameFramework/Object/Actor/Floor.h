@@ -1,8 +1,8 @@
 #pragma once
 
 #include "GameFramework/Object/Actor/Actor.h"
-
-#include "Physics/PhysicsCore.h"
+#include "Component/BoxComponent.h"
+#include "Component/StaticMeshComponent.h"
 
 class AFloor : public AActor
 {
@@ -13,7 +13,7 @@ public:
 	virtual void BeginPlay() override;
 
 private:
-	class WBoxComponent* mBoxComp;
+	TWeakPtr<WBoxComponent> mBoxComp;
 
-	class WStaticMeshComponent* StaticMeshComp;
+	TWeakPtr<WStaticMeshComponent> mStaticMeshComp;
 };

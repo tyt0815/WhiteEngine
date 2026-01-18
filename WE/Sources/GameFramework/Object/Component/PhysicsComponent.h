@@ -4,8 +4,10 @@
 #include "Utility/Delegate.h"
 #include "Utility/Memory.h"
 
-DECLARE_DELEGATE_TwoParams(FComponentHitDelegate, class WPhysicsComponent*, XMFLOAT3);
-DECLARE_DELEGATE_TwoParams(FComponentBeginOverlapDelegate, class WPhysicsComponent*, XMFLOAT3);
+class WPhysicsComponent;
+
+DECLARE_DELEGATE_TwoParams(FComponentHitDelegate, TWeakPtr<WPhysicsComponent>, XMFLOAT3);
+DECLARE_DELEGATE_TwoParams(FComponentBeginOverlapDelegate, TWeakPtr<WPhysicsComponent>, XMFLOAT3);
 
 using EMotionType = JPH::EMotionType;
 

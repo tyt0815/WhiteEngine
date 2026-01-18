@@ -7,15 +7,14 @@ WCameraComponent::WCameraComponent()
 {
 }
 
-void WCameraComponent::SetOwner(AActor* Owner)
+void WCameraComponent::SetOwner(TWeakPtr<AActor> Owner)
 {
 	Super::SetOwner(Owner);
 
-	if (APawn* OwnerPawn = dynamic_cast<APawn*>(Owner))
+	if (TSharedPtr<APawn> OwnerPawn = Cast<APawn>(Owner.lock()))
 	{
-		OwnerPawn->SetCameraComponent(this);
+		OwnerPawn->SetCameraComponent(GetWeakPtr<WCameraComponent>());
 	}
-	
 }
 
 void WCameraComponent::Update()

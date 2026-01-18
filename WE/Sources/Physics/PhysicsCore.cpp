@@ -18,6 +18,7 @@
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 #include "JPHUtility.h"
 #include "PhysicsDebugRenderer.h"
+#include "PhysicsUserData.h"
 
 #include <windows.h>
 #include <cstdarg>
@@ -27,7 +28,7 @@
 #include "Component/PhysicsComponent.h"
 #include "World/World.h"
 
-
+#include "Utility/Memory.h"
 
 using namespace JPH;
 using namespace JPH::literals;
@@ -48,11 +49,16 @@ public:
 	virtual void			OnContactAdded(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings) override
 	{
 		FContactInfo Info;
-		Info.Comp1 = reinterpret_cast<WPhysicsComponent*>(inBody1.GetUserData());
-		Info.Comp2 = reinterpret_cast<WPhysicsComponent*>(inBody2.GetUserData());
+		Info.Comp1 = *reinterpret_cast<TWeakPtr<WPhysicsComponent>*>(inBody1.GetUserData());
+		Info.Comp2 = *reinterpret_cast<TWeakPtr<WPhysicsComponent>*>(inBody2.GetUserData());
 		Info.ImpactPoint1 = ToDXLocation(inManifold.GetWorldSpaceContactPointOn1(0));
 		Info.ImpactPoint2 = ToDXLocation(inManifold.GetWorldSpaceContactPointOn2(0));
-		WWorld* World = Info.Comp1->GetWorld();
+
+		if (Info.Comp1.expired() || Info.Comp2.expired())
+		{
+			return;
+		}
+		WWorld* World = Info.Comp1.lock()->GetWorld();
 
 		if (inBody1.IsSensor() || inBody2.IsSensor())
 		{
@@ -109,6 +115,8 @@ namespace Physics
 	TUniquePtr<MyBodyActivationListener> g_BodyActivationListener;
 
 	TUniquePtr<MyContactListener> g_ContactListener;
+
+	UINT64 g_UpdateCount = 0;
 
 	bool g_bDrawShape = true;
 	bool g_bDrawBoundingBox = false;
@@ -260,7 +268,10 @@ void Physics::Tick(float DeltaTime)
 	for(int Step = 0; Step < 5 && AccumulatedTime >= FixedTimeStep; ++Step, AccumulatedTime -= FixedTimeStep)
 	{
 		g_PhysicsSystem->Update(FixedTimeStep, 1, g_TempAllocator.get(), g_JobSystem.get());
+		++g_UpdateCount;
 	}
+
+	FUserDataManager::RemoveUserData();
 
 	g_DebugRenderer->Clear();
 	JPH::BodyManager::DrawSettings Settings;

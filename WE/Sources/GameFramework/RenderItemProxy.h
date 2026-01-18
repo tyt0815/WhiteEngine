@@ -67,7 +67,7 @@ public:
 
 	std::vector<FDirectionalLightProxy> mDirectionalLightProxies;
 
-	TUnorderedArray<FDebugLine3DVBProxy> mDebugLine3DProxies;
+	TArray<FDebugLine3DVBProxy> mDebugLine3DProxies;
 
 public:
 	inline FMeshCBProxy* GetMeshCBProxy(size_t i)

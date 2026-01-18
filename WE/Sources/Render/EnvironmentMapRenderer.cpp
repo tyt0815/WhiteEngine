@@ -541,7 +541,7 @@ void FEnvironmentMapRenderer::PreRenderBRDFLUTPass(ID3D12GraphicsCommandList* Co
 
 void FEnvironmentMapRenderer::UpdateBuffers()
 {
-	WCameraComponent* Camera = GetWorld()->GetPlayerCamera();
+	WCameraComponent* Camera = GetWorld()->GetPlayerCamera().lock().get();
 	FEnvironmentMapPassCB CB;
 	CB.EyePosW = Camera->GetLocalLocation();
 	XMFLOAT4X4 View = Camera->GetViewMatrix();

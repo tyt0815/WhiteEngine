@@ -6,22 +6,28 @@ void WMovementComponent::TickComponent_PrePhysics(float DeltaTime)
 	Super::TickComponent_PrePhysics(DeltaTime);
 
 	// 프레임마다 Owner를 이동시킴
-	XMFLOAT4 Quat = GetOwner()->GetActorTransform().GetQuaternionRotationFloat4();
-	XMVECTOR V = XMVector3Rotate(XMLoadFloat3(&mVelocity), XMLoadFloat4(&Quat));
+	if (auto Owner = GetOwner().lock())
+	{
+		XMFLOAT4 Quat = Owner->GetActorTransform().GetQuaternionRotationFloat4();
 
-	XMFLOAT3 ScaledVelocity;
-	XMStoreFloat3(&ScaledVelocity, XMVectorScale(V, DeltaTime));
-	MoveOwner(ScaledVelocity);
+		XMVECTOR V = XMVector3Rotate(XMLoadFloat3(&mVelocity), XMLoadFloat4(&Quat));
+
+		XMFLOAT3 ScaledVelocity;
+		XMStoreFloat3(&ScaledVelocity, XMVectorScale(V, DeltaTime));
+		MoveOwner(ScaledVelocity);
+	}
 }
 
 
 void WMovementComponent::MoveOwner(XMFLOAT3 Velocity)
 {
-	AActor* Owner = GetOwner();
-	XMFLOAT3 WorldLocation = Owner->GetActorTransform().Translation;
-	XMVECTOR DirectionVector = XMLoadFloat3(&Velocity);
-	XMVECTOR LocationVector = XMLoadFloat3(&WorldLocation);
-	LocationVector = DirectX::XMVectorAdd(LocationVector, DirectionVector);
-	XMStoreFloat3(&WorldLocation, LocationVector);
-	Owner->SetActorLocation(WorldLocation);
+	if (TSharedPtr<AActor> Owner = GetOwner().lock())
+	{
+		XMFLOAT3 WorldLocation = Owner->GetActorTransform().Translation;
+		XMVECTOR DirectionVector = XMLoadFloat3(&Velocity);
+		XMVECTOR LocationVector = XMLoadFloat3(&WorldLocation);
+		LocationVector = DirectX::XMVectorAdd(LocationVector, DirectionVector);
+		XMStoreFloat3(&WorldLocation, LocationVector);
+		Owner->SetActorLocation(WorldLocation);
+	}
 }

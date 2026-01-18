@@ -9,10 +9,10 @@ public:
 	ADirectionalLight();
 
 private:
-	WDirectionalLightComponent* mDirectionalLightComponent = nullptr;
+	TWeakPtr<WDirectionalLightComponent> mDirectionalLightComponent;
 
 public:
-	inline WDirectionalLightComponent* GetDirLightComp() const
+	inline TWeakPtr<WDirectionalLightComponent> GetDirLightComp() const
 	{
 		return mDirectionalLightComponent;
 	}

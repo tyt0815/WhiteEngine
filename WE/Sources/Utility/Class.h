@@ -22,5 +22,8 @@ private:
 	FNoncopyable& operator=(const FNoncopyable&) { return *this; }
 };
 
-template<typename Base, typename T>
-constexpr bool IsDerivedFrom = std::is_base_of_v<Base, T>;
+template <typename Base, typename Derived>
+constexpr bool IsDerivedFrom() 
+{
+	return std::is_base_of_v<Base, Derived>;
+}

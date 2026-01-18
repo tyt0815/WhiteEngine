@@ -3,6 +3,6 @@
 
 WTestWorld::WTestWorld()
 {
-	APhysicsSphere* PSphere = SpawnActor<APhysicsSphere>();
+	auto PSphere = SpawnActor<APhysicsSphere>().lock();
 	PSphere->SetActorLocation(XMFLOAT3(0.0f, 5.0f, 5.0f));
 }

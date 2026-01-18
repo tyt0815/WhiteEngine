@@ -3,13 +3,17 @@
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include "DirectX/DXMath.h"
+#include "Utility/Memory.h"
 
-class WPhysicsComponent;
+namespace Physics
+{
+	struct FUserData;
+}
 
 class FPhysicsBody
 {
 public:
-	FPhysicsBody(WPhysicsComponent* Owner) : mOwner(Owner) {};
+	FPhysicsBody(class WPhysicsComponent* Owner) : mOwner(Owner) {};
 
 	~FPhysicsBody();
 
@@ -33,9 +37,11 @@ public:
 private:
 	FPhysicsBody() = delete;
 
-	JPH::Body* mBody;
+	JPH::Body* mBody = nullptr;
 
 	WPhysicsComponent* mOwner;
+
+	Physics::FUserData* mUserData;
 
 public:
 	__forceinline bool IsValid() const

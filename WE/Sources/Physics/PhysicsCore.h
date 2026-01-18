@@ -5,8 +5,6 @@
 #include "DirectX/DXMath.h"
 #include "Utility/Delegate.h"
 
-#include "Utility/Memory.h"
-
 using namespace DirectX;
 
 namespace JPH 

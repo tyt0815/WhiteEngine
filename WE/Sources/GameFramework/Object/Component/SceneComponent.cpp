@@ -1,11 +1,5 @@
 #include "SceneComponent.h"
 
-void WSceneComponent::SetupAttachment(WSceneComponent* Parent)
-{
-	mParent = Parent;
-	Parent->mChilds.push_back(this);
-}
-
 void WSceneComponent::UpdateWorldMatrix()
 {
 	if (mbDirty)
@@ -13,16 +7,16 @@ void WSceneComponent::UpdateWorldMatrix()
 		XMMATRIX L = mTransform.GetTransformMatrix(); // 내 로컬 행렬
 		XMMATRIX W;
 
-		if (mParent == nullptr)
+		if (auto Parent = mParent.lock())
 		{
-			W = L;
+			// 부모의 WorldMatrix를 가져옴 (재귀)
+			XMMATRIX PW = Parent->GetWorldMatrix();
+			// World = Local * ParentWorld
+			W = XMMatrixMultiply(L, PW);
 		}
 		else
 		{
-			// 부모의 WorldMatrix를 가져옴 (재귀)
-			XMMATRIX PW = mParent->GetWorldMatrix();
-			// World = Local * ParentWorld
-			W = XMMatrixMultiply(L, PW);
+			W = L;
 		}
 
 		// 결과 저장 및 역행렬 미리 계산
@@ -64,9 +58,22 @@ void WSceneComponent::UpdateRecursive()
 {
 	Update();
 
-	for (WSceneComponent* Child : mChilds)
+	for (auto& ChildWeak : mChilds)
 	{
-		Child->UpdateRecursive();
+		if (auto Child = ChildWeak.lock())
+		{
+			Child->UpdateRecursive();
+		}
+	}
+}
+
+void WSceneComponent::SetupAttachment(TWeakPtr<WSceneComponent> InParent)
+{
+	mParent = InParent;
+
+	if (auto Parent = mParent.lock())
+	{
+		Parent->mChilds.push_back(GetWeakPtr<WSceneComponent>());
 	}
 }
 
@@ -87,9 +94,9 @@ DirectX::XMFLOAT4 WSceneComponent::GetLocalQuatRotation()
 
 DirectX::XMFLOAT4 WSceneComponent::GetWorldQuatRotation()
 {
-	if (mParent)
+	if (auto Parent = mParent.lock())
 	{
-		DirectX::XMFLOAT4 ParentWorldQuatRotation = mParent->GetWorldQuatRotation();
+		DirectX::XMFLOAT4 ParentWorldQuatRotation = Parent->GetWorldQuatRotation();
 		DirectX::XMFLOAT4 LocalQuatRotation = GetLocalQuatRotation();
 		DirectX::XMVECTOR ParentWorldQuat = XMLoadFloat4(&ParentWorldQuatRotation);
 		DirectX::XMVECTOR LocalQuat = DirectX::XMLoadFloat4(&LocalQuatRotation);
@@ -165,13 +172,9 @@ void WSceneComponent::SetLocalScale(DirectX::XMFLOAT3 Scale)
 
 void WSceneComponent::SetWorldTransform(FTransform Transform)
 {
-	if (mParent == nullptr)
+	if (auto Parent = mParent.lock())
 	{
-		SetLocalTransform(Transform);
-	}
-	else
-	{
-		XMMATRIX InvW = mParent->GetInverseWorldMatrix();
+		XMMATRIX InvW = Parent->GetInverseWorldMatrix();
 		XMMATRIX W = Transform.GetTransformMatrix();
 		XMMATRIX M = W * InvW;
 		XMVECTOR T;
@@ -186,6 +189,10 @@ void WSceneComponent::SetWorldTransform(FTransform Transform)
 
 		SetLocalTransform(Transform);
 	}
+	else
+	{
+		SetLocalTransform(Transform);
+	}
 }
 
 void WSceneComponent::PropagateWorldMatrixDirty()
@@ -197,10 +204,13 @@ void WSceneComponent::PropagateWorldMatrixDirty()
 	}
 
 	mbDirty = true;
-	for (WSceneComponent* Child : mChilds)
+	for (TWeakPtr<WSceneComponent> ChildWeak : mChilds)
 	{
 		// 핵심: 나(this)가 아니라 Child의 함수를 호출해야 함
-		Child->PropagateWorldMatrixDirty();
+		if (auto Child = ChildWeak.lock())
+		{
+			Child->PropagateWorldMatrixDirty();
+		}
 	}
 }
 

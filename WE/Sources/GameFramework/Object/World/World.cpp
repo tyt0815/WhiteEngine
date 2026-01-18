@@ -16,9 +16,9 @@ WWorld::~WWorld()
 
 void WWorld::BeginPlay()
 {
-	if (mPlayer == nullptr)
+	if (mPlayer.expired())
 	{
-		APawn* Player = SpawnActor<AGhostCameraPawn>();
+		TWeakPtr<APawn> Player = SpawnActor<AGhostCameraPawn>();
 		SetPlayer(Player);
 	}
 }
@@ -27,35 +27,47 @@ void WWorld::Tick(float Delta)
 {
 	mRenderItemProxy.Cleanup(Delta);
 
-	for (size_t i = 0; i < mAllActors.Size(); ++i)
+	for (size_t i = 0; i < mAllActors.size(); ++i)
 	{
 		// Tick Component 가 포함되어 있음
 		mAllActors[i]->Tick_PrePhysics(Delta);
 	}
 
-	for (auto& Actor : mAllActors.GetView())
+	for (auto& Actor : mAllActors)
 	{
 		Actor->UpdateComponentsToPhysics();
 	}
 	Physics::Tick(Delta);
-	for (auto& Actor : mAllActors.GetView())
+	for (auto& Actor : mAllActors)
 	{
 		Actor->UpdateComponentsFromPhysics();
 	}
 	for (const FContactInfo& Info : mOnBeginOverlapEventQueue)
 	{
-		Info.Comp1->mOnBeginOverlapDelegate.Execute(Info.Comp2, Info.ImpactPoint1);
-		Info.Comp2->mOnBeginOverlapDelegate.Execute(Info.Comp1, Info.ImpactPoint2);
+		if (auto Comp1 = Info.Comp1.lock())
+		{
+			if (auto Comp2 = Info.Comp2.lock())
+			{
+				Comp1->mOnBeginOverlapDelegate.Execute(Info.Comp2, Info.ImpactPoint1);
+				Comp2->mOnBeginOverlapDelegate.Execute(Info.Comp1, Info.ImpactPoint2);
+			}
+		}
 	}
 	mOnBeginOverlapEventQueue.clear();
 	for (const FContactInfo& Info : mOnHitEventQueue)
 	{
-		Info.Comp1->mOnHitDelegate.Execute(Info.Comp2, Info.ImpactPoint1);
-		Info.Comp2->mOnHitDelegate.Execute(Info.Comp1, Info.ImpactPoint2);
+		if (auto Comp1 = Info.Comp1.lock())
+		{
+			if (auto Comp2 = Info.Comp2.lock())
+			{
+				Comp1->mOnHitDelegate.Execute(Info.Comp2, Info.ImpactPoint1);
+				Comp2->mOnHitDelegate.Execute(Info.Comp1, Info.ImpactPoint2);
+			}
+		}
 	}
 	mOnHitEventQueue.clear();
 
-	for (size_t i = 0; i < mAllActors.Size(); ++i)
+	for (size_t i = 0; i < mAllActors.size(); ++i)
 	{
 		// Tick Component 가 포함되어 있음
 		mAllActors[i]->Tick_PostPhysics(Delta);
@@ -63,21 +75,37 @@ void WWorld::Tick(float Delta)
 
 	FlushDestroyQueue();
 
-	for (size_t i = 0; i < mAllActors.Size(); ++i)
+	for (size_t i = 0; i < mAllActors.size(); ++i)
 	{
-		mAllActors[i]->GetRootComponent()->UpdateRecursive();
+		if (auto Root = mAllActors[i]->GetRootComponent().lock())
+		{
+			Root->UpdateRecursive();
+		}
+		
 	}
 }
 
-void WWorld::SetPlayer(APawn* Player)
+TWeakPtr<WCameraComponent> WWorld::GetPlayerCamera() const
 {
-	mPlayer = Player;
-	mPlayer->SetupPlayerInput();
+	if (TSharedPtr<APawn> Player = mPlayer.lock())
+	{
+		return Player->GetCameraComponent();
+	}
+	return TWeakPtr<WCameraComponent>();
 }
 
-void WWorld::DestroyActor(AActor* Actor)
+void WWorld::SetPlayer(TWeakPtr<APawn> Player)
 {
-	if (Actor->IsValid())
+	mPlayer = Player;
+	if (TSharedPtr<APawn> Pawn = mPlayer.lock())
+	{
+		Pawn->SetupPlayerInput();
+	}
+}
+
+void WWorld::DestroyActor(const TSharedPtr<AActor>& Actor)
+{
+	if(Actor && !Actor->IsPendingKill())
 	{
 		Actor->MarkPendingKill();
 		DestroyQueue.push_back(Actor);
@@ -91,20 +119,7 @@ void WWorld::DrawDebugLine(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT4 Color, float L
 	Proxy.End = End;
 	Proxy.Color = Color;
 	Proxy.LifeSpan = LifeSpan;
-	mRenderItemProxy.mDebugLine3DProxies.Add(Proxy);
-}
-
-// TODO: 같은 주소에 Actor 메모리가 할당되면 당글링 포인터도 true를 반환 할 수 있음
-bool WWorld::IsValidActor(AActor* Actor)
-{
-	for (int i = 0; i < mAllActors.Size(); ++i)
-	{
-		if (mAllActors[i].get() == Actor)
-		{
-			return true;
-		}
-	}
-	return false;
+	mRenderItemProxy.mDebugLine3DProxies.emplace_back(Proxy);
 }
 
 void WWorld::EnqueueOnBeginOverlapEvent(const FContactInfo& Info)
@@ -119,14 +134,12 @@ void WWorld::EnqueueOnHitEvent(const FContactInfo& Info)
 
 void WWorld::FlushDestroyQueue()
 {
-	for (AActor* Actor : DestroyQueue)
+	for (auto Actor : DestroyQueue)
 	{
-		size_t Id = Actor->GetActorId();
-		mAllActors.RemoveAt(Id);
-		if (Id < mAllActors.Size())
-		{
-			mAllActors[Id]->SetActorId(Id);
-		}
+		UINT64 Id = Actor->GetActorId();
+		mAllActors[Id] = std::move(mAllActors.back());
+		mAllActors[Id]->SetActorId(Id);
+		mAllActors.pop_back();
 	}
 
 	DestroyQueue.clear();

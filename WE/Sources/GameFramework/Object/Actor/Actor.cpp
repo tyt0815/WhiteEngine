@@ -5,7 +5,8 @@
 
 AActor::AActor()
 {
-	
+	TWeakPtr<WSceneComponent> DummyRoot = CreateComponent<WSceneComponent>();
+	SetRootComponent(DummyRoot);
 }
 
 void AActor::BeginPlay()
@@ -25,29 +26,40 @@ void AActor::Tick_PostPhysics(float Delta)
 
 void AActor::UpdateComponentsToPhysics()
 {
-	for (auto& Comp : mAllPhysicsComponents.GetView())
+	for (auto& CompWeak : mAllPhysicsComponents)
 	{
-		Comp->UpdateToPhysics();
+		if (auto Comp = CompWeak.lock())
+		{
+			Comp->UpdateToPhysics();
+		}
 	}
 }
 
 void AActor::UpdateComponentsFromPhysics()
 {
-	for (auto& Comp : mAllPhysicsComponents.GetView())
+	for (auto& CompWeak : mAllPhysicsComponents)
 	{
-		Comp->UpdateFromPhysics();
+		if (auto Comp = CompWeak.lock())
+		{
+			Comp->UpdateFromPhysics();
+		}
 	}
 }
 
-void AActor::SetRootComponent(WSceneComponent* Component)
+void AActor::SetRootComponent(TWeakPtr<WSceneComponent> Component)
 {
-	if (mRootComponent == Component)
+	if (!mRootComponent.expired() && !Component.expired())
 	{
-		return;
-	}
-	if (mRootComponent != nullptr)
-	{
-		mRootComponent->SetupAttachment(Component);
+		TSharedPtr<WSceneComponent> OldRoot = mRootComponent.lock();
+		TSharedPtr<WSceneComponent> NewRoot = Component.lock();
+		if (OldRoot.get() == NewRoot.get())
+		{
+			return;
+		}
+		else
+		{
+			OldRoot->SetupAttachment(NewRoot);
+		}
 	}
 
 	mRootComponent = Component;
@@ -55,7 +67,10 @@ void AActor::SetRootComponent(WSceneComponent* Component)
 
 void AActor::SetActorTransform(FTransform Transform)
 {
-	mRootComponent->SetLocalTransform(Transform);
+	if (auto Root = mRootComponent.lock())
+	{
+		Root->SetLocalTransform(Transform);
+	}
 }
 
 XMFLOAT3 AActor::GetFowardVector() const
@@ -96,20 +111,21 @@ XMFLOAT3 AActor::GetUpVector() const
 
 void AActor::Destroy()
 {
-	GetWorld()->DestroyActor(this);
+	GetWorld()->DestroyActor(GetWeakPtr().lock());
 }
 
 void AActor::BeginComponents()
 {
-	for (int i = 0; i < mAllComponents.Size(); ++i)
+	for (int i = 0; i < mAllComponents.size(); ++i)
 	{
+		mAllComponents[i]->SetOwner(GetWeakPtr());
 		mAllComponents[i]->BeginComponent();
 	}
 }
 
 void AActor::TickComponents_PrePhysics(float Delta)
 {
-	for (int i = 0; i < mAllComponents.Size(); ++i)
+	for (int i = 0; i < mAllComponents.size(); ++i)
 	{
 		mAllComponents[i]->TickComponent_PrePhysics(Delta);
 	}
@@ -117,25 +133,8 @@ void AActor::TickComponents_PrePhysics(float Delta)
 
 void AActor::TickComponents_PostPhysics(float Delta)
 {
-	for (int i = 0; i < mAllComponents.Size(); ++i)
+	for (int i = 0; i < mAllComponents.size(); ++i)
 	{
 		mAllComponents[i]->TickComponent_PostPhysics(Delta);
-	}
-}
-
-void AActor::SetupComponent(WActorComponent* Component)
-{
-	Component->SetOwner(this);
-}
-
-void AActor::SetupSceneComponent(WSceneComponent* Component)
-{
-	if (mRootComponent)
-	{
-		Component->SetupAttachment(mRootComponent);
-	}
-	else
-	{
-		SetRootComponent(Component);
 	}
 }

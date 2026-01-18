@@ -16,7 +16,7 @@ class FMaterial;
 class WCameraComponent;
 
 
-class AActor
+class AActor : public std::enable_shared_from_this<AActor>
 {
 public:
 	AActor();
@@ -34,9 +34,9 @@ public:
 	void UpdateComponentsFromPhysics();
 
 	template<typename T>
-	T* CreateComponent();
+	TWeakPtr<T> CreateComponent();
 
-	void SetRootComponent(WSceneComponent* Component);
+	void SetRootComponent(TWeakPtr<WSceneComponent> Component);
 
 	void SetActorTransform(FTransform Transform);
 
@@ -57,70 +57,72 @@ private:
 
 	void TickComponents_PostPhysics(float Delta);
 
-	void SetupComponent(WActorComponent* Component);
+	TArray<TSharedPtr<WActorComponent>> mAllComponents;
 
-	void SetupSceneComponent(WSceneComponent* Component);
+	TArray<TWeakPtr<WSceneComponent>> mAllSceneComponent;
 
-	TUnorderedArray<std::unique_ptr<WActorComponent>> mAllComponents;
+	TArray<TWeakPtr<WActorComponent>> mAllNoneSceneComponent;
 
-	TUnorderedArray<WSceneComponent*> mAllSceneComponent;
+	TArray<TWeakPtr<WPhysicsComponent>> mAllPhysicsComponents;
 
-	TUnorderedArray<WActorComponent*> mAllNoneSceneComponent;
+	TWeakPtr<WSceneComponent> mRootComponent;
 
-	TUnorderedArray<WPhysicsComponent*> mAllPhysicsComponents;
+	WWorld* mWorld;
 
-	WSceneComponent* mRootComponent = nullptr;
-
-	WWorld* mWorld = nullptr;
-
-	size_t mActorId = -1;
+	UINT64 mActorId = -1;
 
 	bool mbPendingKill = false;
 
 public:
-	inline TUnorderedArray<std::unique_ptr<WActorComponent>>& GetAllComponents()
+	__forceinline TWeakPtr<AActor> GetWeakPtr()
 	{
-		return mAllComponents;
+		return GetWeakPtr<AActor>();
 	}
 
-	inline WSceneComponent* GetRootComponent() const
+	template<typename T>
+	__forceinline TWeakPtr<T> GetWeakPtr()
+	{
+		return Cast<T>(shared_from_this());
+	}
+
+	inline TWeakPtr<WSceneComponent> GetRootComponent() const
 	{
 		return mRootComponent;
 	}
 
 	inline FTransform GetActorTransform() const
 	{
-		return mRootComponent->GetLocalTransform();
+		return mRootComponent.lock()->GetLocalTransform();
 	}
 
 	inline XMFLOAT3 GetActorLocation() const
 	{
-		return mRootComponent->GetLocalLocation();
+		return mRootComponent.lock()->GetLocalLocation();
 	}
 
 	inline void SetActorLocation(XMFLOAT3 Location)
 	{
-		mRootComponent->SetLocalLocation(Location);
+		mRootComponent.lock()->SetLocalLocation(Location);
 	}
 
 	inline XMFLOAT3 GetActorRotation() const
 	{
-		return mRootComponent->GetLocalRotation();
+		return mRootComponent.lock()->GetLocalRotation();
 	}
 
 	inline void SetActorRotation(XMFLOAT3 Rotation)
 	{
-		mRootComponent->SetLocalRotation(Rotation);
+		mRootComponent.lock()->SetLocalRotation(Rotation);
 	}
 
 	inline XMFLOAT3 GetActorScale() const
 	{
-		return mRootComponent->GetLocalScale();
+		return mRootComponent.lock()->GetLocalScale();
 	}
 
 	inline void SetActorScale(XMFLOAT3 Scale)
 	{
-		mRootComponent->SetLocalScale(Scale);
+		mRootComponent.lock()->SetLocalScale(Scale);
 	}
 
 	inline WWorld* GetWorld() const
@@ -133,52 +135,47 @@ public:
 		mWorld = World;
 	}
 
+	inline bool IsPendingKill() const
+	{
+		return mbPendingKill;
+	}
+
 	inline void MarkPendingKill()
 	{
 		mbPendingKill = true;
 	}
 
-	inline bool IsValid() const
-	{
-		return !mbPendingKill;
-	}
-
-	inline size_t GetActorId() const
+	inline UINT64 GetActorId() const
 	{
 		return mActorId;
 	}
 
-	inline void SetActorId(size_t Id)
+	inline void SetActorId(UINT64 Id)
 	{
 		mActorId = Id;
 	}
 };
 
 template<typename T>
-inline T* AActor::CreateComponent()
+inline TWeakPtr<T> AActor::CreateComponent()
 {
-	size_t Index = mAllComponents.Add(std::make_unique<T>());
-	WActorComponent* ActorComp = mAllComponents[Index].get();
-	ActorComp->SetOwner(this);
-	
-	WSceneComponent* SceneComp = dynamic_cast<WSceneComponent*>(ActorComp);
-	if (SceneComp != nullptr)
-	{
-		mAllSceneComponent.Add(SceneComp);
+	static_assert(IsDerivedFrom<WActorComponent, T>());
 
-		if (WPhysicsComponent* PhysicsComp = dynamic_cast<WPhysicsComponent*>(SceneComp))
+	TSharedPtr<T> CompT = MakeShared<T>();
+	mAllComponents.emplace_back(CompT);
+
+	if (TSharedPtr<WSceneComponent> SceneComp = Cast<WSceneComponent>(CompT))
+	{
+		mAllSceneComponent.emplace_back(SceneComp);
+		if (TSharedPtr<WPhysicsComponent> PhysicsComp = Cast<WPhysicsComponent>(SceneComp))
 		{
-			mAllPhysicsComponents.Add(PhysicsComp);
-		}		
+			mAllPhysicsComponents.emplace_back(PhysicsComp);
+		}
 	}
 	else
 	{
-		mAllNoneSceneComponent.Add(ActorComp);
+		mAllNoneSceneComponent.emplace_back(CompT);
 	}
-
-	T* Comp = dynamic_cast<T*>(ActorComp);
-
-	assert(mWorld == nullptr);
 	
-	return Comp;
+	return TWeakPtr<T>(CompT);
 }

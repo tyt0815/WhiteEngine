@@ -8,7 +8,10 @@ void WProjectileMovementComponent::TickComponent_PrePhysics(float DeltaTime)
 	mLifeTimeElapsed += DeltaTime;
 	if (mLifeSpan > 0 && mLifeTimeElapsed > mLifeSpan)
 	{
-		GetOwner()->Destroy();
+		if (auto Owner = GetOwner().lock())
+		{
+			Owner->Destroy();
+		}
 	}
 }
 

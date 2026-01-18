@@ -562,7 +562,7 @@ void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConsta
 	XMVECTOR target = XMVectorZero();
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
-	WCameraComponent* Camera = GetWorld()->GetPlayerCamera();
+	WCameraComponent* Camera = GetWorld()->GetPlayerCamera().lock().get();
 
 	XMFLOAT4X4 ViewMatrix = Camera->GetViewMatrix();
 	XMFLOAT4X4 ProjMatrix = Camera->GetProjMatrix();
@@ -716,7 +716,7 @@ void FSceneRenderer::UpdateDebugLine3DVB(TUploadBuffer<FLine3DVertex>* DebugLine
 {
 	std::vector<FLine3DVertex> LineVertices(DebugLine3DVB->GetElementCount());
 	int Index = 0;
-	for (const auto& Proxy : RenderItemProxy->mDebugLine3DProxies.GetView())
+	for (const auto& Proxy : RenderItemProxy->mDebugLine3DProxies)
 	{
 		FLine3DVertex Vertex;
 		Vertex.Position = Proxy.Start;

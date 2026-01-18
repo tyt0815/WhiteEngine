@@ -54,6 +54,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Sources\Physics\PhysicsUserData.cpp" />
     <ClCompile Include="Sources\Render\CubeRenderTarget.cpp" />
     <ClCompile Include="Sources\Render\DDSTextureLoader.cpp" />
     <ClCompile Include="Sources\Render\DeferredShadingSceneRenderer.cpp" />
@@ -129,6 +130,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="Sources\Physics\PhysicsUserData.h" />
     <ClInclude Include="Sources\Render\CubeRenderTarget.h" />
     <ClInclude Include="Sources\Render\DDSTextureLoader.h" />
     <ClInclude Include="Sources\Render\DeferredShadingSceneRenderer.h" />

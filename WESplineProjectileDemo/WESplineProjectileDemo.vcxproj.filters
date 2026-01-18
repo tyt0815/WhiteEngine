@@ -28,4 +28,9 @@
       <Filter>Resources</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="WESplineProjectileDemo.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

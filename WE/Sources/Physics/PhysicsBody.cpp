@@ -1,5 +1,6 @@
 #include "PhysicsBody.h"
 #include "JPHUtility.h"
+#include "PhysicsUserData.h"
 
 using namespace JPH;
 
@@ -10,12 +11,19 @@ namespace Physics
 
 FPhysicsBody::~FPhysicsBody()
 {
-	RemoveBody();
-	Physics::GetBodyInterface()->DestroyBody(mBody->GetID());
+	if (mBody != nullptr)
+	{
+		Physics::FUserDataManager::EnqueueRemoveQ(mUserData->ID);
+		RemoveBody();
+		Physics::GetBodyInterface()->DestroyBody(mBody->GetID());
+	}
 }
 
 void FPhysicsBody::CreateBody(JPH::BodyCreationSettings Settings)
 {
+	UINT64 UserDataID = Physics::FUserDataManager::CreateUserData(mOwner->GetWeakPtr<WPhysicsComponent>());
+	mUserData = Physics::FUserDataManager::GetUserData(UserDataID);
+	Settings.mUserData = reinterpret_cast<JPH::uint64>(&mUserData->Comp);
 	mBody = Physics::GetBodyInterface()->CreateBody(Settings);
 }
 

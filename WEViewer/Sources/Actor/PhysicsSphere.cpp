@@ -6,11 +6,14 @@ APhysicsSphere::APhysicsSphere()
 {
 	mSphereComp = CreateComponent<WSphereComponent>();
 	SetRootComponent(mSphereComp);
-	mSphereComp->SetMotionType(EMotionType::Dynamic);
-	mSphereComp->ActivatePhysicBody();
-	mSphereComp->SetRadius(0.5f);
+	if (auto Comp = mSphereComp.lock())
+	{
+		Comp->SetMotionType(EMotionType::Dynamic);
+		Comp->ActivatePhysicBody();
+		Comp->SetRadius(0.5f);
+	}
 
-	WStaticMeshComponent* Component = CreateComponent<WStaticMeshComponent>();
+	auto Component = CreateComponent<WStaticMeshComponent>().lock();
 	Component->SetupAttachment(GetRootComponent());
 	Component->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_RustedIron2Sphere));
 }
@@ -19,7 +22,7 @@ void APhysicsSphere::BeginPlay()
 {
 	Super::BeginPlay();
 
-	mSphereComp->mOnHitDelegate.Bind(this, &APhysicsSphere::OnHit);
+	mSphereComp.lock()->mOnHitDelegate.Bind(this, &APhysicsSphere::OnHit);
 }
 
 void APhysicsSphere::Tick_PrePhysics(float DeltaTiem)
@@ -27,7 +30,7 @@ void APhysicsSphere::Tick_PrePhysics(float DeltaTiem)
 	Super::Tick_PrePhysics(DeltaTiem);
 }
 
-void APhysicsSphere::OnHit(WPhysicsComponent* Other, XMFLOAT3 ImpactPoint)
+void APhysicsSphere::OnHit(TWeakPtr<WPhysicsComponent> Other, XMFLOAT3 ImpactPoint)
 {
 	Destroy();
 }

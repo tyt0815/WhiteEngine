@@ -19,7 +19,7 @@ public:
 	
 
 private:
-	void OnHit(WPhysicsComponent* Other, XMFLOAT3 ImpactPoint);
+	void OnHit(TWeakPtr<WPhysicsComponent> Other, XMFLOAT3 ImpactPoint);
 
-	WSphereComponent* mSphereComp;
+	TWeakPtr<WSphereComponent> mSphereComp;
 };

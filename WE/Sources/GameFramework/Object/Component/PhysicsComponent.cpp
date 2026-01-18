@@ -64,7 +64,6 @@ void WPhysicsComponent::SetObjectChannel(EObjectChannel::EObjectChannel ObjectCh
 void WPhysicsComponent::CreatePhysicsBody()
 {
 	auto Settings = CreatePhysicsBodySettings();
-	Settings.mUserData = reinterpret_cast<JPH::uint64>(this);
 	Settings.mIsSensor = mbGenerateOverlapEvent;
 	mBody->CreateBody(Settings);
 }

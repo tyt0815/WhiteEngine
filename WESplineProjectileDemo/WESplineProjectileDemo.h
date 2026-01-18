@@ -17,15 +17,15 @@ public:
 	virtual void BeginPlay() override;
 
 public:
-	void AddTeleportTargets(const std::vector<WSplineComponent*>& NewTargets);
+	void AddTeleportTargets(const std::vector<TWeakPtr<WSplineComponent>>& NewTargets);
 
 	void RandomTeleport();
 
 private:
-	WBoxComponent* mHitBoxComp;
-	WStaticMeshComponent* mSMComp;
+	TWeakPtr<WBoxComponent> mHitBoxComp;
+	TWeakPtr<WStaticMeshComponent> mSMComp;
 
-	std::vector<WSplineComponent*> mTeleportTargets;
+	std::vector<TWeakPtr<WSplineComponent>> mTeleportTargets;
 };
 
 class AProjectileActor : public AActor
@@ -36,7 +36,7 @@ public:
 	XMFLOAT3 GetVelocity();
 
 protected:
-	WProjectileMovementComponent* mProjectileMovementComponent;
+	TWeakPtr<WProjectileMovementComponent> mProjectileMovementComponent;
 	
 };
 
@@ -51,10 +51,10 @@ public:
 protected:
 
 private:
-	WBoxComponent* mHitBoxComp;
-	WStaticMeshComponent* mStaticMesh;
+	TWeakPtr<WBoxComponent> mHitBoxComp;
+	TWeakPtr<WStaticMeshComponent> mStaticMesh;
 
-	void OnOverlap(WPhysicsComponent* Other, XMFLOAT3 ImpactPoint);
+	void OnOverlap(TWeakPtr<WPhysicsComponent> Other, XMFLOAT3 ImpactPoint);
 };
 
 class ARingProjectile : public AProjectileActor
@@ -68,13 +68,13 @@ public:
 	virtual void Tick_PostPhysics(float Delta) override;
 
 private:
-	void OnOverlapEvent(WPhysicsComponent* Other, XMFLOAT3 ImpactPoint);
+	void OnOverlapEvent(TWeakPtr<WPhysicsComponent> Other, XMFLOAT3 ImpactPoint);
 
-	WStaticMeshComponent* mStaticMesh;
+	TWeakPtr<WStaticMeshComponent> mStaticMesh;
 
-	std::vector<WBoxComponent*> mHitBoxes;
+	std::vector<TWeakPtr<WBoxComponent>> mHitBoxes;
 
-	std::vector<AActor*> ActorsToIgnore;
+	std::vector<TWeakPtr<AActor>> ActorsToIgnore;
 };
 
 class ASplineBulletSpawner : public AActor
@@ -83,13 +83,13 @@ protected:
 	class FSplineBullet
 	{
 	public:
-		ABullet* SpawnBullet(WWorld* World);
+		TWeakPtr<ABullet> SpawnBullet(WWorld* World);
 
 		void RemoveAt(UINT i);
 
-		WSplineComponent* Spline;
-		TUnorderedArray<ABullet*> Bullets;
-		TUnorderedArray<float> BulletDistance;
+		TWeakPtr<WSplineComponent> Spline;
+		TArray<TWeakPtr<ABullet>> Bullets;
+		TArray<float> BulletDistance;
 	};
 };
 
@@ -117,7 +117,7 @@ public:
 	virtual void Tick_PostPhysics(float Delta) override;
 
 public:
-	std::vector<WSplineComponent*> GetSplines() const;
+	std::vector<TWeakPtr<WSplineComponent>> GetSplines() const;
 
 private:
 	void UpdateSplineBullet(FSplineBullet* Spline, float Delta);
@@ -137,10 +137,10 @@ public:
 	virtual void Tick_PostPhysics(float Delta) override;
 
 private:
-	WSplineComponent* mSpline;
+	TWeakPtr<WSplineComponent> mSpline;
 
-	TUnorderedArray<ARingProjectile*> mRings;
-	TUnorderedArray<float> mDists;
+	TArray<TWeakPtr<ARingProjectile>> mRings;
+	TArray<float> mDists;
 
 	float mCoolDown = 0;
 	float mCoolTime = 3;

@@ -15,9 +15,6 @@
     <Filter Include="Sources\World">
       <UniqueIdentifier>{ae9dc88c-18df-4a1e-ac8f-b9d057b00f1f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Pawn">
-      <UniqueIdentifier>{9cbb2439-e049-4fd6-af05-d40f0fefb82a}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Main.cpp">

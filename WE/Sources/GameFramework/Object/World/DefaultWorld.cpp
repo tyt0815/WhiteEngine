@@ -6,14 +6,13 @@
 
 WDefaultWorld::WDefaultWorld()
 {
-	APawn* Player = SpawnActor<AGhostCameraPawn>();
+	auto Player = SpawnActor<AGhostCameraPawn>();
 	SetPlayer(Player);
 
-	ADirectionalLight* LightActor;
-	LightActor = SpawnActor<ADirectionalLight>();
+	auto LightActor = SpawnActor<ADirectionalLight>().lock();
 	LightActor->SetActorRotation(XMFLOAT3(0.0f, -45, -45));
-	LightActor->GetDirLightComp()->SetColor({ 10.0f, 10.0f, 10.0f });
+	LightActor->GetDirLightComp().lock()->SetColor({ 10.0f, 10.0f, 10.0f });
 
-	AFloor* Floor = SpawnActor<AFloor>();
+	auto Floor = SpawnActor<AFloor>().lock();
 	Floor->SetActorLocation(XMFLOAT3(0.0f, -5.0f, 0.0f));
 }

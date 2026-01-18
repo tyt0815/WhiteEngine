@@ -7,12 +7,13 @@ void FRenderItemProxy::Cleanup(float Delta)
 	mStaticMeshProxies.clear();
 	mDirectionalLightProxies.clear();
 	
-	for (int i = 0; i < mDebugLine3DProxies.Size(); ++i)
+	for (int i = 0; i < mDebugLine3DProxies.size(); ++i)
 	{
 		mDebugLine3DProxies[i].LifeSpan -= Delta;
 		if (mDebugLine3DProxies[i].LifeSpan < 0)
 		{
-			mDebugLine3DProxies.RemoveAt(i--);
+			mDebugLine3DProxies[i--] = mDebugLine3DProxies.back();
+			mDebugLine3DProxies.pop_back();
 		}
 	}
 }

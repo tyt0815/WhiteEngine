@@ -13,7 +13,6 @@ void WPrimitiveComponent::Update()
 
 void WPrimitiveComponent::UpdateConstantBufferIndex()
 {
-	WWorld* World = GetWorld();
 	mMeshCBIndex = GetWorld()->AllocateMeshCbProxy();
 }
 
