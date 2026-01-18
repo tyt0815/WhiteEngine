@@ -42,30 +42,35 @@ void WWorld::Tick(float Delta)
 	{
 		Actor->UpdateComponentsFromPhysics();
 	}
-	for (const FContactInfo& Info : mOnBeginOverlapEventQueue)
 	{
-		if (auto Comp1 = Info.Comp1.lock())
+		std::lock_guard<std::mutex> Lock(mEventQueueMutex);
+		for (const FContactInfo& Info : mOnBeginOverlapEventQueue)
 		{
-			if (auto Comp2 = Info.Comp2.lock())
+			if (auto Comp1 = Info.Comp1.lock())
 			{
-				Comp1->mOnBeginOverlapDelegate.Execute(Info.Comp2, Info.ImpactPoint1);
-				Comp2->mOnBeginOverlapDelegate.Execute(Info.Comp1, Info.ImpactPoint2);
+				if (auto Comp2 = Info.Comp2.lock())
+				{
+					Comp1->mOnBeginOverlapDelegate.Execute(Info.Comp2, Info.ImpactPoint1);
+					Comp2->mOnBeginOverlapDelegate.Execute(Info.Comp1, Info.ImpactPoint2);
+				}
 			}
 		}
-	}
-	mOnBeginOverlapEventQueue.clear();
-	for (const FContactInfo& Info : mOnHitEventQueue)
-	{
-		if (auto Comp1 = Info.Comp1.lock())
+		mOnBeginOverlapEventQueue.clear();
+
+		for (const FContactInfo& Info : mOnHitEventQueue)
 		{
-			if (auto Comp2 = Info.Comp2.lock())
+			if (auto Comp1 = Info.Comp1.lock())
 			{
-				Comp1->mOnHitDelegate.Execute(Info.Comp2, Info.ImpactPoint1);
-				Comp2->mOnHitDelegate.Execute(Info.Comp1, Info.ImpactPoint2);
+				if (auto Comp2 = Info.Comp2.lock())
+				{
+					Comp1->mOnHitDelegate.Execute(Info.Comp2, Info.ImpactPoint1);
+					Comp2->mOnHitDelegate.Execute(Info.Comp1, Info.ImpactPoint2);
+				}
 			}
 		}
+		mOnHitEventQueue.clear();
 	}
-	mOnHitEventQueue.clear();
+	
 
 	for (size_t i = 0; i < mAllActors.size(); ++i)
 	{
@@ -124,11 +129,13 @@ void WWorld::DrawDebugLine(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT4 Color, float L
 
 void WWorld::EnqueueOnBeginOverlapEvent(const FContactInfo& Info)
 {
+	std::lock_guard<std::mutex> Lock(mEventQueueMutex);
 	mOnBeginOverlapEventQueue.emplace_back(Info);
 }
 
 void WWorld::EnqueueOnHitEvent(const FContactInfo& Info)
 {
+	std::lock_guard<std::mutex> Lock(mEventQueueMutex);
 	mOnHitEventQueue.emplace_back(Info);
 }
 

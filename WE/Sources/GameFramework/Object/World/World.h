@@ -57,6 +57,8 @@ private:
 
 	FRenderItemProxy mRenderItemProxy;
 
+	std::mutex mEventQueueMutex;
+
 public:
 	inline TWeakPtr<APawn> GetPlayer() const
 	{

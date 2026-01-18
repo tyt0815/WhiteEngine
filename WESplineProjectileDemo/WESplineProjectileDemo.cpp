@@ -105,7 +105,7 @@ void ABullet::OnOverlap(TWeakPtr<WPhysicsComponent> Other, XMFLOAT3 ImpactPoint)
 {
 	if (auto OtherComp = Other.lock())
 	{
-		if (auto Reactor = Cast<AHitReactor>(OtherComp))
+		if (auto Reactor = Cast<AHitReactor>(OtherComp->GetOwner().lock()))
 		{
 			Reactor->RandomTeleport();
 		}
