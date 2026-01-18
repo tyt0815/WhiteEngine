@@ -2,7 +2,7 @@
 
 #include <d3d12.h>
 #include <DirectXMath.h>
-#include <memory>
+#include "Utility/Memory.h"
 #include <unordered_map>
 #include <wrl.h>
 #include "UploadBuffer.h"
@@ -78,13 +78,13 @@ private:
 
 	void UpdateBuffers();
 
-	std::unique_ptr<FCubeRenderTarget> mIrradianceMapRenderTarget;
-	std::unique_ptr<FCubeRenderTarget> mPrefilteredMapRenderTarget;
-	std::unique_ptr<FRenderTarget> mBRDFLUTRenderTarget;
-	std::unique_ptr<FDepthStencil> mDepthStencil;
-	std::unique_ptr<TUploadBuffer<FIrradianceMapPassCB>> mIrradianceMapPassCB;
-	std::unique_ptr<TUploadBuffer<FPreFilteredMapPassCB>> mPreFilteredMapPassCB;
-	std::unique_ptr<TUploadBuffer<FEnvironmentMapPassCB>> mEnvironmentMapPassCB;
+	TUniquePtr<FCubeRenderTarget> mIrradianceMapRenderTarget;
+	TUniquePtr<FCubeRenderTarget> mPrefilteredMapRenderTarget;
+	TUniquePtr<FRenderTarget> mBRDFLUTRenderTarget;
+	TUniquePtr<FDepthStencil> mDepthStencil;
+	TUniquePtr<TUploadBuffer<FIrradianceMapPassCB>> mIrradianceMapPassCB;
+	TUniquePtr<TUploadBuffer<FPreFilteredMapPassCB>> mPreFilteredMapPassCB;
+	TUniquePtr<TUploadBuffer<FEnvironmentMapPassCB>> mEnvironmentMapPassCB;
 	ID3D12Device* mDevice;
 	FTexture* mSkyTextureCube;
 

@@ -2,7 +2,7 @@
 
 #include <d3d12.h>
 #include <dxgi1_4.h>
-#include <memory>
+#include "Utility/Memory.h"
 #include <wrl.h>
 #include <functional>
 #include "DXException.h"
@@ -44,8 +44,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> CommandList;
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> RTVHeap;
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> DSVHeap;
-	std::unique_ptr<FResource> SwapChainBuffers[SWAPCHAIN_BUFFERS_NUM];
-	std::unique_ptr<FResource> DepthStencilBuffer;
+	TUniquePtr<FResource> SwapChainBuffers[SWAPCHAIN_BUFFERS_NUM];
+	TUniquePtr<FResource> DepthStencilBuffer;
 	UINT64 CurrentFence = 0;
 
 	D3D12_VIEWPORT ScreenViewport = {};

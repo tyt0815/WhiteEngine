@@ -1,5 +1,5 @@
 #pragma once
-#include <memory>
+#include "Utility/Memory.h"
 #include "LightComponent.h"
 #include "Render/DepthStencil.h"
 
@@ -13,6 +13,6 @@ protected:
 	virtual void Update() override;
 	
 	const size_t mDirectionalLightInfoPoolIndex = -1;
-	std::unique_ptr<FDepthStencil> mShadowMap;
+	TUniquePtr<FDepthStencil> mShadowMap;
 private:
 };

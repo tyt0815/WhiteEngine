@@ -45,7 +45,7 @@ public:
 private:
 	void FlushDestroyQueue();
 
-	TUnorderedArray<std::unique_ptr<AActor>> mAllActors;
+	TUnorderedArray<TUniquePtr<AActor>> mAllActors;
 
 	std::vector<FContactInfo> mOnBeginOverlapEventQueue;
 
@@ -124,7 +124,7 @@ inline WWorld* GetWorld()
 template<typename T>
 inline T* WWorld::SpawnActor()
 {
-	UINT Index = (UINT)mAllActors.Add(std::make_unique<T>());
+	UINT Index = (UINT)mAllActors.Add(MakeUnique<T>());
 	T* Actor = dynamic_cast<T*>(mAllActors[Index].get());
 	Actor->SetWorld(this);
 	Actor->SetActorId(Index);

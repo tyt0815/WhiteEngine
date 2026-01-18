@@ -32,5 +32,5 @@ protected:
         const FRenderItemProxy* RenderItemProxy
     ) override;
 private:
-	// std::unique_ptr<FCubeSkyRenderer> mSkyCubeMapRenderer;
+	// TUniquePtr<FCubeSkyRenderer> mSkyCubeMapRenderer;
 };

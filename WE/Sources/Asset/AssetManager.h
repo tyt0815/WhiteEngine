@@ -2,7 +2,7 @@
 
 #include "Utility/Class.h"
 #include "Asset.h"
-#include <memory>
+#include "Utility/Memory.h"
 #include <unordered_map>
 #include <Windows.h>
 #include <sstream>
@@ -22,13 +22,13 @@ public:
 	static TAsset* GetAsset(const std::wstring& Name);
 
 private:
-	std::unordered_map<std::wstring, std::unique_ptr<FAsset>> mAssets;
+	std::unordered_map<std::wstring, TUniquePtr<FAsset>> mAssets;
 };
 
 template<typename TAsset>
 inline bool FAssetManager::LoadAsset(const std::wstring& FilePath, const std::wstring& AssetName)
 {
-	std::unique_ptr<FAsset> Asset = std::make_unique<TAsset>();
+	TUniquePtr<FAsset> Asset = std::make_unique<TAsset>();
 	if (!Asset->LoadAsset(FilePath))
 	{
 		std::wstringstream wss;

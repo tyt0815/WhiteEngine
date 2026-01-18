@@ -1,7 +1,7 @@
 #pragma once
 
 #include <d3d12.h>
-#include <memory>
+#include "Utility/Memory.h"
 #include <unordered_map>
 #include <wrl.h>
 #include "Texture.h"
@@ -78,7 +78,7 @@ private:
 		std::string RoughnessTexture,
 		DirectX::XMFLOAT4X4 MatTransform
 	);
-	std::vector<std::unique_ptr<FMaterial>> mMaterials;
+	std::vector<TUniquePtr<FMaterial>> mMaterials;
 
 public:
 	inline FMaterial* GetMaterial(EMaterialType MaterialType)

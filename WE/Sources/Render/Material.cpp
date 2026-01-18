@@ -102,7 +102,7 @@ void FMaterialManager::Internal_BuildMaterial(
 	DirectX::XMFLOAT4X4 MatTransform
 )
 {
-	std::unique_ptr<FMaterial> Material = std::make_unique<FMaterial>();
+	TUniquePtr<FMaterial> Material = std::make_unique<FMaterial>();
 	Material->Type = Type;
 	Material->ShadingModel = ShadingModel;
 	Material->BlendMode = BlendMode;

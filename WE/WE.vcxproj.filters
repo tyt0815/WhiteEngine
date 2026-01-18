@@ -460,6 +460,9 @@
     <ClInclude Include="Sources\GameFramework\Object\Component\PhysicsComponent.h">
       <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClInclude>
+    <ClInclude Include="Sources\Utility\Memory.h">
+      <Filter>Sources\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\BillboardCommon.hlsli">

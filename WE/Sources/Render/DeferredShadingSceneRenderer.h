@@ -36,7 +36,7 @@ private:
     public:
         FFrameResource(ID3D12Device* Device);
     private:
-        std::unique_ptr<TUploadBuffer<FDeferredShadingPassConstantBuffer>> mDeferredShadingPassCB;
+        TUniquePtr<TUploadBuffer<FDeferredShadingPassConstantBuffer>> mDeferredShadingPassCB;
     public:
         inline TUploadBuffer<FDeferredShadingPassConstantBuffer>* GetDeferredShadingPassCB() const
         {
@@ -100,11 +100,11 @@ private:
 
     void DrawGBuffers(ID3D12GraphicsCommandList* CommandList, FFrameResource* FrameResource, const FRenderItemProxy* RenderItemProxy);
 
-    std::unique_ptr<FRenderTarget> mGBufferA;
-    std::unique_ptr<FRenderTarget> mGBufferB;
-    std::unique_ptr<FRenderTarget> mGBufferC;
-    std::unique_ptr<FDepthStencil> mGBufferDepthStencil;
-    std::unique_ptr<FEnvironmentMapRenderer> mEnvironmentMapRenderer;
+    TUniquePtr<FRenderTarget> mGBufferA;
+    TUniquePtr<FRenderTarget> mGBufferB;
+    TUniquePtr<FRenderTarget> mGBufferC;
+    TUniquePtr<FDepthStencil> mGBufferDepthStencil;
+    TUniquePtr<FEnvironmentMapRenderer> mEnvironmentMapRenderer;
 
     EDebugScreenMode mScreenMode = EDebugScreenMode::EDSM_Default;
 };

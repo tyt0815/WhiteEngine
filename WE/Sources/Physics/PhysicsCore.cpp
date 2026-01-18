@@ -94,21 +94,21 @@ public:
 
 namespace Physics
 {
-	std::unique_ptr<PhysicsSystem> g_PhysicsSystem;
+	TUniquePtr<PhysicsSystem> g_PhysicsSystem;
 
-	std::unique_ptr<TempAllocatorImpl> g_TempAllocator;
+	TUniquePtr<TempAllocatorImpl> g_TempAllocator;
 
-	std::unique_ptr<JobSystemThreadPool> g_JobSystem;
+	TUniquePtr<JobSystemThreadPool> g_JobSystem;
 
-	std::unique_ptr<FBroadPhaseLayerInterface> g_BroadPhaseLayerInterface;
+	TUniquePtr<FBroadPhaseLayerInterface> g_BroadPhaseLayerInterface;
 
-	std::unique_ptr<FObjectVsBroadPhaseLayerFilter> g_ObjectVsBroadPhaseLayerFilter;
+	TUniquePtr<FObjectVsBroadPhaseLayerFilter> g_ObjectVsBroadPhaseLayerFilter;
 
-	std::unique_ptr<FObjectLayerPairFilter> g_ObjectLayerPairFilter;
+	TUniquePtr<FObjectLayerPairFilter> g_ObjectLayerPairFilter;
 
-	std::unique_ptr<MyBodyActivationListener> g_BodyActivationListener;
+	TUniquePtr<MyBodyActivationListener> g_BodyActivationListener;
 
-	std::unique_ptr<MyContactListener> g_ContactListener;
+	TUniquePtr<MyContactListener> g_ContactListener;
 
 	bool g_bDrawShape = true;
 	bool g_bDrawBoundingBox = false;

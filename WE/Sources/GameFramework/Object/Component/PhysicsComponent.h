@@ -2,6 +2,7 @@
 #include "SceneComponent.h"
 #include "Physics/PhysicsBody.h"
 #include "Utility/Delegate.h"
+#include "Utility/Memory.h"
 
 DECLARE_DELEGATE_TwoParams(FComponentHitDelegate, class WPhysicsComponent*, XMFLOAT3);
 DECLARE_DELEGATE_TwoParams(FComponentBeginOverlapDelegate, class WPhysicsComponent*, XMFLOAT3);
@@ -58,5 +59,5 @@ protected:
 	bool mbPhysicSimulate = false;
 
 private:
-	std::unique_ptr<FPhysicsBody> mBody;
+	TUniquePtr<FPhysicsBody> mBody;
 };

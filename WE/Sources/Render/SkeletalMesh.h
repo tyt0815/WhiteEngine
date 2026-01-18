@@ -4,7 +4,7 @@
 #include "SkinnedData.h"
 #include "LoadM3d.h"
 
-#include <memory>
+#include "Utility/Memory.h"
 
 struct SkinnedVertex
 {
@@ -42,7 +42,7 @@ struct SkinnedModelInstance
 
 struct FSkeletalMesh
 {
-    std::unique_ptr<SkinnedModelInstance> SkinnedModelInst;
+    TUniquePtr<SkinnedModelInstance> SkinnedModelInst;
     std::vector<M3DLoader::Subset> SkinnedSubsets;
     std::vector<M3DLoader::M3dMaterial> SkinnedMats;
     std::vector<M3DLoader::SkinnedVertex> Vertices;
@@ -54,5 +54,5 @@ class FSkeletalMeshManager
 {
 	SINGLETON(FSkeletalMeshManager);
 public:
-	std::unique_ptr<FSkeletalMesh> mSkeletalMesh;
+	TUniquePtr<FSkeletalMesh> mSkeletalMesh;
 };

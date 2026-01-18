@@ -2,7 +2,7 @@
 
 #include <array>
 #include <d3d12.h>
-#include <memory>
+#include "Utility/Memory.h"
 #include <unordered_map>
 #include <wrl.h>
 #include "Material.h"
@@ -112,17 +112,17 @@ public:
     virtual ~FFrameResourceBase();
     void Flush();
 
-    std::unique_ptr<TUploadBuffer<FLine3DVertex>> mLine3DVB;
+    TUniquePtr<TUploadBuffer<FLine3DVertex>> mLine3DVB;
 
 private:
     Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mCommandAllocator;
-    std::unique_ptr<TUploadBuffer<FPassConstantBuffer>> mPassConstantBuffer;
-    std::unique_ptr<TUploadBuffer<FMeshConstantBuffer>> mMeshConstantBuffer;
-    std::unique_ptr<TUploadBuffer<FSubmeshConstantBuffer>> mSubmeshConstantBuffer;
-    std::unique_ptr<TUploadBuffer<FLightInfoConstantBuffer>> mLightInfoConstantBuffer;
-    std::unique_ptr<TUploadBuffer<FSkinnedConstantBuffer>> mSkinnedConstantBuffer;
-    std::unique_ptr<TUploadBuffer<FMaterialStructuredBuffer>> mMaterialStructuredBuffer;
-    std::unique_ptr<TUploadBuffer<FDirectionalLightStructuredBuffer>> mDirectionalLightStructuredBuffer;
+    TUniquePtr<TUploadBuffer<FPassConstantBuffer>> mPassConstantBuffer;
+    TUniquePtr<TUploadBuffer<FMeshConstantBuffer>> mMeshConstantBuffer;
+    TUniquePtr<TUploadBuffer<FSubmeshConstantBuffer>> mSubmeshConstantBuffer;
+    TUniquePtr<TUploadBuffer<FLightInfoConstantBuffer>> mLightInfoConstantBuffer;
+    TUniquePtr<TUploadBuffer<FSkinnedConstantBuffer>> mSkinnedConstantBuffer;
+    TUniquePtr<TUploadBuffer<FMaterialStructuredBuffer>> mMaterialStructuredBuffer;
+    TUniquePtr<TUploadBuffer<FDirectionalLightStructuredBuffer>> mDirectionalLightStructuredBuffer;
     UINT64 mFenceCount = 0;
 
 public:
@@ -243,8 +243,8 @@ protected:
 
     void FinishBackBuffer(ID3D12GraphicsCommandList* CommandList);
 
-    std::unique_ptr<FGaussianBlurFilter> mGaussianBlurFilter;
-    std::array<std::unique_ptr<FFrameResourceBase>, FRAME_RESOURCES_NUM> mFrameResources;
+    TUniquePtr<FGaussianBlurFilter> mGaussianBlurFilter;
+    std::array<TUniquePtr<FFrameResourceBase>, FRAME_RESOURCES_NUM> mFrameResources;
     std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D12RootSignature>> mRootSignatures;
     std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3DBlob>> mShaders;
     std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D12PipelineState>> mPipelineStates;

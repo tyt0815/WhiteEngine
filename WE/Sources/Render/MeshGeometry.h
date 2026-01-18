@@ -3,7 +3,7 @@
 #include <D3Dcompiler.h>
 #include <DirectXCollision.h>
 #include <vector>
-#include <memory>
+#include "Utility/Memory.h"
 #include <unordered_map>
 #include <wrl.h>
 #include <fbxsdk.h>
@@ -131,7 +131,7 @@ private:
 	void BuildSkullMeshGeometry(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 	void BuildBillboardPoints(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 	void BuildRectangle(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
-	std::unordered_map<std::string, std::unique_ptr<FMeshGeometry>> mMeshGeometries;
+	std::unordered_map<std::string, TUniquePtr<FMeshGeometry>> mMeshGeometries;
 
 	void LoadFbxs(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 	void LoadFbx(
@@ -168,7 +168,7 @@ inline void FMeshGeometryManager::BuildMeshGeometryU16(
 	const UINT VBByteSize = (UINT)Vertices.size() * sizeof(TVertex);
 	const UINT IBByteSize = (UINT)Indices.size() * sizeof(std::uint16_t);
 
-	std::unique_ptr<FMeshGeometry> Geometry = std::make_unique<FMeshGeometry>();
+	TUniquePtr<FMeshGeometry> Geometry = std::make_unique<FMeshGeometry>();
 	Geometry->Name = Name;
 	Geometry->PrimitiveType = PrimitiveType;
 	THROW_IF_FAILED(D3DCreateBlob(VBByteSize, &Geometry->VertexBufferCPU));
@@ -209,7 +209,7 @@ inline void FMeshGeometryManager::BuildMeshGeometryU32(
 	const UINT VBByteSize = (UINT)Vertices.size() * sizeof(TVertex);
 	const UINT IBByteSize = (UINT)Indices.size() * sizeof(std::uint32_t);
 
-	std::unique_ptr<FMeshGeometry> Geometry = std::make_unique<FMeshGeometry>();
+	TUniquePtr<FMeshGeometry> Geometry = std::make_unique<FMeshGeometry>();
 	Geometry->Name = Name;
 	Geometry->PrimitiveType = PrimitiveType;
 	THROW_IF_FAILED(D3DCreateBlob(VBByteSize, &Geometry->VertexBufferCPU));

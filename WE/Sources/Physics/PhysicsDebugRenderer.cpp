@@ -5,7 +5,7 @@ using namespace JPH;
 
 namespace Physics
 {
-	std::unique_ptr<FPhysicsDebugRenderer> g_DebugRenderer;
+	TUniquePtr<FPhysicsDebugRenderer> g_DebugRenderer;
 }
 
 FPhysicsDebugRenderer::FPhysicsDebugRenderer()

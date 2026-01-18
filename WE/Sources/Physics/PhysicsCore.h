@@ -5,7 +5,7 @@
 #include "DirectX/DXMath.h"
 #include "Utility/Delegate.h"
 
-#include <memory>
+#include "Utility/Memory.h"
 
 using namespace DirectX;
 

@@ -7,6 +7,7 @@
 
 #include <DirectXMath.h>
 #include <vector>
+#include "Utility/Memory.h"
 
 using namespace JPH;
 using namespace DirectX;
@@ -60,5 +61,5 @@ public:
 
 namespace Physics
 {
-	extern std::unique_ptr<FPhysicsDebugRenderer> g_DebugRenderer;
+	extern TUniquePtr<FPhysicsDebugRenderer> g_DebugRenderer;
 }

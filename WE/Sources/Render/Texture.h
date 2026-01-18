@@ -1,6 +1,6 @@
 #pragma once
 
-#include <memory>
+#include "Utility/Memory.h"
 #include <unordered_map>
 #include <wrl.h>
 #include "DirectX/d3dx12.h"
@@ -48,7 +48,7 @@ public:
 private:
 	void LoadTextures(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 	void LoadTexture(std::string Name, ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
-	std::unordered_map<std::string, std::unique_ptr<FTexture>> mTextures;
+	std::unordered_map<std::string, TUniquePtr<FTexture>> mTextures;
 public:
 	inline bool IsExist(std::string Name) const
 	{
