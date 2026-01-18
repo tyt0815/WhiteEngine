@@ -427,37 +427,36 @@ void ARingProjectileSpawner::Tick_PostPhysics(float Delta)
 
 WSplineProjectileDemoWorld::WSplineProjectileDemoWorld()
 {
-	TWeakPtr<ASpiralBulletSpawner> SpiralSpawner = SpawnActor<ASpiralBulletSpawner>();
-	if (auto Actor = SpiralSpawner.lock())
+	;
+	if (auto SpiralSpawner = SpawnActor<ASpiralBulletSpawner>().lock())
 	{
-		Actor->SetActorLocation(XMFLOAT3(5, -2, 10));
-		Actor->SetActorRotation(XMFLOAT3(0, 90, 0));
+		SpiralSpawner->SetActorLocation(XMFLOAT3(5, -2, 10));
+		SpiralSpawner->SetActorRotation(XMFLOAT3(0, 90, 0));
 	}
 
-	TWeakPtr<AWaveBulletSpanwer> WaveSpawner = SpawnActor<AWaveBulletSpanwer>();
-	if (auto Actor = WaveSpawner.lock())
+	
+	if (auto WaveSpawner = SpawnActor<AWaveBulletSpanwer>().lock())
 	{
-		Actor->SetActorLocation(XMFLOAT3(-5, -2, 15));
-		Actor->SetActorRotation(XMFLOAT3(0, 180, 0));
+		WaveSpawner->SetActorLocation(XMFLOAT3(-5, -2, 15));
+		WaveSpawner->SetActorRotation(XMFLOAT3(0, 180, 0));
 
-		TWeakPtr<AHitReactor> BulletHitReactor = SpawnActor<AHitReactor>();
-		if (auto HitReactor = BulletHitReactor.lock())
+		
+		if (auto BulletHitReactor = SpawnActor<AHitReactor>().lock())
 		{
-			HitReactor->AddTeleportTargets(Actor->GetSplines());
-			HitReactor->RandomTeleport();
+			BulletHitReactor->AddTeleportTargets(WaveSpawner->GetSplines());
+			BulletHitReactor->RandomTeleport();
 		}
 	}
 
-	TWeakPtr<ARingProjectileSpawner> RingSpawner = SpawnActor <ARingProjectileSpawner>();
-	if (auto Actor = WaveSpawner.lock())
+	
+	if (auto RingSpawner = SpawnActor<ARingProjectileSpawner>().lock())
 	{
-		Actor->SetActorLocation(XMFLOAT3(-5, -2, 20));
-		Actor->SetActorRotation(XMFLOAT3(0, 90, 0));
+		RingSpawner->SetActorLocation(XMFLOAT3(-5, -2, 20));
+		RingSpawner->SetActorRotation(XMFLOAT3(0, 90, 0));
 	}
 
-	TWeakPtr<AHitReactor> RingHitReactor = SpawnActor<AHitReactor>();
-	if (auto Actor = WaveSpawner.lock())
+	if (auto RingHitReactor = SpawnActor<AHitReactor>().lock())
 	{
-		Actor->SetActorLocation(XMFLOAT3(5, -2, 20));
+		RingHitReactor->SetActorLocation(XMFLOAT3(5, -2, 20));
 	}
 }
