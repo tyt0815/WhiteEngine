@@ -721,8 +721,16 @@ void FSceneRenderer::UpdateDebugLine3DVB(TUploadBuffer<FLine3DVertex>* DebugLine
 		FLine3DVertex Vertex;
 		Vertex.Position = Proxy.Start;
 		Vertex.Color = Proxy.Color;
+		if (Index >= LineVertices.size())
+		{
+			break;
+		}
 		LineVertices[Index++] = Vertex;
 		Vertex.Position = Proxy.End;
+		if (Index >= LineVertices.size())
+		{
+			break;
+		}
 		LineVertices[Index++] = Vertex;
 	}
 
@@ -732,8 +740,16 @@ void FSceneRenderer::UpdateDebugLine3DVB(TUploadBuffer<FLine3DVertex>* DebugLine
 		FLine3DVertex Vertex;
 		Vertex.Position = Line.Start;
 		Vertex.Color = Line.Color;
+		if (Index >= LineVertices.size())
+		{
+			break;
+		}
 		LineVertices[Index++] = Vertex;
 		Vertex.Position = Line.End;
+		if (Index >= LineVertices.size())
+		{
+			break;
+		}
 		LineVertices[Index++] = Vertex;
 	}
 

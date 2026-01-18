@@ -144,19 +144,6 @@ LRESULT FWindow::WindowProcedure(HWND WindowHandle, UINT Message, WPARAM WParam,
 
 	switch (Message)
 	{
-		// WM_ACTIVATE is sent when the window is activated or deactivated.  
-		// We pause the game when the window is deactivated and unpause it 
-		// when it becomes active.  
-	case WM_ACTIVATE:
-		if (LOWORD(WParam) == WA_INACTIVE)
-		{
-			bPaused = true;
-		}
-		else
-		{
-			bPaused = false;
-		}
-		return 0;
 
 		// WM_SIZE is sent when the user resizes the window.  
 	case WM_SIZE:
@@ -164,13 +151,11 @@ LRESULT FWindow::WindowProcedure(HWND WindowHandle, UINT Message, WPARAM WParam,
 		// Save the new client area dimensions.
 		if (WParam == SIZE_MINIMIZED)
 		{
-			bPaused = true;
 			bMinimized = true;
 			bMaximized = false;
 		}
 		else if (WParam == SIZE_MAXIMIZED)
 		{
-			bPaused = false;
 			bMinimized = false;
 			bMaximized = true;
 			Resize();
@@ -181,7 +166,6 @@ LRESULT FWindow::WindowProcedure(HWND WindowHandle, UINT Message, WPARAM WParam,
 			// Restoring from minimized state?
 			if (bMinimized)
 			{
-				bPaused = false;
 				bMinimized = false;
 				Resize();
 			}
@@ -189,7 +173,6 @@ LRESULT FWindow::WindowProcedure(HWND WindowHandle, UINT Message, WPARAM WParam,
 			// Restoring from maximized state?
 			else if (bMaximized)
 			{
-				bPaused = false;
 				bMaximized = false;
 				Resize();
 			}
@@ -213,14 +196,12 @@ LRESULT FWindow::WindowProcedure(HWND WindowHandle, UINT Message, WPARAM WParam,
 
 		// WM_EXITSIZEMOVE is sent when the user grabs the resize bars.
 	case WM_ENTERSIZEMOVE:
-		bPaused = true;
 		bResized = true;
 		return 0;
 
 		// WM_EXITSIZEMOVE is sent when the user releases the resize bars.
 		// Here we reset everything based on the new window dimensions.
 	case WM_EXITSIZEMOVE:
-		bPaused = false;
 		bResized = false;
 		UpdateWindowSize();
 		Resize();

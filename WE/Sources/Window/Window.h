@@ -33,7 +33,6 @@ private:
 	UINT mLastX = 0;
 	UINT mLastY = 0;
 
-	bool bPaused = false;
 	bool bResized = false;
 	bool bMinimized = false;
 	bool bMaximized = false;
@@ -44,7 +43,6 @@ public:
 	inline std::wstring GetWindowName() const { return mWindowName; }
 	inline UINT GetWidth() const { return mWidth; }
 	inline UINT GetHeight() const { return mHeight; }
-	inline bool IsPaused() const { return bPaused; }
 	void SetResizeCallbackFunction(std::function<void()> Function)
 	{
 		mResizeCallbackFunctions.push_back(Function);

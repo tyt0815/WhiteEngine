@@ -87,19 +87,12 @@ namespace GameCore
 			else
 			{
 				Timer->Tick();
-				if (!GetMainWindowPtr()->IsPaused())
-				{
-					CalculateFrameStats();
+				
+				CalculateFrameStats();
 
-					GetInputSystemManager()->Tick();
+				GetInputSystemManager()->Tick();
 
-					Game.Update(Timer->GetDeltaTime());
-				}
-				else
-				{
-					GetEngineTimer()->Stop();
-					Sleep(100);
-				}
+				Game.Update(Timer->GetDeltaTime());
 			}
 		}
 	}
