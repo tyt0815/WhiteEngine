@@ -8,6 +8,8 @@
 #include "DirectX/CBVSRVUAVHeap.h"
 #include "MeshGeometry.h"
 #include "Physics/PhysicsDebugRenderer.h"
+#include "GUI/GUICore.h"
+#include "Window/Window.h"
 
 #include "SkeletalMesh.h"
 
@@ -56,6 +58,13 @@ FSceneRenderer::FSceneRenderer()
 	FDXResourceManager* DXManager = GetDXResourceManagerPtr();
 	D3D12_VIEWPORT Viewport = DXManager->GetScreenViewport();
 	mGaussianBlurFilter = std::make_unique<FGaussianBlurFilter>(DXManager->GetDevicePtr(), (UINT)Viewport.Width, (UINT)Viewport.Height);
+
+	GUI::Initialize(GetHWND(), DXManager->GetDevicePtr(), DXManager->GetCommandQueuePtr(), DXManager->GetBackbufferFormat());
+}
+
+FSceneRenderer::~FSceneRenderer()
+{
+	GUI::Shutdown();
 }
 
 void FSceneRenderer::Initialize(ID3D12Device* Device)
@@ -80,6 +89,8 @@ void FSceneRenderer::Tick(const FRenderItemProxy* RenderItemProxy)
 	D3D12_CPU_DESCRIPTOR_HANDLE Dsv = GetDXResourceManagerPtr()->GetDepthStencilView();
 	D3D12_VIEWPORT Viewport = GetDXResourceManagerPtr()->GetScreenViewport();
 	D3D12_RECT ScissorRect = GetDXResourceManagerPtr()->GetScissorRect();
+	ReadyBackBuffer(CommandList);
+
 	Render(
 		CommandList,
 		FrameResource,
@@ -91,6 +102,15 @@ void FSceneRenderer::Tick(const FRenderItemProxy* RenderItemProxy)
 		RenderItemProxy
 	);
 
+	CommandList->OMSetRenderTargets(1, &Rtv, true, &Dsv);
+	D3D12_VIEWPORT HalfViewport = Viewport;
+	HalfViewport.Height /= 2;
+	HalfViewport.Width /= 2;
+	CommandList->RSSetViewports(1, &Viewport);
+	CommandList->RSSetScissorRects(1, &ScissorRect);
+	GUI::Update(CommandList);
+
+	FinishBackBuffer(CommandList);
 	THROW_IF_FAILED(CommandList->Close());
 	ID3D12CommandList* CommandLists[] = { CommandList };
 	ID3D12CommandQueue* CommandQueue = GetDXResourceManagerPtr()->GetCommandQueuePtr();

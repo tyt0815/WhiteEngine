@@ -172,7 +172,7 @@ class FSceneRenderer : FNoncopyable
 {
 public:
     FSceneRenderer();
-    virtual ~FSceneRenderer() = default;
+    virtual ~FSceneRenderer();
     virtual void Initialize(ID3D12Device* Device);
     void Tick(const FRenderItemProxy* RenderItemProxy);
     virtual void Destroy();

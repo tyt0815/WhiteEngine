@@ -58,6 +58,8 @@ namespace GameCore
 		GetTextureManager();
 		FShapeDrawer::GetInstance();
 
+		FDXResourceManager* DXRM = GetDXResourceManagerPtr();
+
 		Game.Startup();
 	}
 

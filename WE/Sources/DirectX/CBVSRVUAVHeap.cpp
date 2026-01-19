@@ -24,6 +24,13 @@ FCBVSRVUAVHeap::~FCBVSRVUAVHeap()
 {
 }
 
+int FCBVSRVUAVHeap::CreateEmptyTexture2DSRV()
+{
+	assert(mTexture2DViewCount < TEXTURE2D_VIEW_NUM);
+	int SRVHeapIndex = mTexture2DViewCount++;
+	return SRVHeapIndex;
+}
+
 int FCBVSRVUAVHeap::CreateTexture2DSRV(ID3D12Resource* Resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& SRVDesc)
 {
 	assert(mTexture2DViewCount < TEXTURE2D_VIEW_NUM);

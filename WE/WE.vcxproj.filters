@@ -54,6 +54,9 @@
     <Filter Include="Sources\Asset">
       <UniqueIdentifier>{1a10e40e-221b-40ae-8bfa-90824d52ab69}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\GUI">
+      <UniqueIdentifier>{52a28238-4d4e-4d21-b7f8-e75654c28cfa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Utility\Timer.cpp">
@@ -253,6 +256,9 @@
     </ClCompile>
     <ClCompile Include="Sources\GameFramework\Object\Component\ObjectAnimComponent.cpp">
       <Filter>Sources\GameFramework\Object\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GUI\GUICore.cpp">
+      <Filter>Sources\GUI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -480,6 +486,9 @@
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\Component\ObjectAnimComponent.h">
       <Filter>Sources\GameFramework\Object\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GUI\GUICore.h">
+      <Filter>Sources\GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

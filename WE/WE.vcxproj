@@ -50,6 +50,7 @@
     <ClCompile Include="Sources\GameFramework\Object\World\DefaultWorld.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\World\World.cpp" />
     <ClCompile Include="Sources\GameFramework\RenderItemProxy.cpp" />
+    <ClCompile Include="Sources\GUI\GUICore.cpp" />
     <ClCompile Include="Sources\Physics\PhysicsBody.cpp" />
     <ClCompile Include="Sources\Physics\PhysicsCore.cpp" />
     <ClCompile Include="Sources\Physics\PhysicsDebugRenderer.cpp">
@@ -126,6 +127,7 @@
     <ClInclude Include="Sources\GameFramework\Object\World\DefaultWorld.h" />
     <ClInclude Include="Sources\GameFramework\Object\World\World.h" />
     <ClInclude Include="Sources\GameFramework\RenderItemProxy.h" />
+    <ClInclude Include="Sources\GUI\GUICore.h" />
     <ClInclude Include="Sources\Physics\JPHUtility.h" />
     <ClInclude Include="Sources\Physics\ObjectChannel.h" />
     <ClInclude Include="Sources\Physics\PhysicsBody.h" />
@@ -330,6 +332,11 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ThirdParty\ImGui\ImGui.vcxproj">
+      <Project>{0aacc1a0-c3c9-4aae-8000-4411ec6d71e3}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -385,7 +392,7 @@
       </PrecompiledHeaderFile>
       <PreprocessorDefinitions>PROJECT_DIR=R"($(ProjectDir))";PROJECT_DIR_W=LR"($(ProjectDir))";SOLUTION_DIR=R"($(SolutionDir))";SOLUTION_DIR_W=LR"($(SolutionDir))";JPH_FLOATING_POINT_EXCEPTIONS_ENABLED=1;JPH_OBJECT_STREAM=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\WE\Sources;$(SolutionDir)\WE\Sources/GameFramework/Object;C:\Program Files\Autodesk\FBX\FBX SDK\2020.3.7\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)WE\Sources;$(SolutionDir)WE\Sources/GameFramework/Object;C:\Program Files\Autodesk\FBX\FBX SDK\2020.3.7\include;$(SolutionDir)ThirdParty\ImGui;$(SolutionDir)ThirdParty\ImGui\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

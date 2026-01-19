@@ -431,7 +431,7 @@ void FDeferredShadingSceneRenderer::Render(
 	DrawGBuffers(CommandList, FrameResource, RenderItemProxy);
 	DrawShadowMap(CommandList, FrameResource, RenderItemProxy);
 
-	ReadyBackBuffer(CommandList);
+	
 	CommandList->OMSetRenderTargets(1, &Rtv, true, &Dsv);
 	CommandList->RSSetViewports(1, &Viewport);
 	CommandList->RSSetScissorRects(1, &ScissorRect);
@@ -518,7 +518,7 @@ void FDeferredShadingSceneRenderer::Render(
 	CommandList->DrawInstanced(IndexCount, 1, 0, 0);
 
 	
-	FinishBackBuffer(CommandList);
+	
 }
 
 void FDeferredShadingSceneRenderer::DrawDebugGBuffers(
