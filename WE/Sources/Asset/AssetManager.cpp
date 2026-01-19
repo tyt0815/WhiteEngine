@@ -26,7 +26,7 @@ void FAssetManager::LoadAssets()
 
 	std::wstring XMLDir = SolutionDir + L"Resources/XML";
 	LoadAsset<FXMLDataAsset>(XMLDir + L"/Test.xml", L"XDA_Test");
-	LoadAsset<FXMLDataAsset>(XMLDir + L"/Projectile.xml", L"XDA_Projectile");
+	LoadAsset<FXMLDataAsset>(XMLDir + L"/Projectile_Test.xml", L"XDA_Projectile_Test");
 }
 
 FAsset* FAssetManager::GetAsset(const std::wstring& Name)

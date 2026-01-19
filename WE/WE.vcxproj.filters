@@ -251,7 +251,7 @@
     <ClCompile Include="Sources\Asset\XMLDataAsset.cpp">
       <Filter>Sources\Asset</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\GameFramework\Object\Component\ProjectileAnimationComponent.cpp">
+    <ClCompile Include="Sources\GameFramework\Object\Component\ObjectAnimComponent.cpp">
       <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClCompile>
   </ItemGroup>
@@ -478,7 +478,7 @@
     <ClInclude Include="Sources\Asset\XMLDataAsset.h">
       <Filter>Sources\Asset</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\GameFramework\Object\Component\ProjectileAnimationComponent.h">
+    <ClInclude Include="Sources\GameFramework\Object\Component\ObjectAnimComponent.h">
       <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClInclude>
   </ItemGroup>

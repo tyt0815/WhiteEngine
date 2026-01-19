@@ -75,6 +75,7 @@ public:
 	static const float Pi;
 
 public:
+
 	// Returns random float in [0, 1).
 	inline static float RandF()
 	{

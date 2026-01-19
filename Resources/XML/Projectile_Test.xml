@@ -1,0 +1,42 @@
+<?xml version="1.0" ?>
+<ObjectAnimation name="Projectile">
+   <Info fps="24"/>
+   <AnimationCurves>
+      <Curve data_path="location" name="LocationX">
+         <Keyframe frame="0.00" value="0.000000" interp="LINEAR" h_left_x="-8.0000" h_left_y="0.0000" h_right_x="8.0000" h_right_y="0.0000"/>
+         <Keyframe frame="24.00" value="10.000000" interp="LINEAR" h_left_x="16.0000" h_left_y="10.0000" h_right_x="32.0000" h_right_y="10.0000"/>
+      </Curve>
+      <Curve data_path="location" name="LocationY">
+         <Keyframe frame="0.00" value="0.000000" interp="BEZIER" h_left_x="-4.0000" h_left_y="0.0000" h_right_x="4.0000" h_right_y="0.0000"/>
+         <Keyframe frame="12.00" value="5.000000" interp="BEZIER" h_left_x="8.0000" h_left_y="5.0000" h_right_x="16.0000" h_right_y="5.0000"/>
+         <Keyframe frame="24.00" value="0.000000" interp="BEZIER" h_left_x="20.0000" h_left_y="0.0000" h_right_x="28.0000" h_right_y="0.0000"/>
+      </Curve>
+      <Curve data_path="location" name="LocationZ">
+         <Keyframe frame="0.00" value="0.000000" interp="LINEAR" h_left_x="-2.0000" h_left_y="0.0000" h_right_x="2.0000" h_right_y="0.0000"/>
+         <Keyframe frame="6.00" value="2.500000" interp="LINEAR" h_left_x="4.0000" h_left_y="2.5000" h_right_x="10.0000" h_right_y="2.5000"/>
+         <Keyframe frame="18.00" value="-2.500000" interp="LINEAR" h_left_x="14.0000" h_left_y="-2.5000" h_right_x="20.0000" h_right_y="-2.5000"/>
+         <Keyframe frame="24.00" value="0.000000" interp="CONSTANT" h_left_x="22.0000" h_left_y="0.0000" h_right_x="26.0000" h_right_y="0.0000"/>
+      </Curve>
+      <Curve data_path="scale" name="ScaleX">
+         <Keyframe frame="0.00" value="1.000000" interp="BEZIER" h_left_x="-2.0000" h_left_y="1.0000" h_right_x="2.0000" h_right_y="1.0000"/>
+         <Keyframe frame="6.00" value="2.000000" interp="BEZIER" h_left_x="4.0000" h_left_y="2.0000" h_right_x="8.0000" h_right_y="2.0000"/>
+         <Keyframe frame="12.00" value="1.000000" interp="BEZIER" h_left_x="10.0000" h_left_y="1.0000" h_right_x="14.0000" h_right_y="1.0000"/>
+         <Keyframe frame="18.00" value="1.000000" interp="BEZIER" h_left_x="16.0000" h_left_y="1.0000" h_right_x="20.0000" h_right_y="1.0000"/>
+         <Keyframe frame="24.00" value="1.000000" interp="BEZIER" h_left_x="22.0000" h_left_y="1.0000" h_right_x="26.0000" h_right_y="1.0000"/>
+      </Curve>
+      <Curve data_path="scale" name="ScaleZ">
+         <Keyframe frame="0.00" value="1.000000" interp="BEZIER" h_left_x="-2.0000" h_left_y="1.0000" h_right_x="2.0000" h_right_y="1.0000"/>
+         <Keyframe frame="6.00" value="1.000000" interp="BEZIER" h_left_x="4.0000" h_left_y="1.0000" h_right_x="8.0000" h_right_y="1.0000"/>
+         <Keyframe frame="12.00" value="2.000000" interp="BEZIER" h_left_x="10.0000" h_left_y="2.0000" h_right_x="14.0000" h_right_y="2.0000"/>
+         <Keyframe frame="18.00" value="1.000000" interp="BEZIER" h_left_x="16.0000" h_left_y="1.0000" h_right_x="20.0000" h_right_y="1.0000"/>
+         <Keyframe frame="24.00" value="1.000000" interp="BEZIER" h_left_x="22.0000" h_left_y="1.0000" h_right_x="26.0000" h_right_y="1.0000"/>
+      </Curve>
+      <Curve data_path="scale" name="ScaleY">
+         <Keyframe frame="0.00" value="1.000000" interp="BEZIER" h_left_x="-2.0000" h_left_y="1.0000" h_right_x="2.0000" h_right_y="1.0000"/>
+         <Keyframe frame="6.00" value="1.000000" interp="BEZIER" h_left_x="4.0000" h_left_y="1.0000" h_right_x="8.0000" h_right_y="1.0000"/>
+         <Keyframe frame="12.00" value="1.000000" interp="BEZIER" h_left_x="10.0000" h_left_y="1.0000" h_right_x="14.0000" h_right_y="1.0000"/>
+         <Keyframe frame="18.00" value="2.000000" interp="BEZIER" h_left_x="16.0000" h_left_y="2.0000" h_right_x="20.0000" h_right_y="2.0000"/>
+         <Keyframe frame="24.00" value="1.000000" interp="BEZIER" h_left_x="22.0000" h_left_y="1.0000" h_right_x="26.0000" h_right_y="1.0000"/>
+      </Curve>
+   </AnimationCurves>
+</ObjectAnimation>

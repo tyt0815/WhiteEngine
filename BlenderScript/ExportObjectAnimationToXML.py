@@ -12,7 +12,7 @@ def export_all_fcurves_to_xml(folder_path, obj):
         return
 
     # 2. XML 루트 생성
-    root = ET.Element("ProjectileAnimation", name=obj.name)
+    root = ET.Element("ObjectAnimation", name=obj.name)
     
     # 기본 정보 추가
     info = ET.SubElement(root, "Info")
@@ -30,12 +30,12 @@ def export_all_fcurves_to_xml(folder_path, obj):
         # DX12 좌표계에 맞춰서 Y, Z 변경
         axis_map = {0: "X", 1: "Z", 2: "Y", 3: "W"}
         
-        if data_path == "Location":
-            prop_display_name = f"Loc_{axis_map.get(array_index, array_index)}"
-        elif data_path == "EulerRotation":
-            prop_display_name = f"Rot_{axis_map.get(array_index, array_index)}"
-        elif data_path == "Scale":
-            prop_display_name = f"Scale_{axis_map.get(array_index, array_index)}"
+        if data_path in "location":
+            prop_display_name = f"Location{axis_map.get(array_index, array_index)}"
+        elif data_path in "rotation_euler":
+            prop_display_name = f"Rotation{axis_map.get(array_index, array_index)}"
+        elif data_path in "scale":
+            prop_display_name = f"Scale{axis_map.get(array_index, array_index)}"
         elif data_path.startswith('["'):
             # 커스텀 프로퍼티 이름 추출 (예: ["Speed"] -> Speed)
             clean_name = data_path.strip('[]" ')
@@ -50,23 +50,17 @@ def export_all_fcurves_to_xml(folder_path, obj):
         curve_node.set("name", prop_display_name)
         
         # 4. 키프레임 포인트 추출
-        prev_interpolation = "Linear"
         for keypoint in fcurve.keyframe_points:
             kp_node = ET.SubElement(curve_node, "Keyframe")
             kp_node.set("frame", f"{keypoint.co[0]:.2f}")
             kp_node.set("value", f"{keypoint.co[1]:.6f}")
             kp_node.set("interp", keypoint.interpolation)
             
-            if prev_interpolation == "BEZIER":
-                kp_node.set("h_left_x", f"{keypoint.handle_left[0]:.4f}")
-                kp_node.set("h_left_y", f"{keypoint.handle_left[1]:.4f}")
-            # 베지어 핸들 (애니메이션 곡률 재현용)
-            if keypoint.interpolation == 'BEZIER':
-                kp_node.set("h_right_x", f"{keypoint.handle_right[0]:.4f}")
-                kp_node.set("h_right_y", f"{keypoint.handle_right[1]:.4f}")
-                
-                
-            prev_interpolation = keypoint.interpolation
+            kp_node.set("h_left_x", f"{keypoint.handle_left[0]:.4f}")
+            kp_node.set("h_left_y", f"{keypoint.handle_left[1]:.4f}")
+            kp_node.set("h_right_x", f"{keypoint.handle_right[0]:.4f}")
+            kp_node.set("h_right_y", f"{keypoint.handle_right[1]:.4f}")
+            
 
     # 5. 파일 저장
     # 폴더가 없으면 생성
