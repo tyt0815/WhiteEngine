@@ -1,6 +1,9 @@
 #include "AssetLoader.h"
+#include "Utility/String.h"
 #include <sstream>
 #include <Windows.h>
+
+using namespace tinyxml2;
 
 bool Asset::OpenFile(const std::wstring& FilePath, std::ifstream& File)
 {
@@ -34,4 +37,25 @@ bool Asset::LoadJSON(const std::wstring& FilePath, FJson& Json)
 	}
 
 	return false;
+}
+
+void foo_recursive(XMLElement* Element)
+{
+
+}
+
+bool Asset::LoadXML(const std::string& FilePath, tinyxml2::XMLDocument& Doc)
+{
+	XMLError Error = Doc.LoadFile(FilePath.c_str());
+
+	if (Error != tinyxml2::XML_SUCCESS)
+	{
+		std::wstringstream ss;
+		ss << L"XML 파일을 열 수 없습니다." << AnsiToWString(FilePath) << "\n";
+		OutputDebugStringW(ss.str().c_str());
+
+		return false;
+	}
+
+	return true;
 }

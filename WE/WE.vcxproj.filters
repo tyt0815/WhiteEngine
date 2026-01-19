@@ -248,6 +248,9 @@
     <ClCompile Include="Sources\Physics\PhysicsUserData.cpp">
       <Filter>Sources\Physics</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Asset\XMLDataAsset.cpp">
+      <Filter>Sources\Asset</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -468,6 +471,9 @@
     </ClInclude>
     <ClInclude Include="Sources\Physics\PhysicsUserData.h">
       <Filter>Sources\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Asset\XMLDataAsset.h">
+      <Filter>Sources\Asset</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

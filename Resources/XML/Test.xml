@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<ProjectileAnimation name="구체">
+   <Info fps="24"/>
+   <AnimationCurves>
+      <Curve data_path="location" name="Loc_X">
+         <Keyframe frame="1.00" value="0.000000" interp="BEZIER" h_right_x="8.6667" h_right_y="0.0000"/>
+         <Keyframe frame="24.00" value="10.000000" interp="BEZIER" h_left_x="16.3333" h_left_y="10.0000" h_right_x="31.6667" h_right_y="10.0000"/>
+      </Curve>
+      <Curve data_path="location" name="Loc_Y">
+         <Keyframe frame="1.00" value="0.000000" interp="BEZIER" h_right_x="3.0196" h_right_y="0.7691"/>
+         <Keyframe frame="5.00" value="2.000000" interp="BOUNCE" h_left_x="3.3259" h_left_y="1.9168"/>
+         <Keyframe frame="24.00" value="0.000000" interp="LINEAR"/>
+      </Curve>
+      <Curve data_path="scale" name="Scale_Y">
+         <Keyframe frame="10.00" value="1.000000" interp="BEZIER" h_right_x="10.8333" h_right_y="1.0000"/>
+         <Keyframe frame="12.50" value="0.500000" interp="BEZIER" h_left_x="11.6667" h_left_y="0.5000" h_right_x="13.3333" h_right_y="0.5000"/>
+         <Keyframe frame="15.00" value="1.000000" interp="BEZIER" h_left_x="13.4741" h_left_y="1.0000" h_right_x="17.8321" h_right_y="1.0000"/>
+      </Curve>
+      <Curve data_path="Speed" name="Speed">
+         <Keyframe frame="1.00" value="2.000000" interp="LINEAR"/>
+         <Keyframe frame="24.00" value="1.000000" interp="BEZIER" h_right_x="29.1680" h_right_y="1.5228"/>
+      </Curve>
+   </AnimationCurves>
+</ProjectileAnimation>
