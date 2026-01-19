@@ -39,6 +39,7 @@
     <ClCompile Include="Sources\GameFramework\Object\Component\MovementComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\PhysicsComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\PrimitiveComponent.cpp" />
+    <ClCompile Include="Sources\GameFramework\Object\Component\ProjectileAnimationComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\ProjectileMovementComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\SceneComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\SphereComponent.cpp" />
@@ -114,6 +115,7 @@
     <ClInclude Include="Sources\GameFramework\Object\Component\MovementComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\PhysicsComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\PrimitiveComponent.h" />
+    <ClInclude Include="Sources\GameFramework\Object\Component\ProjectileAnimationComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\ProjectileMovementComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\SceneComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\SphereComponent.h" />
