@@ -21,7 +21,7 @@ AProjectileAnimActor::AProjectileAnimActor()
 	if (auto ObjectAnimComp = mObjectAnimComp.lock())
 	{
 		ObjectAnimComp->SetupAttachment(GetRootComponent());
-		ObjectAnimComp->LoadXML(L"XDA_Projectile_Test");
+		ObjectAnimComp->LoadXML(L"XDA_Large");
 	}
 }
 

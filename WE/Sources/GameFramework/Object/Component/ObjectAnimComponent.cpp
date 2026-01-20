@@ -22,6 +22,8 @@ void WObjectAnimComponent::LoadXML(const std::wstring& Name)
 
 		XMLElement* Info = ProjectileAnimation->FirstChildElement();
 		mFPS = Info->FloatAttribute("fps");
+		float FrameStart = Info->FloatAttribute("frame_start");
+		mFrameEnd = Info->FloatAttribute("frame_end") - FrameStart;
 		XMLElement* AnimationCurves = Info->NextSiblingElement();
 
 		for (XMLElement* Curve = AnimationCurves->FirstChildElement(); Curve; Curve = Curve->NextSiblingElement())
@@ -30,11 +32,11 @@ void WObjectAnimComponent::LoadXML(const std::wstring& Name)
 			for (XMLElement* KeyframeElement = Curve->FirstChildElement(); KeyframeElement; KeyframeElement = KeyframeElement->NextSiblingElement())
 			{
 				FKeyframe Keyframe;
-				Keyframe.Frame = KeyframeElement->FloatAttribute("frame");
+				Keyframe.Frame = KeyframeElement->FloatAttribute("frame") - FrameStart;
 				Keyframe.Value = KeyframeElement->FloatAttribute("value");
-				Keyframe.LeftHandle.x = KeyframeElement->FloatAttribute("h_left_x");
+				Keyframe.LeftHandle.x = KeyframeElement->FloatAttribute("h_left_x") - FrameStart;
 				Keyframe.LeftHandle.y = KeyframeElement->FloatAttribute("h_left_y");
-				Keyframe.RightHandle.x = KeyframeElement->FloatAttribute("h_right_x");
+				Keyframe.RightHandle.x = KeyframeElement->FloatAttribute("h_right_x") - FrameStart;
 				Keyframe.RightHandle.y = KeyframeElement->FloatAttribute("h_right_y");
 
 				const std::string InterpType = KeyframeElement->Attribute("interp");
@@ -54,8 +56,6 @@ void WObjectAnimComponent::LoadXML(const std::wstring& Name)
 				{
 					Keyframe.Interpolation = EInterpolationType::EIT_Undefined;
 				}
-
-				mLastFrame = max(mLastFrame, Keyframe.Frame);
 
 				mKeyframeMap[CurveName].push_back(Keyframe);
 			}

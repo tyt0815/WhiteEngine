@@ -17,6 +17,8 @@ def export_all_fcurves_to_xml(folder_path, obj):
     # 기본 정보 추가
     info = ET.SubElement(root, "Info")
     info.set("fps", str(bpy.context.scene.render.fps))
+    info.set("frame_start", str(bpy.context.scene.frame_start))
+    info.set("frame_end", str(bpy.context.scene.frame_end))
 
     curves_element = ET.SubElement(root, "AnimationCurves")
     action = obj.animation_data.action

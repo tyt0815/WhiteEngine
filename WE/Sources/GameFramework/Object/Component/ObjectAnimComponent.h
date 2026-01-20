@@ -56,18 +56,18 @@ private:
 
 	tinyxml2::XMLDocument* Doc;
 
-	float mLastFrame = 0;
+	float mFrameEnd = 0;
 
 public:
 	__forceinline float GetLastFrame() const
 	{
-		return mLastFrame;
+		return mFrameEnd;
 	}
 
 	// frame의 시작이 0
 	__forceinline float GetLastSecond() const
 	{
-		return mLastFrame / mFPS;
+		return mFrameEnd / mFPS;
 	}
 
 	// frame의 시작이 0

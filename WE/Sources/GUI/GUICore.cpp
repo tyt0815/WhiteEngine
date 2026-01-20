@@ -3,16 +3,30 @@
 #include "imgui_impl_win32.h"
 #include "DirectX/CBVSRVUAVHeap.h"
 #include <vector>
+#include <sstream>
+
+inline constexpr float NOTIFICATION_LIFESPAN = 5.0f;
+inline constexpr float NOTIFICATION_SIZE_X = 250;
+inline constexpr float NOTIFICATION_SIZE_Y = 100;
 
 namespace GUI
 {
 	std::vector<FDrawCommand> g_DrawCommandQueue;
+
+	std::vector<std::pair<FNotificationDrawCommand, float>> g_NotificationDrawCommandQueue;
 
 	UINT64 AddDrawCommand(const FDrawCommand& Command)
 	{
 		g_DrawCommandQueue.emplace_back(Command);
 		g_DrawCommandQueue.back().ID = g_DrawCommandQueue.size() - 1;
 		return g_DrawCommandQueue.back().ID;
+	}
+
+	UINT64 AddNotificationDrawCommand(const FNotificationDrawCommand& Command)
+	{
+		g_NotificationDrawCommandQueue.push_back({ Command, NOTIFICATION_LIFESPAN });
+		g_NotificationDrawCommandQueue.back().first.ID = g_NotificationDrawCommandQueue.size() - 1;
+		return g_NotificationDrawCommandQueue.back().first.ID;
 	}
 
 	void Initialize(
@@ -48,6 +62,8 @@ namespace GUI
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
+		float DeltaTime = ImGui::GetIO().DeltaTime;
+
 		for (int i = 0; i < g_DrawCommandQueue.size(); ++i)
 		{
 			FDrawCommand& DrawCommand = g_DrawCommandQueue[i];
@@ -61,9 +77,52 @@ namespace GUI
 			else
 			{
 				DrawCommand.DrawLambda();
-				g_DrawCommandQueue[i].LifeSpan -= ImGui::GetIO().DeltaTime;
+				g_DrawCommandQueue[i].LifeSpan -= DeltaTime;
 			}
 		}
+
+		// Notification Rendering
+		{
+			// LifeSpan이 0이하인 경우, 큐에서 제거
+			g_NotificationDrawCommandQueue.erase(
+				std::remove_if(
+					g_NotificationDrawCommandQueue.begin(), g_NotificationDrawCommandQueue.end(),
+					[](const std::pair<FNotificationDrawCommand, float>& Command)
+					{ return Command.second < 0;  }
+				),
+				g_NotificationDrawCommandQueue.end()
+			);
+
+
+			ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_NoDecoration |
+				ImGuiWindowFlags_AlwaysAutoResize |
+				ImGuiWindowFlags_NoSavedSettings |
+				ImGuiWindowFlags_NoFocusOnAppearing |
+				ImGuiWindowFlags_NoNav |
+				ImGuiWindowFlags_NoMove;
+
+			ImGuiViewport* Viewport = ImGui::GetMainViewport();
+
+			ImGui::SetNextWindowBgAlpha(1.0f);
+			
+			for (int i = 0; i < g_NotificationDrawCommandQueue.size(); ++i)
+			{
+				FNotificationDrawCommand& Command = g_NotificationDrawCommandQueue[i].first;
+				g_NotificationDrawCommandQueue[i].second -= DeltaTime;
+				std::stringstream Name;
+				Name << "Notification_" << i;
+				ImVec2 Pos(Viewport->Size.x - NOTIFICATION_SIZE_X, Viewport->Size.y - NOTIFICATION_SIZE_Y * (i + 1));
+				ImGui::SetNextWindowPos(Pos, ImGuiCond_Always);
+				ImGui::SetNextWindowSize(ImVec2(NOTIFICATION_SIZE_X, NOTIFICATION_SIZE_Y));
+				if (ImGui::Begin(Name.str().c_str(), nullptr, WindowFlags))
+				{
+					Command.DrawLambda();
+				}
+				ImGui::End();
+			}
+		}
+
+
 		
 
 		ImGui::Render();

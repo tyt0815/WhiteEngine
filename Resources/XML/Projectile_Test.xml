@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <ObjectAnimation name="Projectile">
-   <Info fps="24"/>
+   <Info fps="24" frame_start="0" frame_end="24"/>
    <AnimationCurves>
       <Curve data_path="location" name="LocationX">
          <Keyframe frame="0.00" value="0.000000" interp="LINEAR" h_left_x="-8.0000" h_left_y="0.0000" h_right_x="8.0000" h_right_y="0.0000"/>

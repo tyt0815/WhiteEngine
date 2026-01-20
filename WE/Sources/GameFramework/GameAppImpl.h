@@ -28,8 +28,8 @@ private:
 	int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInst, PSTR CmdLine, int nCmdShow)\
 	{\
 		Physics::Startup();\
-		FAssetManager::GetInstance()->LoadAssets();\
 		GetMeshGeometryManager();\
+		FAssetManager::GetInstance()->LoadAssets();\
 		FGameAppImpl App(new WorldClass());\
 		return GameCore::RunApplication(App, L#WorldClass, hInstance, nCmdShow);\
 	}
