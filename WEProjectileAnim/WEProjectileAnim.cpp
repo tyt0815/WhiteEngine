@@ -33,13 +33,13 @@ AProjectileAnimActor::AProjectileAnimActor()
 			std::string XMLDir(SOLUTION_DIR);
 			XMLDir += "Resources/XML";
 
-			const char* MediumFileName = "Medium_v1.keyframemap.zbin";
-			ObjectAnimComp->LoadKeyframesFromZlibKeyframeMap(XMLDir + "/" + MediumFileName);
+			const char* MediumFileName = "Medium_v1.keyframemap.lz4";
+			ObjectAnimComp->LoadKeyframesFromLZ4KeyframeMap(XMLDir + "/" + MediumFileName);
 			Timer.Tick();
 			float MediumTime = Timer.GetDeltaTime();
 
-			const char* LargeFileName = "Large_v1.keyframemap.zbin";
-			ObjectAnimComp->LoadKeyframesFromZlibKeyframeMap(XMLDir + "/" + LargeFileName);
+			const char* LargeFileName = "Large_v1.keyframemap.lz4";
+			ObjectAnimComp->LoadKeyframesFromLZ4KeyframeMap(XMLDir + "/" + LargeFileName);
 			Timer.Tick();
 			float LargeTime = Timer.GetDeltaTime();
 

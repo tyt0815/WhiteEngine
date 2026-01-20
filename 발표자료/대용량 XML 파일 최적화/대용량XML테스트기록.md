@@ -27,5 +27,11 @@
 ![](./v3_파일크기.png)
 
 # 4. binary + zlib 압축
+![](./v4_LoadTime.png)
+
+![](./v4_파일크기.png)
 
 # 5. binary + lz4 압축
+![](./v5_LoadTime.png)
+
+![](./v5_파일크기.png)

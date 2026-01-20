@@ -36,6 +36,8 @@ public:
 
 	bool LoadKeyframesFromZlibKeyframeMap(const std::string& FilePath);
 
+	bool LoadKeyframesFromLZ4KeyframeMap(const std::string& FilePath);
+
 	void ToControlPoint(
 		const FKeyframe& Left, const FKeyframe& Right,
 		XMVECTOR* P0, XMVECTOR* P1, XMVECTOR* P2, XMVECTOR* P3
@@ -58,6 +60,8 @@ public:
 	float GetPropertyBySecond(const std::string& PropertyName, float Second) const;
 
 private:
+	bool LoadKeyframesFromBinary(unsigned char* Ptr);
+
 	std::unordered_map<std::string, std::vector<FKeyframe>> mKeyframeMap;
 
 	float mFPS = 1;

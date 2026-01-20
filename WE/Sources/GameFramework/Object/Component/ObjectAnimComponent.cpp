@@ -126,42 +126,19 @@ bool WObjectAnimComponent::LoadKeyframesFromZlibKeyframeMap(const std::string& F
 		return false;
 	}
 
-	mKeyframeMap.clear();
-	unsigned char* Ptr = RawBuffer.data();
+	return LoadKeyframesFromBinary(RawBuffer.data());
+}
 
-	// 프레임 정보 읽기
-	mFPS = *reinterpret_cast<float*>(Ptr);
-	Ptr += sizeof(float);
-	mFrameEnd = *reinterpret_cast<float * > (Ptr);
-	Ptr += sizeof(float);
-
-	// 2. 전체 커브 개수 읽기
-	int TotalCurveNum = *reinterpret_cast<int*>(Ptr);
-	Ptr += sizeof(int);
-
-	for (int i = 0; i < TotalCurveNum; ++i)
+bool WObjectAnimComponent::LoadKeyframesFromLZ4KeyframeMap(const std::string& FilePath)
+{
+	std::vector<unsigned char> RawBuffer;
+	// 1. zlib 해제 (헤더 4바이트 읽고 나머지를 해제하는 기존 함수)
+	if (!Asset::LoadLZ4(FilePath, RawBuffer))
 	{
-		// 3. 커브 이름 읽기
-		int CurveNameLen = *reinterpret_cast<int*>(Ptr);
-		Ptr += sizeof(int);
-
-		std::string CurveName(reinterpret_cast<char*>(Ptr), CurveNameLen);
-		Ptr += CurveNameLen;
-
-		// 4. 키프레임 개수 읽기
-		int TotalKeyframeNum = *reinterpret_cast<int*>(Ptr);
-		Ptr += sizeof(int);
-
-		// 5. 키프레임 데이터 통째로 로드
-		mKeyframeMap[CurveName].resize(TotalKeyframeNum);
-		size_t DataSize = sizeof(FKeyframe) * TotalKeyframeNum;
-
-		// 메모리 통째로 복사 (이게 XML 파싱보다 압도적으로 빠릅니다)
-		memcpy(mKeyframeMap[CurveName].data(), Ptr, DataSize);
-		Ptr += DataSize;
+		return false;
 	}
 
-	return true;
+	return LoadKeyframesFromBinary(RawBuffer.data());
 }
 
 void WObjectAnimComponent::ToControlPoint(const FKeyframe& Left, const FKeyframe& Right, XMVECTOR* P0, XMVECTOR* P1, XMVECTOR* P2, XMVECTOR* P3) const
@@ -287,4 +264,48 @@ float WObjectAnimComponent::GetPropertyByFrame(const std::string& PropertyName, 
 float WObjectAnimComponent::GetPropertyBySecond(const std::string& PropertyName, float Second) const
 {
 	return GetPropertyByFrame(PropertyName, SecondToFrame(Second));
+}
+
+bool WObjectAnimComponent::LoadKeyframesFromBinary(unsigned char* Ptr)
+{
+	if (Ptr == nullptr)
+	{
+		return false;
+	}
+
+	mKeyframeMap.clear();
+
+	// 프레임 정보 읽기
+	mFPS = *reinterpret_cast<float*>(Ptr);
+	Ptr += sizeof(float);
+	mFrameEnd = *reinterpret_cast<float*> (Ptr);
+	Ptr += sizeof(float);
+
+	// 2. 전체 커브 개수 읽기
+	int TotalCurveNum = *reinterpret_cast<int*>(Ptr);
+	Ptr += sizeof(int);
+
+	for (int i = 0; i < TotalCurveNum; ++i)
+	{
+		// 3. 커브 이름 읽기
+		int CurveNameLen = *reinterpret_cast<int*>(Ptr);
+		Ptr += sizeof(int);
+
+		std::string CurveName(reinterpret_cast<char*>(Ptr), CurveNameLen);
+		Ptr += CurveNameLen;
+
+		// 4. 키프레임 개수 읽기
+		int TotalKeyframeNum = *reinterpret_cast<int*>(Ptr);
+		Ptr += sizeof(int);
+
+		// 5. 키프레임 데이터 통째로 로드
+		mKeyframeMap[CurveName].resize(TotalKeyframeNum);
+		size_t DataSize = sizeof(FKeyframe) * TotalKeyframeNum;
+
+		// 메모리 통째로 복사 (이게 XML 파싱보다 압도적으로 빠릅니다)
+		memcpy(mKeyframeMap[CurveName].data(), Ptr, DataSize);
+		Ptr += DataSize;
+	}
+
+	return true;
 }
