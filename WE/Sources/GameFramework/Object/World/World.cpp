@@ -102,14 +102,13 @@ void WWorld::Tick(float Delta)
 	Timer.Tick();
 	float Time_Update_Render_Items = Timer.GetDeltaTime();
 
-
-
 	// 프로파일링용 GUI
 	GUI::FDrawCommand Command;
 	Command.LifeSpan = 0;
 	Command.DrawLambda = [=]()
 	{
-		ImGui::SetNextWindowPos(ImVec2(0, 50), ImGuiCond_Always);
+		ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+		ImGui::SetNextWindowSize(ImVec2(300, 0));
 
 		ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_NoDecoration |
 			ImGuiWindowFlags_AlwaysAutoResize |
@@ -122,9 +121,11 @@ void WWorld::Tick(float Delta)
 
 		if (ImGui::Begin("World Tick", nullptr, WindowFlags))
 		{
+			
+			ImGui::TextColored(ImVec4(0, 1, 0, 1), "FPS: %.1f\n", ImGui::GetIO().Framerate);
+			ImGui::Separator();
 			ImGui::TextColored(ImVec4(1, 1, 0, 1), "World Tick Profiling"); // 노란색 제목
 			ImGui::Separator();
-
 			ImGui::Text("Tick_PrePhysics: %f", Time_Tick_PrePhysics);
 			ImGui::Text("Update_Physics: %f", Time_Update_Physics);
 			ImGui::Text("Physics_Event: %f", Time_Physics_Event);
