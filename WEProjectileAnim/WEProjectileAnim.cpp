@@ -2,8 +2,8 @@
 #include "GameFramework/GameAppImpl.h"
 #include "Component/ObjectAnimComponent.h"
 #include "Component/StaticMeshComponent.h"
-#include "GUI/GUICore.h"
 #include "Utility/Timer.h"
+#include "GUI/GUICore.h"
 
 CREATE_APPLICATION_BY_WORLD(WProjectileAnimWorld)
 
@@ -23,7 +23,6 @@ AProjectileAnimActor::AProjectileAnimActor()
 	if (auto ObjectAnimComp = mObjectAnimComp.lock())
 	{
 		ObjectAnimComp->SetupAttachment(GetRootComponent());
-		// ObjectAnimComp->LoadKeyframesFromXMLAsset(L"XDA_Projectile_Test");
 
 		// 대용량 XML 테스트 블록
 		{
@@ -33,45 +32,46 @@ AProjectileAnimActor::AProjectileAnimActor()
 			std::string XMLDir(SOLUTION_DIR);
 			XMLDir += "Resources/XML";
 
-			const char* MediumFileName = "Medium_v1.keyframemap.lz4";
-			ObjectAnimComp->LoadKeyframesFromLZ4KeyframeMap(XMLDir + "/" + MediumFileName);
-			Timer.Tick();
-			float MediumTime = Timer.GetDeltaTime();
+			//const char* MediumFileName = "Medium_v1.keyframemap.lz4";
+			//ObjectAnimComp->LoadKeyframesFromLZ4KeyframeMap(XMLDir + "/" + MediumFileName);
+			//Timer.Tick();
+			//float MediumTime = Timer.GetDeltaTime();
 
 			const char* LargeFileName = "Large_v1.keyframemap.lz4";
 			ObjectAnimComp->LoadKeyframesFromLZ4KeyframeMap(XMLDir + "/" + LargeFileName);
 			Timer.Tick();
 			float LargeTime = Timer.GetDeltaTime();
 
-			GUI::FDrawCommand Command;
-			Command.LifeSpan = 10;
-			Command.DrawLambda = [=]()
+			static bool bFirstTime = true;
+			if (bFirstTime)
 			{
-				ImGui::SetNextWindowPos(ImVec2(300, 0), ImGuiCond_Always);
-
-				ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_NoDecoration |
-					ImGuiWindowFlags_AlwaysAutoResize |
-					ImGuiWindowFlags_NoSavedSettings |
-					ImGuiWindowFlags_NoFocusOnAppearing |
-					ImGuiWindowFlags_NoNav |
-					ImGuiWindowFlags_NoMove;
-
-				ImGui::SetNextWindowBgAlpha(1.0f);
-
-				if (ImGui::Begin("XMLFileLoad", nullptr, WindowFlags))
+				bFirstTime = false;
+				GUI::FDrawCommand Command;
+				Command.LifeSpan = 10;
+				Command.DrawLambda = [=]()
 				{
-					ImGui::TextColored(ImVec4(1, 1, 0, 1), "XML file Load"); // 노란색 제목
-					ImGui::Separator();
+					ImGui::SetNextWindowPos(ImVec2(1000, 0), ImGuiCond_Always);
 
-					ImGui::Text(
-						"%s\nLoad Time: %f\n\n\n%s\nLoad Time: %f\n",
-						MediumFileName, MediumTime,
-						LargeFileName, LargeTime
-					);
-				}
-				ImGui::End();
-			};
-			GUI::AddDrawCommand(Command);
+					ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_NoDecoration |
+						ImGuiWindowFlags_AlwaysAutoResize |
+						ImGuiWindowFlags_NoSavedSettings |
+						ImGuiWindowFlags_NoFocusOnAppearing |
+						ImGuiWindowFlags_NoNav |
+						ImGuiWindowFlags_NoMove;
+
+					ImGui::SetNextWindowBgAlpha(1.0f);
+
+					if (ImGui::Begin("XMLFileLoad", nullptr, WindowFlags))
+					{
+						ImGui::TextColored(ImVec4(1, 1, 0, 1), "XML file Load"); // 노란색 제목
+						ImGui::Separator();
+
+						ImGui::Text("%s\nLoad Time: %f",LargeFileName, LargeTime);
+					}
+					ImGui::End();
+				};
+				GUI::AddDrawCommand(Command);
+			}
 		}
 	}
 }
@@ -89,21 +89,66 @@ void AProjectileAnimActor::Tick_PostPhysics(float Delta)
 
 	mElapsedTime += Delta;
 
+	UTimer Timer;
+	float KeyframeSearchTime = 0;
 	if (auto ObjectAnimComp = mObjectAnimComp.lock())
 	{
 		mElapsedTime = fmodf(mElapsedTime, ObjectAnimComp->GetLastSecond());
 
 		if (auto Proj = mProj.lock())
 		{
-			Proj->SetActorTransform(ObjectAnimComp->GetKeyframeWorldTransformBySecond(mElapsedTime));
-		}		
+			
+			Timer.Reset();
+			FTransform Transform = ObjectAnimComp->GetKeyframeWorldTransformBySecond(mElapsedTime);
+			Timer.Tick();
+			KeyframeSearchTime = Timer.GetDeltaTime();
+
+			Proj->SetActorTransform(Transform);
+		}
+	}
+
+	static AProjectileAnimActor* FirstActor = this;
+	if (this == FirstActor)
+	{
+		// 프로파일링용 GUI
+		GUI::FDrawCommand Command;
+		Command.LifeSpan = 0;
+		Command.DrawLambda = [=]()
+		{
+			ImGui::SetNextWindowPos(ImVec2(300, 0), ImGuiCond_Always);
+
+			ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_NoDecoration |
+				ImGuiWindowFlags_AlwaysAutoResize |
+				ImGuiWindowFlags_NoSavedSettings |
+				ImGuiWindowFlags_NoFocusOnAppearing |
+				ImGuiWindowFlags_NoNav |
+				ImGuiWindowFlags_NoMove;
+
+			ImGui::SetNextWindowBgAlpha(1.0f);
+
+			if (ImGui::Begin("AProjectileAnimActor::Tick_PostPhysics", nullptr, WindowFlags))
+			{
+				ImGui::TextColored(ImVec4(1, 1, 0, 1), "ProjectileAnimActor::Tick_PostPhysics"); // 노란색 제목
+				ImGui::Separator();
+
+				ImGui::Text("KeyframeSearchTime: %f", KeyframeSearchTime);
+			}
+			ImGui::End();
+		};
+		GUI::AddDrawCommand(Command);
 	}
 }
 
 WProjectileAnimWorld::WProjectileAnimWorld()
 {
-	if (auto Projectile = SpawnActor<AProjectileAnimActor>().lock())
+	int ProjNum = 100;
+	for (int i = 0; i < ProjNum; ++i)
 	{
-		Projectile->SetActorLocation(XMFLOAT3(0, 0, 15));
+		if (auto Projectile = SpawnActor<AProjectileAnimActor>().lock())
+		{
+			XMFLOAT3 Rot(0, 0, 3.6f * i);
+			Projectile->SetActorRotation(Rot);
+		}
 	}
+
 }
