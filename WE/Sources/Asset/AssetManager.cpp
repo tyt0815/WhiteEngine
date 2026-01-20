@@ -30,28 +30,36 @@ void FAssetManager::LoadAssets()
 
 	std::wstring XMLDir = SolutionDir + L"Resources/XML";
 
-	UTimer Timer;
-	Timer.Reset();
+	
 	LoadAsset<FXMLDataAsset>(XMLDir + L"/Test.xml", L"XDA_Test");
-	Timer.Tick();
-	float TestDelta = Timer.GetDeltaTime();
 	LoadAsset<FXMLDataAsset>(XMLDir + L"/Projectile_Test.xml", L"XDA_Projectile_Test");
-	Timer.Tick();
-	float ProjectileTestDelta = Timer.GetDeltaTime();
-	LoadAsset<FXMLDataAsset>(XMLDir + L"/Large.xml", L"XDA_Large");
-	Timer.Tick();
-	float LargeDelta = Timer.GetDeltaTime();
 
-	GUI::FNotificationDrawCommand Command;
-	Command.DrawLambda = [=]()
+
+	// 대용량 XML 테스트 블록
 	{
-		ImGui::TextColored(ImVec4(1, 1, 0, 1), "XML file Load Time"); // 노란색 제목
-		ImGui::Separator();
+		const size_t Iterations = 100;
+		float TotalTime = 0;
+		UTimer Timer;
+		Timer.Reset();
+		for (int i = 0; i < Iterations; ++i)
+		{
+			std::wstringstream Name;
+			Name << L"XDA_Large_" << i;
+			LoadAsset<FXMLDataAsset>(XMLDir + L"/Large.xml", Name.str().c_str());
+			Timer.Tick();
+			TotalTime += Timer.GetDeltaTime();
+		}
+		GUI::FNotificationDrawCommand Command;
+		Command.DrawLambda = [=]()
+		{
+			ImGui::TextColored(ImVec4(1, 1, 0, 1), "XML file Load Time"); // 노란색 제목
+			ImGui::Separator();
 
-		// FPS 정보 (ImGui 기본 제공)
-		ImGui::TextWrapped("Test.xml: %f\nProjectile_Test.xml: %f\nLarge.xml: %f", TestDelta, ProjectileTestDelta, LargeDelta);
-	};
-	GUI::AddNotificationDrawCommand(Command);
+			// FPS 정보 (ImGui 기본 제공)
+			ImGui::TextWrapped("Iterations: %d\nTotal Time: %f\nAverage Time: %f", Iterations, TotalTime, TotalTime / Iterations);
+		};
+		GUI::AddNotificationDrawCommand(Command);
+	}
 }
 
 FAsset* FAssetManager::GetAsset(const std::wstring& Name)
