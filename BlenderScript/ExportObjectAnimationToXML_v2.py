@@ -13,6 +13,7 @@ def export_all_fcurves_to_xml(folder_path, obj):
 
     # 2. XML 루트 생성
     root = ET.Element("ObjectAnimation", name=obj.name)
+    root.set("version", f"v{2}")
     
     # 기본 정보 추가
     info = ET.SubElement(root, "Info")

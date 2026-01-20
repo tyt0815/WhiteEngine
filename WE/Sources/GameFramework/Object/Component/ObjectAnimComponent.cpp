@@ -1,26 +1,54 @@
 #include "ObjectAnimComponent.h"
 #include "Asset/AssetManager.h"
 #include "Asset/XMLDataAsset.h"
+#include "Asset/AssetLoader.h"
+
 
 using namespace tinyxml2;
 
-void WObjectAnimComponent::LoadXML(const std::wstring& Name)
+bool WObjectAnimComponent::LoadKeyframesFromXMLAsset(const std::wstring& Name)
 {
+	mKeyframeMap.clear();
+	tinyxml2::XMLDocument* Doc = nullptr;
 	if (FXMLDataAsset* Asset = dynamic_cast<FXMLDataAsset*>(FAssetManager::GetInstance()->GetAsset(Name)))
 	{
 		Doc = &Asset->Document;
 	}
 
+	return LoadKeyframesFromXML(Doc);
+}
+
+bool WObjectAnimComponent::LoadKeyframesFromXML(tinyxml2::XMLDocument* Doc)
+{
+	mKeyframeMap.clear();
+	std::string ElementNameSet[2][7] = {
+		{"frame", "value", "interp", "h_left_x", "h_left_y", "h_right_x", "h_right_y"},			// v1
+		{"f", "v", "i", "hlx", "hly", "hrx", "hry"}
+	};
 	if (Doc)
 	{
-		XMLElement* ProjectileAnimation = Doc->FirstChildElement();
-		auto a = ProjectileAnimation->Value();
-		if (!ProjectileAnimation)
+		XMLElement* ObjectAnimation = Doc->FirstChildElement();
+		int ElementNameSetIndex = 0;
+		if (const char* s = ObjectAnimation->Attribute("version"))
 		{
-			return;
+			std::string Version = ObjectAnimation->Attribute("version");
+			
+			if (Version == "v1")
+			{
+				ElementNameSetIndex = 0;
+			}
+			else if (Version == "v2")
+			{
+				ElementNameSetIndex = 1;
+			}
 		}
 
-		XMLElement* Info = ProjectileAnimation->FirstChildElement();
+		if (!ObjectAnimation)
+		{
+			return false;
+		}
+
+		XMLElement* Info = ObjectAnimation->FirstChildElement();
 		mFPS = Info->FloatAttribute("fps");
 		float FrameStart = Info->FloatAttribute("frame_start");
 		mFrameEnd = Info->FloatAttribute("frame_end") - FrameStart;
@@ -32,14 +60,14 @@ void WObjectAnimComponent::LoadXML(const std::wstring& Name)
 			for (XMLElement* KeyframeElement = Curve->FirstChildElement(); KeyframeElement; KeyframeElement = KeyframeElement->NextSiblingElement())
 			{
 				FKeyframe Keyframe;
-				Keyframe.Frame = KeyframeElement->FloatAttribute("frame") - FrameStart;
-				Keyframe.Value = KeyframeElement->FloatAttribute("value");
-				Keyframe.LeftHandle.x = KeyframeElement->FloatAttribute("h_left_x") - FrameStart;
-				Keyframe.LeftHandle.y = KeyframeElement->FloatAttribute("h_left_y");
-				Keyframe.RightHandle.x = KeyframeElement->FloatAttribute("h_right_x") - FrameStart;
-				Keyframe.RightHandle.y = KeyframeElement->FloatAttribute("h_right_y");
+				Keyframe.Frame = KeyframeElement->FloatAttribute(ElementNameSet[ElementNameSetIndex][0].c_str()) - FrameStart;
+				Keyframe.Value = KeyframeElement->FloatAttribute(ElementNameSet[ElementNameSetIndex][1].c_str());
+				Keyframe.LeftHandle.x = KeyframeElement->FloatAttribute(ElementNameSet[ElementNameSetIndex][3].c_str()) - FrameStart;
+				Keyframe.LeftHandle.y = KeyframeElement->FloatAttribute(ElementNameSet[ElementNameSetIndex][4].c_str());
+				Keyframe.RightHandle.x = KeyframeElement->FloatAttribute(ElementNameSet[ElementNameSetIndex][5].c_str()) - FrameStart;
+				Keyframe.RightHandle.y = KeyframeElement->FloatAttribute(ElementNameSet[ElementNameSetIndex][6].c_str());
 
-				const std::string InterpType = KeyframeElement->Attribute("interp");
+				const std::string InterpType = KeyframeElement->Attribute(ElementNameSet[ElementNameSetIndex][2].c_str());
 				if (InterpType == "LINEAR")
 				{
 					Keyframe.Interpolation = EInterpolationType::EIT_Linear;
@@ -60,7 +88,80 @@ void WObjectAnimComponent::LoadXML(const std::wstring& Name)
 				mKeyframeMap[CurveName].push_back(Keyframe);
 			}
 		}
+
+		return true;
 	}
+	return false;
+}
+
+bool WObjectAnimComponent::LoadKeyframesFromXMLFile(const std::string& FilePath)
+{
+	mKeyframeMap.clear();
+	tinyxml2::XMLDocument Doc;
+	if (Asset::LoadZLibXML(FilePath, Doc))
+	{
+		return LoadKeyframesFromXML(&Doc);
+	}
+	
+	return false;	
+}
+
+bool WObjectAnimComponent::LoadKeyframesFromZlibXMLFile(const std::string& FilePath)
+{
+	mKeyframeMap.clear();
+	tinyxml2::XMLDocument Doc;
+	if (Asset::LoadZLibXML(FilePath, Doc))
+	{
+		return LoadKeyframesFromXML(&Doc);
+	}
+	return false;
+}
+
+bool WObjectAnimComponent::LoadKeyframesFromZlibKeyframeMap(const std::string& FilePath)
+{
+	std::vector<unsigned char> RawBuffer;
+	// 1. zlib 해제 (헤더 4바이트 읽고 나머지를 해제하는 기존 함수)
+	if (!Asset::LoadZlib(FilePath, RawBuffer))
+	{
+		return false;
+	}
+
+	mKeyframeMap.clear();
+	unsigned char* Ptr = RawBuffer.data();
+
+	// 프레임 정보 읽기
+	mFPS = *reinterpret_cast<float*>(Ptr);
+	Ptr += sizeof(float);
+	mFrameEnd = *reinterpret_cast<float * > (Ptr);
+	Ptr += sizeof(float);
+
+	// 2. 전체 커브 개수 읽기
+	int TotalCurveNum = *reinterpret_cast<int*>(Ptr);
+	Ptr += sizeof(int);
+
+	for (int i = 0; i < TotalCurveNum; ++i)
+	{
+		// 3. 커브 이름 읽기
+		int CurveNameLen = *reinterpret_cast<int*>(Ptr);
+		Ptr += sizeof(int);
+
+		std::string CurveName(reinterpret_cast<char*>(Ptr), CurveNameLen);
+		Ptr += CurveNameLen;
+
+		// 4. 키프레임 개수 읽기
+		int TotalKeyframeNum = *reinterpret_cast<int*>(Ptr);
+		Ptr += sizeof(int);
+
+		// 5. 키프레임 데이터 통째로 로드
+		mKeyframeMap[CurveName].resize(TotalKeyframeNum);
+		size_t DataSize = sizeof(FKeyframe) * TotalKeyframeNum;
+
+		// 메모리 통째로 복사 (이게 XML 파싱보다 압도적으로 빠릅니다)
+		memcpy(mKeyframeMap[CurveName].data(), Ptr, DataSize);
+		Ptr += DataSize;
+	}
+
+	return true;
 }
 
 void WObjectAnimComponent::ToControlPoint(const FKeyframe& Left, const FKeyframe& Right, XMVECTOR* P0, XMVECTOR* P1, XMVECTOR* P2, XMVECTOR* P3) const

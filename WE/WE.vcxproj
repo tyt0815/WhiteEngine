@@ -165,6 +165,7 @@
     <ClInclude Include="Sources\Utility\Delegate.h" />
     <ClInclude Include="Sources\Utility\FileIO.h" />
     <ClInclude Include="Sources\Utility\Memory.h" />
+    <ClInclude Include="Sources\Utility\Profiling.h" />
     <ClInclude Include="Sources\Utility\String.h" />
     <ClInclude Include="Sources\Utility\Timer.h" />
     <ClInclude Include="Sources\Window\Window.h" />

@@ -1,8 +1,8 @@
 #pragma once
+#include "imgui.h"
 #include <Windows.h>
 #include <d3d12.h>
 #include <functional>
-#include "imgui.h"
 
 namespace GUI
 {

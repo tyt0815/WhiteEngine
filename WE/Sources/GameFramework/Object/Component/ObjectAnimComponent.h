@@ -8,7 +8,7 @@
 
 class WObjectAnimComponent : public WSceneComponent
 {
-	enum class EInterpolationType
+	enum class EInterpolationType : int
 	{
 		EIT_Linear,
 		EIT_Bezier,
@@ -26,7 +26,15 @@ class WObjectAnimComponent : public WSceneComponent
 	};
 
 public:
-	void LoadXML(const std::wstring& Name);
+	bool LoadKeyframesFromXMLAsset(const std::wstring& Name);
+
+	bool LoadKeyframesFromXML(tinyxml2::XMLDocument* Doc);
+
+	bool LoadKeyframesFromXMLFile(const std::string& FilePath);
+
+	bool LoadKeyframesFromZlibXMLFile(const std::string& FilePath);
+
+	bool LoadKeyframesFromZlibKeyframeMap(const std::string& FilePath);
 
 	void ToControlPoint(
 		const FKeyframe& Left, const FKeyframe& Right,
@@ -53,8 +61,6 @@ private:
 	std::unordered_map<std::string, std::vector<FKeyframe>> mKeyframeMap;
 
 	float mFPS = 1;
-
-	tinyxml2::XMLDocument* Doc;
 
 	float mFrameEnd = 0;
 

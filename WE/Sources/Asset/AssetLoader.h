@@ -13,4 +13,10 @@ namespace Asset
 	bool LoadJSON(const std::wstring& FilePath, FJson& Json);
 
 	bool LoadXML(const std::string& FilePath, tinyxml2::XMLDocument& Doc);
+
+	bool LoadZlib(const std::string& FilePath, std::vector<unsigned char>& RawBuffer);
+
+	bool LoadZLibXML(const std::string& FilePath, tinyxml2::XMLDocument& Doc);
+
+	bool LoadLZ4(const std::string& FilePath, std::vector<unsigned char>& RawBuffer);
 };

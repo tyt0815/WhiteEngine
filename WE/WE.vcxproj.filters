@@ -490,6 +490,9 @@
     <ClInclude Include="Sources\GUI\GUICore.h">
       <Filter>Sources\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="Sources\Utility\Profiling.h">
+      <Filter>Sources\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\BillboardCommon.hlsli">
