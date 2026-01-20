@@ -31,7 +31,7 @@ FFrameResourceBase::FFrameResourceBase(ID3D12Device* Device)
 	mMaterialStructuredBuffer = std::make_unique<TUploadBuffer<FMaterialStructuredBuffer>>(Device, EMT_None, false);
 	mDirectionalLightStructuredBuffer = std::make_unique<TUploadBuffer<FDirectionalLightStructuredBuffer>>(Device, DIR_LIGHTS_NUM, false);
 
-	mLine3DVB = std::make_unique<TUploadBuffer<FLine3DVertex>>(Device, 100000, false);	// TODO: 편의상 대충 지정해 뒀는데 프레임 엄청 떨어트림
+	mLine3DVB = std::make_unique<TUploadBuffer<FLine3DVertex>>(Device, 10000, false);	// TODO: 편의상 대충 지정해 뒀는데 프레임 엄청 떨어트림
 }
 
 FFrameResourceBase::~FFrameResourceBase()
