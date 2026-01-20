@@ -37,7 +37,7 @@ void FAssetManager::LoadAssets()
 
 	// 대용량 XML 테스트 블록
 	{
-		const size_t Iterations = 100;
+		const size_t Iterations = 1000;
 		float TotalTime = 0;
 		UTimer Timer;
 		Timer.Reset();
@@ -45,7 +45,7 @@ void FAssetManager::LoadAssets()
 		{
 			std::wstringstream Name;
 			Name << L"XDA_Large_" << i;
-			LoadAsset<FXMLDataAsset>(XMLDir + L"/Large.xml", Name.str().c_str());
+			LoadAsset<FXMLDataAsset>(XMLDir + L"/Large_v2.xml", Name.str().c_str());
 			Timer.Tick();
 			TotalTime += Timer.GetDeltaTime();
 		}
