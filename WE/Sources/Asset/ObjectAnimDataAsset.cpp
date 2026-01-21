@@ -159,8 +159,6 @@ bool FObjectAnimDataAsset::LoadAsset(const std::wstring& FilePath)
 
 	unsigned char* Ptr = RawBuffer.data();
 
-	KeyframeMap.clear();
-
 	// 프레임 정보 읽기
 	FPS = *reinterpret_cast<float*>(Ptr);
 	Ptr += sizeof(float);
@@ -168,11 +166,16 @@ bool FObjectAnimDataAsset::LoadAsset(const std::wstring& FilePath)
 	Ptr += sizeof(float);
 
 	// 2. 전체 커브 개수 읽기
-	int TotalCurveNum = *reinterpret_cast<int*>(Ptr);
+	TotalCurveNum = *reinterpret_cast<int*>(Ptr);
 	Ptr += sizeof(int);
+
+	CurvesStartPtr = Ptr;
 
 	for (int i = 0; i < TotalCurveNum; ++i)
 	{
+		FCurveInfo CurveInfo;
+		CurveInfo.StartPtr = Ptr;
+
 		// 3. 커브 이름 읽기
 		int CurveNameLen = *reinterpret_cast<int*>(Ptr);
 		Ptr += sizeof(int);
@@ -181,19 +184,19 @@ bool FObjectAnimDataAsset::LoadAsset(const std::wstring& FilePath)
 		Ptr += CurveNameLen;
 
 		// 4. 키프레임 개수 읽기
-		int TotalKeyframeNum = *reinterpret_cast<int*>(Ptr);
+		CurveInfo.TotalKeyFrameNum = *reinterpret_cast<int*>(Ptr);
 		Ptr += sizeof(int);
 
 		// 5. 키프레임 데이터 통째로 로드
-		KeyframeMap[CurveName].Frames.resize(TotalKeyframeNum);
-		size_t DataSize = sizeof(float) * TotalKeyframeNum;
-		memcpy(KeyframeMap[CurveName].Frames.data(), Ptr, DataSize);
+		size_t DataSize = sizeof(float) * CurveInfo.TotalKeyFrameNum;
+		CurveInfo.FramesPtr = reinterpret_cast<float*>(Ptr);
 		Ptr += DataSize;
 
-		KeyframeMap[CurveName].Keyframes.resize(TotalKeyframeNum);
-		DataSize = sizeof(FKeyframeData) * TotalKeyframeNum;
-		memcpy(KeyframeMap[CurveName].Keyframes.data(), Ptr, DataSize);
+		DataSize = sizeof(FKeyframeData) * CurveInfo.TotalKeyFrameNum;
+		CurveInfo.KeyframeDatasPtr = reinterpret_cast<FKeyframeData*>(Ptr);
 		Ptr += DataSize;
+
+		CurveInfoMap[CurveName] = CurveInfo;
 	}
 
 	Timer.Tick();

@@ -12,32 +12,37 @@ void WObjectAnimComponent::BeginComponent()
 	
 	if (mObjectAnimData)
 	{
-		if (mObjectAnimData->KeyframeMap.count("LocationX")) { mLocXKeyframes = &(mObjectAnimData->KeyframeMap)["LocationX"]; }
-		if (mObjectAnimData->KeyframeMap.count("LocationY")) { mLocYKeyframes = &(mObjectAnimData->KeyframeMap)["LocationY"]; }
-		if (mObjectAnimData->KeyframeMap.count("LocationZ")) { mLocZKeyframes = &(mObjectAnimData->KeyframeMap)["LocationZ"]; }
-		if (mObjectAnimData->KeyframeMap.count("RotationX")) { mRotXKeyframes = &(mObjectAnimData->KeyframeMap)["RotationX"]; }
-		if (mObjectAnimData->KeyframeMap.count("RotationY")) { mRotYKeyframes = &(mObjectAnimData->KeyframeMap)["RotationY"]; }
-		if (mObjectAnimData->KeyframeMap.count("RotationZ")) { mRotZKeyframes = &(mObjectAnimData->KeyframeMap)["RotationZ"]; }
-		if (mObjectAnimData->KeyframeMap.count("ScaleX")) { mScaleXKeyframes =	&(mObjectAnimData->KeyframeMap)["ScaleX"]; }
-		if (mObjectAnimData->KeyframeMap.count("ScaleY")) { mScaleYKeyframes =	&(mObjectAnimData->KeyframeMap)["ScaleY"]; }
-		if (mObjectAnimData->KeyframeMap.count("ScaleZ")) { mScaleZKeyframes =	&(mObjectAnimData->KeyframeMap)["ScaleZ"]; }
+		auto& CurvInfoMap = mObjectAnimData->GetCurveInfoMap();
+		if (CurvInfoMap.count("LocationX")) { mLocXKeyframes.CurveInfo	= mObjectAnimData->GetCurveInfo("LocationX"); }
+		if (CurvInfoMap.count("LocationY")) { mLocYKeyframes.CurveInfo	= mObjectAnimData->GetCurveInfo("LocationY"); }
+		if (CurvInfoMap.count("LocationZ")) { mLocZKeyframes.CurveInfo	= mObjectAnimData->GetCurveInfo("LocationZ"); }
+		if (CurvInfoMap.count("RotationX")) { mRotXKeyframes.CurveInfo	= mObjectAnimData->GetCurveInfo("RotationX"); }
+		if (CurvInfoMap.count("RotationY")) { mRotYKeyframes.CurveInfo	= mObjectAnimData->GetCurveInfo("RotationY"); }
+		if (CurvInfoMap.count("RotationZ")) { mRotZKeyframes.CurveInfo	= mObjectAnimData->GetCurveInfo("RotationZ"); }
+		if (CurvInfoMap.count("ScaleX")) { mScaleXKeyframes.CurveInfo	= mObjectAnimData->GetCurveInfo("ScaleX"); }
+		if (CurvInfoMap.count("ScaleY")) { mScaleYKeyframes.CurveInfo	= mObjectAnimData->GetCurveInfo("ScaleY"); }
+		if (CurvInfoMap.count("ScaleZ")) { mScaleZKeyframes.CurveInfo	= mObjectAnimData->GetCurveInfo("ScaleZ"); }
 	}
 }
 
 bool WObjectAnimComponent::LoadKeyframesFromOADAsset(const std::wstring& AssetName)
 {
 	mObjectAnimData = FAssetManager::GetAsset<FObjectAnimDataAsset>(L"OAD_Large");
+	mFps = mObjectAnimData->GetFPS();
+	mLastFrame = mObjectAnimData->GetFraneEnd();
 	return mObjectAnimData != nullptr;
 }
 
-float WObjectAnimComponent::SampleAnimDataByFrame(FAnimData* AnimData, int& LastIndex, const float TargetFrame)
+float WObjectAnimComponent::SampleAnimDataByFrame(FAnimData& AnimData, const float TargetFrame)
 {
-	const std::vector<float>& Frames = AnimData->Frames;
-	const std::vector<FKeyframeData>& Keyframes = AnimData->Keyframes;
-	const int NumKeys = static_cast<int>(Keyframes.size());
+	const FCurveInfo* CurveInfo = AnimData.CurveInfo;
+	int& LastIndex = AnimData.LastIndex;
+	const float* Frames = CurveInfo->FramesPtr;
+	const FKeyframeData* KeyframeDatas = CurveInfo->KeyframeDatasPtr;
+	const int NumKeys = CurveInfo->TotalKeyFrameNum;
 
 	if (NumKeys == 0) return 0.0f;
-	if (NumKeys == 1) return Keyframes[0].Value;
+	if (NumKeys == 1) return KeyframeDatas[0].Value;
 
 	// 1. 선형 탐색 시도 (LastIndex 기준 앞/뒤 10개)
 	int i = LastIndex;
@@ -57,8 +62,8 @@ float WObjectAnimComponent::SampleAnimDataByFrame(FAnimData* AnimData, int& Last
 	// 2. 못 찾았다면 이분 탐색 (TargetFrame보다 크거나 같은 첫 번째 키를 찾음)
 	if (!bFound)
 	{
-		auto it = std::lower_bound(Frames.begin(), Frames.end(), TargetFrame);
-		i = static_cast<int>(std::distance(Frames.begin(), it));
+		const float* it = std::lower_bound(Frames, Frames + NumKeys, TargetFrame);
+		i = static_cast<int>(std::distance(Frames, it));
 	}
 
 	// 3. 인덱스 범위 클램핑 및 LastIndex 갱신
@@ -66,14 +71,14 @@ float WObjectAnimComponent::SampleAnimDataByFrame(FAnimData* AnimData, int& Last
 	LastIndex = std::clamp(i, 1, NumKeys - 1);
 
 	// 4. 경계값 처리
-	if (TargetFrame <= Frames[0]) return Keyframes[0].Value;
-	if (TargetFrame >= Frames[NumKeys - 1]) return Keyframes[NumKeys - 1].Value;
+	if (TargetFrame <= Frames[0]) return KeyframeDatas[0].Value;
+	if (TargetFrame >= Frames[NumKeys - 1]) return KeyframeDatas[NumKeys - 1].Value;
 
 	// 5. 보간 수행 (이제 i는 항상 1 ~ NumKeys-1 사이임이 보장됨)
 	float LeftFrame = Frames[LastIndex - 1];
 	float RightFrame = Frames[LastIndex];
-	const FKeyframeData& Left = Keyframes[LastIndex - 1];
-	const FKeyframeData& Right = Keyframes[LastIndex];
+	const FKeyframeData& Left = KeyframeDatas[LastIndex - 1];
+	const FKeyframeData& Right = KeyframeDatas[LastIndex];
 	assert(TargetFrame >= LeftFrame);
 	assert(TargetFrame <= RightFrame);
 	assert(LeftFrame < RightFrame);
@@ -110,9 +115,9 @@ float WObjectAnimComponent::SampleAnimDataByFrame(FAnimData* AnimData, int& Last
 	return Value;
 }
 
-float WObjectAnimComponent::SampleAnimDataBySecond(FAnimData* AnimData, int& LastIndex, float Second)
+float WObjectAnimComponent::SampleAnimDataBySecond(FAnimData& AnimData, float Second)
 {
-	return SampleAnimDataByFrame(AnimData, LastIndex, SecondToFrame(Second));
+	return SampleAnimDataByFrame(AnimData, SecondToFrame(Second));
 }
 
 FTransform WObjectAnimComponent::SampleAnimLocalTransformByFrame(float Frame)
@@ -120,20 +125,19 @@ FTransform WObjectAnimComponent::SampleAnimLocalTransformByFrame(float Frame)
 	FTransform Transform;
 
 	// 1. Location (사용자 정의 이름: LocationX, LocationY, LocationZ)
-	if (mLocXKeyframes) Transform.Translation.x = SampleAnimDataByFrame(mLocXKeyframes, mLocXKeyframeLastIndex, Frame);
-	if (mLocYKeyframes) Transform.Translation.y = SampleAnimDataByFrame(mLocYKeyframes, mLocYKeyframeLastIndex, Frame);
-	if (mLocZKeyframes) Transform.Translation.z = SampleAnimDataByFrame(mLocZKeyframes, mLocZKeyframeLastIndex, Frame);
+	if (mLocXKeyframes.CurveInfo) Transform.Translation.x = SampleAnimDataByFrame(mLocXKeyframes, Frame);
+	if (mLocYKeyframes.CurveInfo) Transform.Translation.y = SampleAnimDataByFrame(mLocYKeyframes, Frame);
+	if (mLocZKeyframes.CurveInfo) Transform.Translation.z = SampleAnimDataByFrame(mLocZKeyframes, Frame);
 
 	// 2. Rotation (사용자 정의 이름: RotationX, RotationY, RotationZ, RotationW)
-	if (mRotXKeyframes) Transform.Rotation.x = SampleAnimDataByFrame(mRotXKeyframes, mRotXKeyframeLastIndex, Frame);
-	if (mRotYKeyframes) Transform.Rotation.y = SampleAnimDataByFrame(mRotYKeyframes, mRotYKeyframeLastIndex, Frame);
-	if (mRotZKeyframes) Transform.Rotation.z = SampleAnimDataByFrame(mRotZKeyframes, mRotZKeyframeLastIndex, Frame);
+	if (mRotXKeyframes.CurveInfo) Transform.Rotation.x = SampleAnimDataByFrame(mRotXKeyframes, Frame);
+	if (mRotYKeyframes.CurveInfo) Transform.Rotation.y = SampleAnimDataByFrame(mRotYKeyframes, Frame);
+	if (mRotZKeyframes.CurveInfo) Transform.Rotation.z = SampleAnimDataByFrame(mRotZKeyframes, Frame);
 
 	// 3. Scale (사용자 정의 이름: ScaleX, ScaleY, ScaleZ)
-	Transform.Scale = { 1.0f, 1.0f, 1.0f }; // 기본값 설정
-	if (mScaleXKeyframes) Transform.Scale.x = SampleAnimDataByFrame(mScaleXKeyframes, mScaleXKeyframeLastIndex, Frame);
-	if (mScaleYKeyframes) Transform.Scale.y = SampleAnimDataByFrame(mScaleYKeyframes, mScaleYKeyframeLastIndex, Frame);
-	if (mScaleZKeyframes) Transform.Scale.z = SampleAnimDataByFrame(mScaleZKeyframes, mScaleZKeyframeLastIndex, Frame);
+	if (mScaleXKeyframes.CurveInfo) Transform.Scale.x = SampleAnimDataByFrame(mScaleXKeyframes, Frame);
+	if (mScaleYKeyframes.CurveInfo) Transform.Scale.y = SampleAnimDataByFrame(mScaleYKeyframes, Frame);
+	if (mScaleZKeyframes.CurveInfo) Transform.Scale.z = SampleAnimDataByFrame(mScaleZKeyframes, Frame);
 
 	return Transform;
 }
