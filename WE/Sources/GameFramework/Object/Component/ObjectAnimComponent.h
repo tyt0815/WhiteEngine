@@ -53,9 +53,9 @@ public:
 		XMVECTOR* P0, XMVECTOR* P1, XMVECTOR* P2, XMVECTOR* P3
 	) const;
 
-	float InterpolateKeyframeByFrame(FAnimData* AnimData, const float TargetFrame);
+	float SampleAnimDataByFrame(FAnimData* AnimData, const float TargetFrame);
 
-	float InterpolateKeyframeBySecond(FAnimData* AnimData, float Second);
+	float SampleAnimDataBySecond(FAnimData* AnimData, float Second);
 
 	FTransform SampleAnimLocalTransformByFrame(float Frame);
 
@@ -64,10 +64,6 @@ public:
 	FTransform SampleAnimWorldTransformByFrame(float Frame);
 
 	FTransform SampleAnimWorldTransformBySecond(float Second);
-
-	float GetPropertyByFrame(const std::string& PropertyName, float Frame);
-
-	float GetPropertyBySecond(const std::string& PropertyName, float Second);
 
 private:
 	bool LoadKeyframesFromBinary(unsigned char* Ptr);
@@ -106,5 +102,10 @@ public:
 	__forceinline float SecondToFrame(float Second) const
 	{
 		return mFPS * Second;
+	}
+
+	__forceinline const FAnimData* GetAnimData(const std::string& Name) const
+	{
+		return mKeyframeMap.count(Name) ?&mKeyframeMap.at(Name) : nullptr;
 	}
 };

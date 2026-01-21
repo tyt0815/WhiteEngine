@@ -608,8 +608,8 @@ void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConsta
 	PassConstants.InvRenderTargetSize = XMFLOAT2(1.0f / Width, 1.0f / Height);
 	PassConstants.NearZ = Camera->GetNearZ();
 	PassConstants.FarZ = Camera->GetFarZ();
-	PassConstants.TotalTime = Timer->GetTotalTime();
-	PassConstants.DeltaTime = Timer->GetDeltaTime();
+	PassConstants.TotalTime = (float)Timer->GetTotalTime();
+	PassConstants.DeltaTime = (float)Timer->GetDeltaTime();
 	FTexture* SpecularIntegral = nullptr;
 	PassConstants.IndirectSpecularIntegralTextureIndex = -1;
 

@@ -94,7 +94,7 @@ namespace GameCore
 
 				GetInputSystemManager()->Tick();
 
-				Game.Update(Timer->GetDeltaTime());
+				Game.Update((float)Timer->GetDeltaTime());
 			}
 		}
 	}

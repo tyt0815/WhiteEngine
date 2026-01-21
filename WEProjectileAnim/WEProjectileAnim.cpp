@@ -40,7 +40,7 @@ AProjectileAnimActor::AProjectileAnimActor()
 			const char* LargeFileName = "Large_v1.keyframemap.lz4";
 			ObjectAnimComp->LoadKeyframesFromLZ4KeyframeMap(XMLDir + "/" + LargeFileName);
 			Timer.Tick();
-			float LargeTime = Timer.GetDeltaTime();
+			double LargeTime = Timer.GetDeltaTime();
 
 			static bool bFirstTime = true;
 			if (bFirstTime)
@@ -90,7 +90,7 @@ void AProjectileAnimActor::Tick_PostPhysics(float Delta)
 	mElapsedTime += Delta;
 
 	UTimer Timer;
-	float SampleAnimTime = 0;
+	double SampleAnimTime = 0;
 	if (auto ObjectAnimComp = mObjectAnimComp.lock())
 	{
 		mElapsedTime = fmodf(mElapsedTime, ObjectAnimComp->GetLastSecond());
@@ -108,8 +108,8 @@ void AProjectileAnimActor::Tick_PostPhysics(float Delta)
 	}
 
 	static TWeakPtr<AProjectileAnimActor> FirstActor = GetWeakPtr<AProjectileAnimActor>();
-	static float One_SampleAnimTimeAvg = 0;
-	static float Whole_SampleAnimTimeAvg = 0;
+	static double One_SampleAnimTimeAvg = 0;
+	static double Whole_SampleAnimTimeAvg = 0;
 	static float Alpha = 0.01f;
 
 	if (FirstActor.expired())

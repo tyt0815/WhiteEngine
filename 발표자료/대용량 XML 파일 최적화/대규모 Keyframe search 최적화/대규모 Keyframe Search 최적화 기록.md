@@ -12,3 +12,4 @@
 ![alt text](./v2_after2.png)
 
 # 3. Keyframe Sampling Index caching
+![](./v3_SearchTime.png)

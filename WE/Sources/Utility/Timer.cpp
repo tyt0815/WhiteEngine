@@ -11,7 +11,7 @@ UTimer::UTimer()
 	Reset();
 }
 
-float UTimer::GetTotalTime() const
+double UTimer::GetTotalTime() const
 {
 	// If we are stopped, do not count the time that has passed since we stopped.
 	// Moreover, if we previously already had a pause, the distance 
@@ -39,13 +39,13 @@ float UTimer::GetTotalTime() const
 
 	else
 	{
-		return (float)(((TickTime - PausedTime) - BaseTime) * SecondsPerCount);
+		return ((TickTime - PausedTime) - BaseTime) * SecondsPerCount;
 	}
 }
 
-float UTimer::GetDeltaTime() const
+double UTimer::GetDeltaTime() const
 {
-	return (float)DeltaTime;
+	return DeltaTime;
 }
 
 void UTimer::Reset()

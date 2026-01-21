@@ -5,8 +5,8 @@ class UTimer
 public:
 	UTimer();
 
-	float GetTotalTime()const; // in seconds
-	float GetDeltaTime()const; // in seconds
+	double GetTotalTime()const; // in seconds
+	double GetDeltaTime()const; // in seconds
 
 	void Reset(); // Call before message loop.
 	void Start(); // Call when unpaused.

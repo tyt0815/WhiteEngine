@@ -36,7 +36,7 @@ void WWorld::Tick(float Delta)
 		mAllActors[i]->Tick_PrePhysics(Delta);
 	}
 	Timer.Tick();
-	float Time_Tick_PrePhysics = Timer.GetDeltaTime();
+	double Time_Tick_PrePhysics = Timer.GetDeltaTime();
 
 	for (auto& Actor : mAllActors)
 	{
@@ -48,7 +48,7 @@ void WWorld::Tick(float Delta)
 		Actor->UpdateComponentsFromPhysics();
 	}
 	Timer.Tick();
-	float Time_Update_Physics = Timer.GetDeltaTime();
+	double Time_Update_Physics = Timer.GetDeltaTime();
 
 	{
 		std::lock_guard<std::mutex> Lock(mEventQueueMutex);
@@ -79,7 +79,7 @@ void WWorld::Tick(float Delta)
 		mOnHitEventQueue.clear();
 	}
 	Timer.Tick();
-	float Time_Physics_Event = Timer.GetDeltaTime();
+	double Time_Physics_Event = Timer.GetDeltaTime();
 
 
 	for (size_t i = 0; i < mAllActors.size(); ++i)
@@ -88,7 +88,7 @@ void WWorld::Tick(float Delta)
 		mAllActors[i]->Tick_PostPhysics(Delta);
 	}
 	Timer.Tick();
-	float Time_Tick_PostPhysics = Timer.GetDeltaTime();
+	double Time_Tick_PostPhysics = Timer.GetDeltaTime();
 
 	FlushDestroyQueue();
 
@@ -100,7 +100,7 @@ void WWorld::Tick(float Delta)
 		}
 	}
 	Timer.Tick();
-	float Time_Update_Render_Items = Timer.GetDeltaTime();
+	double Time_Update_Render_Items = Timer.GetDeltaTime();
 
 	// 프로파일링용 GUI
 	GUI::FDrawCommand Command;

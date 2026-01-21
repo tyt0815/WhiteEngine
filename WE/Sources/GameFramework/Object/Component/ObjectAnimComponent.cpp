@@ -169,7 +169,7 @@ void WObjectAnimComponent::ToControlPoint(const FKeyframe& Left, const FKeyframe
 	*P3 = XMLoadFloat2(&Point3);
 }
 
-float WObjectAnimComponent::InterpolateKeyframeByFrame(FAnimData* AnimData, const float TargetFrame)
+float WObjectAnimComponent::SampleAnimDataByFrame(FAnimData* AnimData, const float TargetFrame)
 {
 	const std::vector<FKeyframe>& Keyframes = AnimData->Keyframes;
 	int& LastIndex = AnimData->LastIndex;
@@ -244,9 +244,9 @@ float WObjectAnimComponent::InterpolateKeyframeByFrame(FAnimData* AnimData, cons
 	return Value;
 }
 
-float WObjectAnimComponent::InterpolateKeyframeBySecond(FAnimData* AnimData, float Second)
+float WObjectAnimComponent::SampleAnimDataBySecond(FAnimData* AnimData, float Second)
 {
-	return InterpolateKeyframeByFrame(AnimData, SecondToFrame(Second));
+	return SampleAnimDataByFrame(AnimData, SecondToFrame(Second));
 }
 
 FTransform WObjectAnimComponent::SampleAnimLocalTransformByFrame(float Frame)
@@ -254,20 +254,20 @@ FTransform WObjectAnimComponent::SampleAnimLocalTransformByFrame(float Frame)
 	FTransform Transform;
 
 	// 1. Location (사용자 정의 이름: LocationX, LocationY, LocationZ)
-	if (mLocXKeyframes) Transform.Translation.x = InterpolateKeyframeByFrame(mLocXKeyframes, Frame);
-	if (mLocYKeyframes) Transform.Translation.y = InterpolateKeyframeByFrame(mLocYKeyframes, Frame);
-	if (mLocZKeyframes) Transform.Translation.z = InterpolateKeyframeByFrame(mLocZKeyframes, Frame);
+	if (mLocXKeyframes) Transform.Translation.x = SampleAnimDataByFrame(mLocXKeyframes, Frame);
+	if (mLocYKeyframes) Transform.Translation.y = SampleAnimDataByFrame(mLocYKeyframes, Frame);
+	if (mLocZKeyframes) Transform.Translation.z = SampleAnimDataByFrame(mLocZKeyframes, Frame);
 
 	// 2. Rotation (사용자 정의 이름: RotationX, RotationY, RotationZ, RotationW)
-	if (mRotXKeyframes) Transform.Rotation.x = InterpolateKeyframeByFrame(mRotXKeyframes, Frame);
-	if (mRotYKeyframes) Transform.Rotation.y = InterpolateKeyframeByFrame(mRotYKeyframes, Frame);
-	if (mRotZKeyframes) Transform.Rotation.z = InterpolateKeyframeByFrame(mRotZKeyframes, Frame);
+	if (mRotXKeyframes) Transform.Rotation.x = SampleAnimDataByFrame(mRotXKeyframes, Frame);
+	if (mRotYKeyframes) Transform.Rotation.y = SampleAnimDataByFrame(mRotYKeyframes, Frame);
+	if (mRotZKeyframes) Transform.Rotation.z = SampleAnimDataByFrame(mRotZKeyframes, Frame);
 
 	// 3. Scale (사용자 정의 이름: ScaleX, ScaleY, ScaleZ)
 	Transform.Scale = { 1.0f, 1.0f, 1.0f }; // 기본값 설정
-	if (mScaleXKeyframes) Transform.Scale.x = InterpolateKeyframeByFrame(mScaleXKeyframes, Frame);
-	if (mScaleYKeyframes) Transform.Scale.y = InterpolateKeyframeByFrame(mScaleYKeyframes, Frame);
-	if (mScaleZKeyframes) Transform.Scale.z = InterpolateKeyframeByFrame(mScaleZKeyframes, Frame);
+	if (mScaleXKeyframes) Transform.Scale.x = SampleAnimDataByFrame(mScaleXKeyframes, Frame);
+	if (mScaleYKeyframes) Transform.Scale.y = SampleAnimDataByFrame(mScaleYKeyframes, Frame);
+	if (mScaleZKeyframes) Transform.Scale.z = SampleAnimDataByFrame(mScaleZKeyframes, Frame);
 
 	return Transform;
 }
@@ -291,20 +291,6 @@ FTransform WObjectAnimComponent::SampleAnimWorldTransformByFrame(float Frame)
 FTransform WObjectAnimComponent::SampleAnimWorldTransformBySecond(float Second)
 {
 	return SampleAnimWorldTransformByFrame(SecondToFrame(Second));
-}
-
-float WObjectAnimComponent::GetPropertyByFrame(const std::string& PropertyName, float Frame)
-{
-	if (mKeyframeMap.count(PropertyName))
-	{
-		return InterpolateKeyframeByFrame(&mKeyframeMap[PropertyName], Frame);
-	}
-	return 0.0f;
-}
-
-float WObjectAnimComponent::GetPropertyBySecond(const std::string& PropertyName, float Second)
-{
-	return GetPropertyByFrame(PropertyName, SecondToFrame(Second));
 }
 
 bool WObjectAnimComponent::LoadKeyframesFromBinary(unsigned char* Ptr)
