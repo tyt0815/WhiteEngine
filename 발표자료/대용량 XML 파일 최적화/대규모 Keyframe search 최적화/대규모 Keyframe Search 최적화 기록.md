@@ -14,6 +14,9 @@
 # 3. Keyframe Sampling Index caching
 ![](./v3_SearchTime.png)
 
+# 4. 데이터 구조 최적화 AoS -> SoA
+![](./v4_SearchTime.png)
+
 # 결론
 - fps
-평균 400 -> 평균 1000
+평균 400 ->

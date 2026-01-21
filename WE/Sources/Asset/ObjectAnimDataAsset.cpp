@@ -150,26 +150,26 @@ bool FObjectAnimDataAsset::LoadAsset(const std::wstring& FilePath)
 	}
 
 	// 4. LZ4 파일로부터 데이터 로드
-	if (!Asset::LoadLZ4(lz4Path, RawBuffer))
+	if (!Asset::LoadLZ4(lz4Path, mRawBuffer))
 	{
 		return false;
 	}
 	Timer.Tick();
 	OADLoadTime = Timer.GetDeltaTime();
 
-	unsigned char* Ptr = RawBuffer.data();
+	unsigned char* Ptr = mRawBuffer.data();
 
 	// 프레임 정보 읽기
-	FPS = *reinterpret_cast<float*>(Ptr);
+	mFPS = *reinterpret_cast<float*>(Ptr);
 	Ptr += sizeof(float);
-	FrameEnd = *reinterpret_cast<float*> (Ptr);
+	mFrameEnd = *reinterpret_cast<float*> (Ptr);
 	Ptr += sizeof(float);
 
 	// 2. 전체 커브 개수 읽기
-	TotalCurveNum = *reinterpret_cast<int*>(Ptr);
+	int TotalCurveNum = *reinterpret_cast<int*>(Ptr);
 	Ptr += sizeof(int);
 
-	CurvesStartPtr = Ptr;
+	mCurvesStartPtr = Ptr;
 
 	for (int i = 0; i < TotalCurveNum; ++i)
 	{
@@ -196,7 +196,7 @@ bool FObjectAnimDataAsset::LoadAsset(const std::wstring& FilePath)
 		CurveInfo.KeyframeDatasPtr = reinterpret_cast<FKeyframeData*>(Ptr);
 		Ptr += DataSize;
 
-		CurveInfoMap[CurveName] = CurveInfo;
+		mCurveInfoMap[CurveName] = CurveInfo;
 	}
 
 	Timer.Tick();

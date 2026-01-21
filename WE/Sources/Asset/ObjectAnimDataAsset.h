@@ -32,41 +32,39 @@ public:
 	virtual bool LoadAsset(const std::wstring& FilePath);
 	
 private:
-	unsigned char* CurvesStartPtr;
+	unsigned char* mCurvesStartPtr;
 
-	std::vector<unsigned char> RawBuffer;
+	std::vector<unsigned char> mRawBuffer;
 
-	std::unordered_map<std::string, FCurveInfo> CurveInfoMap;
+	std::unordered_map<std::string, FCurveInfo> mCurveInfoMap;
 
-	float FPS = 1;
+	float mFPS = 1;
 
-	float FrameEnd = 0;
-
-	int TotalCurveNum = 0;
+	float mFrameEnd = 0;
 
 public:
 	__forceinline const std::unordered_map<std::string, FCurveInfo>& GetCurveInfoMap() const
 	{
-		return CurveInfoMap;
+		return mCurveInfoMap;
 	}
 
 	__forceinline const FCurveInfo* GetCurveInfoSafe(const std::string& CurveName) const
 	{
-		return CurveInfoMap.count(CurveName) ? &CurveInfoMap.at(CurveName) : nullptr;
+		return mCurveInfoMap.count(CurveName) ? &mCurveInfoMap.at(CurveName) : nullptr;
 	}
 
 	__forceinline const FCurveInfo* GetCurveInfo(const std::string& CurveName) const
 	{
-		return &CurveInfoMap.at(CurveName);
+		return &mCurveInfoMap.at(CurveName);
 	}
 
 	__forceinline float GetFPS() const
 	{
-		return FPS;
+		return mFPS;
 	}
 
 	__forceinline float GetFraneEnd() const
 	{
-		return FrameEnd;
+		return mFrameEnd;
 	}
 };

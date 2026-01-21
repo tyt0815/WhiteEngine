@@ -35,3 +35,16 @@
 ![](./v5_LoadTime.png)
 
 ![](./v5_파일크기.png)
+
+# 6. Zero-copy Deserialization
+적용 전
+
+![](./v5_LoadTime_Detail_WithCompile.png)
+
+![](./v5_LoadTime_Detail_WithoutCompile.png)
+
+적용 후
+
+![](./v6_LoadTime_Detail_WithoutCompile.png)
+
+![](./v6_SearchTime.png)

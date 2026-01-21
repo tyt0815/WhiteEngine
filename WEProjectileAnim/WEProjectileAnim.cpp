@@ -45,7 +45,7 @@ void AProjectileAnimActor::Tick_PostPhysics(float Delta)
 	double SampleAnimTime = 0;
 	if (auto ObjectAnimComp = mObjectAnimComp.lock())
 	{
-		mElapsedTime = fmodf(mElapsedTime, ObjectAnimComp->GetLastSecond());
+		mElapsedTime = fmodf(mElapsedTime, ObjectAnimComp->GetDuration());
 
 		if (auto Proj = mProj.lock())
 		{

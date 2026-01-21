@@ -50,20 +50,20 @@ private:
 	FAnimData mScaleYKeyframes;
 	FAnimData mScaleZKeyframes;
 
-	float mLastFrame = 0;
+	float mFrameEnd = 0;
 
 	float mFps = 0;
 
 public:
-	__forceinline float GetLastFrame() const
+	__forceinline float GetFrameEnd() const
 	{
-		return mLastFrame;
+		return mFrameEnd;
 	}
 
 	// frame의 시작이 0
-	__forceinline float GetLastSecond() const
+	__forceinline float GetDuration() const
 	{
-		return mLastFrame / mFps;
+		return mFrameEnd / mFps;
 	}
 
 	// frame의 시작이 0

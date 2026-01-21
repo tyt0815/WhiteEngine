@@ -29,7 +29,7 @@ bool WObjectAnimComponent::LoadKeyframesFromOADAsset(const std::wstring& AssetNa
 {
 	mObjectAnimData = FAssetManager::GetAsset<FObjectAnimDataAsset>(L"OAD_Large");
 	mFps = mObjectAnimData->GetFPS();
-	mLastFrame = mObjectAnimData->GetFraneEnd();
+	mFrameEnd = mObjectAnimData->GetFraneEnd();
 	return mObjectAnimData != nullptr;
 }
 
