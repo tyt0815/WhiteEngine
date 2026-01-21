@@ -6,6 +6,22 @@
 
 using namespace tinyxml2;
 
+void WObjectAnimComponent::BeginComponent()
+{
+	Super::BeginComponent();
+
+	if (mKeyframeMap.count("LocationX"))	{ mLocXKeyframes = &mKeyframeMap["LocationX"]; }
+	if (mKeyframeMap.count("LocationY"))	{ mLocYKeyframes = &mKeyframeMap["LocationY"]; }
+	if (mKeyframeMap.count("LocationZ"))	{ mLocZKeyframes = &mKeyframeMap["LocationZ"]; }
+	if (mKeyframeMap.count("RotationX"))	{ mRotXKeyframes = &mKeyframeMap["RotationX"]; }
+	if (mKeyframeMap.count("RotationY"))	{ mRotYKeyframes = &mKeyframeMap["RotationY"]; }
+	if (mKeyframeMap.count("RotationZ"))	{ mRotZKeyframes = &mKeyframeMap["RotationZ"]; }
+	if (mKeyframeMap.count("ScaleX"))		{ mScaleXKeyframes = &mKeyframeMap["ScaleX"]; }
+	if (mKeyframeMap.count("ScaleY"))		{ mScaleYKeyframes = &mKeyframeMap["ScaleY"]; }
+	if (mKeyframeMap.count("ScaleZ"))		{ mScaleZKeyframes = &mKeyframeMap["ScaleZ"]; }
+
+}
+
 bool WObjectAnimComponent::LoadKeyframesFromXMLAsset(const std::wstring& Name)
 {
 	mKeyframeMap.clear();
@@ -208,38 +224,38 @@ float WObjectAnimComponent::InterpolateKeyframeBySecond(const std::vector<FKeyfr
 	return InterpolateKeyframeByFrame(Keyframes, SecondToFrame(Second));
 }
 
-FTransform WObjectAnimComponent::GetKeyframeLocalTransformByFrame(float Frame) const
+FTransform WObjectAnimComponent::SampleAnimLocalTransformByFrame(float Frame) const
 {
 	FTransform Transform;
 
 	// 1. Location (사용자 정의 이름: LocationX, LocationY, LocationZ)
-	if (mKeyframeMap.count("LocationX")) Transform.Translation.x = InterpolateKeyframeByFrame(mKeyframeMap.at("LocationX"), Frame);
-	if (mKeyframeMap.count("LocationY")) Transform.Translation.y = InterpolateKeyframeByFrame(mKeyframeMap.at("LocationY"), Frame);
-	if (mKeyframeMap.count("LocationZ")) Transform.Translation.z = InterpolateKeyframeByFrame(mKeyframeMap.at("LocationZ"), Frame);
+	if (mLocXKeyframes) Transform.Translation.x = InterpolateKeyframeByFrame(*mLocXKeyframes, Frame);
+	if (mLocYKeyframes) Transform.Translation.y = InterpolateKeyframeByFrame(*mLocYKeyframes, Frame);
+	if (mLocZKeyframes) Transform.Translation.z = InterpolateKeyframeByFrame(*mLocZKeyframes, Frame);
 
 	// 2. Rotation (사용자 정의 이름: RotationX, RotationY, RotationZ, RotationW)
-	if (mKeyframeMap.count("RotationX")) Transform.Rotation.x = InterpolateKeyframeByFrame(mKeyframeMap.at("RotationX"), Frame);
-	if (mKeyframeMap.count("RotationY")) Transform.Rotation.y = InterpolateKeyframeByFrame(mKeyframeMap.at("RotationY"), Frame);
-	if (mKeyframeMap.count("RotationZ")) Transform.Rotation.z = InterpolateKeyframeByFrame(mKeyframeMap.at("RotationZ"), Frame);
+	if (mRotXKeyframes) Transform.Rotation.x = InterpolateKeyframeByFrame(*mRotXKeyframes, Frame);
+	if (mRotYKeyframes) Transform.Rotation.y = InterpolateKeyframeByFrame(*mRotYKeyframes, Frame);
+	if (mRotZKeyframes) Transform.Rotation.z = InterpolateKeyframeByFrame(*mRotZKeyframes, Frame);
 
 	// 3. Scale (사용자 정의 이름: ScaleX, ScaleY, ScaleZ)
 	Transform.Scale = { 1.0f, 1.0f, 1.0f }; // 기본값 설정
-	if (mKeyframeMap.count("ScaleX")) Transform.Scale.x = InterpolateKeyframeByFrame(mKeyframeMap.at("ScaleX"), Frame);
-	if (mKeyframeMap.count("ScaleY")) Transform.Scale.y = InterpolateKeyframeByFrame(mKeyframeMap.at("ScaleY"), Frame);
-	if (mKeyframeMap.count("ScaleZ")) Transform.Scale.z = InterpolateKeyframeByFrame(mKeyframeMap.at("ScaleZ"), Frame);
+	if (mScaleXKeyframes) Transform.Scale.x = InterpolateKeyframeByFrame(*mScaleXKeyframes, Frame);
+	if (mScaleYKeyframes) Transform.Scale.y = InterpolateKeyframeByFrame(*mScaleYKeyframes, Frame);
+	if (mScaleZKeyframes) Transform.Scale.z = InterpolateKeyframeByFrame(*mScaleZKeyframes, Frame);
 
 	return Transform;
 }
 
-FTransform WObjectAnimComponent::GetKeyframeLocalTransformBySecond(float Second) const
+FTransform WObjectAnimComponent::SampleAnimLocalTransformBySecond(float Second) const
 {
-	return GetKeyframeLocalTransformByFrame(SecondToFrame(Second));
+	return SampleAnimLocalTransformByFrame(SecondToFrame(Second));
 }
 
-FTransform WObjectAnimComponent::GetKeyframeWorldTransformByFrame(float Frame)
+FTransform WObjectAnimComponent::SampleAnimWorldTransformByFrame(float Frame)
 {
 	XMMATRIX CM = GetWorldMatrix();
-	XMMATRIX M = GetKeyframeLocalTransformByFrame(Frame).GetTransformMatrix();
+	XMMATRIX M = SampleAnimLocalTransformByFrame(Frame).GetTransformMatrix();
 
 	FTransform Transform;
 	Transform.SetByTransformMatrix(M * CM);
@@ -247,9 +263,9 @@ FTransform WObjectAnimComponent::GetKeyframeWorldTransformByFrame(float Frame)
 	return Transform;
 }
 
-FTransform WObjectAnimComponent::GetKeyframeWorldTransformBySecond(float Second)
+FTransform WObjectAnimComponent::SampleAnimWorldTransformBySecond(float Second)
 {
-	return GetKeyframeWorldTransformByFrame(SecondToFrame(Second));
+	return SampleAnimWorldTransformByFrame(SecondToFrame(Second));
 }
 
 float WObjectAnimComponent::GetPropertyByFrame(const std::string& PropertyName, float Frame) const

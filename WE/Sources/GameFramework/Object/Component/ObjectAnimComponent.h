@@ -8,6 +8,7 @@
 
 class WObjectAnimComponent : public WSceneComponent
 {
+	typedef WSceneComponent Super;
 	enum class EInterpolationType : int
 	{
 		EIT_Linear,
@@ -24,6 +25,9 @@ class WObjectAnimComponent : public WSceneComponent
 		XMFLOAT2 RightHandle;
 		XMFLOAT2 LeftHandle;
 	};
+
+public:
+	virtual void BeginComponent() override;
 
 public:
 	bool LoadKeyframesFromXMLAsset(const std::wstring& Name);
@@ -47,13 +51,13 @@ public:
 
 	float InterpolateKeyframeBySecond(const std::vector<FKeyframe>& Keyframes, float Second) const;
 
-	FTransform GetKeyframeLocalTransformByFrame(float Frame) const;
+	FTransform SampleAnimLocalTransformByFrame(float Frame) const;
 
-	FTransform GetKeyframeLocalTransformBySecond(float Second) const;
+	FTransform SampleAnimLocalTransformBySecond(float Second) const;
 
-	FTransform GetKeyframeWorldTransformByFrame(float Frame);
+	FTransform SampleAnimWorldTransformByFrame(float Frame);
 
-	FTransform GetKeyframeWorldTransformBySecond(float Second);
+	FTransform SampleAnimWorldTransformBySecond(float Second);
 
 	float GetPropertyByFrame(const std::string& PropertyName, float Frame) const;
 
@@ -63,6 +67,16 @@ private:
 	bool LoadKeyframesFromBinary(unsigned char* Ptr);
 
 	std::unordered_map<std::string, std::vector<FKeyframe>> mKeyframeMap;
+
+	std::vector<FKeyframe>* mLocXKeyframes = nullptr;
+	std::vector<FKeyframe>* mLocYKeyframes = nullptr;
+	std::vector<FKeyframe>* mLocZKeyframes = nullptr;
+	std::vector<FKeyframe>* mRotXKeyframes = nullptr;
+	std::vector<FKeyframe>* mRotYKeyframes = nullptr;
+	std::vector<FKeyframe>* mRotZKeyframes = nullptr;
+	std::vector<FKeyframe>* mScaleXKeyframes = nullptr;
+	std::vector<FKeyframe>* mScaleYKeyframes = nullptr;
+	std::vector<FKeyframe>* mScaleZKeyframes = nullptr;
 
 	float mFPS = 1;
 

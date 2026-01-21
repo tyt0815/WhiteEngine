@@ -90,7 +90,7 @@ void AProjectileAnimActor::Tick_PostPhysics(float Delta)
 	mElapsedTime += Delta;
 
 	UTimer Timer;
-	float KeyframeSearchTime = 0;
+	float SampleAnimTime = 0;
 	if (auto ObjectAnimComp = mObjectAnimComp.lock())
 	{
 		mElapsedTime = fmodf(mElapsedTime, ObjectAnimComp->GetLastSecond());
@@ -99,17 +99,43 @@ void AProjectileAnimActor::Tick_PostPhysics(float Delta)
 		{
 			
 			Timer.Reset();
-			FTransform Transform = ObjectAnimComp->GetKeyframeWorldTransformBySecond(mElapsedTime);
+			FTransform Transform = ObjectAnimComp->SampleAnimWorldTransformBySecond(mElapsedTime);
 			Timer.Tick();
-			KeyframeSearchTime = Timer.GetDeltaTime();
+			SampleAnimTime = Timer.GetDeltaTime();
 
 			Proj->SetActorTransform(Transform);
 		}
 	}
 
-	static AProjectileAnimActor* FirstActor = this;
-	if (this == FirstActor)
+	static TWeakPtr<AProjectileAnimActor> FirstActor = GetWeakPtr<AProjectileAnimActor>();
+	static float One_SampleAnimTimeAvg = 0;
+	static float Whole_SampleAnimTimeAvg = 0;
+	static float Alpha = 0.01f;
+
+	if (FirstActor.expired())
 	{
+		FirstActor = GetWeakPtr<AProjectileAnimActor>();
+	}
+
+	if (Whole_SampleAnimTimeAvg == 0)
+	{
+		Whole_SampleAnimTimeAvg = SampleAnimTime;
+	}
+	else
+	{
+		Whole_SampleAnimTimeAvg = (1 - Alpha) * Whole_SampleAnimTimeAvg + Alpha * SampleAnimTime;
+	}
+	if (FirstActor.lock().get() == this)
+	{
+		if (One_SampleAnimTimeAvg == 0)
+		{
+			One_SampleAnimTimeAvg = SampleAnimTime;
+		}
+		else
+		{
+			One_SampleAnimTimeAvg = (1 - Alpha) * One_SampleAnimTimeAvg + Alpha * SampleAnimTime;
+		}
+
 		// 프로파일링용 GUI
 		GUI::FDrawCommand Command;
 		Command.LifeSpan = 0;
@@ -131,7 +157,9 @@ void AProjectileAnimActor::Tick_PostPhysics(float Delta)
 				ImGui::TextColored(ImVec4(1, 1, 0, 1), "ProjectileAnimActor::Tick_PostPhysics"); // 노란색 제목
 				ImGui::Separator();
 
-				ImGui::Text("KeyframeSearchTime: %f", KeyframeSearchTime);
+				ImGui::Text("KeyframeSearchTime: %f", SampleAnimTime);
+				ImGui::Text("One_SampleAnimTimeAvg: %f", One_SampleAnimTimeAvg);
+				ImGui::Text("Whole_SampleAnimTimeAvg: %f", Whole_SampleAnimTimeAvg);
 			}
 			ImGui::End();
 		};
