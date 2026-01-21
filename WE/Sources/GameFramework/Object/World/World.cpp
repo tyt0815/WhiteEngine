@@ -188,14 +188,55 @@ void WWorld::DeactivateActor(AActor* Actor)
 
 void WWorld::FlushDestroyQueue()
 {
+	static bool bFirst = true;
+	bool bLoop = false;
+	float Time = 0;
+	UTimer Timer;
 	for (auto Actor : DestroyQueue)
 	{
+		bLoop = true;
 		DeactivateActor(Actor.get());
 		UINT64 Id = Actor->mActorId;
 		mAllActors[Id] = std::move(mAllActors.back());
 		mAllActors[Id]->mActorId = Id;
 		mAllActors.pop_back();
 	}
-
 	DestroyQueue.clear();
+
+	Timer.Tick();
+	if (bFirst && bLoop)
+	{
+		bFirst = false;
+		double Time = Timer.GetDeltaTime();
+
+		GUI::FDrawCommand Command;
+		Command.LifeSpan = 10;
+		Command.DrawLambda = [=]()
+		{
+			ImGui::SetNextWindowPos(ImVec2(1300, 0), ImGuiCond_Always);
+			ImGui::SetNextWindowSize(ImVec2(300, 0));
+
+			ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_NoDecoration |
+				ImGuiWindowFlags_AlwaysAutoResize |
+				ImGuiWindowFlags_NoSavedSettings |
+				ImGuiWindowFlags_NoFocusOnAppearing |
+				ImGuiWindowFlags_NoNav |
+				ImGuiWindowFlags_NoMove;
+
+			ImGui::SetNextWindowBgAlpha(1.0f);
+
+			if (ImGui::Begin("Destroying", nullptr, WindowFlags))
+			{
+
+				ImGui::TextColored(ImVec4(0, 1, 1, 1), "Destroying Time");
+				ImGui::Separator();
+
+				ImGui::Text("%.8f", Time);
+			}
+			ImGui::End();
+		};
+
+		GUI::AddDrawCommand(Command);
+	}
+
 }

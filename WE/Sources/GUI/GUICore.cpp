@@ -82,6 +82,8 @@ namespace GUI
 				g_ProfilingCommands[i].LifeSpan -= Delta;
 			}
 		}
+
+
 		ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
 		ImGui::SetNextWindowSize(ImVec2(300, 0));
 

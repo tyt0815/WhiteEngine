@@ -2,6 +2,7 @@
 
 #include "World/DefaultWorld.h"
 #include "Actor/Actor.h"
+#include <queue>
 
 class WObjectAnimComponent;
 class WStaticMeshComponent;
@@ -42,8 +43,24 @@ private:
 	float mElapsedTime = 0;
 };
 
+class AProjSpawner : public AActor
+{
+	typedef AActor Super;
+
+public:
+	virtual void Tick_PrePhysics(float Delta) override;
+
+private:
+	UINT64 mGeneration;
+
+	std::vector<TWeakPtr<AActor>> mActorPool;
+
+	size_t mPoolUsage = 0;
+};
+
 class WProjectileAnimWorld : public WDefaultWorld
 {
+	typedef WDefaultWorld Super;
 public:
 	WProjectileAnimWorld();
 };
