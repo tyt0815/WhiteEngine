@@ -14,6 +14,7 @@
     <ClCompile Include="Sources\Asset\Asset.cpp" />
     <ClCompile Include="Sources\Asset\AssetLoader.cpp" />
     <ClCompile Include="Sources\Asset\AssetManager.cpp" />
+    <ClCompile Include="Sources\Asset\ObjectAnimDataAsset.cpp" />
     <ClCompile Include="Sources\Asset\SplineDataAsset.cpp" />
     <ClCompile Include="Sources\Asset\XMLDataAsset.cpp" />
     <ClCompile Include="Sources\DirectX\D3D12Linker.cpp" />
@@ -91,6 +92,7 @@
     <ClInclude Include="Sources\Asset\Asset.h" />
     <ClInclude Include="Sources\Asset\AssetManager.h" />
     <ClInclude Include="Sources\Asset\AssetLoader.h" />
+    <ClInclude Include="Sources\Asset\ObjectAnimDataAsset.h" />
     <ClInclude Include="Sources\Asset\SplineDataAsset.h" />
     <ClInclude Include="Sources\Asset\XMLDataAsset.h" />
     <ClInclude Include="Sources\DirectX\d3dx12.h" />

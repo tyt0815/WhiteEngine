@@ -6,31 +6,12 @@
 #include <unordered_map>
 #include <vector>
 
+#include "Asset/ObjectAnimDataAsset.h"
+
 class WObjectAnimComponent : public WSceneComponent
 {
 	typedef WSceneComponent Super;
-	enum class EInterpolationType : int
-	{
-		EIT_Linear,
-		EIT_Bezier,
-		EIT_Constant,
-		EIT_Undefined
-	};
 
-	struct FKeyframe
-	{
-		float Frame;
-		float Value;
-		EInterpolationType Interpolation;
-		XMFLOAT2 RightHandle;
-		XMFLOAT2 LeftHandle;
-	};
-
-	struct FAnimData
-	{
-		std::vector<FKeyframe> Keyframes;
-		int LastIndex = 0;
-	};
 
 public:
 	virtual void BeginComponent() override;
@@ -53,6 +34,8 @@ public:
 		XMVECTOR* P0, XMVECTOR* P1, XMVECTOR* P2, XMVECTOR* P3
 	) const;
 
+	bool LoadKeyframesFromOADAsset(const std::wstring& AssetName);
+
 	float SampleAnimDataByFrame(FAnimData* AnimData, const float TargetFrame);
 
 	float SampleAnimDataBySecond(FAnimData* AnimData, float Second);
@@ -68,7 +51,7 @@ public:
 private:
 	bool LoadKeyframesFromBinary(unsigned char* Ptr);
 
-	std::unordered_map<std::string, FAnimData> mKeyframeMap;
+	FObjectAnimDataAsset* mObjectAnimData;
 
 	FAnimData* mLocXKeyframes = nullptr;
 	FAnimData* mLocYKeyframes = nullptr;
@@ -80,32 +63,26 @@ private:
 	FAnimData* mScaleYKeyframes = nullptr;
 	FAnimData* mScaleZKeyframes = nullptr;
 
-	float mFPS = 1;
-
-	float mFrameEnd = 0;
-
-	
-
 public:
 	__forceinline float GetLastFrame() const
 	{
-		return mFrameEnd;
+		return mObjectAnimData ? mObjectAnimData->FrameEnd : 0;
 	}
 
 	// frame의 시작이 0
 	__forceinline float GetLastSecond() const
 	{
-		return mFrameEnd / mFPS;
+		return mObjectAnimData ? mObjectAnimData->FrameEnd / mObjectAnimData->FPS : 0;
 	}
 
 	// frame의 시작이 0
 	__forceinline float SecondToFrame(float Second) const
 	{
-		return mFPS * Second;
+		return mObjectAnimData ? mObjectAnimData->FPS * Second : 0;
 	}
 
-	__forceinline const FAnimData* GetAnimData(const std::string& Name) const
-	{
-		return mKeyframeMap.count(Name) ?&mKeyframeMap.at(Name) : nullptr;
-	}
+	//__forceinline const FAnimData* GetAnimData(const std::string& Name) const
+	//{
+	//	return mObjectAnimData ? (mObjectAnimData->KeyframeMap->count(Name) ? &mObjectAnimData->KeyframeMap->at(Name) : nullptr) : nullptr;
+	//}
 };

@@ -1,7 +1,7 @@
 #include "AssetManager.h"
 #include "SplineDataAsset.h"
 #include "XMLDataAsset.h"
-
+#include "ObjectAnimDataAsset.h"
 
 FAssetManager::FAssetManager()
 {
@@ -28,6 +28,8 @@ void FAssetManager::LoadAssets()
 	std::wstring XMLDir = SolutionDir + L"Resources/XML";
 	LoadAsset<FXMLDataAsset>(XMLDir + L"/Test.xml", L"XDA_Test");
 	LoadAsset<FXMLDataAsset>(XMLDir + L"/Projectile_Test.xml", L"XDA_Projectile_Test");
+
+	LoadAsset<FObjectAnimDataAsset>(XMLDir + L"/Large_v1.xml", L"OAD_Large");
 }
 
 FAsset* FAssetManager::GetAsset(const std::wstring& Name)

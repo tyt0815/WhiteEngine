@@ -13,3 +13,7 @@
 
 # 3. Keyframe Sampling Index caching
 ![](./v3_SearchTime.png)
+
+# 결론
+- fps
+평균 400 -> 평균 1000

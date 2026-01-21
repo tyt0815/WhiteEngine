@@ -260,6 +260,9 @@
     <ClCompile Include="Sources\GUI\GUICore.cpp">
       <Filter>Sources\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Asset\ObjectAnimDataAsset.cpp">
+      <Filter>Sources\Asset</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -492,6 +495,9 @@
     </ClInclude>
     <ClInclude Include="Sources\Utility\Profiling.h">
       <Filter>Sources\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Asset\ObjectAnimDataAsset.h">
+      <Filter>Sources\Asset</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
