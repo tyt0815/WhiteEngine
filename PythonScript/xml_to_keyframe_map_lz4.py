@@ -71,5 +71,5 @@ def xml_to_keyframe_map_lz4(xml_input_path, bin_output_path):
     print(f"LZ4 Success: {xml_input_path} -> {bin_output_path}")
     print(f"Size: {original_size} -> {len(compressed_data)} bytes ({len(compressed_data)/original_size*100:.1f}%)")
 
-filename = 'Large_v1'
+filename = 'Medium_v1'
 xml_to_keyframe_map_lz4(filename + ".xml", filename + ".keyframemap.lz4")

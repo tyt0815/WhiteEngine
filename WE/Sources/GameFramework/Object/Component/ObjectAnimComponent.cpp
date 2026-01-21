@@ -101,7 +101,7 @@ bool WObjectAnimComponent::LoadKeyframesFromXML(tinyxml2::XMLDocument* Doc)
 					Keyframe.Interpolation = EInterpolationType::EIT_Undefined;
 				}
 
-				mKeyframeMap[CurveName].push_back(Keyframe);
+				mKeyframeMap[CurveName].Keyframes.push_back(Keyframe);
 			}
 		}
 
@@ -169,24 +169,49 @@ void WObjectAnimComponent::ToControlPoint(const FKeyframe& Left, const FKeyframe
 	*P3 = XMLoadFloat2(&Point3);
 }
 
-float WObjectAnimComponent::InterpolateKeyframeByFrame(const std::vector<FKeyframe>& Keyframes, float TargetFrame) const
+float WObjectAnimComponent::InterpolateKeyframeByFrame(FAnimData* AnimData, const float TargetFrame)
 {
-	size_t i = std::lower_bound(Keyframes.begin(), Keyframes.end(), TargetFrame,
-		[](const FKeyframe& Keyframe, float Frame) { return Keyframe.Frame < Frame; }
-	) - Keyframes.begin();
+	const std::vector<FKeyframe>& Keyframes = AnimData->Keyframes;
+	int& LastIndex = AnimData->LastIndex;
+	const int NumKeys = static_cast<int>(Keyframes.size());
 
-	if (i >= Keyframes.size())
+	if (NumKeys == 0) return 0.0f;
+	if (NumKeys == 1) return Keyframes[0].Value;
+
+	// 1. 선형 탐색 시도 (LastIndex 기준 앞/뒤 10개)
+	int i = LastIndex;
+	const int SearchDir = Keyframes[LastIndex].Frame <= TargetFrame ? 1 : -1;
+	bool bFound = false;
+
+	for (int Count = 0; Count < 10 && i >= 0 && i < NumKeys; ++Count, i += SearchDir)
 	{
-		return Keyframes.back().Value;
+		// TargetFrame을 우측에 둔 구간 [i-1, i]를 찾음
+		if (i > 0 && Keyframes[i - 1].Frame <= TargetFrame && TargetFrame <= Keyframes[i].Frame)
+		{
+			bFound = true;
+			break;
+		}
 	}
 
-	if (i <= 0)
+	// 2. 못 찾았다면 이분 탐색 (TargetFrame보다 크거나 같은 첫 번째 키를 찾음)
+	if (!bFound)
 	{
-		return Keyframes[0].Value;
+		auto it = std::lower_bound(Keyframes.begin(), Keyframes.end(), TargetFrame,
+			[](const FKeyframe& k, float f) { return k.Frame < f; });
+		i = static_cast<int>(std::distance(Keyframes.begin(), it));
 	}
 
-	const FKeyframe& Left = Keyframes[i - 1];
-	const FKeyframe& Right = Keyframes[i];
+	// 3. 인덱스 범위 클램핑 및 LastIndex 갱신
+	// i가 0이면 타겟이 첫 키보다 앞에 있음, i가 NumKeys면 마지막 키보다 뒤에 있음
+	LastIndex = std::clamp(i, 1, NumKeys - 1);
+
+	// 4. 경계값 처리
+	if (TargetFrame <= Keyframes[0].Frame) return Keyframes[0].Value;
+	if (TargetFrame >= Keyframes[NumKeys - 1].Frame) return Keyframes[NumKeys - 1].Value;
+
+	// 5. 보간 수행 (이제 i는 항상 1 ~ NumKeys-1 사이임이 보장됨)
+	const FKeyframe& Left = Keyframes[LastIndex - 1];
+	const FKeyframe& Right = Keyframes[LastIndex];
 	assert(TargetFrame >= Left.Frame);
 	assert(TargetFrame <= Right.Frame);
 	assert(Left.Frame < Right.Frame);
@@ -219,35 +244,35 @@ float WObjectAnimComponent::InterpolateKeyframeByFrame(const std::vector<FKeyfra
 	return Value;
 }
 
-float WObjectAnimComponent::InterpolateKeyframeBySecond(const std::vector<FKeyframe>& Keyframes, float Second) const
+float WObjectAnimComponent::InterpolateKeyframeBySecond(FAnimData* AnimData, float Second)
 {
-	return InterpolateKeyframeByFrame(Keyframes, SecondToFrame(Second));
+	return InterpolateKeyframeByFrame(AnimData, SecondToFrame(Second));
 }
 
-FTransform WObjectAnimComponent::SampleAnimLocalTransformByFrame(float Frame) const
+FTransform WObjectAnimComponent::SampleAnimLocalTransformByFrame(float Frame)
 {
 	FTransform Transform;
 
 	// 1. Location (사용자 정의 이름: LocationX, LocationY, LocationZ)
-	if (mLocXKeyframes) Transform.Translation.x = InterpolateKeyframeByFrame(*mLocXKeyframes, Frame);
-	if (mLocYKeyframes) Transform.Translation.y = InterpolateKeyframeByFrame(*mLocYKeyframes, Frame);
-	if (mLocZKeyframes) Transform.Translation.z = InterpolateKeyframeByFrame(*mLocZKeyframes, Frame);
+	if (mLocXKeyframes) Transform.Translation.x = InterpolateKeyframeByFrame(mLocXKeyframes, Frame);
+	if (mLocYKeyframes) Transform.Translation.y = InterpolateKeyframeByFrame(mLocYKeyframes, Frame);
+	if (mLocZKeyframes) Transform.Translation.z = InterpolateKeyframeByFrame(mLocZKeyframes, Frame);
 
 	// 2. Rotation (사용자 정의 이름: RotationX, RotationY, RotationZ, RotationW)
-	if (mRotXKeyframes) Transform.Rotation.x = InterpolateKeyframeByFrame(*mRotXKeyframes, Frame);
-	if (mRotYKeyframes) Transform.Rotation.y = InterpolateKeyframeByFrame(*mRotYKeyframes, Frame);
-	if (mRotZKeyframes) Transform.Rotation.z = InterpolateKeyframeByFrame(*mRotZKeyframes, Frame);
+	if (mRotXKeyframes) Transform.Rotation.x = InterpolateKeyframeByFrame(mRotXKeyframes, Frame);
+	if (mRotYKeyframes) Transform.Rotation.y = InterpolateKeyframeByFrame(mRotYKeyframes, Frame);
+	if (mRotZKeyframes) Transform.Rotation.z = InterpolateKeyframeByFrame(mRotZKeyframes, Frame);
 
 	// 3. Scale (사용자 정의 이름: ScaleX, ScaleY, ScaleZ)
 	Transform.Scale = { 1.0f, 1.0f, 1.0f }; // 기본값 설정
-	if (mScaleXKeyframes) Transform.Scale.x = InterpolateKeyframeByFrame(*mScaleXKeyframes, Frame);
-	if (mScaleYKeyframes) Transform.Scale.y = InterpolateKeyframeByFrame(*mScaleYKeyframes, Frame);
-	if (mScaleZKeyframes) Transform.Scale.z = InterpolateKeyframeByFrame(*mScaleZKeyframes, Frame);
+	if (mScaleXKeyframes) Transform.Scale.x = InterpolateKeyframeByFrame(mScaleXKeyframes, Frame);
+	if (mScaleYKeyframes) Transform.Scale.y = InterpolateKeyframeByFrame(mScaleYKeyframes, Frame);
+	if (mScaleZKeyframes) Transform.Scale.z = InterpolateKeyframeByFrame(mScaleZKeyframes, Frame);
 
 	return Transform;
 }
 
-FTransform WObjectAnimComponent::SampleAnimLocalTransformBySecond(float Second) const
+FTransform WObjectAnimComponent::SampleAnimLocalTransformBySecond(float Second)
 {
 	return SampleAnimLocalTransformByFrame(SecondToFrame(Second));
 }
@@ -268,16 +293,16 @@ FTransform WObjectAnimComponent::SampleAnimWorldTransformBySecond(float Second)
 	return SampleAnimWorldTransformByFrame(SecondToFrame(Second));
 }
 
-float WObjectAnimComponent::GetPropertyByFrame(const std::string& PropertyName, float Frame) const
+float WObjectAnimComponent::GetPropertyByFrame(const std::string& PropertyName, float Frame)
 {
 	if (mKeyframeMap.count(PropertyName))
 	{
-		return InterpolateKeyframeByFrame(mKeyframeMap.at(PropertyName), Frame);
+		return InterpolateKeyframeByFrame(&mKeyframeMap[PropertyName], Frame);
 	}
 	return 0.0f;
 }
 
-float WObjectAnimComponent::GetPropertyBySecond(const std::string& PropertyName, float Second) const
+float WObjectAnimComponent::GetPropertyBySecond(const std::string& PropertyName, float Second)
 {
 	return GetPropertyByFrame(PropertyName, SecondToFrame(Second));
 }
@@ -315,11 +340,11 @@ bool WObjectAnimComponent::LoadKeyframesFromBinary(unsigned char* Ptr)
 		Ptr += sizeof(int);
 
 		// 5. 키프레임 데이터 통째로 로드
-		mKeyframeMap[CurveName].resize(TotalKeyframeNum);
+		mKeyframeMap[CurveName].Keyframes.resize(TotalKeyframeNum);
 		size_t DataSize = sizeof(FKeyframe) * TotalKeyframeNum;
 
 		// 메모리 통째로 복사 (이게 XML 파싱보다 압도적으로 빠릅니다)
-		memcpy(mKeyframeMap[CurveName].data(), Ptr, DataSize);
+		memcpy(mKeyframeMap[CurveName].Keyframes.data(), Ptr, DataSize);
 		Ptr += DataSize;
 	}
 

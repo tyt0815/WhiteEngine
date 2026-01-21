@@ -26,6 +26,12 @@ class WObjectAnimComponent : public WSceneComponent
 		XMFLOAT2 LeftHandle;
 	};
 
+	struct FAnimData
+	{
+		std::vector<FKeyframe> Keyframes;
+		int LastIndex = 0;
+	};
+
 public:
 	virtual void BeginComponent() override;
 
@@ -47,40 +53,42 @@ public:
 		XMVECTOR* P0, XMVECTOR* P1, XMVECTOR* P2, XMVECTOR* P3
 	) const;
 
-	float InterpolateKeyframeByFrame(const std::vector<FKeyframe>& Keyframes, float Frame) const;
+	float InterpolateKeyframeByFrame(FAnimData* AnimData, const float TargetFrame);
 
-	float InterpolateKeyframeBySecond(const std::vector<FKeyframe>& Keyframes, float Second) const;
+	float InterpolateKeyframeBySecond(FAnimData* AnimData, float Second);
 
-	FTransform SampleAnimLocalTransformByFrame(float Frame) const;
+	FTransform SampleAnimLocalTransformByFrame(float Frame);
 
-	FTransform SampleAnimLocalTransformBySecond(float Second) const;
+	FTransform SampleAnimLocalTransformBySecond(float Second);
 
 	FTransform SampleAnimWorldTransformByFrame(float Frame);
 
 	FTransform SampleAnimWorldTransformBySecond(float Second);
 
-	float GetPropertyByFrame(const std::string& PropertyName, float Frame) const;
+	float GetPropertyByFrame(const std::string& PropertyName, float Frame);
 
-	float GetPropertyBySecond(const std::string& PropertyName, float Second) const;
+	float GetPropertyBySecond(const std::string& PropertyName, float Second);
 
 private:
 	bool LoadKeyframesFromBinary(unsigned char* Ptr);
 
-	std::unordered_map<std::string, std::vector<FKeyframe>> mKeyframeMap;
+	std::unordered_map<std::string, FAnimData> mKeyframeMap;
 
-	std::vector<FKeyframe>* mLocXKeyframes = nullptr;
-	std::vector<FKeyframe>* mLocYKeyframes = nullptr;
-	std::vector<FKeyframe>* mLocZKeyframes = nullptr;
-	std::vector<FKeyframe>* mRotXKeyframes = nullptr;
-	std::vector<FKeyframe>* mRotYKeyframes = nullptr;
-	std::vector<FKeyframe>* mRotZKeyframes = nullptr;
-	std::vector<FKeyframe>* mScaleXKeyframes = nullptr;
-	std::vector<FKeyframe>* mScaleYKeyframes = nullptr;
-	std::vector<FKeyframe>* mScaleZKeyframes = nullptr;
+	FAnimData* mLocXKeyframes = nullptr;
+	FAnimData* mLocYKeyframes = nullptr;
+	FAnimData* mLocZKeyframes = nullptr;
+	FAnimData* mRotXKeyframes = nullptr;
+	FAnimData* mRotYKeyframes = nullptr;
+	FAnimData* mRotZKeyframes = nullptr;
+	FAnimData* mScaleXKeyframes = nullptr;
+	FAnimData* mScaleYKeyframes = nullptr;
+	FAnimData* mScaleZKeyframes = nullptr;
 
 	float mFPS = 1;
 
 	float mFrameEnd = 0;
+
+	
 
 public:
 	__forceinline float GetLastFrame() const
