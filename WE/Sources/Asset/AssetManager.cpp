@@ -29,6 +29,7 @@ void FAssetManager::LoadAssets()
 	LoadAsset<FXMLDataAsset>(XMLDir + L"/Test.xml", L"XDA_Test");
 	LoadAsset<FXMLDataAsset>(XMLDir + L"/Projectile_Test.xml", L"XDA_Projectile_Test");
 
+	
 	LoadAsset<FObjectAnimDataAsset>(XMLDir + L"/Large_v1.xml", L"OAD_Large");
 }
 

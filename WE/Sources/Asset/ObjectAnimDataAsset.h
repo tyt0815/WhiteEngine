@@ -10,9 +10,8 @@ enum class EInterpolationType : int
 	EIT_Undefined
 };
 
-struct FKeyframe
+struct FKeyframeData
 {
-	float Frame;
 	float Value;
 	EInterpolationType Interpolation;
 	XMFLOAT2 RightHandle;
@@ -21,8 +20,8 @@ struct FKeyframe
 
 struct FAnimData
 {
-	std::vector<FKeyframe> Keyframes;
-	int LastIndex = 0;
+	std::vector<float> Frames;
+	std::vector<FKeyframeData> Keyframes;
 };
 
 class FObjectAnimDataAsset : public FAsset

@@ -130,5 +130,4 @@ WProjectileAnimWorld::WProjectileAnimWorld()
 			Projectile->SetActorRotation(Rot);
 		}
 	}
-
 }

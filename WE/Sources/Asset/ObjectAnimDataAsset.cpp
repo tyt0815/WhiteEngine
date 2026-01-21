@@ -4,6 +4,8 @@
 #include <filesystem>
 #include "Utility/String.h"
 #include "AssetLoader.h"
+#include "GUI/GUICore.h"
+#include "Utility/Timer.h"
 
 namespace fs = std::filesystem;
 
@@ -59,25 +61,29 @@ bool CompileXMLToOADLz4(const std::string& XMLPath, const std::string& OADLz4Pat
 		for (auto* k = curve->FirstChildElement("Keyframe"); k; k = k->NextSiblingElement("Keyframe")) keyCount++;
 		Append(&keyCount, sizeof(int));
 
-		for (auto* kp = curve->FirstChildElement("Keyframe"); kp; kp = kp->NextSiblingElement("Keyframe"))
+		int i = 0;
+		std::vector<float> Frames(keyCount);
+		std::vector<FKeyframeData> Datas(keyCount);
+		for (auto* kp = curve->FirstChildElement("Keyframe"); kp; kp = kp->NextSiblingElement("Keyframe"), ++i)
 		{
-			FKeyframe bin;
-			bin.Frame = kp->FloatAttribute("frame") - fStart;
-			bin.Value = kp->FloatAttribute("value");
+			FKeyframeData& Data = Datas[i];
+			float& Frame = Frames[i];
+			Frame = kp->FloatAttribute("frame") - fStart;
+			Data.Value = kp->FloatAttribute("value");
 
 			const char* interp = kp->Attribute("interp");
-			if (strcmp(interp, "LINEAR") == 0) bin.Interpolation = EInterpolationType::EIT_Linear;
-			else if (strcmp(interp, "BEZIER") == 0) bin.Interpolation = EInterpolationType::EIT_Bezier;
-			else if (strcmp(interp, "CONSTANT") == 0) bin.Interpolation = EInterpolationType::EIT_Constant;
-			else bin.Interpolation = EInterpolationType::EIT_Undefined;
+			if (strcmp(interp, "LINEAR") == 0) Data.Interpolation = EInterpolationType::EIT_Linear;
+			else if (strcmp(interp, "BEZIER") == 0) Data.Interpolation = EInterpolationType::EIT_Bezier;
+			else if (strcmp(interp, "CONSTANT") == 0) Data.Interpolation = EInterpolationType::EIT_Constant;
+			else Data.Interpolation = EInterpolationType::EIT_Undefined;
 
-			bin.RightHandle.x = kp->FloatAttribute("h_right_x") - fStart;
-			bin.RightHandle.y = kp->FloatAttribute("h_right_y");
-			bin.LeftHandle.x = kp->FloatAttribute("h_left_x") - fStart;
-			bin.LeftHandle.y = kp->FloatAttribute("h_left_y");
-
-			Append(&bin, sizeof(FKeyframe));
+			Data.RightHandle.x = kp->FloatAttribute("h_right_x") - fStart;
+			Data.RightHandle.y = kp->FloatAttribute("h_right_y");
+			Data.LeftHandle.x = kp->FloatAttribute("h_left_x") - fStart;
+			Data.LeftHandle.y = kp->FloatAttribute("h_left_y");
 		}
+		Append(Frames.data(), sizeof(float) * keyCount);
+		Append(Datas.data(), sizeof(FKeyframeData) * keyCount);
 	}
 
 	// 3. LZ4 압축
@@ -101,6 +107,11 @@ bool CompileXMLToOADLz4(const std::string& XMLPath, const std::string& OADLz4Pat
 
 bool FObjectAnimDataAsset::LoadAsset(const std::wstring& FilePath)
 {
+	double OADCompileTime = 0;
+	double OADLoadTime = 0;
+	double OADCopyTime = 0;
+	UTimer Timer;
+
 	// 1. 경로 설정
 	std::string xmlPath = WStringToString(FilePath);
 	std::string lz4Path = xmlPath.substr(0, xmlPath.find_last_of('.')) + ".oad.lz4";
@@ -126,7 +137,10 @@ bool FObjectAnimDataAsset::LoadAsset(const std::wstring& FilePath)
 	{
 		if (fs::exists(xmlPath))
 		{
+			Timer.Reset();
 			CompileXMLToOADLz4(xmlPath, lz4Path);
+			Timer.Tick();
+			OADCompileTime = Timer.GetDeltaTime();
 		}
 		else
 		{
@@ -140,6 +154,8 @@ bool FObjectAnimDataAsset::LoadAsset(const std::wstring& FilePath)
 	{
 		return false;
 	}
+	Timer.Tick();
+	OADLoadTime = Timer.GetDeltaTime();
 
 	unsigned char* Ptr = RawBuffer.data();
 
@@ -169,13 +185,50 @@ bool FObjectAnimDataAsset::LoadAsset(const std::wstring& FilePath)
 		Ptr += sizeof(int);
 
 		// 5. 키프레임 데이터 통째로 로드
-		KeyframeMap[CurveName].Keyframes.resize(TotalKeyframeNum);
-		size_t DataSize = sizeof(FKeyframe) * TotalKeyframeNum;
+		KeyframeMap[CurveName].Frames.resize(TotalKeyframeNum);
+		size_t DataSize = sizeof(float) * TotalKeyframeNum;
+		memcpy(KeyframeMap[CurveName].Frames.data(), Ptr, DataSize);
+		Ptr += DataSize;
 
-		// 메모리 통째로 복사 (이게 XML 파싱보다 압도적으로 빠릅니다)
+		KeyframeMap[CurveName].Keyframes.resize(TotalKeyframeNum);
+		DataSize = sizeof(FKeyframeData) * TotalKeyframeNum;
 		memcpy(KeyframeMap[CurveName].Keyframes.data(), Ptr, DataSize);
 		Ptr += DataSize;
 	}
+
+	Timer.Tick();
+	OADCopyTime = Timer.GetDeltaTime();
+
+	// 프로파일링용 GUI
+	double TotalTime = Timer.GetTotalTime();
+	GUI::FDrawCommand Command;
+	Command.LifeSpan = 10;
+	Command.DrawLambda = [=]()
+	{
+		ImGui::SetNextWindowPos(ImVec2(1000, 0), ImGuiCond_Always);
+
+		ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_NoDecoration |
+			ImGuiWindowFlags_AlwaysAutoResize |
+			ImGuiWindowFlags_NoSavedSettings |
+			ImGuiWindowFlags_NoFocusOnAppearing |
+			ImGuiWindowFlags_NoNav |
+			ImGuiWindowFlags_NoMove;
+
+		ImGui::SetNextWindowBgAlpha(1.0f);
+
+		if (ImGui::Begin("FObjectAnimDataAsset::LoadAsset", nullptr, WindowFlags))
+		{
+			ImGui::TextColored(ImVec4(1, 1, 0, 1), "FObjectAnimDataAsset::LoadAsset"); // 노란색 제목
+			ImGui::Separator();
+
+			ImGui::Text("OADCompileTime: %.8f", OADCompileTime);
+			ImGui::Text("OADLoadTime: %.8f", OADLoadTime);
+			ImGui::Text("OADCopyTime: %.8f", OADCopyTime);
+			ImGui::Text("Total Time: %.8f", TotalTime);
+		}
+		ImGui::End();
+	};
+	GUI::AddDrawCommand(Command);
 
 	return true;
 }

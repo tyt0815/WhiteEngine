@@ -17,16 +17,11 @@ public:
 	virtual void BeginComponent() override;
 
 public:
-	void ToControlPoint(
-		const FKeyframe& Left, const FKeyframe& Right,
-		XMVECTOR* P0, XMVECTOR* P1, XMVECTOR* P2, XMVECTOR* P3
-	) const;
-
 	bool LoadKeyframesFromOADAsset(const std::wstring& AssetName);
 
-	float SampleAnimDataByFrame(FAnimData* AnimData, const float TargetFrame);
+	float SampleAnimDataByFrame(FAnimData* AnimData, int& LastIndex, const float TargetFrame);
 
-	float SampleAnimDataBySecond(FAnimData* AnimData, float Second);
+	float SampleAnimDataBySecond(FAnimData* AnimData, int& LastIndex, float Second);
 
 	FTransform SampleAnimLocalTransformByFrame(float Frame);
 
@@ -49,6 +44,16 @@ private:
 	FAnimData* mScaleXKeyframes = nullptr;
 	FAnimData* mScaleYKeyframes = nullptr;
 	FAnimData* mScaleZKeyframes = nullptr;
+
+	int mLocXKeyframeLastIndex = 0;
+	int mLocYKeyframeLastIndex = 0;
+	int mLocZKeyframeLastIndex = 0;
+	int mRotXKeyframeLastIndex = 0;
+	int mRotYKeyframeLastIndex = 0;
+	int mRotZKeyframeLastIndex = 0;
+	int mScaleXKeyframeLastIndex = 0;
+	int mScaleYKeyframeLastIndex = 0;
+	int mScaleZKeyframeLastIndex = 0;
 
 public:
 	__forceinline float GetLastFrame() const
