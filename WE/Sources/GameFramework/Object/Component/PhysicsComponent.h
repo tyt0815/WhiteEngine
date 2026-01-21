@@ -31,12 +31,19 @@ public:
 
 	virtual void BeginComponent() override;
 
+protected:
+	virtual void OnActivate() override;
+
+	virtual void OnDeactivate() override;
+
 public:
 	void UpdateToPhysics();
 
 	void UpdateFromPhysics();
 
 	void ActivatePhysicBody();
+
+	void DeactivatePhysicBody();
 
 	void GenerateOverlapEvent();
 

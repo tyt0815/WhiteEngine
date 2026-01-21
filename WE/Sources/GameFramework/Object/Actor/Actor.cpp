@@ -114,6 +114,40 @@ void AActor::Destroy()
 	GetWorld()->DestroyActor(GetWeakPtr().lock());
 }
 
+void AActor::Activate()
+{
+	GetWorld()->ActivateActor(this);
+}
+
+void AActor::Deactivate()
+{
+	GetWorld()->DeactivateActor(this);
+}
+
+void AActor::OnActivate()
+{
+	for (auto& Comp : mAllComponents)
+	{
+		Comp->OnActivate();
+	}
+}
+
+void AActor::OnDeactivate()
+{
+	for (auto& Comp : mAllComponents)
+	{
+		Comp->OnDeactivate();
+	}
+}
+
+void AActor::UpdateRecursive()
+{
+	if (auto Root = mRootComponent.lock())
+	{
+		Root->UpdateRecursive();
+	}
+}
+
 void AActor::BeginComponents()
 {
 	for (int i = 0; i < mAllComponents.size(); ++i)

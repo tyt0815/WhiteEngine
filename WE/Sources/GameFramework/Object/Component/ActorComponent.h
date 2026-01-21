@@ -26,6 +26,11 @@ public:
 
 	TWeakPtr<AActor> mOwner;
 
+protected:
+	virtual void OnActivate() {};
+
+	virtual void OnDeactivate() {};
+
 public:
 	inline TWeakPtr<AActor> GetOwner() const
 	{
@@ -42,4 +47,6 @@ public:
 	{
 		return GetWeakPtr<WActorComponent>();
 	}
+
+	friend class AActor;
 };

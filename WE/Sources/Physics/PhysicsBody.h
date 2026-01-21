@@ -20,9 +20,9 @@ public:
 public:
 	void CreateBody(JPH::BodyCreationSettings Settings);
 
-	void AddBody(bool bActivate = true);
+	void Activate();
 
-	void RemoveBody();
+	void Deactivate();
 
 	void SetPosition(XMFLOAT3 Position);
 

@@ -14,7 +14,7 @@ FPhysicsBody::~FPhysicsBody()
 	if (mBody != nullptr)
 	{
 		Physics::FUserDataManager::EnqueueRemoveQ(mUserData->ID);
-		RemoveBody();
+		Physics::GetBodyInterface()->RemoveBody(mBody->GetID());
 		Physics::GetBodyInterface()->DestroyBody(mBody->GetID());
 	}
 }
@@ -25,16 +25,29 @@ void FPhysicsBody::CreateBody(JPH::BodyCreationSettings Settings)
 	mUserData = Physics::FUserDataManager::GetUserData(UserDataID);
 	Settings.mUserData = reinterpret_cast<JPH::uint64>(&mUserData->Comp);
 	mBody = Physics::GetBodyInterface()->CreateBody(Settings);
+	Physics::GetBodyInterface()->AddBody(mBody->GetID(), EActivation::Activate);
 }
 
-void FPhysicsBody::AddBody(bool bActivate)
+void FPhysicsBody::Activate()
 {
-	Physics::GetBodyInterface()->AddBody(mBody->GetID(), bActivate ? JPH::EActivation::Activate : JPH::EActivation::DontActivate);
+	if (BodyInterface* BI = Physics::GetBodyInterface())
+	{
+		if (!BI->IsAdded(mBody->GetID()))
+		{
+			BI->AddBody(mBody->GetID(), EActivation::Activate);
+		}
+	}
 }
 
-void FPhysicsBody::RemoveBody()
+void FPhysicsBody::Deactivate()
 {
-	Physics::GetBodyInterface()->RemoveBody(mBody->GetID());
+	if (BodyInterface* BI = Physics::GetBodyInterface())
+	{
+		if (BI->IsAdded(mBody->GetID()))
+		{
+			BI->RemoveBody(mBody->GetID());
+		}
+	}
 }
 
 void FPhysicsBody::SetPosition(XMFLOAT3 Position)

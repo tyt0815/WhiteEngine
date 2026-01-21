@@ -42,6 +42,10 @@ public:
 
 	void EnqueueOnHitEvent(const FContactInfo& Info);
 
+	void ActivateActor(AActor* Actor);
+
+	void DeactivateActor(AActor* Actor);
+
 private:
 	void FlushDestroyQueue();
 
@@ -52,6 +56,8 @@ private:
 	std::vector<FContactInfo> mOnHitEventQueue;
 
 	std::vector<TSharedPtr<AActor>> DestroyQueue;
+
+	std::vector<AActor*> mActiveActorQueue;
 
 	TWeakPtr<APawn> mPlayer;
 
@@ -126,9 +132,10 @@ inline TWeakPtr<T> WWorld::SpawnActor()
 	mAllActors.emplace_back(Actor);
 	
 
-	Actor->SetWorld(this);
-	Actor->SetActorId(ActorId);
+	Actor->mWorld = this;
+	Actor->mActorId = ActorId;
 	Actor->BeginPlay();
+	Actor->Activate();
 
 	return TWeakPtr<T>(Actor);
 }

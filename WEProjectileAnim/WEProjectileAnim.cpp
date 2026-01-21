@@ -2,6 +2,7 @@
 #include "GameFramework/GameAppImpl.h"
 #include "Component/ObjectAnimComponent.h"
 #include "Component/StaticMeshComponent.h"
+#include "Component/BoxComponent.h"
 #include "Utility/Timer.h"
 #include "GUI/GUICore.h"
 
@@ -9,10 +10,21 @@ CREATE_APPLICATION_BY_WORLD(WProjectileAnimWorld)
 
 AProjectile::AProjectile()
 {
+	mBoxCollision = CreateComponent<WBoxComponent>();
+	SetRootComponent(mBoxCollision);
+	if (auto Box = mBoxCollision.lock())
+	{
+		Box->ActivatePhysicBody();
+		Box->GenerateOverlapEvent();
+		Box->SetExtent(XMFLOAT3(.5f, .5f, .5f));
+		Box->SetMotionType(EMotionType::Kinematic);
+		Box->SetObjectChannel(EObjectChannel::EOC_Moving);
+	}
+
 	mStaticMeshComp = CreateComponent<WStaticMeshComponent>();
-	SetRootComponent(mStaticMeshComp);
 	if (auto Comp = mStaticMeshComp.lock())
 	{
+		Comp->SetupAttachment(GetRootComponent());
 		Comp->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_ScuffedGoldSphere));
 	}
 }
@@ -50,6 +62,22 @@ void AProjectileAnimActor::Tick_PostPhysics(float Delta)
 			FTransform Transform = ObjectAnimComp->SampleAnimWorldTransformBySecond(mElapsedTime);
 			Proj->SetActorTransform(Transform);
 		}
+	}
+}
+
+void AProjectileAnimActor::OnActivate()
+{
+	if (auto Proj = mProj.lock())
+	{
+		Proj->Activate();
+	}
+}
+
+void AProjectileAnimActor::OnDeactivate()
+{
+	if (auto Proj = mProj.lock())
+	{
+		Proj->Deactivate();
 	}
 }
 

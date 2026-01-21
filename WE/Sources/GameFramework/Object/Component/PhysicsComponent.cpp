@@ -20,6 +20,25 @@ void WPhysicsComponent::BeginComponent()
 	}
 }
 
+void WPhysicsComponent::OnActivate()
+{
+	if (mbPhysicSimulate)
+	{
+		if (mBody->IsValid())
+		{
+			mBody->Activate();
+		}
+	}
+}
+
+void WPhysicsComponent::OnDeactivate()
+{
+	if (mBody->IsValid())
+	{
+		mBody->Deactivate();
+	}
+}
+
 void WPhysicsComponent::UpdateToPhysics()
 {
 	if (mbPhysicSimulate && mMotionType != EMotionType::Static)
@@ -38,11 +57,26 @@ void WPhysicsComponent::UpdateFromPhysics()
 
 void WPhysicsComponent::ActivatePhysicBody()
 {
-	mbPhysicSimulate = true;
-
-	if (mBody->IsValid())
+	if (!mbPhysicSimulate)
 	{
-		mBody->AddBody();
+		mbPhysicSimulate = true;
+
+		if (mBody->IsValid())
+		{
+			mBody->Activate();
+		}
+	}
+}
+
+void WPhysicsComponent::DeactivatePhysicBody()
+{
+	if (mbPhysicSimulate)
+	{
+		mbPhysicSimulate = false;
+		if (mBody->IsValid())
+		{
+			mBody->Deactivate();
+		}
 	}
 }
 

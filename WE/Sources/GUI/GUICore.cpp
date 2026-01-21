@@ -15,6 +15,8 @@ namespace GUI
 
 	std::vector<std::pair<FNotificationDrawCommand, float>> g_NotificationDrawCommandQueue;
 
+	std::vector<FDrawCommand> g_ProfilingCommands;
+
 	UINT64 AddDrawCommand(const FDrawCommand& Command)
 	{
 		g_DrawCommandQueue.emplace_back(Command);
@@ -27,6 +29,13 @@ namespace GUI
 		g_NotificationDrawCommandQueue.push_back({ Command, NOTIFICATION_LIFESPAN });
 		g_NotificationDrawCommandQueue.back().first.ID = g_NotificationDrawCommandQueue.size() - 1;
 		return g_NotificationDrawCommandQueue.back().first.ID;
+	}
+
+	UINT64 AddProfilingCommand(const FDrawCommand& Command)
+	{
+		g_ProfilingCommands.emplace_back(Command);
+		g_ProfilingCommands.back().ID = g_ProfilingCommands.size() - 1;
+		return g_ProfilingCommands.back().ID;
 	}
 
 	void Initialize(
@@ -55,6 +64,49 @@ namespace GUI
 		ImGui_ImplWin32_Init(hWnd);
 
 	}
+
+	void UpdateProfilingWindow(float Delta)
+	{
+		for (int i = 0; i < g_ProfilingCommands.size(); ++i)
+		{
+			FDrawCommand& DrawCommand = g_ProfilingCommands[i];
+			if (DrawCommand.LifeSpan < 0 || DrawCommand.DrawLambda == nullptr)
+			{
+				g_ProfilingCommands[i] = g_ProfilingCommands.back();
+				g_ProfilingCommands[i].ID = i;
+				g_ProfilingCommands.pop_back();
+				--i;
+			}
+			else
+			{
+				g_ProfilingCommands[i].LifeSpan -= Delta;
+			}
+		}
+		ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+		ImGui::SetNextWindowSize(ImVec2(300, 0));
+
+		ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_NoDecoration |
+			ImGuiWindowFlags_AlwaysAutoResize |
+			ImGuiWindowFlags_NoSavedSettings |
+			ImGuiWindowFlags_NoFocusOnAppearing |
+			ImGuiWindowFlags_NoNav |
+			ImGuiWindowFlags_NoMove;
+
+		ImGui::SetNextWindowBgAlpha(1.0f);
+
+		if (ImGui::Begin("Profiling", nullptr, WindowFlags))
+		{
+
+			ImGui::TextColored(ImVec4(0, 1, 0, 1), "FPS: %.1f\n", ImGui::GetIO().Framerate);
+			ImGui::Separator();
+			for (const auto& Command : g_ProfilingCommands)
+			{
+				Command.DrawLambda();
+			}
+		}
+		ImGui::End();
+	}
+
 	void Update(ID3D12GraphicsCommandList* CommandList)
 	{
 		// 원래는 메인 루프 시작할때 추가하라고 한 코드
@@ -63,6 +115,8 @@ namespace GUI
 		ImGui::NewFrame();
 
 		float DeltaTime = ImGui::GetIO().DeltaTime;
+
+		UpdateProfilingWindow(DeltaTime);
 
 		for (int i = 0; i < g_DrawCommandQueue.size(); ++i)
 		{

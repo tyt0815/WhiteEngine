@@ -30,20 +30,20 @@ void WWorld::Tick(float Delta)
 	mRenderItemProxy.Cleanup(Delta);
 
 	UTimer Timer;
-	for (size_t i = 0; i < mAllActors.size(); ++i)
+	for(auto& Actor : mActiveActorQueue)
 	{
 		// Tick Component 가 포함되어 있음
-		mAllActors[i]->Tick_PrePhysics(Delta);
+		Actor->Tick_PrePhysics(Delta);
 	}
 	Timer.Tick();
 	double Time_Tick_PrePhysics = Timer.GetDeltaTime();
 
-	for (auto& Actor : mAllActors)
+	for (auto& Actor : mActiveActorQueue)
 	{
 		Actor->UpdateComponentsToPhysics();
 	}
 	Physics::Tick(Delta);
-	for (auto& Actor : mAllActors)
+	for (auto& Actor : mActiveActorQueue)
 	{
 		Actor->UpdateComponentsFromPhysics();
 	}
@@ -81,23 +81,19 @@ void WWorld::Tick(float Delta)
 	Timer.Tick();
 	double Time_Physics_Event = Timer.GetDeltaTime();
 
-
-	for (size_t i = 0; i < mAllActors.size(); ++i)
+	for (auto& Actor : mActiveActorQueue)
 	{
 		// Tick Component 가 포함되어 있음
-		mAllActors[i]->Tick_PostPhysics(Delta);
+		Actor->Tick_PostPhysics(Delta);
 	}
 	Timer.Tick();
 	double Time_Tick_PostPhysics = Timer.GetDeltaTime();
 
 	FlushDestroyQueue();
 
-	for (size_t i = 0; i < mAllActors.size(); ++i)
+	for (auto& Actor : mActiveActorQueue)
 	{
-		if (auto Root = mAllActors[i]->GetRootComponent().lock())
-		{
-			Root->UpdateRecursive();
-		}
+		Actor->UpdateRecursive();
 	}
 	Timer.Tick();
 	double Time_Update_Render_Items = Timer.GetDeltaTime();
@@ -107,34 +103,15 @@ void WWorld::Tick(float Delta)
 	Command.LifeSpan = 0;
 	Command.DrawLambda = [=]()
 	{
-		ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-		ImGui::SetNextWindowSize(ImVec2(300, 0));
-
-		ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_NoDecoration |
-			ImGuiWindowFlags_AlwaysAutoResize |
-			ImGuiWindowFlags_NoSavedSettings |
-			ImGuiWindowFlags_NoFocusOnAppearing |
-			ImGuiWindowFlags_NoNav |
-			ImGuiWindowFlags_NoMove;
-
-		ImGui::SetNextWindowBgAlpha(1.0f);
-
-		if (ImGui::Begin("World Tick", nullptr, WindowFlags))
-		{
-			
-			ImGui::TextColored(ImVec4(0, 1, 0, 1), "FPS: %.1f\n", ImGui::GetIO().Framerate);
-			ImGui::Separator();
-			ImGui::TextColored(ImVec4(1, 1, 0, 1), "World Tick Profiling"); // 노란색 제목
-			ImGui::Separator();
-			ImGui::Text("Tick_PrePhysics: %f", Time_Tick_PrePhysics);
-			ImGui::Text("Update_Physics: %f", Time_Update_Physics);
-			ImGui::Text("Physics_Event: %f", Time_Physics_Event);
-			ImGui::Text("Tick_PostPhysics: %f", Time_Tick_PostPhysics);
-			ImGui::Text("Update_Render_Items: %f", Time_Update_Render_Items);
-		}
-		ImGui::End();
+		ImGui::TextColored(ImVec4(1, 1, 0, 1), "WWorld::Tick"); // 노란색 제목
+		ImGui::Separator();
+		ImGui::Text("Tick_PrePhysics: %f", Time_Tick_PrePhysics);
+		ImGui::Text("Update_Physics: %f", Time_Update_Physics);
+		ImGui::Text("Physics_Event: %f", Time_Physics_Event);
+		ImGui::Text("Tick_PostPhysics: %f", Time_Tick_PostPhysics);
+		ImGui::Text("Update_Render_Items: %f", Time_Update_Render_Items);
 	};
-	GUI::AddDrawCommand(Command);
+	GUI::AddProfilingCommand(Command);
 }
 
 TWeakPtr<WCameraComponent> WWorld::GetPlayerCamera() const
@@ -159,7 +136,7 @@ void WWorld::DestroyActor(const TSharedPtr<AActor>& Actor)
 {
 	if (Actor && !Actor->IsPendingKill())
 	{
-		Actor->MarkPendingKill();
+		Actor->mbPendingKill = true;
 		DestroyQueue.push_back(Actor);
 	}
 }
@@ -186,13 +163,37 @@ void WWorld::EnqueueOnHitEvent(const FContactInfo& Info)
 	mOnHitEventQueue.emplace_back(Info);
 }
 
+void WWorld::ActivateActor(AActor* Actor)
+{
+	if (!Actor->IsActivated())
+	{
+		mActiveActorQueue.emplace_back(Actor);
+		Actor->mTickQueueId = mActiveActorQueue.size() - 1;
+		Actor->OnActivate();
+	}
+}
+
+void WWorld::DeactivateActor(AActor* Actor)
+{
+	if (Actor->IsActivated())
+	{
+		INT64 Id = Actor->mTickQueueId;
+		mActiveActorQueue[Id] = std::move(mActiveActorQueue.back());
+		mActiveActorQueue[Id]->mTickQueueId = Id;
+		mActiveActorQueue.pop_back();
+		Actor->mTickQueueId = -1;
+		Actor->OnDeactivate();
+	}
+}
+
 void WWorld::FlushDestroyQueue()
 {
 	for (auto Actor : DestroyQueue)
 	{
-		UINT64 Id = Actor->GetActorId();
+		DeactivateActor(Actor.get());
+		UINT64 Id = Actor->mActorId;
 		mAllActors[Id] = std::move(mAllActors.back());
-		mAllActors[Id]->SetActorId(Id);
+		mAllActors[Id]->mActorId = Id;
 		mAllActors.pop_back();
 	}
 

@@ -48,9 +48,18 @@ public:
 
 	void Destroy();
 
+	void Activate();
+
+	void Deactivate();
+
 protected:
+	virtual void OnActivate();
+
+	virtual void OnDeactivate();
 
 private:
+	void UpdateRecursive();
+
 	void BeginComponents();
 
 	void TickComponents_PrePhysics(float Delta);
@@ -71,6 +80,8 @@ private:
 
 	UINT64 mActorId = -1;
 
+	INT64 mTickQueueId = -1;
+
 	bool mbPendingKill = false;
 
 public:
@@ -85,79 +96,66 @@ public:
 		return Cast<T>(shared_from_this());
 	}
 
-	inline TWeakPtr<WSceneComponent> GetRootComponent() const
+	__forceinline TWeakPtr<WSceneComponent> GetRootComponent() const
 	{
 		return mRootComponent;
 	}
 
-	inline FTransform GetActorTransform() const
+	__forceinline FTransform GetActorTransform() const
 	{
 		return mRootComponent.lock()->GetLocalTransform();
 	}
 
-	inline XMFLOAT3 GetActorLocation() const
+	__forceinline XMFLOAT3 GetActorLocation() const
 	{
 		return mRootComponent.lock()->GetLocalLocation();
 	}
 
-	inline void SetActorLocation(XMFLOAT3 Location)
+	__forceinline void SetActorLocation(XMFLOAT3 Location)
 	{
 		mRootComponent.lock()->SetLocalLocation(Location);
 	}
 
-	inline XMFLOAT3 GetActorRotation() const
+	__forceinline XMFLOAT3 GetActorRotation() const
 	{
 		return mRootComponent.lock()->GetLocalRotation();
 	}
 
-	inline void SetActorRotation(XMFLOAT3 Rotation)
+	__forceinline void SetActorRotation(XMFLOAT3 Rotation)
 	{
 		mRootComponent.lock()->SetLocalRotation(Rotation);
 	}
 
-	inline XMFLOAT3 GetActorScale() const
+	__forceinline XMFLOAT3 GetActorScale() const
 	{
 		return mRootComponent.lock()->GetLocalScale();
 	}
 
-	inline void SetActorScale(XMFLOAT3 Scale)
+	__forceinline void SetActorScale(XMFLOAT3 Scale)
 	{
 		mRootComponent.lock()->SetLocalScale(Scale);
 	}
 
-	inline WWorld* GetWorld() const
+	__forceinline WWorld* GetWorld() const
 	{
 		return mWorld;
 	}
 
-	inline void SetWorld(WWorld* World)
-	{
-		mWorld = World;
-	}
-
-	inline bool IsPendingKill() const
+	__forceinline bool IsPendingKill() const
 	{
 		return mbPendingKill;
 	}
 
-	inline void MarkPendingKill()
+	__forceinline bool IsActivated() const
 	{
-		mbPendingKill = true;
+		return mTickQueueId >= 0;
 	}
 
-	inline UINT64 GetActorId() const
-	{
-		return mActorId;
-	}
-
-	inline void SetActorId(UINT64 Id)
-	{
-		mActorId = Id;
-	}
+	friend class WWorld;
 };
 
 template<typename T>
-inline TWeakPtr<T> AActor::CreateComponent()
+__forceinline TWeakPtr<T> AActor::CreateComponent()
 {
 	static_assert(IsDerivedFrom<WActorComponent, T>());
 

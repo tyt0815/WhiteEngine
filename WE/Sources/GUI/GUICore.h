@@ -23,10 +23,14 @@ namespace GUI
 
 	UINT64 AddNotificationDrawCommand(const FNotificationDrawCommand& Command);
 
+	UINT64 AddProfilingCommand(const FDrawCommand& Command);
+
 	void Initialize(
 		HWND hWnd,
 		ID3D12Device* Device, ID3D12CommandQueue* CommandQueue, DXGI_FORMAT RTVFormat
 	);
+	
+	void UpdateProfilingWindow(float Delta);
 
 	void Update(ID3D12GraphicsCommandList* CommandList);
 
