@@ -17,6 +17,9 @@
 # 4. 데이터 구조 최적화 AoS -> SoA
 ![](./v4_SearchTime.png)
 
+# 5. zero-copy 직렬화
+![](../대용량%20XML%20파일%20최적화/v6_SearchTime.png)
+
 # 결론
 - fps
 평균 400 ->
