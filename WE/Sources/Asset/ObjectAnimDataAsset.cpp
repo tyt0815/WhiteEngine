@@ -107,11 +107,6 @@ bool CompileXMLToOADLz4(const std::string& XMLPath, const std::string& OADLz4Pat
 
 bool FObjectAnimDataAsset::LoadAsset(const std::wstring& FilePath)
 {
-	double OADCompileTime = 0;
-	double OADLoadTime = 0;
-	double OADCopyTime = 0;
-	UTimer Timer;
-
 	// 1. 경로 설정
 	std::string xmlPath = WStringToString(FilePath);
 	std::string lz4Path = xmlPath.substr(0, xmlPath.find_last_of('.')) + ".oad.lz4";
@@ -137,10 +132,7 @@ bool FObjectAnimDataAsset::LoadAsset(const std::wstring& FilePath)
 	{
 		if (fs::exists(xmlPath))
 		{
-			Timer.Reset();
 			CompileXMLToOADLz4(xmlPath, lz4Path);
-			Timer.Tick();
-			OADCompileTime = Timer.GetDeltaTime();
 		}
 		else
 		{
@@ -154,8 +146,6 @@ bool FObjectAnimDataAsset::LoadAsset(const std::wstring& FilePath)
 	{
 		return false;
 	}
-	Timer.Tick();
-	OADLoadTime = Timer.GetDeltaTime();
 
 	unsigned char* Ptr = mRawBuffer.data();
 
@@ -198,40 +188,6 @@ bool FObjectAnimDataAsset::LoadAsset(const std::wstring& FilePath)
 
 		mCurveInfoMap[CurveName] = CurveInfo;
 	}
-
-	Timer.Tick();
-	OADCopyTime = Timer.GetDeltaTime();
-
-	// 프로파일링용 GUI
-	double TotalTime = Timer.GetTotalTime();
-	GUI::FDrawCommand Command;
-	Command.LifeSpan = 10;
-	Command.DrawLambda = [=]()
-	{
-		ImGui::SetNextWindowPos(ImVec2(1000, 0), ImGuiCond_Always);
-
-		ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_NoDecoration |
-			ImGuiWindowFlags_AlwaysAutoResize |
-			ImGuiWindowFlags_NoSavedSettings |
-			ImGuiWindowFlags_NoFocusOnAppearing |
-			ImGuiWindowFlags_NoNav |
-			ImGuiWindowFlags_NoMove;
-
-		ImGui::SetNextWindowBgAlpha(1.0f);
-
-		if (ImGui::Begin("FObjectAnimDataAsset::LoadAsset", nullptr, WindowFlags))
-		{
-			ImGui::TextColored(ImVec4(1, 1, 0, 1), "FObjectAnimDataAsset::LoadAsset"); // 노란색 제목
-			ImGui::Separator();
-
-			ImGui::Text("OADCompileTime: %.8f", OADCompileTime);
-			ImGui::Text("OADLoadTime: %.8f", OADLoadTime);
-			ImGui::Text("OADCopyTime: %.8f", OADCopyTime);
-			ImGui::Text("Total Time: %.8f", TotalTime);
-		}
-		ImGui::End();
-	};
-	GUI::AddDrawCommand(Command);
 
 	return true;
 }

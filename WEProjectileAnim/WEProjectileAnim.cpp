@@ -41,81 +41,15 @@ void AProjectileAnimActor::Tick_PostPhysics(float Delta)
 
 	mElapsedTime += Delta;
 
-	UTimer Timer;
-	double SampleAnimTime = 0;
 	if (auto ObjectAnimComp = mObjectAnimComp.lock())
 	{
 		mElapsedTime = fmodf(mElapsedTime, ObjectAnimComp->GetDuration());
 
 		if (auto Proj = mProj.lock())
 		{
-			
-			Timer.Reset();
 			FTransform Transform = ObjectAnimComp->SampleAnimWorldTransformBySecond(mElapsedTime);
-			Timer.Tick();
-			SampleAnimTime = Timer.GetDeltaTime();
-
 			Proj->SetActorTransform(Transform);
 		}
-	}
-
-	static TWeakPtr<AProjectileAnimActor> FirstActor = GetWeakPtr<AProjectileAnimActor>();
-	static double One_SampleAnimTimeAvg = 0;
-	static double Whole_SampleAnimTimeAvg = 0;
-	static float Alpha = 0.01f;
-
-	if (FirstActor.expired())
-	{
-		FirstActor = GetWeakPtr<AProjectileAnimActor>();
-	}
-
-	if (Whole_SampleAnimTimeAvg == 0)
-	{
-		Whole_SampleAnimTimeAvg = SampleAnimTime;
-	}
-	else
-	{
-		Whole_SampleAnimTimeAvg = (1 - Alpha) * Whole_SampleAnimTimeAvg + Alpha * SampleAnimTime;
-	}
-	if (FirstActor.lock().get() == this)
-	{
-		if (One_SampleAnimTimeAvg == 0)
-		{
-			One_SampleAnimTimeAvg = SampleAnimTime;
-		}
-		else
-		{
-			One_SampleAnimTimeAvg = (1 - Alpha) * One_SampleAnimTimeAvg + Alpha * SampleAnimTime;
-		}
-
-		// 프로파일링용 GUI
-		GUI::FDrawCommand Command;
-		Command.LifeSpan = 0;
-		Command.DrawLambda = [=]()
-		{
-			ImGui::SetNextWindowPos(ImVec2(300, 0), ImGuiCond_Always);
-
-			ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_NoDecoration |
-				ImGuiWindowFlags_AlwaysAutoResize |
-				ImGuiWindowFlags_NoSavedSettings |
-				ImGuiWindowFlags_NoFocusOnAppearing |
-				ImGuiWindowFlags_NoNav |
-				ImGuiWindowFlags_NoMove;
-
-			ImGui::SetNextWindowBgAlpha(1.0f);
-
-			if (ImGui::Begin("AProjectileAnimActor::Tick_PostPhysics", nullptr, WindowFlags))
-			{
-				ImGui::TextColored(ImVec4(1, 1, 0, 1), "ProjectileAnimActor::Tick_PostPhysics"); // 노란색 제목
-				ImGui::Separator();
-
-				ImGui::Text("KeyframeSearchTime: %.8f", SampleAnimTime);
-				ImGui::Text("One_SampleAnimTimeAvg: %.8f", One_SampleAnimTimeAvg);
-				ImGui::Text("Whole_SampleAnimTimeAvg: %.8f", Whole_SampleAnimTimeAvg);
-			}
-			ImGui::End();
-		};
-		GUI::AddDrawCommand(Command);
 	}
 }
 
@@ -126,7 +60,8 @@ WProjectileAnimWorld::WProjectileAnimWorld()
 	{
 		if (auto Projectile = SpawnActor<AProjectileAnimActor>().lock())
 		{
-			XMFLOAT3 Rot(0, 0, 3.6f * i);
+			float r = 360.0f / ProjNum * i;
+			XMFLOAT3 Rot(r, r, r);
 			Projectile->SetActorRotation(Rot);
 		}
 	}
