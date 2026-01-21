@@ -63,4 +63,11 @@ class WProjectileAnimWorld : public WDefaultWorld
 	typedef WDefaultWorld Super;
 public:
 	WProjectileAnimWorld();
+
+	virtual void Tick(float Delta) override;
+
+private	:
+	float mElapsedTime = 0;
+
+	std::vector<TWeakPtr<AProjectileAnimActor>> mProjs;
 };

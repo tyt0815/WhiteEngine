@@ -188,7 +188,6 @@ void WWorld::DeactivateActor(AActor* Actor)
 
 void WWorld::FlushDestroyQueue()
 {
-	static bool bFirst = true;
 	bool bLoop = false;
 	float Time = 0;
 	UTimer Timer;
@@ -204,13 +203,12 @@ void WWorld::FlushDestroyQueue()
 	DestroyQueue.clear();
 
 	Timer.Tick();
-	if (bFirst && bLoop)
+	if (bLoop)
 	{
-		bFirst = false;
 		double Time = Timer.GetDeltaTime();
 
 		GUI::FDrawCommand Command;
-		Command.LifeSpan = 10;
+		Command.LifeSpan = 2;
 		Command.DrawLambda = [=]()
 		{
 			ImGui::SetNextWindowPos(ImVec2(1300, 0), ImGuiCond_Always);
