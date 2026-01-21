@@ -98,9 +98,10 @@ namespace GUI
 		{
 
 			ImGui::TextColored(ImVec4(0, 1, 0, 1), "FPS: %.1f\n", ImGui::GetIO().Framerate);
-			ImGui::Separator();
+			
 			for (const auto& Command : g_ProfilingCommands)
 			{
+				ImGui::Separator();
 				Command.DrawLambda();
 			}
 		}
