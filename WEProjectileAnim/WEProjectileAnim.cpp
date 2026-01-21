@@ -25,56 +25,6 @@ AProjectileAnimActor::AProjectileAnimActor()
 		ObjectAnimComp->SetupAttachment(GetRootComponent());
 
 		ObjectAnimComp->LoadKeyframesFromOADAsset(L"OAD_Large");
-
-		// 대용량 XML 테스트 블록
-		//{
-		//	UTimer Timer;
-		//	Timer.Reset();
-
-		//	std::string XMLDir(SOLUTION_DIR);
-		//	XMLDir += "Resources/XML";
-
-		//	//const char* MediumFileName = "Medium_v1.keyframemap.lz4";
-		//	//ObjectAnimComp->LoadKeyframesFromLZ4KeyframeMap(XMLDir + "/" + MediumFileName);
-		//	//Timer.Tick();
-		//	//float MediumTime = Timer.GetDeltaTime();
-
-		//	const char* LargeFileName = "Large_v1.keyframemap.lz4";
-		//	ObjectAnimComp->LoadKeyframesFromLZ4KeyframeMap(XMLDir + "/" + LargeFileName);
-		//	Timer.Tick();
-		//	double LargeTime = Timer.GetDeltaTime();
-
-		//	static bool bFirstTime = true;
-		//	if (bFirstTime)
-		//	{
-		//		bFirstTime = false;
-		//		GUI::FDrawCommand Command;
-		//		Command.LifeSpan = 10;
-		//		Command.DrawLambda = [=]()
-		//		{
-		//			ImGui::SetNextWindowPos(ImVec2(1000, 0), ImGuiCond_Always);
-
-		//			ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_NoDecoration |
-		//				ImGuiWindowFlags_AlwaysAutoResize |
-		//				ImGuiWindowFlags_NoSavedSettings |
-		//				ImGuiWindowFlags_NoFocusOnAppearing |
-		//				ImGuiWindowFlags_NoNav |
-		//				ImGuiWindowFlags_NoMove;
-
-		//			ImGui::SetNextWindowBgAlpha(1.0f);
-
-		//			if (ImGui::Begin("XMLFileLoad", nullptr, WindowFlags))
-		//			{
-		//				ImGui::TextColored(ImVec4(1, 1, 0, 1), "XML file Load"); // 노란색 제목
-		//				ImGui::Separator();
-
-		//				ImGui::Text("%s\nLoad Time: %f",LargeFileName, LargeTime);
-		//			}
-		//			ImGui::End();
-		//		};
-		//		GUI::AddDrawCommand(Command);
-		//	}
-		//}
 	}
 }
 
