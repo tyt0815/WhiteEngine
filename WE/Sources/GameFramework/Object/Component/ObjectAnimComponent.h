@@ -17,18 +17,6 @@ public:
 	virtual void BeginComponent() override;
 
 public:
-	bool LoadKeyframesFromXMLAsset(const std::wstring& Name);
-
-	bool LoadKeyframesFromXML(tinyxml2::XMLDocument* Doc);
-
-	bool LoadKeyframesFromXMLFile(const std::string& FilePath);
-
-	bool LoadKeyframesFromZlibXMLFile(const std::string& FilePath);
-
-	bool LoadKeyframesFromZlibKeyframeMap(const std::string& FilePath);
-
-	bool LoadKeyframesFromLZ4KeyframeMap(const std::string& FilePath);
-
 	void ToControlPoint(
 		const FKeyframe& Left, const FKeyframe& Right,
 		XMVECTOR* P0, XMVECTOR* P1, XMVECTOR* P2, XMVECTOR* P3
@@ -49,7 +37,6 @@ public:
 	FTransform SampleAnimWorldTransformBySecond(float Second);
 
 private:
-	bool LoadKeyframesFromBinary(unsigned char* Ptr);
 
 	FObjectAnimDataAsset* mObjectAnimData;
 
