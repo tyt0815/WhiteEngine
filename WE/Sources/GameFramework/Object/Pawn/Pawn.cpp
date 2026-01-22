@@ -7,7 +7,7 @@ void APawn::Tick_PrePhysics(float Delta)
 
 void APawn::AddMovementInput(const XMFLOAT3& WorldDirection, float ScaleValue)
 {
-	ScaleValue *= (float)GetEngineTimer()->GetDeltaTime() * mMoveSpeed;
+	ScaleValue *= mMoveSpeed;
 	XMFLOAT3 WorldLocation = GetActorTransform().Translation;
 	XMVECTOR DirectionVector = XMLoadFloat3(&WorldDirection);
 	DirectionVector = DirectX::XMVectorScale(DirectionVector, ScaleValue);

@@ -58,6 +58,7 @@ void FGameApplication::Thread_GamePlay()
 	{
 		Timer.Tick();
 		float DeltaTime = (float)Timer.GetDeltaTime();
+		GetInputSystemManager()->Tick(DeltaTime);
 		mWorld->Tick(DeltaTime);
 	}
 }
@@ -77,10 +78,7 @@ void FGameApplication::Thread_Render()
 		}
 		else
 		{
-			GetInputSystemManager()->Tick();
-
 			Timer.Tick();
-
 			mWorld->mRenderItemProxyMetex.lock();
 			FRenderItemProxy RIP = mWorld->mRenderItemProxy;
 			mWorld->mRenderItemProxyMetex.unlock();

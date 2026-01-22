@@ -10,12 +10,12 @@ public:
 	virtual void SetupPlayerInput() override;
 
 private:
-	void MoveForward();
-	void MoveBackward();
-	void MoveRight();
-	void MoveLeft();
-	void MoveUp();
-	void MoveDown();
+	void MoveForward(float Delta);
+	void MoveBackward(float Delta);
+	void MoveRight(float Delta);
+	void MoveLeft(float Delta);
+	void MoveUp(float Delta);
+	void MoveDown(float Delta);
 	void Look(FMouseInputParameter Parameter);
 	virtual void LeftClick(FMouseInputParameter Parameter) {};
 };

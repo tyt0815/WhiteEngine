@@ -21,35 +21,35 @@ void AGhostCameraPawn::SetupPlayerInput()
 	GetInputSystemManager()->BindMouseAction(EMIT_LDown, this, &AGhostCameraPawn::LeftClick);
 }
 
-void AGhostCameraPawn::MoveForward()
+void AGhostCameraPawn::MoveForward(float Delta)
 {
 
-	AddMovementInput(GetFowardVector(), 1.0f);
+	AddMovementInput(GetFowardVector(), Delta);
 }
 
-void AGhostCameraPawn::MoveBackward()
+void AGhostCameraPawn::MoveBackward(float Delta)
 {
-	AddMovementInput(GetFowardVector(), -1.0f);
+	AddMovementInput(GetFowardVector(), -Delta);
 }
 
-void AGhostCameraPawn::MoveRight()
+void AGhostCameraPawn::MoveRight(float Delta)
 {
-	AddMovementInput(GetRightVector(), 1.0f);
+	AddMovementInput(GetRightVector(), Delta);
 }
 
-void AGhostCameraPawn::MoveLeft()
+void AGhostCameraPawn::MoveLeft(float Delta)
 {
-	AddMovementInput(GetRightVector(), -1.0f);
+	AddMovementInput(GetRightVector(), -Delta);
 }
 
-void AGhostCameraPawn::MoveUp()
+void AGhostCameraPawn::MoveUp(float Delta)
 {
-	AddMovementInput({ 0.0f, 1.0f, 0.0f }, 1.0f);
+	AddMovementInput({ 0.0f, 1.0f, 0.0f }, Delta);
 }
 
-void AGhostCameraPawn::MoveDown()
+void AGhostCameraPawn::MoveDown(float Delta)
 {
-	AddMovementInput({ 0.0f, -1.0f, 0.0f }, 1.0f);
+	AddMovementInput({ 0.0f, -1.0f, 0.0f }, Delta);
 }
 
 void AGhostCameraPawn::Look(FMouseInputParameter Parameter)

@@ -49,13 +49,13 @@ void FDeferredShadingSceneRenderer::Initialize(ID3D12Device* Device)
 		UpdateDeferredShadingPassCB(FrameResource->GetDeferredShadingPassCB());
 	}
 
-	GetInputSystemManager()->BindKeyboardAction('1', this, &FDeferredShadingSceneRenderer::SwitchToDefaultMode);
+	/*GetInputSystemManager()->BindKeyboardAction('1', this, &FDeferredShadingSceneRenderer::SwitchToDefaultMode);
 	GetInputSystemManager()->BindKeyboardAction('2', this, &FDeferredShadingSceneRenderer::SwitchToBlurMode);
 	GetInputSystemManager()->BindKeyboardAction('3', this, &FDeferredShadingSceneRenderer::SwitchToGBufferADebugMode);
 	GetInputSystemManager()->BindKeyboardAction('4', this, &FDeferredShadingSceneRenderer::SwitchToGBufferBDebugMode);
 	GetInputSystemManager()->BindKeyboardAction('5', this, &FDeferredShadingSceneRenderer::SwitchToGBufferCDebugMode);
 	GetInputSystemManager()->BindKeyboardAction('6', this, &FDeferredShadingSceneRenderer::SwitchToDepthDebugMode);
-	GetInputSystemManager()->BindKeyboardAction('7', this, &FDeferredShadingSceneRenderer::SwitchToDebugAllMode);
+	GetInputSystemManager()->BindKeyboardAction('7', this, &FDeferredShadingSceneRenderer::SwitchToDebugAllMode);*/
 }
 
 void FDeferredShadingSceneRenderer::CreateFrameResources(ID3D12Device* Device)

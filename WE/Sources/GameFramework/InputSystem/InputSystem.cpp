@@ -11,11 +11,11 @@ FInputSystemManager::~FInputSystemManager()
 
 }
 
-void FInputSystemManager::Tick()
+void FInputSystemManager::Tick(float Delta)
 {
 	if (GetMainWindowPtr()->IsCaptured())
 	{
-		ProcessKeyboardActions();
+		ProcessKeyboardActions(Delta);
 	}
 }
 
@@ -30,10 +30,10 @@ void FInputSystemManager::ProcessMouseInput(EMouseInputType Type, int X, int Y)
 	}
 }
 
-void FInputSystemManager::ProcessKeyboardActions()
+void FInputSystemManager::ProcessKeyboardActions(float Delta)
 {
-	for (const std::function<void()>& ActionFunction : mKeyboardActions)
+	for (const std::function<void(float)>& ActionFunction : mKeyboardActions)
 	{
-		ActionFunction();
+		ActionFunction(Delta);
 	}
 }

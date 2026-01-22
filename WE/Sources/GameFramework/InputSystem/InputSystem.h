@@ -27,16 +27,16 @@ class FInputSystemManager
 {
 	SINGLETON(FInputSystemManager);
 public:
-	void Tick();
+	void Tick(float Delta);
 	template<typename T>
 	void BindMouseAction(EMouseInputType Type, T* ObjectPtr, void(T::*ActionFunction)(FMouseInputParameter));
 	template<typename T>
-	void BindKeyboardAction(char Key, T* ObjectPtr, void(T::* ActionFunction)());
+	void BindKeyboardAction(char Key, T* ObjectPtr, void(T::* ActionFunction)(float));
 	void ProcessMouseInput(EMouseInputType Type, int X, int Y);
 private:
-	void ProcessKeyboardActions();
+	void ProcessKeyboardActions(float Delta);
 	std::vector<std::vector<std::function<void(FMouseInputParameter)>>> mMouseActions;
-	std::vector<std::function<void()>> mKeyboardActions;
+	std::vector<std::function<void(float)>> mKeyboardActions;
 
 public:
 	inline bool IsKeyDown(int VKeyCode)
@@ -58,15 +58,15 @@ inline void FInputSystemManager::BindMouseAction(EMouseInputType Type, T* Object
 }
 
 template<typename T>
-inline void FInputSystemManager::BindKeyboardAction(char Key, T* ObjectPtr, void(T::* ActionFunction)())
+inline void FInputSystemManager::BindKeyboardAction(char Key, T* ObjectPtr, void(T::* ActionFunction)(float))
 {
 	Key = toupper(Key);
-	std::function<void()> BoundFunction = std::bind(ActionFunction, ObjectPtr);
-	mKeyboardActions.push_back([=]()
+	std::function<void(float)> BoundFunction = std::bind(ActionFunction, ObjectPtr, std::placeholders::_1);
+	mKeyboardActions.push_back([=](float Delta)
 		{
 			if (IsKeyDown(Key))
 			{
-				BoundFunction();
+				BoundFunction(Delta);
 			}
 		}
 	);
