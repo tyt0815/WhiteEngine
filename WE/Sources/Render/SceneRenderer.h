@@ -174,7 +174,7 @@ public:
     FSceneRenderer();
     virtual ~FSceneRenderer();
     virtual void Initialize(ID3D12Device* Device);
-    void Tick(const FRenderItemProxy* RenderItemProxy);
+    void Tick(const FRenderItemProxy& RenderItemProxy);
     virtual void Destroy();
 
 protected:
@@ -190,7 +190,7 @@ protected:
     virtual void BuildPipelineStates(ID3D12Device* Device);
     void BuildDebugDrawLine3DPipelineStates(ID3D12Device* Device);
     void BuildShadowMapPassPipelineStates(ID3D12Device* Device);
-    virtual void UpdateFrameBuffers(FFrameResourceBase* FrameResource, const FRenderItemProxy* RenderItemProxy);
+    virtual void UpdateFrameBuffers(FFrameResourceBase* FrameResource, const FRenderItemProxy& RenderItemProxy);
     virtual void Render(
         ID3D12GraphicsCommandList* CommandList,
         FFrameResourceBase* FrameResourceBase,
@@ -199,7 +199,7 @@ protected:
         D3D12_CPU_DESCRIPTOR_HANDLE Dsv,
         D3D12_VIEWPORT Viewport,
         D3D12_RECT ScissorRect,
-        const FRenderItemProxy* RenderItemProxy
+        const FRenderItemProxy& RenderItemProxy
     ) = 0;
 
     void DrawRectPass(
@@ -214,7 +214,7 @@ protected:
     void DrawShadowMap(
         ID3D12GraphicsCommandList* CommandList,
         FFrameResourceBase* FrameResource,
-        const FRenderItemProxy* RenderItemProxy
+        const FRenderItemProxy& RenderItemProxy
     );
 
     void ClearRenderTargetAndDepthStencil(
@@ -228,7 +228,7 @@ protected:
         ID3D12GraphicsCommandList* CommandList,
         ID3D12Resource* MeshConstantBuffer,
         ID3D12Resource* SubmeshConstantBuffer,
-        const FRenderItemProxy* RenderItemProxy
+        const FRenderItemProxy& RenderItemProxy
     );
 
     void DrawStaticMesh(
@@ -253,15 +253,15 @@ protected:
     bool bWireFrame = false;
 
 private:
-    void UpdateTargetFrameResource(const FRenderItemProxy* RenderItemProxy);
+    void UpdateTargetFrameResource(const FRenderItemProxy& RenderItemProxy);
     void SwitchToNextFrameResource();
-    void UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuffer, const FRenderItemProxy* RenderItemProxy);
-    void UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConstantBuffer, const FRenderItemProxy* RenderItemProxy);
-    void UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshConstantBuffer, const FRenderItemProxy* RenderItemProxy);
-    void UpdateLightInfoCB(TUploadBuffer<FLightInfoConstantBuffer>* LightInfoConstantBuffer, const FRenderItemProxy* RenderItemProxy);
+    void UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuffer, const FRenderItemProxy& RenderItemProxy);
+    void UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConstantBuffer, const FRenderItemProxy& RenderItemProxy);
+    void UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshConstantBuffer, const FRenderItemProxy& RenderItemProxy);
+    void UpdateLightInfoCB(TUploadBuffer<FLightInfoConstantBuffer>* LightInfoConstantBuffer, const FRenderItemProxy& RenderItemProxy);
     void UpdateMaterialSB(TUploadBuffer<FMaterialStructuredBuffer>* MaterialStructuredBuffer);
-    void UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightStructuredBuffer>* DirectionalLightStructuredBuffer, const FRenderItemProxy* RenderItemProxy);
-    void UpdateDebugLine3DVB(TUploadBuffer<FLine3DVertex>* DebugLine3DVB, const FRenderItemProxy* RenderItemProxy);
+    void UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightStructuredBuffer>* DirectionalLightStructuredBuffer, const FRenderItemProxy& RenderItemProxy);
+    void UpdateDebugLine3DVB(TUploadBuffer<FLine3DVertex>* DebugLine3DVB, const FRenderItemProxy& RenderItemProxy);
 
 public:
     inline FFrameResourceBase* GetTargetFrameResource() const

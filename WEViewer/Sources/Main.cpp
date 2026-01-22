@@ -1,4 +1,4 @@
-#include "GameFramework/GameAppImpl.h"
+#include "GameFramework/GameCore.h"
 #include "World/TestWorld.h"
 
-CREATE_APPLICATION_BY_WORLD(WTestWorld);
+CREATE_APPLICATION(WTestWorld);

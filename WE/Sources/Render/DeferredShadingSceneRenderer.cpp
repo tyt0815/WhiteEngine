@@ -360,7 +360,7 @@ void FDeferredShadingSceneRenderer::BuildDebugPassPipelineStates(ID3D12Device* D
 	);
 }
 
-void FDeferredShadingSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* FrameResource, const FRenderItemProxy* RenderItemProxy)
+void FDeferredShadingSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* FrameResource, const FRenderItemProxy& RenderItemProxy)
 {
 	Super::UpdateFrameBuffers(FrameResource, RenderItemProxy);
 
@@ -423,7 +423,7 @@ void FDeferredShadingSceneRenderer::Render(
 	D3D12_CPU_DESCRIPTOR_HANDLE Dsv,
 	D3D12_VIEWPORT Viewport,
 	D3D12_RECT ScissorRect,
-	const FRenderItemProxy* RenderItemProxy
+	const FRenderItemProxy& RenderItemProxy
 )
 {
 	FFrameResource* FrameResource = dynamic_cast<FFrameResource*>(FrameResourceBase);
@@ -616,7 +616,7 @@ void FDeferredShadingSceneRenderer::DrawDeferredShadingPass(
 	DrawRect(CommandList);
 }
 
-void FDeferredShadingSceneRenderer::DrawGBuffers(ID3D12GraphicsCommandList* CommandList, FFrameResource* FrameResource, const FRenderItemProxy* RenderItemProxy)
+void FDeferredShadingSceneRenderer::DrawGBuffers(ID3D12GraphicsCommandList* CommandList, FFrameResource* FrameResource, const FRenderItemProxy& RenderItemProxy)
 {
 	mGBufferA->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	mGBufferB->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET);

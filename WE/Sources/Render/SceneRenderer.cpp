@@ -3,7 +3,6 @@
 #include "ShapeDrawer.h"
 #include "DirectX/DXResourceManager.h"
 #include "GameFramework/Object/Component/CameraComponent.h"
-#include "GameFramework/Object/World/World.h"
 #include "Utility/Timer.h"
 #include "DirectX/CBVSRVUAVHeap.h"
 #include "MeshGeometry.h"
@@ -75,7 +74,7 @@ void FSceneRenderer::Initialize(ID3D12Device* Device)
 	BuildPipelineStates(Device);
 }
 
-void FSceneRenderer::Tick(const FRenderItemProxy* RenderItemProxy)
+void FSceneRenderer::Tick(const FRenderItemProxy& RenderItemProxy)
 {
 	UpdateTargetFrameResource(RenderItemProxy);
 	FFrameResourceBase* FrameResource = GetTargetFrameResource();
@@ -345,7 +344,7 @@ void FSceneRenderer::BuildShadowMapPassPipelineStates(ID3D12Device* Device)
 	);
 }
 
-void FSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* FrameResource, const FRenderItemProxy* RenderItemProxy)
+void FSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* FrameResource, const FRenderItemProxy& RenderItemProxy)
 {
 	UpdatePassCB(FrameResource->GetPassCB(), RenderItemProxy);
 	UpdateMeshCB(FrameResource->GetMeshCB(), RenderItemProxy);
@@ -402,10 +401,10 @@ void FSceneRenderer::DrawRectPass(
 void FSceneRenderer::DrawShadowMap(
 	ID3D12GraphicsCommandList* CommandList,
 	FFrameResourceBase* FrameResource,
-	const FRenderItemProxy* RenderItemProxy
+	const FRenderItemProxy& RenderItemProxy
 )
 {
-	const auto& DirLightProxies = RenderItemProxy->mDirectionalLightProxies;
+	const auto& DirLightProxies = RenderItemProxy.mDirectionalLightProxies;
 	int TargetIndex = min(DIR_LIGHTS_NUM, (int)DirLightProxies.size());
 	int ShadingModelsNum = EShadingModel::ESM_None;
 	int BlendModesNum = EBlendMode::EBM_None;
@@ -439,7 +438,7 @@ void FSceneRenderer::DrawShadowMap(
 
 
 			// TODO: ShadingModel, Blend별로 드로우하게 수정
-			const auto& StaticMeshProxies = RenderItemProxy->mStaticMeshProxies;
+			const auto& StaticMeshProxies = RenderItemProxy.mStaticMeshProxies;
 			for (const FStaticMeshProxy& Proxy : StaticMeshProxies)
 			{
 				if (Proxy.bCastShadow)
@@ -487,11 +486,11 @@ void FSceneRenderer::DrawStaticMeshs(
 	ID3D12GraphicsCommandList* CommandList,
 	ID3D12Resource* MeshConstantBuffer,
 	ID3D12Resource* SubmeshConstantBuffer,
-	const FRenderItemProxy* RenderItemProxy
+	const FRenderItemProxy& RenderItemProxy
 )
 {
 	// TODO: ShadingModel, Blend별로 드로우하게 수정
-	const auto& StaticMeshProxies = RenderItemProxy->mStaticMeshProxies;
+	const auto& StaticMeshProxies = RenderItemProxy.mStaticMeshProxies;
 	for (const FStaticMeshProxy& Proxy : StaticMeshProxies)
 	{
 		DrawStaticMesh(
@@ -573,7 +572,7 @@ void FSceneRenderer::FinishBackBuffer(ID3D12GraphicsCommandList* CommandList)
 	DepthStencilBuffer->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
 }
 
-void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuffer, const FRenderItemProxy* RenderItemProxy)
+void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuffer, const FRenderItemProxy& RenderItemProxy)
 {
 	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
 	UTimer* Timer = GetEngineTimer();
@@ -582,10 +581,8 @@ void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConsta
 	XMVECTOR target = XMVectorZero();
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
-	WCameraComponent* Camera = GetWorld()->GetPlayerCamera().lock().get();
-
-	XMFLOAT4X4 ViewMatrix = Camera->GetViewMatrix();
-	XMFLOAT4X4 ProjMatrix = Camera->GetProjMatrix();
+	XMFLOAT4X4 ViewMatrix = RenderItemProxy.ViewMatrix;
+	XMFLOAT4X4 ProjMatrix = RenderItemProxy.ProjMatrix;
 	XMMATRIX view = XMLoadFloat4x4(&ViewMatrix);
 	XMMATRIX InvView = FDXMath::GetInverseMatrix(view);
 	XMMATRIX proj = XMLoadFloat4x4(&ProjMatrix);
@@ -600,14 +597,14 @@ void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConsta
 	XMStoreFloat4x4(&PassConstants.InvProj, XMMatrixTranspose(InvProj));
 	XMStoreFloat4x4(&PassConstants.ViewProj, XMMatrixTranspose(ViewProj));
 	XMStoreFloat4x4(&PassConstants.InvViewProj, XMMatrixTranspose(InvViewProj));
-	PassConstants.EyePosW = Camera->GetLocalLocation();
+	PassConstants.EyePosW = RenderItemProxy.EyePosW;
 	D3D12_VIEWPORT Viewport = DeviceManager->GetScreenViewport();
 	float Width = static_cast<float>(Viewport.Width);
 	float Height = static_cast<float>(Viewport.Height);
 	PassConstants.RenderTargetSize = XMFLOAT2(Width, Height);
 	PassConstants.InvRenderTargetSize = XMFLOAT2(1.0f / Width, 1.0f / Height);
-	PassConstants.NearZ = Camera->GetNearZ();
-	PassConstants.FarZ = Camera->GetFarZ();
+	PassConstants.NearZ = RenderItemProxy.NearZ;
+	PassConstants.FarZ = RenderItemProxy.FarZ;
 	PassConstants.TotalTime = (float)Timer->GetTotalTime();
 	PassConstants.DeltaTime = (float)Timer->GetDeltaTime();
 	FTexture* SpecularIntegral = nullptr;
@@ -620,9 +617,9 @@ void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConsta
 	PassConstantBuffer->CopyData(0, PassConstants);
 }
 
-void FSceneRenderer::UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConstantBuffer, const FRenderItemProxy* RenderItemProxy)
+void FSceneRenderer::UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConstantBuffer, const FRenderItemProxy& RenderItemProxy)
 {
-	const auto& MeshCBProxies = RenderItemProxy->mMeshCBProxies;
+	const auto& MeshCBProxies = RenderItemProxy.mMeshCBProxies;
 	for (size_t i = 0; i < MeshCBProxies.size(); ++i)
 	{
 		const FMeshCBProxy& MeshCBProxy = MeshCBProxies[i];
@@ -636,9 +633,9 @@ void FSceneRenderer::UpdateMeshCB(TUploadBuffer<FMeshConstantBuffer>* MeshConsta
 	}
 }
 
-void FSceneRenderer::UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshConstantBuffer, const FRenderItemProxy* RenderItemProxy)
+void FSceneRenderer::UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* SubmeshConstantBuffer, const FRenderItemProxy& RenderItemProxy)
 {
-	const auto& SubmeshProxies = RenderItemProxy->mSubmeshCBProxies;
+	const auto& SubmeshProxies = RenderItemProxy.mSubmeshCBProxies;
 	for (size_t i = 0; i < SubmeshProxies.size(); ++i)
 	{
 		FSubmeshCBProxy SubmeshInfo = SubmeshProxies[i];
@@ -651,10 +648,10 @@ void FSceneRenderer::UpdateSubmeshCB(TUploadBuffer<FSubmeshConstantBuffer>* Subm
 	}
 }
 
-void FSceneRenderer::UpdateLightInfoCB(TUploadBuffer<FLightInfoConstantBuffer>* LightInfoConstantBuffer, const FRenderItemProxy* RenderItemProxy)
+void FSceneRenderer::UpdateLightInfoCB(TUploadBuffer<FLightInfoConstantBuffer>* LightInfoConstantBuffer, const FRenderItemProxy& RenderItemProxy)
 {
 	FLightInfoConstantBuffer LightInfoCB;
-	LightInfoCB.DirectionalLightNum = min((UINT)RenderItemProxy->mDirectionalLightProxies.size(), DIR_LIGHTS_NUM);
+	LightInfoCB.DirectionalLightNum = min((UINT)RenderItemProxy.mDirectionalLightProxies.size(), DIR_LIGHTS_NUM);
 
 	LightInfoConstantBuffer->CopyData(0, LightInfoCB);
 }
@@ -680,9 +677,9 @@ void FSceneRenderer::UpdateMaterialSB(TUploadBuffer<FMaterialStructuredBuffer>* 
 	}
 }
 
-void FSceneRenderer::UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightStructuredBuffer>* DirectionalLightStructuredBuffer, const FRenderItemProxy* RenderItemProxy)
+void FSceneRenderer::UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightStructuredBuffer>* DirectionalLightStructuredBuffer, const FRenderItemProxy& RenderItemProxy)
 {
-	const auto& DirLightProxies = RenderItemProxy->mDirectionalLightProxies;
+	const auto& DirLightProxies = RenderItemProxy.mDirectionalLightProxies;
 	for (int i = 0; i < DirLightProxies.size(); ++i)
 	{
 		FDirectionalLightProxy DirLightInfo = DirLightProxies[i];
@@ -732,11 +729,11 @@ void FSceneRenderer::UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightStr
 	}
 }
 
-void FSceneRenderer::UpdateDebugLine3DVB(TUploadBuffer<FLine3DVertex>* DebugLine3DVB, const FRenderItemProxy* RenderItemProxy)
+void FSceneRenderer::UpdateDebugLine3DVB(TUploadBuffer<FLine3DVertex>* DebugLine3DVB, const FRenderItemProxy& RenderItemProxy)
 {
 	std::vector<FLine3DVertex> LineVertices(DebugLine3DVB->GetElementCount());
 	int Index = 0;
-	for (const auto& Proxy : RenderItemProxy->mDebugLine3DProxies)
+	for (const auto& Proxy : RenderItemProxy.mDebugLine3DProxies)
 	{
 		FLine3DVertex Vertex;
 		Vertex.Position = Proxy.Start;
@@ -776,7 +773,7 @@ void FSceneRenderer::UpdateDebugLine3DVB(TUploadBuffer<FLine3DVertex>* DebugLine
 	DebugLine3DVB->CopyData(0, LineVertices.data(), (UINT)LineVertices.size());
 }
 
-void FSceneRenderer::UpdateTargetFrameResource(const FRenderItemProxy* RenderItemProxy)
+void FSceneRenderer::UpdateTargetFrameResource(const FRenderItemProxy& RenderItemProxy)
 {
 	SwitchToNextFrameResource();
 	UpdateFrameBuffers(GetTargetFrameResource(), RenderItemProxy);

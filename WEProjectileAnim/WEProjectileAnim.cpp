@@ -1,12 +1,12 @@
 ﻿#include "WEProjectileAnim.h"
-#include "GameFramework/GameAppImpl.h"
+#include "GameFramework/GameCore.h"
 #include "Component/ObjectAnimComponent.h"
 #include "Component/StaticMeshComponent.h"
 #include "Component/BoxComponent.h"
 #include "Utility/Timer.h"
 #include "GUI/GUICore.h"
 
-CREATE_APPLICATION_BY_WORLD(WProjectileAnimWorld)
+CREATE_APPLICATION(WProjectileAnimWorld)
 
 AProjectile::AProjectile()
 {

@@ -4,6 +4,7 @@
 #include "Component/PhysicsComponent.h"
 #include "GUI/GUICore.h"
 #include "Utility/Timer.h"
+#include "Component/CameraComponent.h"
 
 WWorld* gWorld;
 
@@ -27,10 +28,8 @@ void WWorld::BeginPlay()
 
 void WWorld::Tick(float Delta)
 {
-	mRenderItemProxy.Cleanup(Delta);
-
 	UTimer Timer;
-	for(auto& Actor : mActiveActorQueue)
+	for (auto& Actor : mActiveActorQueue)
 	{
 		// Tick Component 가 포함되어 있음
 		Actor->Tick_PrePhysics(Delta);
@@ -91,10 +90,25 @@ void WWorld::Tick(float Delta)
 
 	FlushDestroyQueue();
 
+	// RenderItem 업데이트
+	
+	mRenderItemProxyMetex.lock();
+	mRenderItemProxy.Cleanup(Delta);
 	for (auto& Actor : mActiveActorQueue)
 	{
 		Actor->UpdateRecursive();
 	}
+
+	if (auto Camera = mPlayer.lock()->GetCameraComponent().lock())
+	{
+		mRenderItemProxy.ViewMatrix = Camera->GetViewMatrix();
+		mRenderItemProxy.ProjMatrix = Camera->GetProjMatrix();
+		mRenderItemProxy.EyePosW = Camera->GetWorldLocation();
+		mRenderItemProxy.NearZ = Camera->GetNearZ();
+		mRenderItemProxy.FarZ = Camera->GetFarZ();
+	}
+	mRenderItemProxyMetex.unlock();
+	
 	Timer.Tick();
 	double Time_Update_Render_Items = Timer.GetDeltaTime();
 
@@ -111,7 +125,7 @@ void WWorld::Tick(float Delta)
 		ImGui::Text("Tick_PostPhysics: %f", Time_Tick_PostPhysics);
 		ImGui::Text("Update_Render_Items: %f", Time_Update_Render_Items);
 	};
-	GUI::AddProfilingCommand(Command);
+	// GUI::AddProfilingCommand(Command);
 }
 
 TWeakPtr<WCameraComponent> WWorld::GetPlayerCamera() const

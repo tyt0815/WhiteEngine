@@ -1,12 +1,12 @@
 ﻿#include "WESplineProjectileDemo.h"
-#include "GameFramework/GameAppImpl.h"
+#include "GameFramework/GameCore.h"
 
 #include "Component/StaticMeshComponent.h"
 #include "Component/ProjectileMovementComponent.h"
 #include "Component/SplineComponent.h"
 #include "Component/BoxComponent.h"
 
-CREATE_APPLICATION_BY_WORLD(WSplineProjectileDemoWorld)
+CREATE_APPLICATION(WSplineProjectileDemoWorld)
 
 AHitReactor::AHitReactor()
 {

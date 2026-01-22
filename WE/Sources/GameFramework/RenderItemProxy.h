@@ -59,6 +59,16 @@ public:
 
 	size_t AllocateDirectionalLightCbProxy();
 
+	XMFLOAT4X4 ViewMatrix;
+
+	XMFLOAT4X4 ProjMatrix;
+
+	XMFLOAT3 EyePosW;
+
+	float NearZ;
+
+	float FarZ;
+
 	std::vector<FMeshCBProxy> mMeshCBProxies;
 
 	std::vector<FSubmeshCBProxy> mSubmeshCBProxies;

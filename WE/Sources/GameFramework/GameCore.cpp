@@ -1,116 +1,112 @@
 #include "GameCore.h"
-#include "Window/Window.h"
-#include "Utility/Timer.h"
 #include "DirectX/DXResourceManager.h"
 #include "Render/MeshGeometry.h"
 #include "Render/Texture.h"
 #include "Physics/PhysicsCore.h"
 #include "Render/ShapeDrawer.h"
 #include "Asset/AssetManager.h"
+#include "Window/Window.h"
+
+#include "Utility/Timer.h"
+#include "GUI/GUICore.h"
 
 #pragma comment(lib,"d3dcompiler.lib")
 #pragma comment(lib, "D3D12.lib")
 #pragma comment(lib, "dxgi.lib")
 
-HWND GetHWND();
+HINSTANCE g_hInst;
 
-namespace GameCore
+FGameApplication::FGameApplication()
 {
-	void CalculateFrameStats()
+
+}
+
+FGameApplication::~FGameApplication()
+{
+
+}
+
+void FGameApplication::Initialize()
+{
+	Physics::Startup();
+	FMeshGeometryManager::GetInstance();
+	FAssetManager::GetInstance()->LoadAssets();
+	FTextureManager::GetInstance();
+	FShapeDrawer::GetInstance();
+	FDXResourceManager* DXRM = GetDXResourceManagerPtr();
+
+	mDevice = DXRM->GetDevicePtr();
+
+	SetWindowText(GetMainWindowPtr()->GetWindowHandle(), L"WE");
+}
+
+int FGameApplication::Run()
+{
+
+	std::thread GameplayThread(&FGameApplication::Thread_GamePlay, this);
+	Thread_Render();
+	GameplayThread.join();
+	Terminate();
+	return 0;
+}
+
+void FGameApplication::Thread_GamePlay()
+{
+	UTimer Timer;
+
+	while (mbPlaying)
 	{
-		// Code computes the average frames per second, and also the 
-		// average time it takes to render one frame.  These stats 
-		// are appended to the window caption bar.
-
-		static int frameCnt = 0;
-		static float timeElapsed = 0.0f;
-
-		frameCnt++;
-
-		// Compute averages over one second period.
-		if ((GetEngineTimer()->GetTotalTime() - timeElapsed) >= 1.0f)
-		{
-			float fps = (float)frameCnt; // fps = frameCnt / 1
-			float mspf = 1000.0f / fps;
-
-			std::wstring fpsStr = std::to_wstring(fps);
-			std::wstring mspfStr = std::to_wstring(mspf);
-
-			std::wstring windowText = GetMainWindowPtr()->GetWindowName() +
-				L"    fps: " + fpsStr +
-				L"   mspf: " + mspfStr +
-				L"TotalTime: " + std::to_wstring(GetEngineTimer()->GetTotalTime()) +
-				L"ElapsedTime:" + std::to_wstring(timeElapsed);
-
-			SetWindowText(GetMainWindowPtr()->GetWindowHandle(), windowText.c_str());
-
-			// Reset for next average.
-			frameCnt = 0;
-			timeElapsed += 1.0f;
-		}
-	}
-
-	void InitializeApplication(IGameApp& Game)
-	{
-		// TODO: 현재 Commandlist를 통해 리소스 버퍼를 저장하는 몇몇 싱글톤 클래스를 명시적으로 
-		// 호출해야 안정적인 실행이 가능함. 나중에 다중 스레드로 만들어서 해결해야할 필요 있음
-		GetMeshGeometryManager();
-		GetTextureManager();
-		FShapeDrawer::GetInstance();
-
-		FDXResourceManager* DXRM = GetDXResourceManagerPtr();
-
-		Game.Startup();
-	}
-
-	void TerminateApplication(IGameApp& Game)
-	{
-		Game.Cleanup();
-
-		GetDXResourceManagerPtr()->FlushCommandQueue();
-	}
-
-	void UpdateApplication(IGameApp& Game)
-	{
-		MSG msg = { 0 };
-
-		UTimer* Timer = GetEngineTimer();
-		Timer->Reset();
-
-		while (msg.message != WM_QUIT)
-		{
-			// If there are Window messages then process them.
-			if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
-			// Otherwise, do animation/game stuff.
-			else
-			{
-				Timer->Tick();
-				
-				CalculateFrameStats();
-
-				GetInputSystemManager()->Tick();
-
-				Game.Update((float)Timer->GetDeltaTime());
-			}
-		}
+		Timer.Tick();
+		float DeltaTime = (float)Timer.GetDeltaTime();
+		mWorld->Tick(DeltaTime);
 	}
 }
 
-HINSTANCE g_hInst;
-
-int GameCore::RunApplication(IGameApp& App, const wchar_t* ClassName, HINSTANCE hInst, int nCmdShow)
+void FGameApplication::Thread_Render()
 {
-	g_hInst = hInst;
+	MSG msg = { 0 };
 
-	InitializeApplication(App);
+	UTimer Timer;
 
-	UpdateApplication(App);
+	while (msg.message != WM_QUIT)
+	{
+		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		else
+		{
+			GetInputSystemManager()->Tick();
 
-	TerminateApplication(App);
+			Timer.Tick();
 
-	return 0;
+			mWorld->mRenderItemProxyMetex.lock();
+			FRenderItemProxy RIP = mWorld->mRenderItemProxy;
+			mWorld->mRenderItemProxyMetex.unlock();
+			mRenderer->Tick(RIP);
+			
+			double RenderDelta = Timer.GetDeltaTime();
+			// 프로파일링용 GUI
+			GUI::FDrawCommand Command;
+			Command.LifeSpan = 0;
+			Command.DrawLambda = [=]()
+			{
+				ImGui::TextColored(ImVec4(1, 1, 0, 1), "Rendering"); // 노란색 제목
+				ImGui::Separator();
+				ImGui::Text("Rendering: %.8f", RenderDelta);
+			};
+			GUI::AddProfilingCommand(Command);
+		}
+	}
+
+	mbPlaying = false;
+}
+
+void FGameApplication::Terminate()
+{
+	GetDXResourceManagerPtr()->FlushCommandQueue();
+	mRenderer->Destroy();
+	mWorld.reset();
+	mRenderer.reset();
 }

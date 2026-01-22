@@ -1,30 +1,57 @@
 #pragma once
 #include <windows.h>
+#include <thread>
+#include <d3d12.h>
+#include <thread>
+#include "World/World.h"
+#include "Render/DeferredShadingSceneRenderer.h"
+#include "Utility/Class.h"
 
-namespace GameCore
+extern HINSTANCE g_hInst;
+
+class FGameApplication final
 {
-	class IGameApp
-	{
-	public:
-		IGameApp() = default;
-		virtual ~IGameApp() = default;
+	SINGLETON(FGameApplication);
+public:
+	
+	void Initialize();
 
-		virtual void Startup() = 0;
+	template<typename TWorld>
+	void CreateWorldAndRenderer();
+	
+	int Run();
 
-		virtual void Cleanup() = 0;
+private:
+	void Thread_GamePlay();
 
-		virtual void Update(float DeltaTime) = 0;
-	};
-}
+	void Thread_Render();
 
-namespace GameCore
-{
-	int RunApplication(IGameApp& App, const wchar_t* ClassName, HINSTANCE hInst, int nCmdShow);
-}
+	void Terminate();
 
-#define CREATE_APPLICATION(AppClass)\
+	ID3D12Device* mDevice;
+
+	TUniquePtr<WWorld> mWorld;
+	TUniquePtr<FDeferredShadingSceneRenderer> mRenderer;
+
+	bool mbPlaying = true;
+};
+
+#define CREATE_APPLICATION(WorldClass)\
 	int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInst, PSTR CmdLine, int nCmdShow)\
 	{\
-		AppClass App;\
-		return GameCore::RunApplication(App, L#AppClass, hInstance, nCmdShow);\
+		g_hInst = hInstance;\
+		FGameApplication* App = FGameApplication::GetInstance();\
+		App->Initialize();\
+		App->CreateWorldAndRenderer<WorldClass>();\
+		return App->Run();\
 	}
+
+
+template<typename TWorld>
+inline void FGameApplication::CreateWorldAndRenderer()
+{
+	mWorld = MakeUnique<TWorld>();
+	mWorld->BeginPlay();
+	mRenderer = MakeUnique<FDeferredShadingSceneRenderer>();
+	mRenderer->Initialize(mDevice);
+}

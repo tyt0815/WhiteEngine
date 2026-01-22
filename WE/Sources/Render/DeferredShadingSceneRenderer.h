@@ -60,7 +60,7 @@ private:
     void BuildDeferredShadingPassPipelineState(ID3D12Device* Device);
     void BuildGBufferPassPipelineState(ID3D12Device* Device);
     void BuildDebugPassPipelineStates(ID3D12Device* Device);
-    virtual void UpdateFrameBuffers(FFrameResourceBase* FrameResource, const FRenderItemProxy* RenderItemProxy) override;
+    virtual void UpdateFrameBuffers(FFrameResourceBase* FrameResource, const FRenderItemProxy& RenderItemProxy) override;
     void SwitchToDefaultMode();
     void SwitchToDebugAllMode();
     void SwitchToBlurMode();
@@ -80,7 +80,7 @@ private:
         D3D12_CPU_DESCRIPTOR_HANDLE Dsv,
         D3D12_VIEWPORT Viewport,
         D3D12_RECT ScissorRect,
-        const FRenderItemProxy* RenderItemProxy
+        const FRenderItemProxy& RenderItemProxy
     ) override;
 
     void DrawDebugGBuffers(
@@ -98,7 +98,7 @@ private:
         FFrameResource* FrameResource
     );
 
-    void DrawGBuffers(ID3D12GraphicsCommandList* CommandList, FFrameResource* FrameResource, const FRenderItemProxy* RenderItemProxy);
+    void DrawGBuffers(ID3D12GraphicsCommandList* CommandList, FFrameResource* FrameResource, const FRenderItemProxy& RenderItemProxy);
 
     TUniquePtr<FRenderTarget> mGBufferA;
     TUniquePtr<FRenderTarget> mGBufferB;

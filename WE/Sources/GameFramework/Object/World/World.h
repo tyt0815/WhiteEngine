@@ -61,11 +61,13 @@ private:
 
 	TWeakPtr<APawn> mPlayer;
 
-	FRenderItemProxy mRenderItemProxy;
-
 	std::mutex mEventQueueMutex;
 
 public:
+	FRenderItemProxy mRenderItemProxy;
+
+	std::mutex mRenderItemProxyMetex;
+
 	inline TWeakPtr<APawn> GetPlayer() const
 	{
 		return mPlayer;
@@ -109,11 +111,6 @@ public:
 	inline size_t AllocateDirectionalLightCbProxy()
 	{
 		return mRenderItemProxy.AllocateDirectionalLightCbProxy();
-	}
-
-	inline FRenderItemProxy* GetRenderItemProxyPtr()
-	{
-		return &mRenderItemProxy;
 	}
 };
 

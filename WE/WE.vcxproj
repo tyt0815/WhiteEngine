@@ -26,7 +26,6 @@
     <ClCompile Include="Sources\DirectX\Resource.cpp" />
     <ClCompile Include="Sources\DirectX\RTVHeap.cpp" />
     <ClCompile Include="Sources\DirectX\CBVSRVUAVHeap.cpp" />
-    <ClCompile Include="Sources\GameFramework\GameAppImpl.cpp" />
     <ClCompile Include="Sources\GameFramework\GameCore.cpp" />
     <ClCompile Include="Sources\GameFramework\InputSystem\InputSystem.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Actor\Actor.cpp" />
@@ -69,7 +68,6 @@
     <ClCompile Include="Sources\Render\LoadM3d.cpp" />
     <ClCompile Include="Sources\Render\Material.cpp" />
     <ClCompile Include="Sources\Render\MeshGeometry.cpp" />
-    <ClCompile Include="Sources\Render\ForwardShadingSceneRenderer.cpp" />
     <ClCompile Include="Sources\Render\RenderTarget.cpp" />
     <ClCompile Include="Sources\Render\SceneRenderer.cpp" />
     <ClCompile Include="Sources\Render\ShapeDrawer.cpp">
@@ -104,7 +102,6 @@
     <ClInclude Include="Sources\DirectX\Resource.h" />
     <ClInclude Include="Sources\DirectX\RTVHeap.h" />
     <ClInclude Include="Sources\DirectX\CBVSRVUAVHeap.h" />
-    <ClInclude Include="Sources\GameFramework\GameAppImpl.h" />
     <ClInclude Include="Sources\GameFramework\GameCore.h" />
     <ClInclude Include="Sources\GameFramework\InputSystem\InputSystem.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\Actor.h" />
@@ -149,7 +146,6 @@
     <ClInclude Include="Sources\Render\LoadM3d.h" />
     <ClInclude Include="Sources\Render\Material.h" />
     <ClInclude Include="Sources\Render\MeshGeometry.h" />
-    <ClInclude Include="Sources\Render\ForwardShadingSceneRenderer.h" />
     <ClInclude Include="Sources\Render\RenderItem.h" />
     <ClInclude Include="Sources\Render\RenderTarget.h" />
     <ClInclude Include="Sources\Render\SceneRenderer.h" />
