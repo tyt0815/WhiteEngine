@@ -1,9 +1,7 @@
 #include "Timer.h"
 #include <Windows.h>
 
-UTimer gEngineTimer;
-
-UTimer::UTimer()
+FTimer::FTimer()
 {
 	__int64 CountsPerSec;
 	QueryPerformanceFrequency((LARGE_INTEGER*)&CountsPerSec);
@@ -11,7 +9,7 @@ UTimer::UTimer()
 	Reset();
 }
 
-double UTimer::GetTotalTime() const
+double FTimer::GetTotalTime() const
 {
 	// If we are stopped, do not count the time that has passed since we stopped.
 	// Moreover, if we previously already had a pause, the distance 
@@ -43,12 +41,12 @@ double UTimer::GetTotalTime() const
 	}
 }
 
-double UTimer::GetDeltaTime() const
+double FTimer::GetDeltaTime() const
 {
 	return DeltaTime;
 }
 
-void UTimer::Reset()
+void FTimer::Reset()
 {
 	__int64 CurrentTime;
 	QueryPerformanceCounter((LARGE_INTEGER*)&CurrentTime);
@@ -59,7 +57,7 @@ void UTimer::Reset()
 	bStopped = false;
 }
 
-void UTimer::Start()
+void FTimer::Start()
 {
 	__int64 CurrentTime;
 	QueryPerformanceCounter((LARGE_INTEGER*)&CurrentTime);
@@ -81,7 +79,7 @@ void UTimer::Start()
 	}
 }
 
-void UTimer::Stop()
+void FTimer::Stop()
 {
 	if (!bStopped)
 	{
@@ -93,7 +91,7 @@ void UTimer::Stop()
 	}
 }
 
-void UTimer::Tick()
+void FTimer::Tick()
 {
 	if (bStopped)
 	{

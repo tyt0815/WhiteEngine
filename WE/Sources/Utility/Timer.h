@@ -1,9 +1,9 @@
 #pragma once
 
-class UTimer
+class FTimer
 {
 public:
-	UTimer();
+	FTimer();
 
 	double GetTotalTime()const; // in seconds
 	double GetDeltaTime()const; // in seconds
@@ -25,10 +25,3 @@ private:
 
 	bool bStopped = false;
 };
-
-extern UTimer gEngineTimer;
-
-inline UTimer* GetEngineTimer()
-{
-	return &gEngineTimer;
-}

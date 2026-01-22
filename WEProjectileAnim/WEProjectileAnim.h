@@ -46,9 +46,6 @@ class AProjSpawner : public AActor
 {
 	typedef AActor Super;
 
-public:
-	virtual void Tick_PrePhysics(float Delta) override;
-
 private:
 	UINT64 mGeneration;
 

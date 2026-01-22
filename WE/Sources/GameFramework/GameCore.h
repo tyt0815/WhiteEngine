@@ -51,7 +51,6 @@ template<typename TWorld>
 inline void FGameApplication::CreateWorldAndRenderer()
 {
 	mWorld = MakeUnique<TWorld>();
-	mWorld->BeginPlay();
 	mRenderer = MakeUnique<FDeferredShadingSceneRenderer>();
 	mRenderer->Initialize(mDevice);
 }

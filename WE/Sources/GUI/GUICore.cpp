@@ -70,16 +70,16 @@ namespace GUI
 		for (int i = 0; i < g_ProfilingCommands.size(); ++i)
 		{
 			FDrawCommand& DrawCommand = g_ProfilingCommands[i];
-			if (DrawCommand.LifeSpan < 0 || DrawCommand.DrawLambda == nullptr)
+			if (DrawCommand.LifeSpan == 0 || DrawCommand.DrawLambda == nullptr)
 			{
 				g_ProfilingCommands[i] = g_ProfilingCommands.back();
 				g_ProfilingCommands[i].ID = i;
 				g_ProfilingCommands.pop_back();
 				--i;
 			}
-			else
+			else if(DrawCommand.LifeSpan > 0)
 			{
-				g_ProfilingCommands[i].LifeSpan -= Delta;
+				g_ProfilingCommands[i].LifeSpan = max(0, g_ProfilingCommands[i].LifeSpan - Delta);
 			}
 		}
 
@@ -97,14 +97,11 @@ namespace GUI
 		ImGui::SetNextWindowBgAlpha(1.0f);
 
 		if (ImGui::Begin("Profiling", nullptr, WindowFlags))
-		{
-
-			ImGui::TextColored(ImVec4(0, 1, 0, 1), "FPS: %.1f\n", ImGui::GetIO().Framerate);
-			
+		{			
 			for (const auto& Command : g_ProfilingCommands)
 			{
-				ImGui::Separator();
 				Command.DrawLambda();
+				ImGui::Separator();
 			}
 		}
 		ImGui::End();

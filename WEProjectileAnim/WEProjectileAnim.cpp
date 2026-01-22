@@ -10,16 +10,16 @@ CREATE_APPLICATION(WProjectileAnimWorld)
 
 AProjectile::AProjectile()
 {
-	//mBoxCollision = CreateComponent<WBoxComponent>();
-	//SetRootComponent(mBoxCollision);
-	//if (auto Box = mBoxCollision.lock())
-	//{
-	//	Box->ActivatePhysicBody();
-	//	Box->GenerateOverlapEvent();
-	//	Box->SetExtent(XMFLOAT3(.5f, .5f, .5f));
-	//	Box->SetMotionType(EMotionType::Kinematic);
-	//	Box->SetObjectChannel(EObjectChannel::EOC_Moving);
-	//}
+	mBoxCollision = CreateComponent<WBoxComponent>();
+	SetRootComponent(mBoxCollision);
+	if (auto Box = mBoxCollision.lock())
+	{
+		Box->ActivatePhysicBody();
+		Box->GenerateOverlapEvent();
+		Box->SetExtent(XMFLOAT3(.5f, .5f, .5f));
+		Box->SetMotionType(EMotionType::Kinematic);
+		Box->SetObjectChannel(EObjectChannel::EOC_Moving);
+	}
 
 	mStaticMeshComp = CreateComponent<WStaticMeshComponent>();
 	if (auto Comp = mStaticMeshComp.lock())
@@ -78,15 +78,15 @@ void AProjectileAnimActor::Tick_PostPhysics(float Delta)
 	}
 }
 
-void AProjSpawner::Tick_PrePhysics(float Delta)
-{
-	Super::Tick_PrePhysics(Delta);
-}
-
 WProjectileAnimWorld::WProjectileAnimWorld()
 {
-	if (auto Projectile = SpawnActor<AProjectileAnimActor>().lock())
+	int Num = 1000;
+	for (int i = 0; i < Num; ++i)
 	{
-		mProjs.push_back(Projectile);
+		if (auto Projectile = SpawnActor<AProjectileAnimActor>().lock())
+		{
+			Projectile->SetActorLocation(XMFLOAT3(0, (float)i, 0));
+			mProjs.push_back(Projectile);
+		}
 	}
 }

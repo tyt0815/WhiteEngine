@@ -63,6 +63,12 @@ private:
 
 	std::mutex mEventQueueMutex;
 
+	double mTime_Tick_PrePhysics;
+	double mTime_Update_Physics;
+	double mTime_Physics_Event;
+	double mTime_Tick_PostPhysics;
+	double mTime_Update_Render_Items;
+
 public:
 	FRenderItemProxy mRenderItemProxy;
 

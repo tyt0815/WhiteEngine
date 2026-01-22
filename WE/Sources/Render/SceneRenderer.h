@@ -18,7 +18,7 @@ constexpr int FRAME_RESOURCES_NUM = 3;
 
 constexpr int DIR_LIGHTS_NUM = 3;
 // CosntantBuffer
-constexpr int MESH_CB_NUM = 2048;
+constexpr int MESH_CB_NUM = 4096;
 constexpr int SUBMESH_CB_NUM = MESH_CB_NUM * 4;
 
 struct FDirectionalLightStructuredBuffer

@@ -575,7 +575,6 @@ void FSceneRenderer::FinishBackBuffer(ID3D12GraphicsCommandList* CommandList)
 void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConstantBuffer, const FRenderItemProxy& RenderItemProxy)
 {
 	FDXResourceManager* DeviceManager = FDXResourceManager::GetInstance();
-	UTimer* Timer = GetEngineTimer();
 
 	// Build the view matrix.
 	XMVECTOR target = XMVectorZero();
@@ -605,8 +604,8 @@ void FSceneRenderer::UpdatePassCB(TUploadBuffer<FPassConstantBuffer>* PassConsta
 	PassConstants.InvRenderTargetSize = XMFLOAT2(1.0f / Width, 1.0f / Height);
 	PassConstants.NearZ = RenderItemProxy.NearZ;
 	PassConstants.FarZ = RenderItemProxy.FarZ;
-	PassConstants.TotalTime = (float)Timer->GetTotalTime();
-	PassConstants.DeltaTime = (float)Timer->GetDeltaTime();
+	//PassConstants.TotalTime = (float)Timer->GetTotalTime();
+	//PassConstants.DeltaTime = (float)Timer->GetDeltaTime();
 	FTexture* SpecularIntegral = nullptr;
 	PassConstants.IndirectSpecularIntegralTextureIndex = -1;
 
@@ -731,46 +730,46 @@ void FSceneRenderer::UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightStr
 
 void FSceneRenderer::UpdateDebugLine3DVB(TUploadBuffer<FLine3DVertex>* DebugLine3DVB, const FRenderItemProxy& RenderItemProxy)
 {
-	std::vector<FLine3DVertex> LineVertices(DebugLine3DVB->GetElementCount());
-	int Index = 0;
-	for (const auto& Proxy : RenderItemProxy.mDebugLine3DProxies)
-	{
-		FLine3DVertex Vertex;
-		Vertex.Position = Proxy.Start;
-		Vertex.Color = Proxy.Color;
-		if (Index >= LineVertices.size())
-		{
-			break;
-		}
-		LineVertices[Index++] = Vertex;
-		Vertex.Position = Proxy.End;
-		if (Index >= LineVertices.size())
-		{
-			break;
-		}
-		LineVertices[Index++] = Vertex;
-	}
+	//std::vector<FLine3DVertex> LineVertices(DebugLine3DVB->GetElementCount());
+	//int Index = 0;
+	//for (const auto& Proxy : RenderItemProxy.mDebugLine3DProxies)
+	//{
+	//	FLine3DVertex Vertex;
+	//	Vertex.Position = Proxy.Start;
+	//	Vertex.Color = Proxy.Color;
+	//	if (Index >= LineVertices.size())
+	//	{
+	//		break;
+	//	}
+	//	LineVertices[Index++] = Vertex;
+	//	Vertex.Position = Proxy.End;
+	//	if (Index >= LineVertices.size())
+	//	{
+	//		break;
+	//	}
+	//	LineVertices[Index++] = Vertex;
+	//}
 
-	const auto& PhysicsLines = Physics::g_DebugRenderer->GetLinesView();
-	for (const auto& Line : PhysicsLines)
-	{
-		FLine3DVertex Vertex;
-		Vertex.Position = Line.Start;
-		Vertex.Color = Line.Color;
-		if (Index >= LineVertices.size())
-		{
-			break;
-		}
-		LineVertices[Index++] = Vertex;
-		Vertex.Position = Line.End;
-		if (Index >= LineVertices.size())
-		{
-			break;
-		}
-		LineVertices[Index++] = Vertex;
-	}
+	//const auto& PhysicsLines = Physics::g_DebugRenderer->GetLinesView();
+	//for (const auto& Line : PhysicsLines)
+	//{
+	//	FLine3DVertex Vertex;
+	//	Vertex.Position = Line.Start;
+	//	Vertex.Color = Line.Color;
+	//	if (Index >= LineVertices.size())
+	//	{
+	//		break;
+	//	}
+	//	LineVertices[Index++] = Vertex;
+	//	Vertex.Position = Line.End;
+	//	if (Index >= LineVertices.size())
+	//	{
+	//		break;
+	//	}
+	//	LineVertices[Index++] = Vertex;
+	//}
 
-	DebugLine3DVB->CopyData(0, LineVertices.data(), (UINT)LineVertices.size());
+	//DebugLine3DVB->CopyData(0, LineVertices.data(), (UINT)LineVertices.size());
 }
 
 void FSceneRenderer::UpdateTargetFrameResource(const FRenderItemProxy& RenderItemProxy)

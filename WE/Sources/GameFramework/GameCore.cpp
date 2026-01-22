@@ -16,6 +16,9 @@
 
 HINSTANCE g_hInst;
 
+std::atomic<float> g_GameFPS{ 0.0f };
+std::atomic<float> g_RenderFPS{ 0.0f };
+
 FGameApplication::FGameApplication()
 {
 
@@ -43,6 +46,16 @@ void FGameApplication::Initialize()
 int FGameApplication::Run()
 {
 
+	// 프로파일링용 GUI
+	GUI::FDrawCommand Command;
+	Command.LifeSpan = -1;
+	Command.DrawLambda = [&]()
+	{
+		ImGui::TextColored(ImVec4(0, 1, 0, 1), "RenderFPS: %.8f", g_RenderFPS.load()); // 노란색 제목
+		ImGui::TextColored(ImVec4(0, 1, 0, 1), "GameFPS: %.8f", g_GameFPS.load()); // 노란색 제목
+	};
+	GUI::AddProfilingCommand(Command);
+
 	std::thread GameplayThread(&FGameApplication::Thread_GamePlay, this);
 	Thread_Render();
 	GameplayThread.join();
@@ -52,12 +65,26 @@ int FGameApplication::Run()
 
 void FGameApplication::Thread_GamePlay()
 {
-	UTimer Timer;
+	int FrameCount = 0;
+	float TimeElapsed = 0.0f;
+	FTimer Timer;
+
+	mWorld->BeginPlay();
 
 	while (mbPlaying)
 	{
 		Timer.Tick();
 		float DeltaTime = (float)Timer.GetDeltaTime();
+
+		TimeElapsed += DeltaTime;
+		++FrameCount;
+		if (TimeElapsed >= 1)
+		{
+			g_GameFPS = FrameCount / TimeElapsed;
+			FrameCount = 0;
+			TimeElapsed = 0.0f;
+		}
+
 		GetInputSystemManager()->Tick(DeltaTime);
 		mWorld->Tick(DeltaTime);
 	}
@@ -67,7 +94,9 @@ void FGameApplication::Thread_Render()
 {
 	MSG msg = { 0 };
 
-	UTimer Timer;
+	int FrameCount = 0;
+	float TimeElapsed = 0.0f;
+	FTimer Timer;
 
 	while (msg.message != WM_QUIT)
 	{
@@ -79,22 +108,24 @@ void FGameApplication::Thread_Render()
 		else
 		{
 			Timer.Tick();
+
+
+			TimeElapsed += (float)Timer.GetDeltaTime();
+			++FrameCount;
+			if (TimeElapsed >= 1)
+			{
+				g_RenderFPS = FrameCount / TimeElapsed;
+				FrameCount = 0;
+				TimeElapsed = 0.0f;
+			}
+
 			mWorld->mRenderItemProxyMetex.lock();
 			FRenderItemProxy RIP = mWorld->mRenderItemProxy;
 			mWorld->mRenderItemProxyMetex.unlock();
 			mRenderer->Tick(RIP);
 			
 			double RenderDelta = Timer.GetDeltaTime();
-			// 프로파일링용 GUI
-			GUI::FDrawCommand Command;
-			Command.LifeSpan = 0;
-			Command.DrawLambda = [=]()
-			{
-				ImGui::TextColored(ImVec4(1, 1, 0, 1), "Rendering"); // 노란색 제목
-				ImGui::Separator();
-				ImGui::Text("Rendering: %.8f", RenderDelta);
-			};
-			GUI::AddProfilingCommand(Command);
+
 		}
 	}
 

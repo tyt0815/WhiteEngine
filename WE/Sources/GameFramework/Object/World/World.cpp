@@ -24,18 +24,33 @@ void WWorld::BeginPlay()
 		TWeakPtr<APawn> Player = SpawnActor<AGhostCameraPawn>();
 		SetPlayer(Player);
 	}
+
+	// 프로파일링용 GUI
+	GUI::FDrawCommand Command;
+	Command.LifeSpan = -1;
+	Command.DrawLambda = [&]()
+	{
+		ImGui::TextColored(ImVec4(1, 1, 0, 1), "WWorld::Tick"); // 노란색 제목
+		ImGui::Separator();
+		ImGui::Text("Tick_PrePhysics: %f", mTime_Tick_PrePhysics);
+		ImGui::Text("Update_Physics: %f", mTime_Update_Physics);
+		ImGui::Text("Physics_Event: %f", mTime_Physics_Event);
+		ImGui::Text("Tick_PostPhysics: %f", mTime_Tick_PostPhysics);
+		ImGui::Text("Update_Render_Items: %f", mTime_Update_Render_Items);
+	};
+	GUI::AddProfilingCommand(Command);
 }
 
 void WWorld::Tick(float Delta)
 {
-	UTimer Timer;
+	FTimer Timer;
 	for (auto& Actor : mActiveActorQueue)
 	{
 		// Tick Component 가 포함되어 있음
 		Actor->Tick_PrePhysics(Delta);
 	}
 	Timer.Tick();
-	double Time_Tick_PrePhysics = Timer.GetDeltaTime();
+	mTime_Tick_PrePhysics = Timer.GetDeltaTime();
 
 	for (auto& Actor : mActiveActorQueue)
 	{
@@ -47,7 +62,7 @@ void WWorld::Tick(float Delta)
 		Actor->UpdateComponentsFromPhysics();
 	}
 	Timer.Tick();
-	double Time_Update_Physics = Timer.GetDeltaTime();
+	mTime_Update_Physics = Timer.GetDeltaTime();
 
 	{
 		std::lock_guard<std::mutex> Lock(mEventQueueMutex);
@@ -78,7 +93,7 @@ void WWorld::Tick(float Delta)
 		mOnHitEventQueue.clear();
 	}
 	Timer.Tick();
-	double Time_Physics_Event = Timer.GetDeltaTime();
+	mTime_Physics_Event = Timer.GetDeltaTime();
 
 	for (auto& Actor : mActiveActorQueue)
 	{
@@ -86,7 +101,7 @@ void WWorld::Tick(float Delta)
 		Actor->Tick_PostPhysics(Delta);
 	}
 	Timer.Tick();
-	double Time_Tick_PostPhysics = Timer.GetDeltaTime();
+	mTime_Tick_PostPhysics = Timer.GetDeltaTime();
 
 	FlushDestroyQueue();
 
@@ -110,22 +125,7 @@ void WWorld::Tick(float Delta)
 	mRenderItemProxyMetex.unlock();
 	
 	Timer.Tick();
-	double Time_Update_Render_Items = Timer.GetDeltaTime();
-
-	// 프로파일링용 GUI
-	GUI::FDrawCommand Command;
-	Command.LifeSpan = 0;
-	Command.DrawLambda = [=]()
-	{
-		ImGui::TextColored(ImVec4(1, 1, 0, 1), "WWorld::Tick"); // 노란색 제목
-		ImGui::Separator();
-		ImGui::Text("Tick_PrePhysics: %f", Time_Tick_PrePhysics);
-		ImGui::Text("Update_Physics: %f", Time_Update_Physics);
-		ImGui::Text("Physics_Event: %f", Time_Physics_Event);
-		ImGui::Text("Tick_PostPhysics: %f", Time_Tick_PostPhysics);
-		ImGui::Text("Update_Render_Items: %f", Time_Update_Render_Items);
-	};
-	// GUI::AddProfilingCommand(Command);
+	mTime_Update_Render_Items = Timer.GetDeltaTime();
 }
 
 TWeakPtr<WCameraComponent> WWorld::GetPlayerCamera() const
@@ -204,7 +204,7 @@ void WWorld::FlushDestroyQueue()
 {
 	bool bLoop = false;
 	float Time = 0;
-	UTimer Timer;
+	FTimer Timer;
 	for (auto Actor : DestroyQueue)
 	{
 		bLoop = true;
