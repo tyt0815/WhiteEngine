@@ -1,0 +1,66 @@
+<?xml version="1.0" ?>
+<ObjectAnimation>
+   <Info fps="24" frame_start="0" frame_end="24"/>
+   <Object name="Proj1">
+      <Curve data_path="location" name="LocationX">
+         <Keyframe frame="0.00" value="0.0000" interp="LINEAR" h_left_x="-8.0000" h_left_y="0.0000" h_right_x="8.0000" h_right_y="0.0000"/>
+         <Keyframe frame="24.00" value="30.0000" interp="BEZIER" h_left_x="16.0000" h_left_y="30.0000" h_right_x="32.0000" h_right_y="30.0000"/>
+      </Curve>
+      <Curve data_path="location" name="LocationZ">
+         <Keyframe frame="0.00" value="0.0000" interp="LINEAR" h_left_x="-8.0000" h_left_y="0.0000" h_right_x="8.0000" h_right_y="0.0000"/>
+         <Keyframe frame="24.00" value="20.0000" interp="BEZIER" h_left_x="16.0000" h_left_y="20.0000" h_right_x="32.0000" h_right_y="20.0000"/>
+      </Curve>
+      <Curve data_path="rotation_euler" name="RotationX">
+         <Keyframe frame="0.00" value="0.0000" interp="LINEAR" h_left_x="-8.0000" h_left_y="0.0000" h_right_x="8.0000" h_right_y="0.0000"/>
+         <Keyframe frame="24.00" value="360.0000" interp="LINEAR" h_left_x="16.0000" h_left_y="6.2832" h_right_x="32.0000" h_right_y="6.2832"/>
+      </Curve>
+      <Curve data_path="rotation_euler" name="RotationZ">
+         <Keyframe frame="0.00" value="0.0000" interp="LINEAR" h_left_x="-8.0000" h_left_y="0.0000" h_right_x="8.0000" h_right_y="0.0000"/>
+         <Keyframe frame="24.00" value="360.0000" interp="LINEAR" h_left_x="16.0000" h_left_y="6.2832" h_right_x="32.0000" h_right_y="6.2832"/>
+      </Curve>
+      <Curve data_path="rotation_euler" name="RotationY">
+         <Keyframe frame="0.00" value="0.0000" interp="LINEAR" h_left_x="-8.0000" h_left_y="0.0000" h_right_x="8.0000" h_right_y="0.0000"/>
+         <Keyframe frame="24.00" value="360.0000" interp="LINEAR" h_left_x="16.0000" h_left_y="6.2832" h_right_x="32.0000" h_right_y="6.2832"/>
+      </Curve>
+   </Object>
+   <Object name="Proj2">
+      <Curve data_path="location" name="LocationX">
+         <Keyframe frame="0.00" value="0.0000" interp="LINEAR" h_left_x="-8.0000" h_left_y="0.0000" h_right_x="8.0000" h_right_y="0.0000"/>
+         <Keyframe frame="24.00" value="30.0000" interp="BEZIER" h_left_x="16.0000" h_left_y="30.0000" h_right_x="32.0000" h_right_y="30.0000"/>
+      </Curve>
+      <Curve data_path="rotation_euler" name="RotationX">
+         <Keyframe frame="0.00" value="0.0000" interp="LINEAR" h_left_x="-8.0000" h_left_y="0.0000" h_right_x="8.0000" h_right_y="0.0000"/>
+         <Keyframe frame="24.00" value="360.0000" interp="LINEAR" h_left_x="16.0000" h_left_y="6.2832" h_right_x="32.0000" h_right_y="6.2832"/>
+      </Curve>
+      <Curve data_path="rotation_euler" name="RotationZ">
+         <Keyframe frame="0.00" value="0.0000" interp="LINEAR" h_left_x="-8.0000" h_left_y="0.0000" h_right_x="8.0000" h_right_y="0.0000"/>
+         <Keyframe frame="24.00" value="360.0000" interp="LINEAR" h_left_x="16.0000" h_left_y="6.2832" h_right_x="32.0000" h_right_y="6.2832"/>
+      </Curve>
+      <Curve data_path="rotation_euler" name="RotationY">
+         <Keyframe frame="0.00" value="0.0000" interp="LINEAR" h_left_x="-8.0000" h_left_y="0.0000" h_right_x="8.0000" h_right_y="0.0000"/>
+         <Keyframe frame="24.00" value="360.0000" interp="LINEAR" h_left_x="16.0000" h_left_y="6.2832" h_right_x="32.0000" h_right_y="6.2832"/>
+      </Curve>
+   </Object>
+   <Object name="Proj3">
+      <Curve data_path="location" name="LocationX">
+         <Keyframe frame="0.00" value="0.0000" interp="LINEAR" h_left_x="-8.0000" h_left_y="0.0000" h_right_x="8.0000" h_right_y="0.0000"/>
+         <Keyframe frame="24.00" value="30.0000" interp="LINEAR" h_left_x="16.0000" h_left_y="30.0000" h_right_x="32.0000" h_right_y="30.0000"/>
+      </Curve>
+      <Curve data_path="location" name="LocationZ">
+         <Keyframe frame="0.00" value="0.0000" interp="LINEAR" h_left_x="-8.0000" h_left_y="0.0000" h_right_x="8.0000" h_right_y="0.0000"/>
+         <Keyframe frame="24.00" value="-20.0000" interp="LINEAR" h_left_x="16.0000" h_left_y="-20.0000" h_right_x="32.0000" h_right_y="-20.0000"/>
+      </Curve>
+      <Curve data_path="rotation_euler" name="RotationX">
+         <Keyframe frame="0.00" value="0.0000" interp="LINEAR" h_left_x="-8.0000" h_left_y="0.0000" h_right_x="8.0000" h_right_y="0.0000"/>
+         <Keyframe frame="24.00" value="360.0000" interp="LINEAR" h_left_x="16.0000" h_left_y="6.2832" h_right_x="32.0000" h_right_y="6.2832"/>
+      </Curve>
+      <Curve data_path="rotation_euler" name="RotationZ">
+         <Keyframe frame="0.00" value="0.0000" interp="LINEAR" h_left_x="-8.0000" h_left_y="0.0000" h_right_x="8.0000" h_right_y="0.0000"/>
+         <Keyframe frame="24.00" value="360.0000" interp="LINEAR" h_left_x="16.0000" h_left_y="6.2832" h_right_x="32.0000" h_right_y="6.2832"/>
+      </Curve>
+      <Curve data_path="rotation_euler" name="RotationY">
+         <Keyframe frame="0.00" value="0.0000" interp="LINEAR" h_left_x="-8.0000" h_left_y="0.0000" h_right_x="8.0000" h_right_y="0.0000"/>
+         <Keyframe frame="24.00" value="360.0000" interp="LINEAR" h_left_x="16.0000" h_left_y="6.2832" h_right_x="32.0000" h_right_y="6.2832"/>
+      </Curve>
+   </Object>
+</ObjectAnimation>

@@ -30,7 +30,7 @@ void FAssetManager::LoadAssets()
 	LoadAsset<FXMLDataAsset>(XMLDir + L"/Projectile_Test.xml", L"XDA_Projectile_Test");
 
 	
-	LoadAsset<FObjectAnimDataAsset>(XMLDir + L"/Large_v1.xml", L"OAD_Large");
+	LoadAsset<FObjectAnimDataAsset>(XMLDir + L"/MultiAnim.xml", L"OAD_MultiAnim");
 }
 
 FAsset* FAssetManager::GetAsset(const std::wstring& Name)

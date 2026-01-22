@@ -24,8 +24,8 @@ bool CompileXMLToOADLz4(const std::string& XMLPath, const std::string& OADLz4Pat
 	}
 
 	tinyxml2::XMLElement* InfoNode = Root->FirstChildElement("Info");
-	tinyxml2::XMLElement* CurvesNode = Root->FirstChildElement("AnimationCurves");
-	if (!InfoNode || !CurvesNode)
+
+	if (!InfoNode)
 	{
 		return false;
 	}
@@ -44,46 +44,68 @@ bool CompileXMLToOADLz4(const std::string& XMLPath, const std::string& OADLz4Pat
 	Append(&fps, sizeof(float));
 	Append(&Duration, sizeof(float));
 
-	// 1. Curve 개수
-	int CurveCount = 0;
-	for (auto* c = CurvesNode->FirstChildElement("Curve"); c; c = c->NextSiblingElement("Curve")) CurveCount++;
-	Append(&CurveCount, sizeof(int));
 
-	// 2. Curve 데이터 순회
-	for (auto* curve = CurvesNode->FirstChildElement("Curve"); curve; curve = curve->NextSiblingElement("Curve"))
+	tinyxml2::XMLElement* ObjectElement = Root->FirstChildElement("Object");
+	int ObjectCount = 0;
+	for (auto* o = ObjectElement; o; o = o->NextSiblingElement("Object"))
 	{
-		std::string name = curve->Attribute("name");
-		int nameLen = (int)name.length();
-		Append(&nameLen, sizeof(int));
-		Append(name.c_str(), nameLen);
+		++ObjectCount;
+	}
+	Append(&ObjectCount, sizeof(int));
+	while (ObjectElement)
+	{
+		std::string ObjectName = ObjectElement->Attribute("name");
+		int ObjectNameLen = (int)ObjectName.length();
+		Append(&ObjectNameLen, sizeof(int));
+		Append(ObjectName.c_str(), ObjectNameLen);
 
-		int keyCount = 0;
-		for (auto* k = curve->FirstChildElement("Keyframe"); k; k = k->NextSiblingElement("Keyframe")) keyCount++;
-		Append(&keyCount, sizeof(int));
+		tinyxml2::XMLElement* CurveElement = ObjectElement->FirstChildElement("Curve");
 
-		int i = 0;
-		std::vector<float> Frames(keyCount);
-		std::vector<FKeyframeData> Datas(keyCount);
-		for (auto* kp = curve->FirstChildElement("Keyframe"); kp; kp = kp->NextSiblingElement("Keyframe"), ++i)
+		// 1. Curve 개수
+		int CurveCount = 0;
+		for (auto* c = ObjectElement->FirstChildElement("Curve"); c; c = c->NextSiblingElement("Curve")) CurveCount++;
+		Append(&CurveCount, sizeof(int));
+
+		// 2. Curve 데이터 순회
+		while(CurveElement)
 		{
-			FKeyframeData& Data = Datas[i];
-			float& Frame = Frames[i];
-			Frame = kp->FloatAttribute("frame") - fStart;
-			Data.Value = kp->FloatAttribute("value");
+			std::string CurveName = CurveElement->Attribute("name");
+			int CurveNameLen = (int)CurveName.length();
+			Append(&CurveNameLen, sizeof(int));
+			Append(CurveName.c_str(), CurveNameLen);
 
-			const char* interp = kp->Attribute("interp");
-			if (strcmp(interp, "LINEAR") == 0) Data.Interpolation = EInterpolationType::EIT_Linear;
-			else if (strcmp(interp, "BEZIER") == 0) Data.Interpolation = EInterpolationType::EIT_Bezier;
-			else if (strcmp(interp, "CONSTANT") == 0) Data.Interpolation = EInterpolationType::EIT_Constant;
-			else Data.Interpolation = EInterpolationType::EIT_Undefined;
+			int KeyframeCount = 0;
+			for (auto* k = CurveElement->FirstChildElement("Keyframe"); k; k = k->NextSiblingElement("Keyframe")) KeyframeCount++;
+			Append(&KeyframeCount, sizeof(int));
 
-			Data.RightHandle.x = kp->FloatAttribute("h_right_x") - fStart;
-			Data.RightHandle.y = kp->FloatAttribute("h_right_y");
-			Data.LeftHandle.x = kp->FloatAttribute("h_left_x") - fStart;
-			Data.LeftHandle.y = kp->FloatAttribute("h_left_y");
+			int i = 0;
+			std::vector<float> Frames(KeyframeCount);
+			std::vector<FKeyframeData> Datas(KeyframeCount);
+			for (auto* KeyframeElement = CurveElement->FirstChildElement("Keyframe"); KeyframeElement; KeyframeElement = KeyframeElement->NextSiblingElement("Keyframe"), ++i)
+			{
+				FKeyframeData& Data = Datas[i];
+				float& Frame = Frames[i];
+				Frame = KeyframeElement->FloatAttribute("frame") - fStart;
+				Data.Value = KeyframeElement->FloatAttribute("value");
+
+				const char* interp = KeyframeElement->Attribute("interp");
+				if (strcmp(interp, "LINEAR") == 0) Data.Interpolation = EInterpolationType::EIT_Linear;
+				else if (strcmp(interp, "BEZIER") == 0) Data.Interpolation = EInterpolationType::EIT_Bezier;
+				else if (strcmp(interp, "CONSTANT") == 0) Data.Interpolation = EInterpolationType::EIT_Constant;
+				else Data.Interpolation = EInterpolationType::EIT_Undefined;
+
+				Data.RightHandle.x = KeyframeElement->FloatAttribute("h_right_x") - fStart;
+				Data.RightHandle.y = KeyframeElement->FloatAttribute("h_right_y");
+				Data.LeftHandle.x = KeyframeElement->FloatAttribute("h_left_x") - fStart;
+				Data.LeftHandle.y = KeyframeElement->FloatAttribute("h_left_y");
+			}
+			Append(Frames.data(), sizeof(float) * KeyframeCount);
+			Append(Datas.data(), sizeof(FKeyframeData) * KeyframeCount);
+
+			CurveElement = CurveElement->NextSiblingElement("Curve");
 		}
-		Append(Frames.data(), sizeof(float) * keyCount);
-		Append(Datas.data(), sizeof(FKeyframeData) * keyCount);
+
+		ObjectElement = ObjectElement->NextSiblingElement("Object");
 	}
 
 	// 3. LZ4 압축
@@ -107,13 +129,13 @@ bool CompileXMLToOADLz4(const std::string& XMLPath, const std::string& OADLz4Pat
 
 bool FObjectAnimDataAsset::LoadAsset(const std::wstring& FilePath)
 {
-	// 1. 경로 설정
+	// 경로 설정
 	std::string xmlPath = WStringToString(FilePath);
 	std::string lz4Path = xmlPath.substr(0, xmlPath.find_last_of('.')) + ".oad.lz4";
 
 	bool bNeedCompile = false;
 
-	// 2. 파일 존재 여부 및 업데이트 시간 체크
+	// 파일 존재 여부 및 업데이트 시간 체크
 	if (!fs::exists(lz4Path))
 	{
 		bNeedCompile = true;
@@ -127,7 +149,7 @@ bool FObjectAnimDataAsset::LoadAsset(const std::wstring& FilePath)
 			bNeedCompile = true;
 	}
 
-	// 3. 필요 시 컴파일 수행
+	// 필요 시 컴파일 수행
 	if (bNeedCompile)
 	{
 		if (fs::exists(xmlPath))
@@ -141,7 +163,7 @@ bool FObjectAnimDataAsset::LoadAsset(const std::wstring& FilePath)
 		}
 	}
 
-	// 4. LZ4 파일로부터 데이터 로드
+	// LZ4 파일로부터 데이터 로드
 	if (!Asset::LoadLZ4(lz4Path, mRawBuffer))
 	{
 		return false;
@@ -152,42 +174,75 @@ bool FObjectAnimDataAsset::LoadAsset(const std::wstring& FilePath)
 	// 프레임 정보 읽기
 	mFPS = *reinterpret_cast<float*>(Ptr);
 	Ptr += sizeof(float);
-	mFrameEnd = *reinterpret_cast<float*> (Ptr);
+	mDuration = *reinterpret_cast<float*> (Ptr);
 	Ptr += sizeof(float);
 
-	// 2. 전체 커브 개수 읽기
-	int TotalCurveNum = *reinterpret_cast<int*>(Ptr);
+	int TotalObjectNum = *reinterpret_cast<int*>(Ptr);
 	Ptr += sizeof(int);
 
-	mCurvesStartPtr = Ptr;
-
-	for (int i = 0; i < TotalCurveNum; ++i)
+	for (int i = 0; i < TotalObjectNum; ++i)
 	{
-		FCurveInfo CurveInfo;
-		CurveInfo.StartPtr = Ptr;
+		int ObjectNameLen = *reinterpret_cast<int*>(Ptr);
+		Ptr += sizeof(int);
+		std::string ObjectName(reinterpret_cast<char*>(Ptr), ObjectNameLen);
+		Ptr += ObjectNameLen;
 
-		// 3. 커브 이름 읽기
-		int CurveNameLen = *reinterpret_cast<int*>(Ptr);
+		// 전체 커브 개수 읽기
+		int TotalCurveNum = *reinterpret_cast<int*>(Ptr);
 		Ptr += sizeof(int);
 
-		std::string CurveName(reinterpret_cast<char*>(Ptr), CurveNameLen);
-		Ptr += CurveNameLen;
+		mCurvesStartPtr = Ptr;
 
-		// 4. 키프레임 개수 읽기
-		CurveInfo.TotalKeyFrameNum = *reinterpret_cast<int*>(Ptr);
-		Ptr += sizeof(int);
+		for (int j = 0; j < TotalCurveNum; ++j)
+		{
+			FCurveView CurveInfo;
+			CurveInfo.StartPtr = Ptr;
 
-		// 5. 키프레임 데이터 통째로 로드
-		size_t DataSize = sizeof(float) * CurveInfo.TotalKeyFrameNum;
-		CurveInfo.FramesPtr = reinterpret_cast<float*>(Ptr);
-		Ptr += DataSize;
+			// 커브 이름 읽기
+			int CurveNameLen = *reinterpret_cast<int*>(Ptr);
+			Ptr += sizeof(int);
 
-		DataSize = sizeof(FKeyframeData) * CurveInfo.TotalKeyFrameNum;
-		CurveInfo.KeyframeDatasPtr = reinterpret_cast<FKeyframeData*>(Ptr);
-		Ptr += DataSize;
+			std::string CurveName(reinterpret_cast<char*>(Ptr), CurveNameLen);
+			Ptr += CurveNameLen;
 
-		mCurveInfoMap[CurveName] = CurveInfo;
+			// 키프레임 개수 읽기
+			CurveInfo.TotalKeyFrameNum = *reinterpret_cast<int*>(Ptr);
+			Ptr += sizeof(int);
+
+			// 키프레임 데이터 시작점 포인터 저장
+			size_t DataSize = sizeof(float) * CurveInfo.TotalKeyFrameNum;
+			CurveInfo.FramesPtr = reinterpret_cast<float*>(Ptr);
+			Ptr += DataSize;
+
+			DataSize = sizeof(FKeyframeData) * CurveInfo.TotalKeyFrameNum;
+			CurveInfo.KeyframeDatasPtr = reinterpret_cast<FKeyframeData*>(Ptr);
+			Ptr += DataSize;
+
+			mObjectCurveMap[ObjectName][CurveName] = CurveInfo;
+		}
 	}
 
 	return true;
+}
+
+const FCurveView* FObjectAnimDataAsset::GetCurveInfoSafe(const std::string& ObjectName, const std::string& CurveName) const
+{
+	if (mObjectCurveMap.count(ObjectName))
+	{
+		if (mObjectCurveMap.at(ObjectName).count(CurveName))
+		{
+			return &mObjectCurveMap.at(ObjectName).at(CurveName);
+		}
+	}
+	return nullptr;
+}
+
+void FObjectAnimDataAsset::GetObjectNames(std::vector<std::string>& Names)
+{
+	Names.clear();
+
+	for (auto Pair : mObjectCurveMap)
+	{
+		Names.emplace_back(Pair.first);
+	}
 }

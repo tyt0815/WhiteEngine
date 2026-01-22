@@ -25,7 +25,7 @@ AProjectile::AProjectile()
 	if (auto Comp = mStaticMeshComp.lock())
 	{
 		Comp->SetupAttachment(GetRootComponent());
-		Comp->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_ScuffedGoldSphere));
+		Comp->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_ScuffedGoldBox));
 	}
 }
 
@@ -36,7 +36,11 @@ AProjectileAnimActor::AProjectileAnimActor()
 	{
 		ObjectAnimComp->SetupAttachment(GetRootComponent());
 
-		ObjectAnimComp->LoadKeyframesFromOADAsset(L"OAD_Large");
+		ObjectAnimComp->LoadKeyframesFromOADAsset(L"OAD_MultiAnim");
+
+		mProjAnimSamplers[0] = ObjectAnimComp->GetObjectAnimSampler("Proj1");
+		mProjAnimSamplers[1] = ObjectAnimComp->GetObjectAnimSampler("Proj2");
+		mProjAnimSamplers[2] = ObjectAnimComp->GetObjectAnimSampler("Proj3");
 	}
 }
 
@@ -44,7 +48,9 @@ void AProjectileAnimActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	mProj = GetWorld()->SpawnActor<AProjectile>();
+	mProjs[0] = GetWorld()->SpawnActor<AProjectile>();
+	mProjs[1] = GetWorld()->SpawnActor<AProjectile>();
+	mProjs[2] = GetWorld()->SpawnActor<AProjectile>();
 }
 
 void AProjectileAnimActor::Tick_PostPhysics(float Delta)
@@ -57,27 +63,18 @@ void AProjectileAnimActor::Tick_PostPhysics(float Delta)
 	{
 		mElapsedTime = fmodf(mElapsedTime, ObjectAnimComp->GetDuration());
 
-		if (auto Proj = mProj.lock())
+		for (int i = 0; i < 3; ++i)
 		{
-			FTransform Transform = ObjectAnimComp->SampleAnimWorldTransformBySecond(mElapsedTime);
-			Proj->SetActorTransform(Transform);
+			if (auto Proj = mProjs[i].lock())
+			{
+				if (mElapsedTime > 0.5f)
+				{
+					float a = mElapsedTime;
+				}
+				FTransform Transform = ObjectAnimComp->SampleAnimWorldTransformBySecond(mProjAnimSamplers[i], mElapsedTime);
+				Proj->SetActorTransform(Transform);
+			}
 		}
-	}
-}
-
-void AProjectileAnimActor::OnActivate()
-{
-	if (auto Proj = mProj.lock())
-	{
-		Proj->Activate();
-	}
-}
-
-void AProjectileAnimActor::OnDeactivate()
-{
-	if (auto Proj = mProj.lock())
-	{
-		Proj->Deactivate();
 	}
 }
 
@@ -88,72 +85,8 @@ void AProjSpawner::Tick_PrePhysics(float Delta)
 
 WProjectileAnimWorld::WProjectileAnimWorld()
 {
-	
-}
-
-void WProjectileAnimWorld::Tick(float Delta)
-{
-	Super::Tick(Delta);
-
-	mElapsedTime += Delta;
-
-	if (mElapsedTime > 2)
+	if (auto Projectile = SpawnActor<AProjectileAnimActor>().lock())
 	{
-		mElapsedTime = 0;
-
-		for (int i = 0; i < mProjs.size(); ++i)
-		{
-			if (auto Proj = mProjs[i].lock())
-			{
-				Proj->Destroy();
-			}
-		}
-		mProjs.clear();
-
-		UTimer Timer;
-		int ProjNum = 1000;
-
-		for (int i = 0; i < ProjNum; ++i)
-		{
-			if (auto Projectile = SpawnActor<AProjectileAnimActor>().lock())
-			{
-				float r = 360.0f / ProjNum * i;
-				XMFLOAT3 Rot(r, r, r);
-				Projectile->SetActorRotation(Rot);
-				mProjs.push_back(Projectile);
-			}
-		}
-		Timer.Tick();
-		double SpawningTime = Timer.GetDeltaTime();
-
-
-		GUI::FDrawCommand Command;
-		Command.LifeSpan = 2;
-		Command.DrawLambda = [=]()
-		{
-			ImGui::SetNextWindowPos(ImVec2(1000, 0), ImGuiCond_Always);
-			ImGui::SetNextWindowSize(ImVec2(300, 0));
-
-			ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_NoDecoration |
-				ImGuiWindowFlags_AlwaysAutoResize |
-				ImGuiWindowFlags_NoSavedSettings |
-				ImGuiWindowFlags_NoFocusOnAppearing |
-				ImGuiWindowFlags_NoNav |
-				ImGuiWindowFlags_NoMove;
-
-			ImGui::SetNextWindowBgAlpha(1.0f);
-
-			if (ImGui::Begin("Spawning", nullptr, WindowFlags))
-			{
-
-				ImGui::TextColored(ImVec4(0, 1, 1, 1), "Spawning Time");
-				ImGui::Separator();
-
-				ImGui::Text("%.8f", SpawningTime);
-			}
-			ImGui::End();
-		};
-
-		GUI::AddDrawCommand(Command);
+		mProjs.push_back(Projectile);
 	}
 }

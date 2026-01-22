@@ -18,44 +18,48 @@ struct FKeyframeData
 	XMFLOAT2 LeftHandle;
 };
 
-struct FCurveInfo
+struct FCurveView
 {
 	unsigned char* StartPtr;
-	int TotalKeyFrameNum;
 	float* FramesPtr;
 	FKeyframeData* KeyframeDatasPtr;
+	int TotalKeyFrameNum;
 };
 
 class FObjectAnimDataAsset : public FAsset
 {
 public:
 	virtual bool LoadAsset(const std::wstring& FilePath);
+
+	const FCurveView* GetCurveInfoSafe(const std::string& ObjectName, const std::string& CurveName) const;
+
+	void GetObjectNames(std::vector<std::string>& Names);
 	
 private:
 	unsigned char* mCurvesStartPtr;
 
 	std::vector<unsigned char> mRawBuffer;
 
-	std::unordered_map<std::string, FCurveInfo> mCurveInfoMap;
+	std::unordered_map<std::string, std::unordered_map<std::string, FCurveView>> mObjectCurveMap;
 
 	float mFPS = 1;
 
-	float mFrameEnd = 0;
+	float mDuration = 0;
 
 public:
-	__forceinline const std::unordered_map<std::string, FCurveInfo>& GetCurveInfoMap() const
+	__forceinline const std::unordered_map<std::string, std::unordered_map<std::string, FCurveView>>& GetObjectCurveMap() const
 	{
-		return mCurveInfoMap;
+		return mObjectCurveMap;
 	}
 
-	__forceinline const FCurveInfo* GetCurveInfoSafe(const std::string& CurveName) const
+	__forceinline const FCurveView* GetCurveInfo(const std::string& ObjectName, const std::string& CurveName) const
 	{
-		return mCurveInfoMap.count(CurveName) ? &mCurveInfoMap.at(CurveName) : nullptr;
+		return &mObjectCurveMap.at(ObjectName).at(CurveName);
 	}
 
-	__forceinline const FCurveInfo* GetCurveInfo(const std::string& CurveName) const
+	__forceinline const std::unordered_map<std::string, FCurveView>* GetObjectCurves(const std::string& ObjectName)
 	{
-		return &mCurveInfoMap.at(CurveName);
+		return &mObjectCurveMap.at(ObjectName);
 	}
 
 	__forceinline float GetFPS() const
@@ -65,6 +69,6 @@ public:
 
 	__forceinline float GetFraneEnd() const
 	{
-		return mFrameEnd;
+		return mDuration;
 	}
 };

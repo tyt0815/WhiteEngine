@@ -3,10 +3,12 @@
 #include "World/DefaultWorld.h"
 #include "Actor/Actor.h"
 #include <queue>
+#include <array>
 
 class WObjectAnimComponent;
 class WStaticMeshComponent;
 class WBoxComponent;
+class FObjectAnimSampler;
 
 
 class AProjectile : public AActor
@@ -30,15 +32,12 @@ public:
 
 	virtual void Tick_PostPhysics(float Delta) override;
 
-protected:
-	virtual void OnActivate() override;
-
-	virtual void OnDeactivate() override;
-
 private:
 	TWeakPtr<WObjectAnimComponent> mObjectAnimComp;
 
-	TWeakPtr<AProjectile> mProj;
+	TWeakPtr<AProjectile> mProjs[3];
+
+	FObjectAnimSampler* mProjAnimSamplers[3];
 
 	float mElapsedTime = 0;
 };
@@ -63,8 +62,6 @@ class WProjectileAnimWorld : public WDefaultWorld
 	typedef WDefaultWorld Super;
 public:
 	WProjectileAnimWorld();
-
-	virtual void Tick(float Delta) override;
 
 private	:
 	float mElapsedTime = 0;

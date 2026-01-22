@@ -8,10 +8,50 @@
 
 #include "Asset/ObjectAnimDataAsset.h"
 
-struct FAnimData
+class FCurveSampler
 {
-	const FCurveInfo* CurveInfo;
-	int LastIndex = 0;
+public:
+	float SampleAnimDataByFrame(const float TargetFrame);
+	
+
+private:
+	FCurveSampler() = default;
+
+	const FCurveView* mCurveView = nullptr;
+	int mLastIndex = 0;
+
+	friend class FObjectAnimSampler;
+
+public:
+	__forceinline bool IsValid() const
+	{
+		return mCurveView != nullptr;
+	}
+};
+
+class FObjectAnimSampler
+{
+public:
+	FCurveSampler GetCurveSampler(const std::string CurveName);
+
+	FTransform SampleTransform(float TargetFrame);
+
+private:
+	FObjectAnimSampler(const std::unordered_map<std::string, FCurveView>* InCurveViewMap);
+
+	const std::unordered_map<std::string, FCurveView>* mCurveViewMap;
+
+	FCurveSampler mLocationX;
+	FCurveSampler mLocationY;
+	FCurveSampler mLocationZ;
+	FCurveSampler mRotationX;
+	FCurveSampler mRotationY;
+	FCurveSampler mRotationZ;
+	FCurveSampler mScaleX;
+	FCurveSampler mScaleY;
+	FCurveSampler mScaleZ;
+
+	friend class WObjectAnimComponent;
 };
 
 class WObjectAnimComponent : public WSceneComponent
@@ -25,30 +65,14 @@ public:
 public:
 	bool LoadKeyframesFromOADAsset(const std::wstring& AssetName);
 
-	float SampleAnimDataByFrame(FAnimData& AnimData, const float TargetFrame);
+	FObjectAnimSampler* GetObjectAnimSampler(std::string ObjectName);
 
-	float SampleAnimDataBySecond(FAnimData& AnimData, float Second);
+	FTransform SampleAnimWorldTransformByFrame(FObjectAnimSampler* Sampler, float Frame);
 
-	FTransform SampleAnimLocalTransformByFrame(float Frame);
-
-	FTransform SampleAnimLocalTransformBySecond(float Second);
-
-	FTransform SampleAnimWorldTransformByFrame(float Frame);
-
-	FTransform SampleAnimWorldTransformBySecond(float Second);
+	FTransform SampleAnimWorldTransformBySecond(FObjectAnimSampler* Sampler, float Second);
 
 private:
-	FObjectAnimDataAsset* mObjectAnimData;
-
-	FAnimData mLocXKeyframes;
-	FAnimData mLocYKeyframes;
-	FAnimData mLocZKeyframes;
-	FAnimData mRotXKeyframes;
-	FAnimData mRotYKeyframes;
-	FAnimData mRotZKeyframes;
-	FAnimData mScaleXKeyframes;
-	FAnimData mScaleYKeyframes;
-	FAnimData mScaleZKeyframes;
+	std::unordered_map<std::string, FObjectAnimSampler> mObjectAnimSamplerMap;
 
 	float mFrameEnd = 0;
 

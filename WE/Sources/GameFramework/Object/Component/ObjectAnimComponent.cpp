@@ -6,46 +6,23 @@
 
 using namespace tinyxml2;
 
-void WObjectAnimComponent::BeginComponent()
+
+float FCurveSampler::SampleAnimDataByFrame(const float TargetFrame)
 {
-	Super::BeginComponent();
-	
-	if (mObjectAnimData)
+	if (mCurveView == nullptr)
 	{
-		auto& CurvInfoMap = mObjectAnimData->GetCurveInfoMap();
-		if (CurvInfoMap.count("LocationX")) { mLocXKeyframes.CurveInfo	= mObjectAnimData->GetCurveInfo("LocationX"); }
-		if (CurvInfoMap.count("LocationY")) { mLocYKeyframes.CurveInfo	= mObjectAnimData->GetCurveInfo("LocationY"); }
-		if (CurvInfoMap.count("LocationZ")) { mLocZKeyframes.CurveInfo	= mObjectAnimData->GetCurveInfo("LocationZ"); }
-		if (CurvInfoMap.count("RotationX")) { mRotXKeyframes.CurveInfo	= mObjectAnimData->GetCurveInfo("RotationX"); }
-		if (CurvInfoMap.count("RotationY")) { mRotYKeyframes.CurveInfo	= mObjectAnimData->GetCurveInfo("RotationY"); }
-		if (CurvInfoMap.count("RotationZ")) { mRotZKeyframes.CurveInfo	= mObjectAnimData->GetCurveInfo("RotationZ"); }
-		if (CurvInfoMap.count("ScaleX")) { mScaleXKeyframes.CurveInfo	= mObjectAnimData->GetCurveInfo("ScaleX"); }
-		if (CurvInfoMap.count("ScaleY")) { mScaleYKeyframes.CurveInfo	= mObjectAnimData->GetCurveInfo("ScaleY"); }
-		if (CurvInfoMap.count("ScaleZ")) { mScaleZKeyframes.CurveInfo	= mObjectAnimData->GetCurveInfo("ScaleZ"); }
+		return 0.0f;
 	}
-}
 
-bool WObjectAnimComponent::LoadKeyframesFromOADAsset(const std::wstring& AssetName)
-{
-	mObjectAnimData = FAssetManager::GetAsset<FObjectAnimDataAsset>(L"OAD_Large");
-	mFps = mObjectAnimData->GetFPS();
-	mFrameEnd = mObjectAnimData->GetFraneEnd();
-	return mObjectAnimData != nullptr;
-}
-
-float WObjectAnimComponent::SampleAnimDataByFrame(FAnimData& AnimData, const float TargetFrame)
-{
-	const FCurveInfo* CurveInfo = AnimData.CurveInfo;
-	int& LastIndex = AnimData.LastIndex;
-	const float* Frames = CurveInfo->FramesPtr;
-	const FKeyframeData* KeyframeDatas = CurveInfo->KeyframeDatasPtr;
-	const int NumKeys = CurveInfo->TotalKeyFrameNum;
+	const float* Frames = mCurveView->FramesPtr;
+	const FKeyframeData* KeyframeDatas = mCurveView->KeyframeDatasPtr;
+	const int NumKeys = mCurveView->TotalKeyFrameNum;
 
 	if (NumKeys == 0) return 0.0f;
 	if (NumKeys == 1) return KeyframeDatas[0].Value;
 
 	// 1. 선형 탐색 시도 (LastIndex 기준 앞/뒤 10개)
-	int i = LastIndex;
+	int i = mLastIndex;
 	const int SearchDir = Frames[i] <= TargetFrame ? 1 : -1;
 	bool bFound = false;
 
@@ -68,17 +45,17 @@ float WObjectAnimComponent::SampleAnimDataByFrame(FAnimData& AnimData, const flo
 
 	// 3. 인덱스 범위 클램핑 및 LastIndex 갱신
 	// i가 0이면 타겟이 첫 키보다 앞에 있음, i가 NumKeys면 마지막 키보다 뒤에 있음
-	LastIndex = std::clamp(i, 1, NumKeys - 1);
+	mLastIndex = std::clamp(i, 1, NumKeys - 1);
 
 	// 4. 경계값 처리
 	if (TargetFrame <= Frames[0]) return KeyframeDatas[0].Value;
 	if (TargetFrame >= Frames[NumKeys - 1]) return KeyframeDatas[NumKeys - 1].Value;
 
 	// 5. 보간 수행 (이제 i는 항상 1 ~ NumKeys-1 사이임이 보장됨)
-	float LeftFrame = Frames[LastIndex - 1];
-	float RightFrame = Frames[LastIndex];
-	const FKeyframeData& Left = KeyframeDatas[LastIndex - 1];
-	const FKeyframeData& Right = KeyframeDatas[LastIndex];
+	float LeftFrame = Frames[mLastIndex - 1];
+	float RightFrame = Frames[mLastIndex];
+	const FKeyframeData& Left = KeyframeDatas[mLastIndex - 1];
+	const FKeyframeData& Right = KeyframeDatas[mLastIndex];
 	assert(TargetFrame >= LeftFrame);
 	assert(TargetFrame <= RightFrame);
 	assert(LeftFrame < RightFrame);
@@ -115,42 +92,97 @@ float WObjectAnimComponent::SampleAnimDataByFrame(FAnimData& AnimData, const flo
 	return Value;
 }
 
-float WObjectAnimComponent::SampleAnimDataBySecond(FAnimData& AnimData, float Second)
+FCurveSampler FObjectAnimSampler::GetCurveSampler(const std::string CurveName)
 {
-	return SampleAnimDataByFrame(AnimData, SecondToFrame(Second));
+	FCurveSampler CurveSampler;
+	if (mCurveViewMap->count(CurveName))
+	{
+		CurveSampler.mCurveView = &mCurveViewMap->at(CurveName);
+	}
+	return CurveSampler;
 }
 
-FTransform WObjectAnimComponent::SampleAnimLocalTransformByFrame(float Frame)
+FObjectAnimSampler::FObjectAnimSampler(const std::unordered_map<std::string, FCurveView>* InCurveViewMap):
+	mCurveViewMap(InCurveViewMap)
+{
+
+	mLocationX = GetCurveSampler("LocationX");
+	mLocationY = GetCurveSampler("LocationY");
+	mLocationZ = GetCurveSampler("LocationZ");
+	mRotationX = GetCurveSampler("RotationX");
+	mRotationY = GetCurveSampler("RotationY");
+	mRotationZ = GetCurveSampler("RotationZ");
+	mScaleX = GetCurveSampler("ScaleX");
+	mScaleY = GetCurveSampler("ScaleY");
+	mScaleZ = GetCurveSampler("ScaleZ");
+}
+
+FTransform FObjectAnimSampler::SampleTransform(float TargetFrame) 
 {
 	FTransform Transform;
 
-	// 1. Location (사용자 정의 이름: LocationX, LocationY, LocationZ)
-	if (mLocXKeyframes.CurveInfo) Transform.Translation.x = SampleAnimDataByFrame(mLocXKeyframes, Frame);
-	if (mLocYKeyframes.CurveInfo) Transform.Translation.y = SampleAnimDataByFrame(mLocYKeyframes, Frame);
-	if (mLocZKeyframes.CurveInfo) Transform.Translation.z = SampleAnimDataByFrame(mLocZKeyframes, Frame);
+	Transform.Translation.x = mLocationX.SampleAnimDataByFrame(TargetFrame);
+	Transform.Translation.y = mLocationY.SampleAnimDataByFrame(TargetFrame);
+	Transform.Translation.z = mLocationZ.SampleAnimDataByFrame(TargetFrame);
 
-	// 2. Rotation (사용자 정의 이름: RotationX, RotationY, RotationZ, RotationW)
-	if (mRotXKeyframes.CurveInfo) Transform.Rotation.x = SampleAnimDataByFrame(mRotXKeyframes, Frame);
-	if (mRotYKeyframes.CurveInfo) Transform.Rotation.y = SampleAnimDataByFrame(mRotYKeyframes, Frame);
-	if (mRotZKeyframes.CurveInfo) Transform.Rotation.z = SampleAnimDataByFrame(mRotZKeyframes, Frame);
+	Transform.Rotation.x = mRotationX.SampleAnimDataByFrame(TargetFrame);
+	Transform.Rotation.y = mRotationY.SampleAnimDataByFrame(TargetFrame);
+	Transform.Rotation.z = mRotationZ.SampleAnimDataByFrame(TargetFrame);
 
-	// 3. Scale (사용자 정의 이름: ScaleX, ScaleY, ScaleZ)
-	if (mScaleXKeyframes.CurveInfo) Transform.Scale.x = SampleAnimDataByFrame(mScaleXKeyframes, Frame);
-	if (mScaleYKeyframes.CurveInfo) Transform.Scale.y = SampleAnimDataByFrame(mScaleYKeyframes, Frame);
-	if (mScaleZKeyframes.CurveInfo) Transform.Scale.z = SampleAnimDataByFrame(mScaleZKeyframes, Frame);
+	if (mScaleY.IsValid())
+	{
+		Transform.Scale.x = mScaleX.SampleAnimDataByFrame(TargetFrame);
+	}
+	if (mScaleX.IsValid())
+	{
+		Transform.Scale.y = mScaleY.SampleAnimDataByFrame(TargetFrame);
+	}
+	if (mScaleZ.IsValid())
+	{
+		Transform.Scale.z = mScaleZ.SampleAnimDataByFrame(TargetFrame);
+	}
 
 	return Transform;
 }
 
-FTransform WObjectAnimComponent::SampleAnimLocalTransformBySecond(float Second)
+
+void WObjectAnimComponent::BeginComponent()
 {
-	return SampleAnimLocalTransformByFrame(SecondToFrame(Second));
+	Super::BeginComponent();
 }
 
-FTransform WObjectAnimComponent::SampleAnimWorldTransformByFrame(float Frame)
+bool WObjectAnimComponent::LoadKeyframesFromOADAsset(const std::wstring& AssetName)
+{
+	if (FObjectAnimDataAsset* ObjectAnimData = FAssetManager::GetAsset<FObjectAnimDataAsset>(AssetName))
+	{
+		mFps = ObjectAnimData->GetFPS();
+		mFrameEnd = ObjectAnimData->GetFraneEnd();
+
+		const auto& ObjectCurveMap = ObjectAnimData->GetObjectCurveMap();
+		for (const auto& Data : ObjectCurveMap)
+		{
+			mObjectAnimSamplerMap.insert({ Data.first, FObjectAnimSampler(&Data.second) });
+		}
+
+		return true;
+	}
+	
+	return false;
+}
+
+FObjectAnimSampler* WObjectAnimComponent::GetObjectAnimSampler(std::string ObjectName)
+{
+	if (mObjectAnimSamplerMap.count(ObjectName))
+	{
+		return &mObjectAnimSamplerMap.at(ObjectName);
+	}
+	return nullptr;
+}
+
+FTransform WObjectAnimComponent::SampleAnimWorldTransformByFrame(FObjectAnimSampler* Sampler, float Frame)
 {
 	XMMATRIX CM = GetWorldMatrix();
-	XMMATRIX M = SampleAnimLocalTransformByFrame(Frame).GetTransformMatrix();
+	XMMATRIX M = Sampler->SampleTransform(Frame).GetTransformMatrix();
 
 	FTransform Transform;
 	Transform.SetByTransformMatrix(M * CM);
@@ -158,7 +190,7 @@ FTransform WObjectAnimComponent::SampleAnimWorldTransformByFrame(float Frame)
 	return Transform;
 }
 
-FTransform WObjectAnimComponent::SampleAnimWorldTransformBySecond(float Second)
+FTransform WObjectAnimComponent::SampleAnimWorldTransformBySecond(FObjectAnimSampler* Sampler, float Second)
 {
-	return SampleAnimWorldTransformByFrame(SecondToFrame(Second));
+	return SampleAnimWorldTransformByFrame(Sampler, SecondToFrame(Second));
 }
