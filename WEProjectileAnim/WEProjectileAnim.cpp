@@ -10,16 +10,16 @@ CREATE_APPLICATION(WProjectileAnimWorld)
 
 AProjectile::AProjectile()
 {
-	mBoxCollision = CreateComponent<WBoxComponent>();
-	SetRootComponent(mBoxCollision);
-	if (auto Box = mBoxCollision.lock())
-	{
-		Box->ActivatePhysicBody();
-		Box->GenerateOverlapEvent();
-		Box->SetExtent(XMFLOAT3(.5f, .5f, .5f));
-		Box->SetMotionType(EMotionType::Kinematic);
-		Box->SetObjectChannel(EObjectChannel::EOC_Moving);
-	}
+	//mBoxCollision = CreateComponent<WBoxComponent>();
+	//SetRootComponent(mBoxCollision);
+	//if (auto Box = mBoxCollision.lock())
+	//{
+	//	Box->ActivatePhysicBody();
+	//	Box->GenerateOverlapEvent();
+	//	Box->SetExtent(XMFLOAT3(.5f, .5f, .5f));
+	//	Box->SetMotionType(EMotionType::Kinematic);
+	//	Box->SetObjectChannel(EObjectChannel::EOC_Moving);
+	//}
 
 	mStaticMeshComp = CreateComponent<WStaticMeshComponent>();
 	if (auto Comp = mStaticMeshComp.lock())
