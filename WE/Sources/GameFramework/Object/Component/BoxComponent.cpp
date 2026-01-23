@@ -3,17 +3,23 @@
 
 using namespace JPH;
 
-JPH::BodyCreationSettings WBoxComponent::CreatePhysicsBodySettings()
+JPH::ShapeRefC WBoxComponent::CreatePhysicsShape()
 {
-	BoxShapeSettings BoxSettings(RVec3(mExtent.x, mExtent.y, mExtent.z));
+	XMFLOAT3 ScaledExtend = GetScaledExtent();
+	BoxShapeSettings BoxSettings(RVec3(ScaledExtend.x, ScaledExtend.y, ScaledExtend.z));
 	BoxSettings.SetEmbedded();
 	ShapeSettings::ShapeResult ShapeResult = BoxSettings.Create();
-	ShapeRefC Shape = ShapeResult.Get();
-
-	return JPH::BodyCreationSettings(Shape, RVec3(), Quat::sIdentity(), mMotionType, mObjectChannel);
+	return ShapeResult.Get();
 }
 
 void WBoxComponent::SetExtent(XMFLOAT3 Extent)
 {
 	mExtent = Extent;
+}
+
+XMFLOAT3 WBoxComponent::GetScaledExtent()
+{
+	XMFLOAT3 Scale= GetWorldTransform().Scale;
+	XMStoreFloat3(&Scale, XMVectorMultiply(XMLoadFloat3(&Scale), XMLoadFloat3(&mExtent)));
+	return Scale;
 }

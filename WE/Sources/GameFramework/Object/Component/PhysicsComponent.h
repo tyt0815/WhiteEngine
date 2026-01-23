@@ -56,7 +56,7 @@ public:
 	FComponentBeginOverlapDelegate mOnBeginOverlapDelegate;
 
 protected:
-	virtual JPH::BodyCreationSettings CreatePhysicsBodySettings() = 0;
+	virtual JPH::ShapeRefC CreatePhysicsShape() = 0;
 
 	void CreatePhysicsBody();
 

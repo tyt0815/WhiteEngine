@@ -30,7 +30,7 @@ FFrameResourceBase::FFrameResourceBase(ID3D12Device* Device)
 	mMaterialStructuredBuffer = std::make_unique<TUploadBuffer<FMaterialStructuredBuffer>>(Device, EMT_None, false);
 	mDirectionalLightStructuredBuffer = std::make_unique<TUploadBuffer<FDirectionalLightStructuredBuffer>>(Device, DIR_LIGHTS_NUM, false);
 
-	mLine3DVB = std::make_unique<TUploadBuffer<FLine3DVertex>>(Device, 10000, false);	// TODO: 편의상 대충 지정해 뒀는데 프레임 엄청 떨어트림
+	mLine3DVB = std::make_unique<TUploadBuffer<FLine3DVertex>>(Device, 100000, false);	// TODO: 편의상 대충 지정해 뒀는데 프레임 엄청 떨어트림
 }
 
 FFrameResourceBase::~FFrameResourceBase()
@@ -730,46 +730,46 @@ void FSceneRenderer::UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightStr
 
 void FSceneRenderer::UpdateDebugLine3DVB(TUploadBuffer<FLine3DVertex>* DebugLine3DVB, const FRenderItemProxy& RenderItemProxy)
 {
-	//std::vector<FLine3DVertex> LineVertices(DebugLine3DVB->GetElementCount());
-	//int Index = 0;
-	//for (const auto& Proxy : RenderItemProxy.mDebugLine3DProxies)
-	//{
-	//	FLine3DVertex Vertex;
-	//	Vertex.Position = Proxy.Start;
-	//	Vertex.Color = Proxy.Color;
-	//	if (Index >= LineVertices.size())
-	//	{
-	//		break;
-	//	}
-	//	LineVertices[Index++] = Vertex;
-	//	Vertex.Position = Proxy.End;
-	//	if (Index >= LineVertices.size())
-	//	{
-	//		break;
-	//	}
-	//	LineVertices[Index++] = Vertex;
-	//}
+	std::vector<FLine3DVertex> LineVertices(DebugLine3DVB->GetElementCount());
+	int Index = 0;
+	for (const auto& Proxy : RenderItemProxy.mDebugLine3DProxies)
+	{
+		FLine3DVertex Vertex;
+		Vertex.Position = Proxy.Start;
+		Vertex.Color = Proxy.Color;
+		if (Index >= LineVertices.size())
+		{
+			break;
+		}
+		LineVertices[Index++] = Vertex;
+		Vertex.Position = Proxy.End;
+		if (Index >= LineVertices.size())
+		{
+			break;
+		}
+		LineVertices[Index++] = Vertex;
+	}
 
-	//const auto& PhysicsLines = Physics::g_DebugRenderer->GetLinesView();
-	//for (const auto& Line : PhysicsLines)
-	//{
-	//	FLine3DVertex Vertex;
-	//	Vertex.Position = Line.Start;
-	//	Vertex.Color = Line.Color;
-	//	if (Index >= LineVertices.size())
-	//	{
-	//		break;
-	//	}
-	//	LineVertices[Index++] = Vertex;
-	//	Vertex.Position = Line.End;
-	//	if (Index >= LineVertices.size())
-	//	{
-	//		break;
-	//	}
-	//	LineVertices[Index++] = Vertex;
-	//}
+	const auto& PhysicsLines = Physics::g_DebugRenderer->GetLinesView();
+	for (const auto& Line : PhysicsLines)
+	{
+		FLine3DVertex Vertex;
+		Vertex.Position = Line.Start;
+		Vertex.Color = Line.Color;
+		if (Index >= LineVertices.size())
+		{
+			break;
+		}
+		LineVertices[Index++] = Vertex;
+		Vertex.Position = Line.End;
+		if (Index >= LineVertices.size())
+		{
+			break;
+		}
+		LineVertices[Index++] = Vertex;
+	}
 
-	//DebugLine3DVB->CopyData(0, LineVertices.data(), (UINT)LineVertices.size());
+	DebugLine3DVB->CopyData(0, LineVertices.data(), (UINT)LineVertices.size());
 }
 
 void FSceneRenderer::UpdateTargetFrameResource(const FRenderItemProxy& RenderItemProxy)

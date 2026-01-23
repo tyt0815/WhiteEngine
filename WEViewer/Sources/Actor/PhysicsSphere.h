@@ -10,14 +10,8 @@ class APhysicsSphere : public AActor
 {
 	typedef AActor Super;
 public:
-	APhysicsSphere();
-
-	virtual void BeginPlay() override;
-
-	
+	APhysicsSphere();	
 
 private:
-	void OnHit(TWeakPtr<WPhysicsComponent> Other, XMFLOAT3 ImpactPoint);
-
 	TWeakPtr<WSphereComponent> mSphereComp;
 };

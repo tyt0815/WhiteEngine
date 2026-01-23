@@ -118,8 +118,8 @@ namespace Physics
 
 	UINT64 g_UpdateCount = 0;
 
-	bool g_bDrawShape = true;
-	bool g_bDrawBoundingBox = false;
+	bool g_bDrawShape = false;
+	bool g_bDrawBoundingBox = true;
 }
 
 namespace Physics

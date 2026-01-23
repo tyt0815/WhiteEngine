@@ -17,15 +17,3 @@ APhysicsSphere::APhysicsSphere()
 	Component->SetupAttachment(GetRootComponent());
 	Component->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_RustedIron2Sphere));
 }
-
-void APhysicsSphere::BeginPlay()
-{
-	Super::BeginPlay();
-
-	mSphereComp.lock()->mOnHitDelegate.Bind(this, &APhysicsSphere::OnHit);
-}
-
-void APhysicsSphere::OnHit(TWeakPtr<WPhysicsComponent> Other, XMFLOAT3 ImpactPoint)
-{
-	Destroy();
-}

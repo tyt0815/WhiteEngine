@@ -54,7 +54,8 @@ void WPhysicsComponent::UpdateFromPhysics()
 {
 	if (mbPhysicSimulate && mMotionType != EMotionType::Static)
 	{
-		this->SetWorldTransform(mBody->GetTransform());
+		
+		SetWorldTransform(mBody->GetTransform());
 	}
 }
 
@@ -100,7 +101,8 @@ void WPhysicsComponent::SetObjectChannel(EObjectChannel::EObjectChannel ObjectCh
 
 void WPhysicsComponent::CreatePhysicsBody()
 {
-	auto Settings = CreatePhysicsBodySettings();
+	JPH::ShapeRefC Shape = CreatePhysicsShape();
+	JPH::BodyCreationSettings Settings = JPH::BodyCreationSettings(Shape, JPH::RVec3(), JPH::Quat::sIdentity(), mMotionType, mObjectChannel;
 	Settings.mIsSensor = mbGenerateOverlapEvent;
 	mBody->CreateBody(Settings);
 }
