@@ -48,7 +48,7 @@ public:
 
 	virtual void			OnContactAdded(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings) override
 	{
-		FContactInfo Info;
+		FPhysicEventInfo Info;
 		Info.Comp1 = *reinterpret_cast<TWeakPtr<WPhysicsComponent>*>(inBody1.GetUserData());
 		Info.Comp2 = *reinterpret_cast<TWeakPtr<WPhysicsComponent>*>(inBody2.GetUserData());
 		Info.ImpactPoint1 = ToDXLocation(inManifold.GetWorldSpaceContactPointOn1(0));

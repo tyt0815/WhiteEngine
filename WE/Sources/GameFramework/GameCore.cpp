@@ -16,8 +16,8 @@
 
 HINSTANCE g_hInst;
 
-std::atomic<float> g_GameFPS{ 0.0f };
-std::atomic<float> g_RenderFPS{ 0.0f };
+std::atomic<float> g_TickRate{ 0.0f };
+std::atomic<float> g_FPS{ 0.0f };
 
 FGameApplication::FGameApplication()
 {
@@ -51,8 +51,8 @@ int FGameApplication::Run()
 	Command.LifeSpan = -1;
 	Command.DrawLambda = [&]()
 	{
-		ImGui::TextColored(ImVec4(0, 1, 0, 1), "RenderFPS: %.8f", g_RenderFPS.load()); // 노란색 제목
-		ImGui::TextColored(ImVec4(0, 1, 0, 1), "GameFPS: %.8f", g_GameFPS.load()); // 노란색 제목
+		ImGui::TextColored(ImVec4(0, 1, 0, 1), "FPS: %.8f", g_FPS.load()); // 노란색 제목
+		ImGui::TextColored(ImVec4(0, 1, 0, 1), "Tick Rate: %.8f", g_TickRate.load()); // 노란색 제목
 	};
 	GUI::AddProfilingCommand(Command);
 
@@ -80,7 +80,7 @@ void FGameApplication::Thread_GamePlay()
 		++FrameCount;
 		if (TimeElapsed >= 1)
 		{
-			g_GameFPS = FrameCount / TimeElapsed;
+			g_TickRate = FrameCount / TimeElapsed;
 			FrameCount = 0;
 			TimeElapsed = 0.0f;
 		}
@@ -114,7 +114,7 @@ void FGameApplication::Thread_Render()
 			++FrameCount;
 			if (TimeElapsed >= 1)
 			{
-				g_RenderFPS = FrameCount / TimeElapsed;
+				g_FPS = FrameCount / TimeElapsed;
 				FrameCount = 0;
 				TimeElapsed = 0.0f;
 			}

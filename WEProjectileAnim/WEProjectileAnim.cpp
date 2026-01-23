@@ -84,7 +84,7 @@ void WProjectileAnimWorld::BeginPlay()
 {
 	Super::BeginPlay();
 
-	int Num = 1000;
+	int Num = 1;
 	for (int i = 0; i < Num; ++i)
 	{
 		if (auto Projectile = SpawnActor<AProjectileAnimActor>().lock())

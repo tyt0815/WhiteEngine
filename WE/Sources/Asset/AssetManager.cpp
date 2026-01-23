@@ -31,6 +31,7 @@ void FAssetManager::LoadAssets()
 
 	
 	LoadAsset<FObjectAnimDataAsset>(XMLDir + L"/MultiAnim.xml", L"OAD_MultiAnim");
+	LoadAsset<FObjectAnimDataAsset>(XMLDir + L"/LeftRight.xml", L"OAD_LeftRight");
 }
 
 FAsset* FAssetManager::GetAsset(const std::wstring& Name)

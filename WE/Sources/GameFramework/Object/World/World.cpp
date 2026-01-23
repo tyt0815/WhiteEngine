@@ -70,7 +70,7 @@ void WWorld::Tick(float Delta)
 
 	{
 		std::lock_guard<std::mutex> Lock(mEventQueueMutex);
-		for (const FContactInfo& Info : mOnBeginOverlapEventQueue)
+		for (const FPhysicEventInfo& Info : mOnBeginOverlapEventQueue)
 		{
 			if (auto Comp1 = Info.Comp1.lock())
 			{
@@ -83,7 +83,7 @@ void WWorld::Tick(float Delta)
 		}
 		mOnBeginOverlapEventQueue.clear();
 
-		for (const FContactInfo& Info : mOnHitEventQueue)
+		for (const FPhysicEventInfo& Info : mOnHitEventQueue)
 		{
 			if (auto Comp1 = Info.Comp1.lock())
 			{
@@ -172,13 +172,13 @@ void WWorld::DrawDebugLine(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT4 Color, float L
 	mRenderItemProxy.mDebugLine3DProxies.emplace_back(Proxy);
 }
 
-void WWorld::EnqueueOnBeginOverlapEvent(const FContactInfo& Info)
+void WWorld::EnqueueOnBeginOverlapEvent(const FPhysicEventInfo& Info)
 {
 	std::lock_guard<std::mutex> Lock(mEventQueueMutex);
 	mOnBeginOverlapEventQueue.emplace_back(Info);
 }
 
-void WWorld::EnqueueOnHitEvent(const FContactInfo& Info)
+void WWorld::EnqueueOnHitEvent(const FPhysicEventInfo& Info)
 {
 	std::lock_guard<std::mutex> Lock(mEventQueueMutex);
 	mOnHitEventQueue.emplace_back(Info);

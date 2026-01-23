@@ -10,7 +10,7 @@
 
 class WPhysicsComponent;
 
-struct FContactInfo
+struct FPhysicEventInfo
 {
 	TWeakPtr<WPhysicsComponent> Comp1;
 	TWeakPtr<WPhysicsComponent> Comp2;
@@ -41,9 +41,9 @@ public:
 
 	void DrawDebugLine(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT4 Color, float LifeSpan);
 
-	void EnqueueOnBeginOverlapEvent(const FContactInfo& Info);
+	void EnqueueOnBeginOverlapEvent(const FPhysicEventInfo& Info);
 
-	void EnqueueOnHitEvent(const FContactInfo& Info);
+	void EnqueueOnHitEvent(const FPhysicEventInfo& Info);
 
 	void ActivateActor(AActor* Actor);
 
@@ -68,9 +68,9 @@ private:
 
 	TArray<AActor*> mActiveActorQueue;
 
-	std::vector<FContactInfo> mOnBeginOverlapEventQueue;
+	std::vector<FPhysicEventInfo> mOnBeginOverlapEventQueue;
 
-	std::vector<FContactInfo> mOnHitEventQueue;
+	std::vector<FPhysicEventInfo> mOnHitEventQueue;
 
 	std::vector<TSharedPtr<AActor>> DestroyQueue;
 
