@@ -8,6 +8,16 @@
 
 CREATE_APPLICATION(WProjectileAnimWorld)
 
+ARing::ARing()
+{
+	mStaticMeshComp = CreateComponent<WStaticMeshComponent>();
+	if (auto Comp = mStaticMeshComp.lock())
+	{
+		Comp->SetupAttachment(GetRootComponent());
+		Comp->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_MetalRing));
+	}
+}
+
 AProjectile::AProjectile()
 {
 	//mBoxCollision = CreateComponent<WBoxComponent>();
@@ -26,6 +36,53 @@ AProjectile::AProjectile()
 	{
 		Comp->SetupAttachment(GetRootComponent());
 		Comp->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_ScuffedGoldBox));
+	}
+
+	mObjectAnimComp = CreateComponent<WObjectAnimComponent>();
+	if (auto ObjectAnimComp = mObjectAnimComp.lock())
+	{
+		ObjectAnimComp->SetupAttachment(GetRootComponent());
+
+		ObjectAnimComp->LoadKeyframesFromOADAsset(L"OAD_LeftRight");
+
+		mProjAnimSampler = ObjectAnimComp->GetObjectAnimSampler("Cube");
+	}
+
+	mProjComp = CreateComponent<WProjectileMovementComponent>();
+	if (auto Comp = mProjComp.lock())
+	{
+		Comp->mVelocity = XMFLOAT3(1, 0, 0);
+	}
+
+	mTickGroup = ETickGroup::ETG_PostPhysics;
+}
+
+void AProjectile::BeginPlay()
+{
+	Super::BeginPlay();
+
+	mRing = GetWorld()->SpawnActor<ARing>();
+}
+
+void AProjectile::Tick(float Delta)
+{
+	Super::Tick(Delta);
+
+	mElapsedTime += Delta;
+
+	if (auto ObjectAnimComp = mObjectAnimComp.lock())
+	{
+		mElapsedTime = fmodf(mElapsedTime, ObjectAnimComp->GetDuration());
+
+		if (auto Ring = mRing.lock())
+		{
+			if (mElapsedTime > 0.5f)
+			{
+				float a = mElapsedTime;
+			}
+			FTransform Transform = ObjectAnimComp->SampleAnimWorldTransformBySecond(mProjAnimSampler, mElapsedTime);
+			Ring->SetActorTransform(Transform);
+		}
 	}
 }
 
@@ -63,16 +120,19 @@ void AProjectileAnimActor::Tick(float Delta)
 
 	if (auto ObjectAnimComp = mObjectAnimComp.lock())
 	{
-		mElapsedTime = fmodf(mElapsedTime, ObjectAnimComp->GetDuration());
+		if (mElapsedTime > ObjectAnimComp->GetDuration())
+		{
+			mElapsedTime = 0;
+
+			mProjs[0] = GetWorld()->SpawnActor<AProjectile>();
+			mProjs[1] = GetWorld()->SpawnActor<AProjectile>();
+			mProjs[2] = GetWorld()->SpawnActor<AProjectile>();
+		}
 
 		for (int i = 0; i < 3; ++i)
 		{
 			if (auto Proj = mProjs[i].lock())
 			{
-				if (mElapsedTime > 0.5f)
-				{
-					float a = mElapsedTime;
-				}
 				FTransform Transform = ObjectAnimComp->SampleAnimWorldTransformBySecond(mProjAnimSamplers[i], mElapsedTime);
 				Proj->SetActorTransform(Transform);
 			}

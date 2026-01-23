@@ -49,4 +49,4 @@ def make_gif(input_path, output_path, start_time, end_time, fps=10, width=480, h
 
 if __name__ == "__main__":
     # 파일 경로와 시간을 확인하세요
-    make_gif("MultiAnim_Blender.mp4", "MultiAnim_Blender.gif", 6.5, 7.5)
+    make_gif("LeftRight_Blender.mp4", "LeftRight_Blender.gif", 0, 1)

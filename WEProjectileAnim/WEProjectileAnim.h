@@ -2,6 +2,7 @@
 
 #include "World/DefaultWorld.h"
 #include "Actor/Actor.h"
+#include "Component/ProjectileMovementComponent.h"
 #include <queue>
 #include <array>
 
@@ -10,16 +11,40 @@ class WStaticMeshComponent;
 class WBoxComponent;
 class FObjectAnimSampler;
 
+class ARing : public AActor
+{
+public:
+	ARing();
+
+private:
+	TWeakPtr<WStaticMeshComponent> mStaticMeshComp;
+};
+
 
 class AProjectile : public AActor
 {
+	typedef AActor Super;
 public:
 	AProjectile();
+
+	virtual void BeginPlay() override;
+
+	virtual void Tick(float Delta) override;
 
 private:
 	TWeakPtr<WStaticMeshComponent> mStaticMeshComp;
 
 	TWeakPtr<WBoxComponent> mBoxCollision;
+
+	TWeakPtr<WProjectileMovementComponent> mProjComp;
+
+	TWeakPtr<ARing> mRing;
+
+	TWeakPtr<WObjectAnimComponent> mObjectAnimComp;
+
+	FObjectAnimSampler* mProjAnimSampler;
+
+	float mElapsedTime = 0;
 };
 
 class AProjectileAnimActor : public AActor
