@@ -42,6 +42,8 @@ AProjectileAnimActor::AProjectileAnimActor()
 		mProjAnimSamplers[1] = ObjectAnimComp->GetObjectAnimSampler("Proj2");
 		mProjAnimSamplers[2] = ObjectAnimComp->GetObjectAnimSampler("Proj3");
 	}
+
+	mTickGroup = ETickGroup::ETG_PostPhysics;
 }
 
 void AProjectileAnimActor::BeginPlay()
@@ -53,9 +55,9 @@ void AProjectileAnimActor::BeginPlay()
 	mProjs[2] = GetWorld()->SpawnActor<AProjectile>();
 }
 
-void AProjectileAnimActor::Tick_PostPhysics(float Delta)
+void AProjectileAnimActor::Tick(float Delta)
 {
-	Super::Tick_PostPhysics(Delta);
+	Super::Tick(Delta);
 
 	mElapsedTime += Delta;
 
@@ -78,8 +80,10 @@ void AProjectileAnimActor::Tick_PostPhysics(float Delta)
 	}
 }
 
-WProjectileAnimWorld::WProjectileAnimWorld()
+void WProjectileAnimWorld::BeginPlay()
 {
+	Super::BeginPlay();
+
 	int Num = 1000;
 	for (int i = 0; i < Num; ++i)
 	{

@@ -1,9 +1,14 @@
 #include "MovementComponent.h"
 #include "GameFramework/Object/Actor/Actor.h"
 
-void WMovementComponent::TickComponent_PrePhysics(float DeltaTime)
+WMovementComponent::WMovementComponent()
 {
-	Super::TickComponent_PrePhysics(DeltaTime);
+	mTickGroup = ETickGroup::ETG_PrePhysics;
+}
+
+void WMovementComponent::TickComponent(float DeltaTime)
+{
+	Super::TickComponent(DeltaTime);
 
 	// 프레임마다 Owner를 이동시킴
 	if (auto Owner = GetOwner().lock())

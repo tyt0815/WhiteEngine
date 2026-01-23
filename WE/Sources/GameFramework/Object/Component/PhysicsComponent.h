@@ -70,4 +70,8 @@ protected:
 
 private:
 	TUniquePtr<FPhysicsBody> mBody;
+
+	int mPhysicsCompQueueId = -1;
+
+	friend class WWorld;
 };

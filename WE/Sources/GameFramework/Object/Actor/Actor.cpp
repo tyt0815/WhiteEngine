@@ -11,39 +11,8 @@ AActor::AActor()
 
 void AActor::BeginPlay()
 {
+	Activate();
 	BeginComponents();
-}
-
-void AActor::Tick_PrePhysics(float Delta)
-{
-	TickComponents_PrePhysics(Delta);
-}
-
-void AActor::Tick_PostPhysics(float Delta)
-{
-	TickComponents_PostPhysics(Delta);
-}
-
-void AActor::UpdateComponentsToPhysics()
-{
-	for (auto& CompWeak : mAllPhysicsComponents)
-	{
-		if (auto Comp = CompWeak.lock())
-		{
-			Comp->UpdateToPhysics();
-		}
-	}
-}
-
-void AActor::UpdateComponentsFromPhysics()
-{
-	for (auto& CompWeak : mAllPhysicsComponents)
-	{
-		if (auto Comp = CompWeak.lock())
-		{
-			Comp->UpdateFromPhysics();
-		}
-	}
 }
 
 void AActor::SetRootComponent(TWeakPtr<WSceneComponent> Component)
@@ -124,8 +93,19 @@ void AActor::Deactivate()
 	GetWorld()->DeactivateActor(this);
 }
 
+void AActor::OnDestroy()
+{
+	Deactivate();
+
+	for (auto Comp : mAllComponents)
+	{
+		Comp->OnDestroy();
+	}
+}
+
 void AActor::OnActivate()
 {
+	GetWorld()->EnqueueActorTick(this);
 	for (auto& Comp : mAllComponents)
 	{
 		Comp->OnActivate();
@@ -134,6 +114,7 @@ void AActor::OnActivate()
 
 void AActor::OnDeactivate()
 {
+	GetWorld()->DequeueActorTick(this);
 	for (auto& Comp : mAllComponents)
 	{
 		Comp->OnDeactivate();
@@ -154,21 +135,5 @@ void AActor::BeginComponents()
 	{
 		mAllComponents[i]->SetOwner(GetWeakPtr());
 		mAllComponents[i]->BeginComponent();
-	}
-}
-
-void AActor::TickComponents_PrePhysics(float Delta)
-{
-	for (int i = 0; i < mAllComponents.size(); ++i)
-	{
-		mAllComponents[i]->TickComponent_PrePhysics(Delta);
-	}
-}
-
-void AActor::TickComponents_PostPhysics(float Delta)
-{
-	for (int i = 0; i < mAllComponents.size(); ++i)
-	{
-		mAllComponents[i]->TickComponent_PostPhysics(Delta);
 	}
 }

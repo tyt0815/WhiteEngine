@@ -5,8 +5,9 @@
 #include "../Pawn/GhostCameraPawn.h"
 #include "GUI/GUICore.h"
 
-WDefaultWorld::WDefaultWorld()
+void WDefaultWorld::BeginPlay()
 {
+	Super::BeginPlay();
 	auto Player = SpawnActor<AGhostCameraPawn>();
 	SetPlayer(Player);
 
@@ -16,9 +17,4 @@ WDefaultWorld::WDefaultWorld()
 
 	auto Floor = SpawnActor<AFloor>().lock();
 	Floor->SetActorLocation(XMFLOAT3(0.0f, -5.0f, 0.0f));
-}
-
-void WDefaultWorld::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 }

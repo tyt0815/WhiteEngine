@@ -1,10 +1,6 @@
 #include "Pawn.h"
 #include "Utility/Timer.h"
 
-void APawn::Tick_PrePhysics(float Delta)
-{
-}
-
 void APawn::AddMovementInput(const XMFLOAT3& WorldDirection, float ScaleValue)
 {
 	ScaleValue *= mMoveSpeed;

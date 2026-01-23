@@ -172,11 +172,6 @@ void ARingProjectile::BeginPlay()
 	}
 }
 
-void ARingProjectile::Tick_PostPhysics(float Delta)
-{
-	Super::Tick_PostPhysics(Delta);
-}
-
 void ARingProjectile::OnOverlapEvent(TWeakPtr<WPhysicsComponent> Other, XMFLOAT3 ImpactPoint)
 {
 	if (Other.expired())
@@ -214,11 +209,12 @@ ASpiralBulletSpawner::ASpiralBulletSpawner()
 		Spline->LoadSplineFromAsset(L"SDA_Spiral");
 	}
 	
+	mTickGroup = ETickGroup::ETG_PostPhysics;
 }
 
-void ASpiralBulletSpawner::Tick_PostPhysics(float Delta)
+void ASpiralBulletSpawner::Tick(float Delta)
 {
-	ASplineBulletSpawner::Tick_PostPhysics(Delta);
+	ASplineBulletSpawner::Tick(Delta);
 
 	mCoolDown -= Delta;
 
@@ -279,11 +275,13 @@ AWaveBulletSpanwer::AWaveBulletSpanwer()
 			Spline->SetLocalRotation(XMFLOAT3(RotationOffset.x * v, RotationOffset.y * v, RotationOffset.z * v));
 		}
 	}
+
+	mTickGroup = ETickGroup::ETG_PostPhysics;
 }
 
-void AWaveBulletSpanwer::Tick_PostPhysics(float Delta)
+void AWaveBulletSpanwer::Tick(float Delta)
 {
-	Super::Tick_PostPhysics(Delta);
+	Super::Tick(Delta);
 
 	mCoolDown -= Delta;
 	if (mCoolDown <= 0)
@@ -371,11 +369,13 @@ ARingProjectileSpawner::ARingProjectileSpawner()
 		Spline->SetupAttachment(GetRootComponent());
 		Spline->LoadSplineFromAsset(L"SDA_RingPath");
 	}
+
+	mTickGroup = ETickGroup::ETG_PostPhysics;
 }
 
-void ARingProjectileSpawner::Tick_PostPhysics(float Delta)
+void ARingProjectileSpawner::Tick(float Delta)
 {
-	Super::Tick_PostPhysics(Delta);
+	Super::Tick(Delta);
 
 	mCoolDown -= Delta;
 

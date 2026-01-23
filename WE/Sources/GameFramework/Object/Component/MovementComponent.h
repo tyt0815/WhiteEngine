@@ -5,7 +5,9 @@ class WMovementComponent : public WActorComponent
 {
 	typedef WActorComponent Super;
 public:
-	virtual void TickComponent_PrePhysics(float DeltaTime) override;
+	WMovementComponent();
+
+	virtual void TickComponent(float DeltaTime) override;
 
 public:
 	XMFLOAT3 mVelocity = { 0, 0, 0 };

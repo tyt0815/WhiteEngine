@@ -2,8 +2,11 @@
 
 #include "Pawn/Pawn.h"
 #include "GameFramework/RenderItemProxy.h"
+#include "TickGroup.h"
 #include "Utility/Container.h"
 #include "Utility/Class.h"
+
+#include <array>
 
 class WPhysicsComponent;
 
@@ -46,10 +49,24 @@ public:
 
 	void DeactivateActor(AActor* Actor);
 
+	void EnqueueComponentTick(WActorComponent* ActorComp);
+
+	void EnqueueActorTick(AActor* Actor);
+
+	void DequeueComponentTick(WActorComponent* ActorComp);
+
+	void DequeueActorTick(AActor* Actor);
+
+	void EnqueuePhysicsComponent(WPhysicsComponent* PhysicsComp);
+
+	void DequeuePhysicsComponent(WPhysicsComponent* PhysicsComp);
+
 private:
 	void FlushDestroyQueue();
 
 	TArray<TSharedPtr<AActor>> mAllActors;
+
+	TArray<AActor*> mActiveActorQueue;
 
 	std::vector<FContactInfo> mOnBeginOverlapEventQueue;
 
@@ -57,12 +74,20 @@ private:
 
 	std::vector<TSharedPtr<AActor>> DestroyQueue;
 
-	std::vector<AActor*> mActiveActorQueue;
+	std::array<std::vector<AActor*>, ETickGroup::ETG_None> mActorTickGroups;
+
+	std::array<std::vector<WActorComponent*>, ETickGroup::ETG_None> mActorComponentTickGroups;
+
+	std::vector<WPhysicsComponent*> mPhysicsComponentQueue;
 
 	TWeakPtr<APawn> mPlayer;
 
 	std::mutex mEventQueueMutex;
 
+
+	/// <summary>
+	/// Profiling Data
+	/// </summary>
 	double mTime_Tick_PrePhysics;
 	double mTime_Update_Physics;
 	double mTime_Physics_Event;
@@ -120,25 +145,23 @@ public:
 	}
 };
 
-extern WWorld* gWorld;
+extern WWorld* g_World;
 
 inline WWorld* GetWorld()
 {
-	return gWorld;
+	return g_World;
 }
 
 template<typename T>
 inline TWeakPtr<T> WWorld::SpawnActor()
 {
 	TSharedPtr<T> Actor = MakeShared<T>();
-	UINT64 ActorId = mAllActors.size();
+	int ActorId = (int)mAllActors.size();
 	mAllActors.emplace_back(Actor);
 	
 
-	Actor->mWorld = this;
 	Actor->mActorId = ActorId;
 	Actor->BeginPlay();
-	Actor->Activate();
 
 	return TWeakPtr<T>(Actor);
 }

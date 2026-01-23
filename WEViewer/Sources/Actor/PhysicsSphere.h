@@ -14,8 +14,6 @@ public:
 
 	virtual void BeginPlay() override;
 
-	virtual void Tick_PrePhysics(float DeltaTiem) override;
-
 	
 
 private:

@@ -1,9 +1,9 @@
 #include "ProjectileMovementComponent.h"
 #include "GameFramework/Object/Actor/Actor.h"
 
-void WProjectileMovementComponent::TickComponent_PrePhysics(float DeltaTime)
+void WProjectileMovementComponent::TickComponent(float DeltaTime)
 {
-	Super::TickComponent_PrePhysics(DeltaTime);
+	Super::TickComponent(DeltaTime);
 
 	mLifeTimeElapsed += DeltaTime;
 	if (mLifeSpan > 0 && mLifeTimeElapsed > mLifeSpan)

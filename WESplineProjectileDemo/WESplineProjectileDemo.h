@@ -65,8 +65,6 @@ public:
 
 	virtual void BeginPlay() override;
 
-	virtual void Tick_PostPhysics(float Delta) override;
-
 private:
 	void OnOverlapEvent(TWeakPtr<WPhysicsComponent> Other, XMFLOAT3 ImpactPoint);
 
@@ -99,7 +97,7 @@ class ASpiralBulletSpawner : public ASplineBulletSpawner
 public:
 	ASpiralBulletSpawner();
 
-	virtual void Tick_PostPhysics(float Delta) override;
+	virtual void Tick(float Delta) override;
 
 private:
 	FSplineBullet mSplineBullet;
@@ -114,7 +112,7 @@ class AWaveBulletSpanwer : public ASplineBulletSpawner
 public:
 	AWaveBulletSpanwer();
 
-	virtual void Tick_PostPhysics(float Delta) override;
+	virtual void Tick(float Delta) override;
 
 public:
 	std::vector<TWeakPtr<WSplineComponent>> GetSplines() const;
@@ -134,7 +132,7 @@ class ARingProjectileSpawner : public AActor
 public:
 	ARingProjectileSpawner();
 
-	virtual void Tick_PostPhysics(float Delta) override;
+	virtual void Tick(float Delta) override;
 
 private:
 	TWeakPtr<WSplineComponent> mSpline;

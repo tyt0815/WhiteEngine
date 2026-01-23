@@ -1,4 +1,5 @@
 #include "PhysicsComponent.h"
+#include "World/World.h"
 
 WPhysicsComponent::WPhysicsComponent() :
 	mBody(std::make_unique<FPhysicsBody>(this))
@@ -22,6 +23,7 @@ void WPhysicsComponent::BeginComponent()
 
 void WPhysicsComponent::OnActivate()
 {
+	GetWorld()->EnqueuePhysicsComponent(this);
 	if (mbPhysicSimulate)
 	{
 		if (mBody->IsValid())
@@ -33,6 +35,7 @@ void WPhysicsComponent::OnActivate()
 
 void WPhysicsComponent::OnDeactivate()
 {
+	GetWorld()->DequeuePhysicsComponent(this);
 	if (mBody->IsValid())
 	{
 		mBody->Deactivate();

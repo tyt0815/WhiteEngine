@@ -6,11 +6,11 @@
 #include "Utility/Timer.h"
 #include "Component/CameraComponent.h"
 
-WWorld* gWorld;
+WWorld* g_World;
 
 WWorld::WWorld()
 {
-	gWorld = this;
+	g_World = this;
 }
 
 WWorld::~WWorld()
@@ -44,22 +44,26 @@ void WWorld::BeginPlay()
 void WWorld::Tick(float Delta)
 {
 	FTimer Timer;
-	for (auto& Actor : mActiveActorQueue)
+
+	for (AActor* Actor : mActorTickGroups[ETickGroup::ETG_PrePhysics])
 	{
-		// Tick Component 가 포함되어 있음
-		Actor->Tick_PrePhysics(Delta);
+		Actor->Tick(Delta);
+	}
+	for (WActorComponent* Comp : mActorComponentTickGroups[ETickGroup::ETG_PrePhysics])
+	{
+		Comp->TickComponent(Delta);
 	}
 	Timer.Tick();
 	mTime_Tick_PrePhysics = Timer.GetDeltaTime();
 
-	for (auto& Actor : mActiveActorQueue)
+	for (WPhysicsComponent* Comp : mPhysicsComponentQueue)
 	{
-		Actor->UpdateComponentsToPhysics();
+		Comp->UpdateToPhysics();
 	}
 	Physics::Tick(Delta);
-	for (auto& Actor : mActiveActorQueue)
+	for (WPhysicsComponent* Comp : mPhysicsComponentQueue)
 	{
-		Actor->UpdateComponentsFromPhysics();
+		Comp->UpdateFromPhysics();
 	}
 	Timer.Tick();
 	mTime_Update_Physics = Timer.GetDeltaTime();
@@ -95,10 +99,13 @@ void WWorld::Tick(float Delta)
 	Timer.Tick();
 	mTime_Physics_Event = Timer.GetDeltaTime();
 
-	for (auto& Actor : mActiveActorQueue)
+	for (AActor* Actor : mActorTickGroups[ETickGroup::ETG_PostPhysics])
 	{
-		// Tick Component 가 포함되어 있음
-		Actor->Tick_PostPhysics(Delta);
+		Actor->Tick(Delta);
+	}
+	for (WActorComponent* Comp : mActorComponentTickGroups[ETickGroup::ETG_PostPhysics])
+	{
+		Comp->TickComponent(Delta);
 	}
 	Timer.Tick();
 	mTime_Tick_PostPhysics = Timer.GetDeltaTime();
@@ -182,7 +189,7 @@ void WWorld::ActivateActor(AActor* Actor)
 	if (!Actor->IsActivated())
 	{
 		mActiveActorQueue.emplace_back(Actor);
-		Actor->mTickQueueId = mActiveActorQueue.size() - 1;
+		Actor->mActiveActorQueueId = (int)mActiveActorQueue.size() - 1;
 		Actor->OnActivate();
 	}
 }
@@ -191,64 +198,100 @@ void WWorld::DeactivateActor(AActor* Actor)
 {
 	if (Actor->IsActivated())
 	{
-		INT64 Id = Actor->mTickQueueId;
+		int Id = Actor->mActiveActorQueueId;
 		mActiveActorQueue[Id] = std::move(mActiveActorQueue.back());
-		mActiveActorQueue[Id]->mTickQueueId = Id;
+		mActiveActorQueue[Id]->mActiveActorQueueId = Id;
 		mActiveActorQueue.pop_back();
-		Actor->mTickQueueId = -1;
+		Actor->mActiveActorQueueId = -1;
 		Actor->OnDeactivate();
 	}
 }
 
+void WWorld::EnqueueComponentTick(WActorComponent* ActorComp)
+{
+	if (!ActorComp || ActorComp->mTickGroup == ETickGroup::ETG_None || ActorComp->mTickQueueId >= 0)
+	{
+		return;
+	}
+
+	std::vector<WActorComponent*>& TickGroup = mActorComponentTickGroups[ActorComp->mTickGroup];
+	ActorComp->mTickQueueId = (int)TickGroup.size();
+	TickGroup.push_back(ActorComp);
+}
+
+void WWorld::EnqueueActorTick(AActor* Actor)
+{
+	if (!Actor || Actor->mTickGroup == ETickGroup::ETG_None || Actor->mTickQueueId >= 0)
+	{
+		return;
+	}
+
+	std::vector<AActor*>& TickGroup = mActorTickGroups[Actor->mTickGroup];
+	Actor->mTickQueueId = (int)TickGroup.size();
+	TickGroup.push_back(Actor);
+}
+
+void WWorld::DequeueComponentTick(WActorComponent* ActorComp)
+{
+	if (!ActorComp || ActorComp->mTickGroup == ETickGroup::ETG_None || ActorComp->mTickQueueId < 0)
+	{
+		return;
+	}
+
+	int i = ActorComp->mTickQueueId;
+	std::vector<WActorComponent*>& TickGroup = mActorComponentTickGroups[ActorComp->mTickGroup];
+	TickGroup[i] = std::move(TickGroup.back());
+	TickGroup[i]->mTickQueueId = i;
+	TickGroup.pop_back();
+}
+
+void WWorld::DequeueActorTick(AActor* Actor)
+{
+	if (!Actor || Actor->mTickGroup == ETickGroup::ETG_None || Actor->mTickQueueId < 0)
+	{
+		return;
+	}
+
+	int i = Actor->mTickQueueId;
+	std::vector<AActor*>& TickGroup = mActorTickGroups[Actor->mTickGroup];
+	TickGroup[i] = std::move(TickGroup.back());
+	TickGroup[i]->mTickQueueId = i;
+	TickGroup.pop_back();
+}
+
+void WWorld::EnqueuePhysicsComponent(WPhysicsComponent* PhysicsComp)
+{
+	if (!PhysicsComp || PhysicsComp->mPhysicsCompQueueId >= 0)
+	{
+		return;
+	}
+
+	PhysicsComp->mPhysicsCompQueueId = (int)mPhysicsComponentQueue.size();
+	mPhysicsComponentQueue.push_back(PhysicsComp);
+}
+
+void WWorld::DequeuePhysicsComponent(WPhysicsComponent* PhysicsComp)
+{
+	if (!PhysicsComp || PhysicsComp->mPhysicsCompQueueId < 0)
+	{
+		return;
+	}
+
+	int i = PhysicsComp->mPhysicsCompQueueId;
+	mPhysicsComponentQueue[i] = std::move(mPhysicsComponentQueue.back());
+	mPhysicsComponentQueue[i]->mPhysicsCompQueueId = i;
+	mPhysicsComponentQueue.pop_back();
+}
+
 void WWorld::FlushDestroyQueue()
 {
-	bool bLoop = false;
-	float Time = 0;
-	FTimer Timer;
 	for (auto Actor : DestroyQueue)
 	{
-		bLoop = true;
-		DeactivateActor(Actor.get());
-		UINT64 Id = Actor->mActorId;
+		Actor->OnDestroy();
+		int Id = Actor->mActorId;
 		mAllActors[Id] = std::move(mAllActors.back());
 		mAllActors[Id]->mActorId = Id;
 		mAllActors.pop_back();
 	}
 	DestroyQueue.clear();
-
-	Timer.Tick();
-	if (bLoop)
-	{
-		double Time = Timer.GetDeltaTime();
-
-		GUI::FDrawCommand Command;
-		Command.LifeSpan = 2;
-		Command.DrawLambda = [=]()
-		{
-			ImGui::SetNextWindowPos(ImVec2(1300, 0), ImGuiCond_Always);
-			ImGui::SetNextWindowSize(ImVec2(300, 0));
-
-			ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_NoDecoration |
-				ImGuiWindowFlags_AlwaysAutoResize |
-				ImGuiWindowFlags_NoSavedSettings |
-				ImGuiWindowFlags_NoFocusOnAppearing |
-				ImGuiWindowFlags_NoNav |
-				ImGuiWindowFlags_NoMove;
-
-			ImGui::SetNextWindowBgAlpha(1.0f);
-
-			if (ImGui::Begin("Destroying", nullptr, WindowFlags))
-			{
-
-				ImGui::TextColored(ImVec4(0, 1, 1, 1), "Destroying Time");
-				ImGui::Separator();
-
-				ImGui::Text("%.8f", Time);
-			}
-			ImGui::End();
-		};
-
-		GUI::AddDrawCommand(Command);
-	}
-
 }

@@ -25,11 +25,6 @@ void APhysicsSphere::BeginPlay()
 	mSphereComp.lock()->mOnHitDelegate.Bind(this, &APhysicsSphere::OnHit);
 }
 
-void APhysicsSphere::Tick_PrePhysics(float DeltaTiem)
-{
-	Super::Tick_PrePhysics(DeltaTiem);
-}
-
 void APhysicsSphere::OnHit(TWeakPtr<WPhysicsComponent> Other, XMFLOAT3 ImpactPoint)
 {
 	Destroy();

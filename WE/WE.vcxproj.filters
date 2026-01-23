@@ -487,6 +487,9 @@
     <ClInclude Include="Sources\Asset\ObjectAnimDataAsset.h">
       <Filter>Sources\Asset</Filter>
     </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\TickGroup.h">
+      <Filter>Sources\GameFramework\Object</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\BillboardCommon.hlsli">

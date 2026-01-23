@@ -30,7 +30,7 @@ public:
 
 	virtual void BeginPlay() override;
 
-	virtual void Tick_PostPhysics(float Delta) override;
+	virtual void Tick(float Delta) override;
 
 private:
 	TWeakPtr<WObjectAnimComponent> mObjectAnimComp;
@@ -58,7 +58,7 @@ class WProjectileAnimWorld : public WDefaultWorld
 {
 	typedef WDefaultWorld Super;
 public:
-	WProjectileAnimWorld();
+	virtual void BeginPlay() override;
 
 private	:
 	float mElapsedTime = 0;

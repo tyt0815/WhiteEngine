@@ -5,16 +5,18 @@
 #include "Utility/Class.h"
 #include "Utility/Container.h"
 #include "Physics/PhysicsCore.h"
+#include "TickGroup.h"
 
 #include <d3d12.h>
 #include <memory>
 
 extern const int gFrameResourcesNum;
 
+extern WWorld* g_World;
+
 class FMeshGeometry;
 class FMaterial;
 class WCameraComponent;
-
 
 class AActor : public std::enable_shared_from_this<AActor>
 {
@@ -25,13 +27,7 @@ public:
 
 	virtual void BeginPlay();
 
-	virtual void Tick_PrePhysics(float Delta);
-
-	virtual void Tick_PostPhysics(float Delta);
-
-	void UpdateComponentsToPhysics();
-
-	void UpdateComponentsFromPhysics();
+	virtual void Tick(float Delta) {};
 
 	template<typename T>
 	TWeakPtr<T> CreateComponent();
@@ -53,18 +49,18 @@ public:
 	void Deactivate();
 
 protected:
+	virtual void OnDestroy();
+
 	virtual void OnActivate();
 
 	virtual void OnDeactivate();
+
+	ETickGroup::ETickGroup mTickGroup = ETickGroup::ETG_None;
 
 private:
 	void UpdateRecursive();
 
 	void BeginComponents();
-
-	void TickComponents_PrePhysics(float Delta);
-
-	void TickComponents_PostPhysics(float Delta);
 
 	TArray<TSharedPtr<WActorComponent>> mAllComponents;
 
@@ -76,11 +72,11 @@ private:
 
 	TWeakPtr<WSceneComponent> mRootComponent;
 
-	WWorld* mWorld;
+	int mActorId = -1;
 
-	UINT64 mActorId = -1;
+	int mActiveActorQueueId = -1;
 
-	INT64 mTickQueueId = -1;
+	int mTickQueueId = -1;
 
 	bool mbPendingKill = false;
 
@@ -138,7 +134,7 @@ public:
 
 	__forceinline WWorld* GetWorld() const
 	{
-		return mWorld;
+		return g_World;
 	}
 
 	__forceinline bool IsPendingKill() const
@@ -148,7 +144,7 @@ public:
 
 	__forceinline bool IsActivated() const
 	{
-		return mTickQueueId >= 0;
+		return mActiveActorQueueId >= 0;
 	}
 
 	friend class WWorld;
@@ -174,6 +170,8 @@ __forceinline TWeakPtr<T> AActor::CreateComponent()
 	{
 		mAllNoneSceneComponent.emplace_back(CompT);
 	}
+
+	
 	
 	return TWeakPtr<T>(CompT);
 }

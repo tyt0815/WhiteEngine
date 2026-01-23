@@ -5,7 +5,7 @@ class WProjectileMovementComponent : public WMovementComponent
 {
 	typedef WMovementComponent Super;
 public:
-	virtual void TickComponent_PrePhysics(float DeltaTime) override;
+	virtual void TickComponent(float DeltaTime) override;
 
 protected:
 	// 투사체 수명. 0일시 영구 지속
