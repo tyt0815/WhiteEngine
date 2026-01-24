@@ -42,10 +42,16 @@ void WPhysicsComponent::OnDeactivate()
 	}
 }
 
+void WPhysicsComponent::OnSetTransform()
+{
+	Super::OnSetTransform();
+}
+
 void WPhysicsComponent::UpdateToPhysics()
 {
 	if (mbPhysicSimulate && mMotionType != EMotionType::Static)
 	{
+
 		mBody->SetTransform(GetWorldTransform());
 	}
 }
@@ -54,8 +60,10 @@ void WPhysicsComponent::UpdateFromPhysics()
 {
 	if (mbPhysicSimulate && mMotionType != EMotionType::Static)
 	{
-		
-		SetWorldTransform(mBody->GetTransform());
+		FTransform Transform = GetWorldTransform();
+		Transform.Translation = mBody->GetLocation();
+		Transform.Rotation = mBody->GetRotation();
+		SetWorldTransform(Transform);
 	}
 }
 
@@ -102,7 +110,7 @@ void WPhysicsComponent::SetObjectChannel(EObjectChannel::EObjectChannel ObjectCh
 void WPhysicsComponent::CreatePhysicsBody()
 {
 	JPH::ShapeRefC Shape = CreatePhysicsShape();
-	JPH::BodyCreationSettings Settings = JPH::BodyCreationSettings(Shape, JPH::RVec3(), JPH::Quat::sIdentity(), mMotionType, mObjectChannel;
+	JPH::BodyCreationSettings Settings = JPH::BodyCreationSettings(Shape, JPH::RVec3(), JPH::Quat::sIdentity(), mMotionType, mObjectChannel);
 	Settings.mIsSensor = mbGenerateOverlapEvent;
 	mBody->CreateBody(Settings);
 }

@@ -2,7 +2,7 @@
 
 void WSceneComponent::UpdateWorldMatrix()
 {
-	if (mbDirty)
+	if (mbWorldFloat4x4Dirty)
 	{
 		XMMATRIX L = mTransform.GetTransformMatrix(); // 내 로컬 행렬
 		XMMATRIX W;
@@ -21,36 +21,36 @@ void WSceneComponent::UpdateWorldMatrix()
 
 		// 결과 저장 및 역행렬 미리 계산
 		XMMATRIX InvW = FDXMath::GetInverseMatrix(W);
-		XMStoreFloat4x4(&mWorld, W);
-		XMStoreFloat4x4(&mInvWorld, InvW);
+		XMStoreFloat4x4(&mWorldFloat4x4, W);
+		XMStoreFloat4x4(&mInvWorldFloat4x4, InvW);
 
-		mbDirty = false;
+		mbWorldFloat4x4Dirty = false;
 	}
 }
 
 DirectX::XMFLOAT4X4 WSceneComponent::GetWorldFloat4x4()
 {
 	UpdateWorldMatrix();
-	return mWorld;
+	return mWorldFloat4x4;
 }
 
 DirectX::XMFLOAT4X4 WSceneComponent::GetInverseWorldFloat4x4()
 {
 	UpdateWorldMatrix();
-	return mInvWorld;
+	return mInvWorldFloat4x4;
 }
 
 DirectX::XMMATRIX XM_CALLCONV WSceneComponent::GetWorldMatrix()
 {
 	UpdateWorldMatrix();
-	DirectX::XMMATRIX M = XMLoadFloat4x4(&mWorld);
+	DirectX::XMMATRIX M = XMLoadFloat4x4(&mWorldFloat4x4);
 	return M;
 }
 
 DirectX::XMMATRIX XM_CALLCONV WSceneComponent::GetInverseWorldMatrix()
 {
 	UpdateWorldMatrix();
-	DirectX::XMMATRIX M = XMLoadFloat4x4(&mInvWorld);
+	DirectX::XMMATRIX M = XMLoadFloat4x4(&mInvWorldFloat4x4);
 	return M;
 }
 
@@ -145,29 +145,28 @@ void WSceneComponent::SetLocalRotation(DirectX::XMFLOAT3 Rotation)
 	mTransform.Rotation.y = fmodf(mTransform.Rotation.y, 360.0f);	
 	mTransform.Rotation.z = fmodf(mTransform.Rotation.z, 360.0f);
 	
-
-	PropagateWorldMatrixDirty();
+	OnSetTransform();
 }
 
 void WSceneComponent::SetLocalTransform(const FTransform& Transform)
 {
 	mTransform = Transform;
 
-	PropagateWorldMatrixDirty();
+	OnSetTransform();
 }
 
 void WSceneComponent::SetLocalLocation(DirectX::XMFLOAT3 Location)
 {
 	mTransform.Translation = Location;
 
-	PropagateWorldMatrixDirty();
+	OnSetTransform();
 }
 
 void WSceneComponent::SetLocalScale(DirectX::XMFLOAT3 Scale)
 {
 	mTransform.Scale = Scale;
 
-	PropagateWorldMatrixDirty();
+	OnSetTransform();
 }
 
 void WSceneComponent::SetWorldTransform(FTransform Transform)
@@ -195,26 +194,26 @@ void WSceneComponent::SetWorldTransform(FTransform Transform)
 	}
 }
 
-void WSceneComponent::PropagateWorldMatrixDirty()
+void WSceneComponent::Update()
+{
+	
+}
+
+void WSceneComponent::OnSetTransform()
 {
 	// 최적화: 내가 이미 Dirty라면 내 자식들도 이미 Dirty일 것이므로 중복 전파 중단
-	if (mbDirty)
+	if (mbWorldFloat4x4Dirty)
 	{
 		return;
 	}
 
-	mbDirty = true;
+	mbWorldFloat4x4Dirty = true;
 	for (TWeakPtr<WSceneComponent> ChildWeak : mChilds)
 	{
 		// 핵심: 나(this)가 아니라 Child의 함수를 호출해야 함
 		if (auto Child = ChildWeak.lock())
 		{
-			Child->PropagateWorldMatrixDirty();
+			Child->OnSetTransform();
 		}
 	}
-}
-
-void WSceneComponent::Update()
-{
-	
 }

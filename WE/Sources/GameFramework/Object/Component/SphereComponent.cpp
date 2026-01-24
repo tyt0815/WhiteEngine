@@ -3,14 +3,12 @@
 
 using namespace JPH;
 
-JPH::BodyCreationSettings WSphereComponent::CreatePhysicsBodySettings()
+JPH::ShapeRefC WSphereComponent::CreatePhysicsShape()
 {
 	SphereShapeSettings SphereSettings(mRadius);
 	SphereSettings.SetEmbedded();
 	ShapeSettings::ShapeResult ShapeResult = SphereSettings.Create();
-	ShapeRefC Shape = ShapeResult.Get();
-
-	return JPH::BodyCreationSettings(Shape, RVec3(), Quat::sIdentity(), mMotionType, mObjectChannel);
+	return ShapeResult.Get();
 }
 
 void WSphereComponent::SetRadius(float Value)

@@ -46,18 +46,20 @@ public:
 
 	void SetWorldTransform(FTransform Transform);
 
-	void PropagateWorldMatrixDirty();
-
 protected:
 	virtual void Update();
-	bool mbDirty = true;
+
+	virtual void OnSetTransform();
+
+	bool mbWorldFloat4x4Dirty = true;
 
 private:
+
 	FTransform mTransform;
 
-	DirectX::XMFLOAT4X4 mWorld;
+	DirectX::XMFLOAT4X4 mWorldFloat4x4;
 
-	DirectX::XMFLOAT4X4 mInvWorld;
+	DirectX::XMFLOAT4X4 mInvWorldFloat4x4;
 
 	TWeakPtr<WSceneComponent> mParent;
 
@@ -85,6 +87,6 @@ public:
 
 	inline bool IsDirty() const
 	{
-		return mbDirty;
+		return mbWorldFloat4x4Dirty;
 	}
 };

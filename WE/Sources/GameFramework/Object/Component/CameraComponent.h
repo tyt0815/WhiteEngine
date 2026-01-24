@@ -11,6 +11,8 @@ public:
 protected:
 	virtual void Update() override;
 
+	virtual void OnSetTransform() override;
+
 private:
 	void UpdateViewMatrix();
 	void UpdateProjMatrix();
@@ -23,7 +25,8 @@ private:
 	float mNearZ = 1;
 	float mFarZ = 1000;
 	float mAspectRatio = 1;
-	bool mbProjDirty = true;
+	bool mbViewFloat4x4Dirty = true;
+	bool mbProjFloat4x4Dirty = true;
 public:
 	inline DirectX::XMFLOAT4X4 GetViewMatrix() const
 	{
@@ -41,9 +44,4 @@ public:
 	{
 		return mFarZ;
 	}
-
-	//virtual void SetTranslation(XMFLOAT3 Translation) override { Super::SetTranslation(Translation); bDirty = true; }
-	//virtual void RotateX(float Angle) override;
-	//virtual void RotateY(float Angle) override { Super::RotateY(Angle); bDirty = true; }
-	//virtual void RotateZ(float Angle) override { Super::RotateZ(Angle); bDirty = true; }
 };

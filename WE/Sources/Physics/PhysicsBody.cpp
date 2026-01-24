@@ -67,16 +67,14 @@ void FPhysicsBody::SetActivate(bool bActivate)
 		Physics::GetBodyInterface()->DeactivateBody(mBody->GetID());
 }
 
-FTransform FPhysicsBody::GetTransform() const
+XMFLOAT3 FPhysicsBody::GetLocation() const
 {
-	RVec3 Location = Physics::GetBodyInterface()->GetCenterOfMassPosition(mBody->GetID());
-	JPH::Quat QuatRotation = Physics::GetBodyInterface()->GetRotation(mBody->GetID());
+	return ToDXLocation(Physics::GetBodyInterface()->GetCenterOfMassPosition(mBody->GetID()));
+}
 
-	FTransform Transform = FTransform::Default;
-	Transform.Translation = ToDXLocation(Location);
-	Transform.SetRotationByQuat(ToDXQuatRotation(QuatRotation));
-
-	return Transform;
+XMFLOAT3 FPhysicsBody::GetRotation() const
+{
+	return FDXMath::QuaternionToEuler(ToDXQuatRotation(Physics::GetBodyInterface()->GetRotation(mBody->GetID())));
 }
 
 void FPhysicsBody::SetTransform(const FTransform& Transform)

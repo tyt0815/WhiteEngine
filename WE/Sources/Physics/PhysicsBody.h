@@ -30,9 +30,14 @@ public:
 
 	void SetActivate(bool bActivate);
 
-	FTransform GetTransform() const;
+	XMFLOAT3 GetLocation() const;
+
+	XMFLOAT3 GetRotation() const;
 
 	void SetTransform(const FTransform& Transform);
+
+protected:
+
 
 private:
 	FPhysicsBody() = delete;

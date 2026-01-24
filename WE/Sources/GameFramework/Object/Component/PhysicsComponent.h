@@ -36,6 +36,8 @@ protected:
 
 	virtual void OnDeactivate() override;
 
+	virtual void OnSetTransform() override;
+
 public:
 	void UpdateToPhysics();
 

@@ -4,7 +4,7 @@
 class WSphereComponent : public WPhysicsComponent
 {
 protected:
-	virtual JPH::BodyCreationSettings CreatePhysicsBodySettings() override;
+	virtual JPH::ShapeRefC CreatePhysicsShape() override;
 
 public:
 	void SetRadius(float Value);
