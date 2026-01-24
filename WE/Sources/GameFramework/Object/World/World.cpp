@@ -203,10 +203,10 @@ void WWorld::DeactivateActor(AActor* Actor)
 	if (Actor->IsActivated())
 	{
 		int Id = Actor->mActiveActorQueueId;
-		mActiveActorQueue[Id] = std::move(mActiveActorQueue.back());
+		Actor->mActiveActorQueueId = -1;
+		mActiveActorQueue[Id] = mActiveActorQueue.back();
 		mActiveActorQueue[Id]->mActiveActorQueueId = Id;
 		mActiveActorQueue.pop_back();
-		Actor->mActiveActorQueueId = -1;
 		Actor->OnDeactivate();
 	}
 }
@@ -243,8 +243,9 @@ void WWorld::DequeueComponentTick(WActorComponent* ActorComp)
 	}
 
 	int i = ActorComp->mTickQueueId;
+	ActorComp->mTickQueueId = -1;
 	std::vector<WActorComponent*>& TickGroup = mActorComponentTickGroups[ActorComp->mTickGroup];
-	TickGroup[i] = std::move(TickGroup.back());
+	TickGroup[i] = TickGroup.back();
 	TickGroup[i]->mTickQueueId = i;
 	TickGroup.pop_back();
 }
@@ -257,8 +258,9 @@ void WWorld::DequeueActorTick(AActor* Actor)
 	}
 
 	int i = Actor->mTickQueueId;
+	Actor->mTickQueueId = -1;
 	std::vector<AActor*>& TickGroup = mActorTickGroups[Actor->mTickGroup];
-	TickGroup[i] = std::move(TickGroup.back());
+	TickGroup[i] = TickGroup.back();
 	TickGroup[i]->mTickQueueId = i;
 	TickGroup.pop_back();
 }
@@ -282,7 +284,8 @@ void WWorld::DequeuePhysicsComponent(WPhysicsComponent* PhysicsComp)
 	}
 
 	int i = PhysicsComp->mPhysicsCompQueueId;
-	mPhysicsComponentQueue[i] = std::move(mPhysicsComponentQueue.back());
+	PhysicsComp->mPhysicsCompQueueId = -1;
+	mPhysicsComponentQueue[i] = mPhysicsComponentQueue.back();
 	mPhysicsComponentQueue[i]->mPhysicsCompQueueId = i;
 	mPhysicsComponentQueue.pop_back();
 }
@@ -293,7 +296,7 @@ void WWorld::FlushDestroyQueue()
 	{
 		Actor->OnDestroy();
 		int Id = Actor->mActorId;
-		mAllActors[Id] = std::move(mAllActors.back());
+		mAllActors[Id] = mAllActors.back();
 		mAllActors[Id]->mActorId = Id;
 		mAllActors.pop_back();
 	}

@@ -1,5 +1,5 @@
 #include "TestWorld.h"
-#include "Actor/PhysicsSphere.h"
+#include "Actor/TopAttackMissile.h"
 
 void WTestWorld::BeginPlay()
 {
@@ -15,7 +15,7 @@ void WTestWorld::Tick(float DeltaSecond)
 	{
 		if (auto MissileSystem = SpawnActor<AMissileSwarmSystem>().lock())
 		{
-			MissileSystem->Fire<AColdLaunchAnimPlayer, APhysicsSphere>(1, 1);
+			MissileSystem->Fire<AColdLaunchAnimPlayer, ATopAttackMissile>(1, 1);
 			mElapsedTime = 0;
 		}
 	}

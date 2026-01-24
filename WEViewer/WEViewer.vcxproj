@@ -23,6 +23,7 @@
     <ClCompile Include="Sources\Actor\PhysicsSphere.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Sources\Actor\TopAttackMissile.cpp" />
     <ClCompile Include="Sources\Main.cpp" />
     <ClCompile Include="Sources\World\TestWorld.cpp" />
   </ItemGroup>
@@ -37,6 +38,7 @@
     <ClInclude Include="Sources\Actor\PhysicsSphere.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="Sources\Actor\TopAttackMissile.h" />
     <ClInclude Include="Sources\World\TestWorld.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

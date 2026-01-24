@@ -26,6 +26,7 @@ void AColdLaunchAnimPlayer::Tick(float DeltaSecond)
 
 			if (mPlayTime > AnimComp->GetDuration())
 			{
+				mProjectile.reset();
 				Destroy();
 			}
 		}		
