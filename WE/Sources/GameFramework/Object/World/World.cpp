@@ -32,11 +32,11 @@ void WWorld::BeginPlay()
 	{
 		ImGui::TextColored(ImVec4(1, 1, 0, 1), "WWorld::Tick"); // 노란색 제목
 		ImGui::Separator();
-		ImGui::Text("Tick_PrePhysics: %f", mTime_Tick_PrePhysics);
-		ImGui::Text("Update_Physics: %f", mTime_Update_Physics);
-		ImGui::Text("Physics_Event: %f", mTime_Physics_Event);
-		ImGui::Text("Tick_PostPhysics: %f", mTime_Tick_PostPhysics);
-		ImGui::Text("Update_Render_Items: %f", mTime_Update_Render_Items);
+		ImGui::Text("Tick_PrePhysics:     %.3fms",		mProfilingData.Time_Tick_PrePhysics);
+		ImGui::Text("Update_Physics:      %.3fms",		mProfilingData.Time_Update_Physics);
+		ImGui::Text("Physics_Event:       %.3fms",		mProfilingData.Time_Physics_Event);
+		ImGui::Text("Tick_PostPhysics:    %.3fms",		mProfilingData.Time_Tick_PostPhysics);
+		ImGui::Text("Update_Render_Items: %.3fms",	mProfilingData.Time_Update_Render_Items);
 	};
 	GUI::AddProfilingCommand(Command);
 }
@@ -44,6 +44,8 @@ void WWorld::BeginPlay()
 void WWorld::Tick(float Delta)
 {
 	FTimer Timer;
+
+	FProfilingData ProfilingData;
 
 	for (AActor* Actor : mActorTickGroups[ETickGroup::ETG_PrePhysics])
 	{
@@ -54,7 +56,7 @@ void WWorld::Tick(float Delta)
 		Comp->TickComponent(Delta);
 	}
 	Timer.Tick();
-	mTime_Tick_PrePhysics = Timer.GetDeltaTime();
+	ProfilingData.Time_Tick_PrePhysics = Timer.GetDeltaMilliSecond();
 
 	for (WPhysicsComponent* Comp : mPhysicsComponentQueue)
 	{
@@ -66,7 +68,7 @@ void WWorld::Tick(float Delta)
 		Comp->UpdateFromPhysics();
 	}
 	Timer.Tick();
-	mTime_Update_Physics = Timer.GetDeltaTime();
+	ProfilingData.Time_Update_Physics = Timer.GetDeltaMilliSecond();
 
 	{
 		std::lock_guard<std::mutex> Lock(mEventQueueMutex);
@@ -97,7 +99,7 @@ void WWorld::Tick(float Delta)
 		mOnHitEventQueue.clear();
 	}
 	Timer.Tick();
-	mTime_Physics_Event = Timer.GetDeltaTime();
+	ProfilingData.Time_Physics_Event = Timer.GetDeltaMilliSecond();
 
 	for (AActor* Actor : mActorTickGroups[ETickGroup::ETG_PostPhysics])
 	{
@@ -108,7 +110,7 @@ void WWorld::Tick(float Delta)
 		Comp->TickComponent(Delta);
 	}
 	Timer.Tick();
-	mTime_Tick_PostPhysics = Timer.GetDeltaTime();
+	ProfilingData.Time_Tick_PostPhysics = Timer.GetDeltaMilliSecond();
 
 	FlushDestroyQueue();
 
@@ -132,7 +134,9 @@ void WWorld::Tick(float Delta)
 	mRenderItemProxyMetex.unlock();
 	
 	Timer.Tick();
-	mTime_Update_Render_Items = Timer.GetDeltaTime();
+	ProfilingData.Time_Update_Render_Items = Timer.GetDeltaMilliSecond();
+
+	UpdateProfilingData(Delta, ProfilingData);
 }
 
 TWeakPtr<WCameraComponent> WWorld::GetPlayerCamera() const
@@ -295,3 +299,33 @@ void WWorld::FlushDestroyQueue()
 	}
 	DestroyQueue.clear();
 }
+
+void WWorld::UpdateProfilingData(float DeltaSecond, const FProfilingData& Data)
+{
+	static float ElapsedTime = 0;
+	static int CallCount = 0;
+	static FProfilingData AccumulatedData;
+	ElapsedTime += DeltaSecond;
+	++CallCount;
+
+	AccumulatedData.Time_Tick_PrePhysics		+= Data.Time_Tick_PrePhysics;
+	AccumulatedData.Time_Update_Physics			+= Data.Time_Update_Physics;
+	AccumulatedData.Time_Physics_Event			+= Data.Time_Physics_Event;
+	AccumulatedData.Time_Tick_PostPhysics		+= Data.Time_Tick_PostPhysics;
+	AccumulatedData.Time_Update_Render_Items	+= Data.Time_Update_Render_Items;
+
+	if (ElapsedTime > 1)
+	{
+		mProfilingData.Time_Tick_PrePhysics = AccumulatedData.Time_Tick_PrePhysics / CallCount;
+		mProfilingData.Time_Update_Physics = AccumulatedData.Time_Update_Physics / CallCount;
+		mProfilingData.Time_Physics_Event = AccumulatedData.Time_Physics_Event / CallCount;
+		mProfilingData.Time_Tick_PostPhysics = AccumulatedData.Time_Tick_PostPhysics / CallCount;
+		mProfilingData.Time_Update_Render_Items = AccumulatedData.Time_Update_Render_Items / CallCount;
+
+		ElapsedTime = 0;
+		CallCount = 0;
+		ZeroMemory(&AccumulatedData, sizeof(FProfilingData));
+	}	
+}		
+		
+		

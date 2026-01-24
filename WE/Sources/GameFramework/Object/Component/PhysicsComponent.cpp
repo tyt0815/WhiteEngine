@@ -49,9 +49,15 @@ void WPhysicsComponent::OnSetTransform()
 
 void WPhysicsComponent::UpdateToPhysics()
 {
-	if (mbPhysicSimulate && mMotionType != EMotionType::Static)
+	FTransform WorldTransform = GetWorldTransform();
+	if (mbPhysicSimulate && mMotionType != EMotionType::Static && !mLastPhysicsTransform.Equal(WorldTransform))
 	{
+		if (!FDXMath::Equal(mLastPhysicsTransform.Scale, WorldTransform.Scale))
+		{
+			mBody->UpdateShape(CreatePhysicsShape());
+		}
 
+		mLastPhysicsTransform = WorldTransform;
 		mBody->SetTransform(GetWorldTransform());
 	}
 }
@@ -63,7 +69,14 @@ void WPhysicsComponent::UpdateFromPhysics()
 		FTransform Transform = GetWorldTransform();
 		Transform.Translation = mBody->GetLocation();
 		Transform.Rotation = mBody->GetRotation();
-		SetWorldTransform(Transform);
+		Transform.Scale = mLastPhysicsTransform.Scale;
+
+		if (!Transform.Equal(mLastPhysicsTransform))
+		{
+			mLastPhysicsTransform = Transform;
+
+			SetWorldTransform(mLastPhysicsTransform);
+		}
 	}
 }
 

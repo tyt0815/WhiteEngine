@@ -8,8 +8,13 @@ public:
 	WCameraComponent();
 	virtual void SetOwner(TWeakPtr<AActor> Owner) override;
 
+public:
+
+	DirectX::XMFLOAT4X4 GetViewMatrix();
+
+	DirectX::XMFLOAT4X4 GetProjMatrix();
+
 protected:
-	virtual void Update() override;
 
 	virtual void OnSetTransform() override;
 
@@ -21,21 +26,13 @@ private:
 	XMFLOAT3 mRight = {};
 	XMFLOAT3 mUp = {};
 	XMFLOAT3 mLook = {};
-	float mFov = 90;
-	float mNearZ = 1;
-	float mFarZ = 1000;
+	float mFov = 120;
+	float mNearZ = 0.1f;
+	float mFarZ = 1000.0f;
 	float mAspectRatio = 1;
 	bool mbViewFloat4x4Dirty = true;
 	bool mbProjFloat4x4Dirty = true;
 public:
-	inline DirectX::XMFLOAT4X4 GetViewMatrix() const
-	{
-		return mView;
-	}
-	inline DirectX::XMFLOAT4X4 GetProjMatrix() const
-	{
-		return mProj;
-	}
 	inline float GetNearZ() const
 	{
 		return mNearZ;

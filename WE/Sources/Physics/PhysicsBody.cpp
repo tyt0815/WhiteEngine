@@ -28,6 +28,11 @@ void FPhysicsBody::CreateBody(JPH::BodyCreationSettings Settings)
 	Physics::GetBodyInterface()->AddBody(mBody->GetID(), EActivation::Activate);
 }
 
+void FPhysicsBody::UpdateShape(JPH::ShapeRefC Shape)
+{
+	Physics::GetBodyInterface()->SetShape(mBody->GetID(), Shape, false, JPH::EActivation::Activate);
+}
+
 void FPhysicsBody::Activate()
 {
 	if (BodyInterface* BI = Physics::GetBodyInterface())

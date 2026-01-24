@@ -17,11 +17,16 @@ void WCameraComponent::SetOwner(TWeakPtr<AActor> Owner)
 	}
 }
 
-void WCameraComponent::Update()
+DirectX::XMFLOAT4X4 WCameraComponent::GetViewMatrix()
 {
-	Super::Update();
 	UpdateViewMatrix();
+	return mView;
+}
+
+DirectX::XMFLOAT4X4 WCameraComponent::GetProjMatrix()
+{
 	UpdateProjMatrix();
+	return mProj;
 }
 
 void WCameraComponent::OnSetTransform()

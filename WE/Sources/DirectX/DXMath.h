@@ -31,6 +31,8 @@ public:
 	FTransform(XMFLOAT3 Scale, XMFLOAT3 Rotation, XMFLOAT3 Translation);
 	~FTransform() = default;
 
+	bool Equal(const FTransform& Another, float Epsilon = 0.00001f);
+
 	void SetRotationByQuat(XMFLOAT4 QuatRotation);
 
 	XMMATRIX XM_CALLCONV GetScaleMatrix() const;
@@ -164,5 +166,7 @@ public:
 	static XMVECTOR XM_CALLCONV CalculateCubicBezier(FXMVECTOR P0, FXMVECTOR P1, FXMVECTOR P2, GXMVECTOR P3, float t);
 
 	static XMVECTOR XM_CALLCONV CalculateCubicBezierForward(FXMVECTOR P0, FXMVECTOR P1, FXMVECTOR P2, GXMVECTOR P3, float t);
+
+	static bool Equal(const XMFLOAT3& A, const XMFLOAT3& B, float Epsilon = 0.00001f);
 };
 

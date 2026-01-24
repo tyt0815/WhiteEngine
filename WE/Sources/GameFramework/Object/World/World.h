@@ -84,15 +84,17 @@ private:
 
 	std::mutex mEventQueueMutex;
 
+	struct FProfilingData
+	{
+		double Time_Tick_PrePhysics;
+		double Time_Update_Physics;
+		double Time_Physics_Event;
+		double Time_Tick_PostPhysics;
+		double Time_Update_Render_Items;
+	};
+	void UpdateProfilingData(float DeltaSecond, const FProfilingData& Data);
 
-	/// <summary>
-	/// Profiling Data
-	/// </summary>
-	double mTime_Tick_PrePhysics;
-	double mTime_Update_Physics;
-	double mTime_Physics_Event;
-	double mTime_Tick_PostPhysics;
-	double mTime_Update_Render_Items;
+	FProfilingData mProfilingData;
 
 public:
 	FRenderItemProxy mRenderItemProxy;

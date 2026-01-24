@@ -70,6 +70,8 @@ protected:
 
 	bool mbPhysicSimulate = false;
 
+	FTransform mLastPhysicsTransform;
+
 private:
 	TUniquePtr<FPhysicsBody> mBody;
 

@@ -9,7 +9,7 @@ FTimer::FTimer()
 	Reset();
 }
 
-double FTimer::GetTotalTime() const
+double FTimer::GetTotalSecond() const
 {
 	// If we are stopped, do not count the time that has passed since we stopped.
 	// Moreover, if we previously already had a pause, the distance 
@@ -41,7 +41,7 @@ double FTimer::GetTotalTime() const
 	}
 }
 
-double FTimer::GetDeltaTime() const
+double FTimer::GetDeltaSecond() const
 {
 	return DeltaTime;
 }

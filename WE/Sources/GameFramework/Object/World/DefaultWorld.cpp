@@ -17,5 +17,5 @@ void WDefaultWorld::BeginPlay()
 
 	auto Floor = SpawnActor<AFloor>().lock();
 	Floor->SetActorLocation(XMFLOAT3(0.0f, -5.0f, 0.0f));
-	Floor->SetActorScale(XMFLOAT3(10, 1, 10));
+	Floor->SetActorScale(XMFLOAT3(5, 1, 5));
 }

@@ -30,6 +30,23 @@ FTransform::FTransform(XMFLOAT3 InScale, XMFLOAT3 InRotation, XMFLOAT3 InTransla
 {
 }
 
+bool FTransform::Equal(const FTransform& Another, float Epsilon)
+{
+	// XMFLOAT3를 XMVECTOR로 로드
+	XMVECTOR s1 = XMLoadFloat3(&Scale);
+	XMVECTOR r1 = XMLoadFloat3(&Rotation);
+	XMVECTOR t1 = XMLoadFloat3(&Translation);
+
+	XMVECTOR s2 = XMLoadFloat3(&Another.Scale);
+	XMVECTOR r2 = XMLoadFloat3(&Another.Rotation);
+	XMVECTOR t2 = XMLoadFloat3(&Another.Translation);
+
+	// 모든 성분이 거의 일치하는지 확인 (Epsilon 값 조절 가능)
+	return XMVector3NearEqual(s1, s2, XMVectorReplicate(Epsilon)) &&
+		XMVector3NearEqual(r1, r2, XMVectorReplicate(Epsilon)) &&
+		XMVector3NearEqual(t1, t2, XMVectorReplicate(Epsilon));
+}
+
 void FTransform::SetRotationByQuat(XMFLOAT4 QuatRotation)
 {
 	Rotation = FDXMath::QuaternionToEuler(QuatRotation);
@@ -340,4 +357,11 @@ XMVECTOR XM_CALLCONV FDXMath::CalculateCubicBezierForward(FXMVECTOR P0, FXMVECTO
 	tangent = XMVectorAdd(XMVectorScale(T2, b2), tangent);
 
 	return XMVector3Normalize(tangent); // 정규화 필수
+}
+
+bool FDXMath::Equal(const XMFLOAT3& A, const XMFLOAT3& B, float Epsilon)
+{
+	XMVECTOR V1 = XMLoadFloat3(&A);
+	XMVECTOR V2 = XMLoadFloat3(&B);
+	return XMVector3NearEqual(V1, V2, XMVectorReplicate(Epsilon));
 }

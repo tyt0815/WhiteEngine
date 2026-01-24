@@ -16,8 +16,11 @@
 
 HINSTANCE g_hInst;
 
-std::atomic<float> g_TickRate{ 0.0f };
-std::atomic<float> g_FPS{ 0.0f };
+std::atomic<int> g_TickRate{ 0 };
+std::atomic<int> g_FPS{ 0 };
+std::atomic<float> g_GameThreadDeltaMs{ 0.0f };
+std::atomic<float> g_RenderThreadDeltaMs{ 0.0f };
+
 
 FGameApplication::FGameApplication()
 {
@@ -51,8 +54,10 @@ int FGameApplication::Run()
 	Command.LifeSpan = -1;
 	Command.DrawLambda = [&]()
 	{
-		ImGui::TextColored(ImVec4(0, 1, 0, 1), "FPS: %.8f", g_FPS.load()); // 노란색 제목
-		ImGui::TextColored(ImVec4(0, 1, 0, 1), "Tick Rate: %.8f", g_TickRate.load()); // 노란색 제목
+		ImGui::TextColored(ImVec4(0, 1, 0, 1), "FPS: %d", g_FPS.load());
+		ImGui::TextColored(ImVec4(0, 1, 0, 1), "Tick Rate: %d", g_TickRate.load()); 
+		ImGui::TextColored(ImVec4(0, 1, 0, 1), "RenderThread: %.3fms", g_RenderThreadDeltaMs.load());
+		ImGui::TextColored(ImVec4(0, 1, 0, 1), "GameThread: %.3fms", g_GameThreadDeltaMs.load());
 	};
 	GUI::AddProfilingCommand(Command);
 
@@ -74,13 +79,14 @@ void FGameApplication::Thread_GamePlay()
 	while (mbPlaying)
 	{
 		Timer.Tick();
-		float DeltaTime = (float)Timer.GetDeltaTime();
+		float DeltaTime = (float)Timer.GetDeltaSecond();
 
 		TimeElapsed += DeltaTime;
 		++FrameCount;
 		if (TimeElapsed >= 1)
 		{
-			g_TickRate = FrameCount / TimeElapsed;
+			g_TickRate = (int)(FrameCount / TimeElapsed);
+			g_GameThreadDeltaMs = TimeElapsed / (float)FrameCount * 1000.0f;
 			FrameCount = 0;
 			TimeElapsed = 0.0f;
 		}
@@ -110,11 +116,12 @@ void FGameApplication::Thread_Render()
 			Timer.Tick();
 
 
-			TimeElapsed += (float)Timer.GetDeltaTime();
+			TimeElapsed += (float)Timer.GetDeltaSecond();
 			++FrameCount;
 			if (TimeElapsed >= 1)
 			{
-				g_FPS = FrameCount / TimeElapsed;
+				g_FPS = (int)(FrameCount / TimeElapsed);
+				g_RenderThreadDeltaMs = TimeElapsed / (float)FrameCount * 1000.0f;
 				FrameCount = 0;
 				TimeElapsed = 0.0f;
 			}
@@ -124,7 +131,7 @@ void FGameApplication::Thread_Render()
 			mWorld->mRenderItemProxyMetex.unlock();
 			mRenderer->Tick(RIP);
 			
-			double RenderDelta = Timer.GetDeltaTime();
+			double RenderDelta = Timer.GetDeltaSecond();
 
 		}
 	}

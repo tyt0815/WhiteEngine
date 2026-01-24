@@ -26,12 +26,21 @@
     <ClCompile Include="Sources\Actor\PhysicsSphere.cpp">
       <Filter>Sources\Actor</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Actor\ColdLaunchAnimPlayer.cpp">
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\World\TestWorld.h">
       <Filter>Sources\World</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Actor\PhysicsSphere.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\ColdLaunchAnimPlayer.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\MissileSwarmSystem.h">
       <Filter>Sources\Actor</Filter>
     </ClInclude>
   </ItemGroup>

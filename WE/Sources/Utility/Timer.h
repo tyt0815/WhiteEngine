@@ -5,8 +5,8 @@ class FTimer
 public:
 	FTimer();
 
-	double GetTotalTime()const; // in seconds
-	double GetDeltaTime()const; // in seconds
+	double GetTotalSecond()const;
+	double GetDeltaSecond()const;
 
 	void Reset(); // Call before message loop.
 	void Start(); // Call when unpaused.
@@ -24,4 +24,10 @@ private:
 	__int64 TickTime = 0;
 
 	bool bStopped = false;
+
+public:
+	__forceinline double GetDeltaMilliSecond() const
+	{
+		return GetDeltaSecond() * 1000.0f;
+	}
 };

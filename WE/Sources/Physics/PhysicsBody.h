@@ -20,6 +20,8 @@ public:
 public:
 	void CreateBody(JPH::BodyCreationSettings Settings);
 
+	void UpdateShape(JPH::ShapeRefC Shape);
+
 	void Activate();
 
 	void Deactivate();

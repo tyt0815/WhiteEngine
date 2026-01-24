@@ -50,7 +50,7 @@ XMFLOAT3 AActor::GetFowardVector() const
 		XMMatrixRotationZ(XMConvertToRadians(GetActorTransform().Rotation.z));
 	XMVECTOR L = XMVector3Transform({ 0.0f, 0.0f, 1.0f }, RotationMatrix);
 	XMFLOAT3 Foward;
-	XMStoreFloat3(&Foward, L);
+	XMStoreFloat3(&Foward, XMVector3Normalize(L));
 	return Foward;
 }
 
