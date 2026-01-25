@@ -14,10 +14,12 @@ ATopAttackMissile::ATopAttackMissile()
 	if (auto ProjMoveComp = mProjectileMovementComponent.lock())
 	{
 		ProjMoveComp->mVelocity = XMFLOAT3(0, 0, 5);
-		ProjMoveComp->SetLifeSpan(2.0f);
+		ProjMoveComp->SetLifeSpan(10.0f);
 		ProjMoveComp->SetHoming(true);
-		ProjMoveComp->SetHomingTurnLimit(360);
+		ProjMoveComp->SetHomingTurnLimit(45);
 	}
+
+	mTickGroup = ETickGroup::ETG_PostPhysics;
 }
 
 void ATopAttackMissile::SetTargetLocation(XMFLOAT3 Loc)
@@ -45,5 +47,18 @@ void ATopAttackMissile::OnDestroy()
 		Marker->Destroy();
 	}
 	Super::OnDestroy();
+}
+
+void ATopAttackMissile::Tick(float DeltaSecond)
+{
+	Super::Tick(DeltaSecond);
+
+	XMFLOAT3 Start = GetActorLocation();
+	XMFLOAT3 Forward = GetFowardVector();
+	XMFLOAT3 End = Start;
+	Start.x += Forward.x;
+	Start.y += Forward.y;
+	Start.z += Forward.z;
+	GetWorld()->DrawDebugLine(Start, End, XMFLOAT4(0, 1, 0, 1), 0);
 }
 

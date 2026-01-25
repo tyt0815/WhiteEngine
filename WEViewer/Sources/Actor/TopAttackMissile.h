@@ -14,6 +14,8 @@ public:
 
 	virtual void OnDestroy() override;
 
+	virtual void Tick(float DeltaSecond) override;
+
 private:
 	TWeakPtr<WProjectileMovementComponent> mProjectileMovementComponent;
 

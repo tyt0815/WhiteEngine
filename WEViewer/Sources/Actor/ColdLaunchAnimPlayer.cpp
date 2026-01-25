@@ -27,8 +27,8 @@ void AColdLaunchAnimPlayer::Tick(float DeltaSecond)
 			if (mPlayTime > AnimComp->GetDuration())
 			{
 				XMFLOAT3 Target = Proj->GetActorLocation();
-				Target.z -= 1;
-				Target.y += 1;
+				Target.z -= 10;
+				Target.y += 10;
 				GetWorld()->DrawDebugLine(Proj->GetActorLocation(), Target, XMFLOAT4(1, 0, 0, 1), 2);
 				Proj->SetTargetLocation(Target);
 				mProjectile.reset();

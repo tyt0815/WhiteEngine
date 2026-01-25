@@ -280,40 +280,36 @@ XMFLOAT3 XM_CALLCONV FDXMath::GetEulerRotationFromVectors(FXMVECTOR F, FXMVECTOR
 
 XMFLOAT3 FDXMath::QuaternionToEuler(XMFLOAT4 q)
 {
-	XMFLOAT3 euler;
+	XMFLOAT3 e;
 
-	// 1. Pitch (X-axis rotation)
-	// DX 표준: sinp = 2 * (w*x - y*z)
-	float sinp = 2.0f * (q.w * q.x - q.y * q.z);
+	float x = q.x;
+	float y = q.y;
+	float z = q.z;
+	float w = q.w;
 
-	if (std::abs(sinp) >= 0.9999f) // 짐벌락 안전 범위
-	{
-		// 수직 위/아래를 볼 때 (Pitch +-90도)
-		euler.x = std::copysign(XM_PI / 2.0f, sinp);
-		euler.y = 2.0f * std::atan2(q.y, q.w); // Yaw
-		euler.z = 0.0f; // Roll은 0으로 고정
-	}
-	else
-	{
-		euler.x = std::asin(sinp);
+	// Pitch (X-axis)
+	float sinp = 2.0f * (w * x - y * z);
+	sinp = Clamp(sinp, -1.0f, 1.0f);
+	e.x = std::asin(sinp);
 
-		// 2. Yaw (Y-axis rotation)
-		float siny_cosp = 2.0f * (q.w * q.y + q.z * q.x);
-		float cosy_cosp = 1.0f - 2.0f * (q.x * q.x + q.y * q.y);
-		euler.y = std::atan2(siny_cosp, cosy_cosp);
+	// Yaw (Y-axis)
+	e.y = std::atan2(
+		2.0f * (w * y + x * z),
+		1.0f - 2.0f * (x * x + y * y)
+	);
 
-		// 3. Roll (Z-axis rotation)
-		float sinr_cosp = 2.0f * (q.w * q.z + q.x * q.y);
-		float cosr_cosp = 1.0f - 2.0f * (q.x * q.x + q.z * q.z);
-		euler.z = std::atan2(sinr_cosp, cosr_cosp);
-	}
+	// Roll (Z-axis)
+	e.z = std::atan2(
+		2.0f * (w * z + x * y),
+		1.0f - 2.0f * (x * x + z * z)
+	);
 
 	// Radian -> Degree 변환
-	euler.x = XMConvertToDegrees(euler.x);
-	euler.y = XMConvertToDegrees(euler.y);
-	euler.z = XMConvertToDegrees(euler.z);
+	e.x = XMConvertToDegrees(e.x);
+	e.y = XMConvertToDegrees(e.y);
+	e.z = XMConvertToDegrees(e.z);
 
-	return euler;
+	return e;
 }
 
 XMVECTOR XM_CALLCONV FDXMath::EulerToQuaternionVector(const XMFLOAT3& Euler)
