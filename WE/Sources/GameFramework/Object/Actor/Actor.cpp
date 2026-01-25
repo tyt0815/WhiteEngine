@@ -78,6 +78,11 @@ XMFLOAT3 AActor::GetUpVector() const
 	return Up;
 }
 
+XMFLOAT4 AActor::GetActorQuaternion()
+{
+	return mRootComponent.lock()->GetWorldQuatRotation();
+}
+
 void AActor::Destroy()
 {
 	GetWorld()->DestroyActor(GetWeakPtr().lock());

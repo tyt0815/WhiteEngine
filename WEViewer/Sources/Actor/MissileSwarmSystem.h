@@ -27,7 +27,7 @@ inline void AMissileSwarmSystem::Fire(int Row, int Col)
 	XMVECTOR F = XMLoadFloat3(&Forward);
 	XMVECTOR R = XMLoadFloat3(&Right);
 
-	float Gap = 1;	// °£°İ
+	float Gap = 1;	// ê°„ê²©
 
 	float halfRow = (Row - 1) * 0.5f;
 	float halfCol = (Col - 1) * 0.5f;
@@ -39,15 +39,15 @@ inline void AMissileSwarmSystem::Fire(int Row, int Col)
 		{
 			if (TSharedPtr<AColdLaunchAnimPlayer> AnimPlayer = GetWorld()->SpawnActor<TColdLaunchAnimPlayer>().lock())
 			{
-				// 2. ÇöÀç ÀÎµ¦½º¿¡¼­ Àı¹İ °ªÀ» »©¼­ Áß¾Ó »ó´ë ÁÂÇ¥ ±¸ÇÏ±â
-				// r=0ÀÏ ¶§ -halfRow (µÚÂÊ), r=Row-1ÀÏ ¶§ +halfRow (¾ÕÂÊ)
+				// 2. í˜„ì¬ ì¸ë±ìŠ¤ì—ì„œ ì ˆë°˜ ê°’ì„ ë¹¼ì„œ ì¤‘ì•™ ìƒëŒ€ ì¢Œí‘œ êµ¬í•˜ê¸°
+				// r=0ì¼ ë•Œ -halfRow (ë’¤ìª½), r=Row-1ì¼ ë•Œ +halfRow (ì•ìª½)
 				float colPos = (float)c - halfCol;
 
-				// 3. ½ÇÁ¦ ¿ùµå ÁÂÇ¥ °è»ê
-				// Origin(O)¿¡¼­ Forward(F)·Î rowPos¸¸Å­, Right(R)·Î colPos¸¸Å­ ÀÌµ¿
+				// 3. ì‹¤ì œ ì›”ë“œ ì¢Œí‘œ ê³„ì‚°
+				// Origin(O)ì—ì„œ Forward(F)ë¡œ rowPosë§Œí¼, Right(R)ë¡œ colPosë§Œí¼ ì´ë™
 				XMVECTOR targetPosV = O + (F * rowPos * Gap) + (R * colPos * Gap);
 
-				// 4. °á°ú°ª ÀúÀå
+				// 4. ê²°ê³¼ê°’ ì €ì¥
 				XMFLOAT3 finalPos;
 				XMStoreFloat3(&finalPos, targetPosV);
 

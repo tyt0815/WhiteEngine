@@ -42,6 +42,8 @@ public:
 
 	XMFLOAT3 GetUpVector() const;
 
+	XMFLOAT4 GetActorQuaternion();
+
 	void Destroy();
 
 	void Activate();

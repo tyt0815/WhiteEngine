@@ -2,6 +2,7 @@
 #include "Actor/Actor.h"
 #include "World/World.h"
 #include "Component/ObjectAnimComponent.h"
+#include "TopAttackMissile.h"
 
 class AColdLaunchAnimPlayer : public AActor
 {
@@ -21,7 +22,7 @@ private:
 	
 	FObjectAnimSampler* mAnimSampler;
 
-	TWeakPtr<AActor> mProjectile;
+	TWeakPtr<ATopAttackMissile> mProjectile;
 
 	TWeakPtr<AActor> mCovers[4];
 

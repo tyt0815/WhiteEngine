@@ -204,8 +204,12 @@ void WWorld::DeactivateActor(AActor* Actor)
 	{
 		int Id = Actor->mActiveActorQueueId;
 		Actor->mActiveActorQueueId = -1;
-		mActiveActorQueue[Id] = mActiveActorQueue.back();
-		mActiveActorQueue[Id]->mActiveActorQueueId = Id;
+		if (Id < mActiveActorQueue.size() - 1)
+		{
+			mActiveActorQueue[Id] = mActiveActorQueue.back();
+			mActiveActorQueue[Id]->mActiveActorQueueId = Id;
+
+		}
 		mActiveActorQueue.pop_back();
 		Actor->OnDeactivate();
 	}
@@ -245,8 +249,12 @@ void WWorld::DequeueComponentTick(WActorComponent* ActorComp)
 	int i = ActorComp->mTickQueueId;
 	ActorComp->mTickQueueId = -1;
 	std::vector<WActorComponent*>& TickGroup = mActorComponentTickGroups[ActorComp->mTickGroup];
-	TickGroup[i] = TickGroup.back();
-	TickGroup[i]->mTickQueueId = i;
+	if (i < TickGroup.size() - 1)
+	{
+		TickGroup[i] = std::move(TickGroup.back());
+		TickGroup[i]->mTickQueueId = i;
+	}
+	
 	TickGroup.pop_back();
 }
 
@@ -260,8 +268,11 @@ void WWorld::DequeueActorTick(AActor* Actor)
 	int i = Actor->mTickQueueId;
 	Actor->mTickQueueId = -1;
 	std::vector<AActor*>& TickGroup = mActorTickGroups[Actor->mTickGroup];
-	TickGroup[i] = TickGroup.back();
-	TickGroup[i]->mTickQueueId = i;
+	if (i < TickGroup.size() - 1)
+	{
+		TickGroup[i] = std::move(TickGroup.back());
+		TickGroup[i]->mTickQueueId = i;
+	}
 	TickGroup.pop_back();
 }
 
@@ -285,20 +296,29 @@ void WWorld::DequeuePhysicsComponent(WPhysicsComponent* PhysicsComp)
 
 	int i = PhysicsComp->mPhysicsCompQueueId;
 	PhysicsComp->mPhysicsCompQueueId = -1;
-	mPhysicsComponentQueue[i] = mPhysicsComponentQueue.back();
-	mPhysicsComponentQueue[i]->mPhysicsCompQueueId = i;
+	if (i < mPhysicsComponentQueue.size() - 1)
+	{
+		mPhysicsComponentQueue[i] = std::move(mPhysicsComponentQueue.back());
+		mPhysicsComponentQueue[i]->mPhysicsCompQueueId = i;
+	}
 	mPhysicsComponentQueue.pop_back();
 }
 
 void WWorld::FlushDestroyQueue()
 {
-	for (auto Actor : DestroyQueue)
+	for (int i = 0; i < DestroyQueue.size(); ++i)
 	{
-		Actor->OnDestroy();
+		TSharedPtr<AActor>& Actor = DestroyQueue[i];
+
 		int Id = Actor->mActorId;
-		mAllActors[Id] = mAllActors.back();
-		mAllActors[Id]->mActorId = Id;
+		Actor->mActorId = -1;
+		if (Id < mAllActors.size() - 1)
+		{
+			mAllActors[Id] = std::move(mAllActors.back());
+			mAllActors[Id]->mActorId = Id;
+		}
 		mAllActors.pop_back();
+		Actor->OnDestroy();
 	}
 	DestroyQueue.clear();
 }

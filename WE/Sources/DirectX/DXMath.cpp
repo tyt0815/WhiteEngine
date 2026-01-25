@@ -316,6 +316,19 @@ XMFLOAT3 FDXMath::QuaternionToEuler(XMFLOAT4 q)
 	return euler;
 }
 
+XMVECTOR XM_CALLCONV FDXMath::EulerToQuaternionVector(const XMFLOAT3& Euler)
+{
+	XMVECTOR Q = XMQuaternionRotationRollPitchYaw(Euler.x, Euler.y ,Euler.z);
+	return Q;
+}
+
+XMFLOAT4 FDXMath::EulerToQuaternion(XMFLOAT3 Euler)
+{
+	XMFLOAT4 Quat;
+	XMStoreFloat4(&Quat, EulerToQuaternionVector(Euler));
+	return Quat;
+}
+
 XMVECTOR XM_CALLCONV FDXMath::CalculateCubicBezier(FXMVECTOR P0, FXMVECTOR P1, FXMVECTOR P2, GXMVECTOR P3, float t)
 {
 	// t가 0에서 1 사이인지 보장

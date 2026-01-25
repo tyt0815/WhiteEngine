@@ -163,9 +163,14 @@ public:
 
 	static XMFLOAT3 QuaternionToEuler(XMFLOAT4 Quat);
 
+	static XMVECTOR XM_CALLCONV EulerToQuaternionVector(const XMFLOAT3& Euler);
+
+	static XMFLOAT4 EulerToQuaternion(XMFLOAT3 Euler);
+
 	static XMVECTOR XM_CALLCONV CalculateCubicBezier(FXMVECTOR P0, FXMVECTOR P1, FXMVECTOR P2, GXMVECTOR P3, float t);
 
 	static XMVECTOR XM_CALLCONV CalculateCubicBezierForward(FXMVECTOR P0, FXMVECTOR P1, FXMVECTOR P2, GXMVECTOR P3, float t);
+
 
 	static bool Equal(const XMFLOAT3& A, const XMFLOAT3& B, float Epsilon = 0.00001f);
 };

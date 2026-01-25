@@ -1,4 +1,5 @@
 #include "TopAttackMissile.h"
+#include "World/World.h"
 
 ATopAttackMissile::ATopAttackMissile()
 {
@@ -12,8 +13,37 @@ ATopAttackMissile::ATopAttackMissile()
 	mProjectileMovementComponent = CreateComponent<WProjectileMovementComponent>();
 	if (auto ProjMoveComp = mProjectileMovementComponent.lock())
 	{
-		ProjMoveComp->mVelocity = XMFLOAT3(0, 0, 1);
-		ProjMoveComp->SetLifeSpan(5.0f);
+		ProjMoveComp->mVelocity = XMFLOAT3(0, 0, 5);
+		ProjMoveComp->SetLifeSpan(2.0f);
+		ProjMoveComp->SetHoming(true);
+		ProjMoveComp->SetHomingTurnLimit(360);
 	}
+}
+
+void ATopAttackMissile::SetTargetLocation(XMFLOAT3 Loc)
+{
+	if (mTargetMarker.expired())
+	{
+		mTargetMarker = GetWorld()->SpawnActor<AActor>();
+	}
+
+	if (auto Marker = mTargetMarker.lock())
+	{
+		Marker->SetActorLocation(Loc);
+
+		if (auto ProjMoveComp = mProjectileMovementComponent.lock())
+		{
+			ProjMoveComp->SetHomingTarget(Marker->GetRootComponent());
+		}		
+	}
+}
+
+void ATopAttackMissile::OnDestroy()
+{
+	if (auto Marker = mTargetMarker.lock())
+	{
+		Marker->Destroy();
+	}
+	Super::OnDestroy();
 }
 
