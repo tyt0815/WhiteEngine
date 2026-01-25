@@ -11,92 +11,21 @@
 #include <Jolt/Core/Factory.h>
 #include <Jolt/Core/TempAllocator.h>
 #include <Jolt/Core/JobSystemThreadPool.h>
-#include <Jolt/Physics/PhysicsSettings.h>
-#include <Jolt/Physics/Collision/Shape/BoxShape.h>
-#include <Jolt/Physics/Collision/Shape/SphereShape.h>
-#include <Jolt/Physics/Body/BodyCreationSettings.h>
-#include <Jolt/Physics/Body/BodyActivationListener.h>
-#include "JPHUtility.h"
 #include "PhysicsDebugRenderer.h"
+#include "BodyActivationListener.h"
+#include "ContactListener.h"
+#include "BroadPhaseLayerInterface.h"
+#include "ObjectLayerPairFilter.h"
+#include "ObjectVsBroadPhaseLayerFilter.h"
 #include "PhysicsUserData.h"
 
-#include <windows.h>
-#include <cstdarg>
-#include <sstream>
+#include <Windows.h>
 #include <cassert>
-
-#include "Component/PhysicsComponent.h"
-#include "World/World.h"
 
 #include "Utility/Memory.h"
 
 using namespace JPH;
 using namespace JPH::literals;
-
-// An example contact listener
-class MyContactListener : public ContactListener
-{
-public:
-	// See: ContactListener
-	virtual ValidateResult	OnContactValidate(const Body& inBody1, const Body& inBody2, RVec3Arg inBaseOffset, const CollideShapeResult& inCollisionResult) override
-	{
-		OutputDebugStringA("Contact validate callback\n");
-
-		// Allows you to ignore a contact before it is created (using layers to not make objects collide is cheaper!)
-		return ValidateResult::AcceptAllContactsForThisBodyPair;
-	}
-
-	virtual void			OnContactAdded(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings) override
-	{
-		FPhysicEventInfo Info;
-		Info.Comp1 = *reinterpret_cast<TWeakPtr<WPhysicsComponent>*>(inBody1.GetUserData());
-		Info.Comp2 = *reinterpret_cast<TWeakPtr<WPhysicsComponent>*>(inBody2.GetUserData());
-		Info.ImpactPoint1 = ToDXLocation(inManifold.GetWorldSpaceContactPointOn1(0));
-		Info.ImpactPoint2 = ToDXLocation(inManifold.GetWorldSpaceContactPointOn2(0));
-
-		if (Info.Comp1.expired() || Info.Comp2.expired())
-		{
-			return;
-		}
-		WWorld* World = Info.Comp1.lock()->GetWorld();
-
-		if (inBody1.IsSensor() || inBody2.IsSensor())
-		{
-			World->EnqueueOnBeginOverlapEvent(Info);
-		}
-		else
-		{
-			World->EnqueueOnHitEvent(Info);
-		}
-		OutputDebugStringA("A contact was added\n");
-	}
-
-	virtual void			OnContactPersisted(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings) override
-	{
-
-		OutputDebugStringA("A contact was persisted\n");
-	}
-
-	virtual void			OnContactRemoved(const SubShapeIDPair& inSubShapePair) override
-	{
-		OutputDebugStringA("A contact was removed\n");
-	}
-};
-
-// An example activation listener
-class MyBodyActivationListener : public BodyActivationListener
-{
-public:
-	virtual void		OnBodyActivated(const BodyID& inBodyID, uint64 inBodyUserData) override
-	{
-		OutputDebugStringA("A body got activated\n");
-	}
-
-	virtual void		OnBodyDeactivated(const BodyID& inBodyID, uint64 inBodyUserData) override
-	{
-		OutputDebugStringA("A body went to sleep\n");
-	}
-};
 
 namespace Physics
 {

@@ -257,6 +257,21 @@
     <ClCompile Include="Sources\Asset\ObjectAnimDataAsset.cpp">
       <Filter>Sources\Asset</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Physics\ContactListener.cpp">
+      <Filter>Sources\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Physics\BodyActivationListener.cpp">
+      <Filter>Sources\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Physics\ObjectLayerPairFilter.cpp">
+      <Filter>Sources\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Physics\BroadPhaseLayerInterface.cpp">
+      <Filter>Sources\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Physics\ObjectVsBroadPhaseLayerFilter.cpp">
+      <Filter>Sources\Physics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -489,6 +504,27 @@
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\TickGroup.h">
       <Filter>Sources\GameFramework\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Physics\ContactListener.h">
+      <Filter>Sources\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\PhysicsEventProxy.h">
+      <Filter>Sources\GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Physics\BodyActivationListener.h">
+      <Filter>Sources\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Physics\ObjectLayerPairFilter.h">
+      <Filter>Sources\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Physics\BroadPhaseLayer.h">
+      <Filter>Sources\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Physics\BroadPhaseLayerInterface.h">
+      <Filter>Sources\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Physics\ObjectVsBroadPhaseLayerFilter.h">
+      <Filter>Sources\Physics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

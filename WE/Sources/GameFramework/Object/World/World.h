@@ -5,18 +5,11 @@
 #include "TickGroup.h"
 #include "Utility/Container.h"
 #include "Utility/Class.h"
+#include "GameFramework/PhysicsEventProxy.h"
 
 #include <array>
 
 class WPhysicsComponent;
-
-struct FPhysicEventInfo
-{
-	TWeakPtr<WPhysicsComponent> Comp1;
-	TWeakPtr<WPhysicsComponent> Comp2;
-	XMFLOAT3 ImpactPoint1;
-	XMFLOAT3 ImpactPoint2;
-};
 
 class WWorld
 {
