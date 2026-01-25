@@ -84,9 +84,19 @@ namespace Physics
 		return true;
 	};
 
-	BodyInterface* GetBodyInterface()
+	BodyInterface& GetBodyInterface()
 	{
-		return &g_PhysicsSystem->GetBodyInterface();
+		return g_PhysicsSystem->GetBodyInterface();
+	}
+
+	const BodyLockInterface& GetBodyLockInterface()
+	{
+		return	g_PhysicsSystem->GetBodyLockInterface();
+	}
+
+	const NarrowPhaseQuery& GetNarrowPhaseQuery()
+	{
+		return g_PhysicsSystem->GetNarrowPhaseQuery();
 	}
 }
 

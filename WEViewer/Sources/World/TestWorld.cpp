@@ -19,4 +19,12 @@ void WTestWorld::Tick(float DeltaSecond)
 			mElapsedTime = 0;
 		}
 	}
+
+	XMFLOAT3 Start(0, 0, 0);
+	for (int i = 0; i < 10; ++i)
+	{
+		XMFLOAT3 End(0, -1 * (i + 1), i);
+		FHitResult HitResult;
+		LineTrace(Start, End, HitResult, true);
+	}
 }

@@ -14,7 +14,11 @@ namespace Physics
 	struct FUserData
 	{
 		TWeakPtr<WPhysicsComponent> Comp;
+
+	private:
 		UINT64 ID;
+
+		friend class FUserDataManager;
 	};
 
 	class FUserDataManager
@@ -31,7 +35,7 @@ namespace Physics
 
 		void RemoveUserData_Internal();
 
-		void EnqueueRemoveQ_Internal(UINT64 ID);
+		void EnqueueRemoveQ_Internal(FUserData* UserData);
 
 		TArray<TUniquePtr<FUserData>> mUserDatas;
 
@@ -58,9 +62,9 @@ namespace Physics
 			GetInstance()->RemoveUserData_Internal();
 		}
 
-		static __forceinline void EnqueueRemoveQ(UINT64 ID)
+		static __forceinline void EnqueueRemoveQ(FUserData* UserData)
 		{
-			GetInstance()->EnqueueRemoveQ_Internal(ID);
+			GetInstance()->EnqueueRemoveQ_Internal(UserData);
 		}
 	};
 

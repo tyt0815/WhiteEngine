@@ -272,6 +272,9 @@
     <ClCompile Include="Sources\Physics\ObjectVsBroadPhaseLayerFilter.cpp">
       <Filter>Sources\Physics</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Physics\Trace.cpp">
+      <Filter>Sources\Physics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -524,6 +527,12 @@
       <Filter>Sources\Physics</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Physics\ObjectVsBroadPhaseLayerFilter.h">
+      <Filter>Sources\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Physics\Trace.h">
+      <Filter>Sources\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Physics\HitResult.h">
       <Filter>Sources\Physics</Filter>
     </ClInclude>
   </ItemGroup>

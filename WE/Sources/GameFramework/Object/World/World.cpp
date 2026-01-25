@@ -1,10 +1,11 @@
 #include "World.h"
-#include "Physics/PhysicsCore.h"
-#include "../Pawn/GhostCameraPawn.h"
 #include "Component/PhysicsComponent.h"
-#include "GUI/GUICore.h"
-#include "Utility/Timer.h"
 #include "Component/CameraComponent.h"
+#include "GUI/GUICore.h"
+#include "Pawn/GhostCameraPawn.h"
+#include "Physics/PhysicsCore.h"
+#include "Physics/Trace.h"
+#include "Utility/Timer.h"
 
 WWorld* g_World;
 
@@ -302,6 +303,26 @@ void WWorld::DequeuePhysicsComponent(WPhysicsComponent* PhysicsComp)
 		mPhysicsComponentQueue[i]->mPhysicsCompQueueId = i;
 	}
 	mPhysicsComponentQueue.pop_back();
+}
+
+void WWorld::LineTrace(XMFLOAT3 Start, XMFLOAT3 End, FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
+{
+	Physics::LineTrace(Start, End, HitResult);
+
+	if (bDrawDebug)
+	{
+		XMFLOAT4 DebugColor;
+		if (HitResult.HitComponent.expired())
+		{
+			DebugColor = { 1,0,0,1 };
+		}
+		else
+		{
+			DebugColor = { 0,1,0,1 };
+		}
+
+		DrawDebugLine(Start, End, DebugColor, DebugDuration);
+	}
 }
 
 void WWorld::FlushDestroyQueue()

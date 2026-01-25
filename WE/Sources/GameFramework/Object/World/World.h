@@ -1,11 +1,12 @@
 #pragma once
 
 #include "Pawn/Pawn.h"
-#include "GameFramework/RenderItemProxy.h"
 #include "TickGroup.h"
+#include "Physics/HitResult.h"
+#include "GameFramework/RenderItemProxy.h"
+#include "GameFramework/PhysicsEventProxy.h"
 #include "Utility/Container.h"
 #include "Utility/Class.h"
-#include "GameFramework/PhysicsEventProxy.h"
 
 #include <array>
 
@@ -53,6 +54,8 @@ public:
 	void EnqueuePhysicsComponent(WPhysicsComponent* PhysicsComp);
 
 	void DequeuePhysicsComponent(WPhysicsComponent* PhysicsComp);
+
+	void LineTrace(XMFLOAT3 Start, XMFLOAT3 End, FHitResult& HitResult, bool bDrawDebug = false, float DebugDuration = 10);
 
 private:
 	void FlushDestroyQueue();
