@@ -9,12 +9,17 @@ void FRenderItemProxy::Cleanup(float Delta)
 	
 	for (int i = 0; i < mDebugLine3DProxies.size(); ++i)
 	{
-		mDebugLine3DProxies[i].LifeSpan -= Delta;
+		
 		if (mDebugLine3DProxies[i].LifeSpan < 0)
 		{
-			mDebugLine3DProxies[i--] = mDebugLine3DProxies.back();
+			if (i < mDebugLine3DProxies.size() - 1)
+			{
+				mDebugLine3DProxies[i--] = std::move(mDebugLine3DProxies.back());
+			}
 			mDebugLine3DProxies.pop_back();
+			continue;
 		}
+		mDebugLine3DProxies[i].LifeSpan -= Delta;
 	}
 }
 

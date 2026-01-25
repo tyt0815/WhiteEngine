@@ -4,6 +4,12 @@
 void WTestWorld::BeginPlay()
 {
 	Super::BeginPlay();
+
+	mMissileSystem = SpawnActor<AMissileSwarmSystem>();
+	if (auto MissileSystem = mMissileSystem.lock())
+	{
+		MissileSystem->SetActorLocation(XMFLOAT3(0, 0, 10));
+	}
 }
 
 void WTestWorld::Tick(float DeltaSecond)
@@ -13,9 +19,12 @@ void WTestWorld::Tick(float DeltaSecond)
 	mElapsedTime += DeltaSecond;
 	if (mElapsedTime > 3)
 	{
-		if (auto MissileSystem = SpawnActor<AMissileSwarmSystem>().lock())
+		if (auto MissileSystem = mMissileSystem.lock())
 		{
-			MissileSystem->Fire<AColdLaunchAnimPlayer, ATopAttackMissile>(1, 1);
+			XMFLOAT3 TargetOrigin = MissileSystem->GetActorLocation();
+			TargetOrigin.z += 5;
+			// TargetOrigin.x += 10;
+			MissileSystem->Fire<AColdLaunchAnimPlayer, ATopAttackMissile>(1, 1, TargetOrigin);
 			mElapsedTime = 0;
 		}
 	}
@@ -25,6 +34,6 @@ void WTestWorld::Tick(float DeltaSecond)
 	{
 		XMFLOAT3 End(0, -1.0f * (float)(i + 1), (float)i);
 		FHitResult HitResult;
-		LineTrace(Start, End, HitResult, false);
+		LineTrace(Start, End, HitResult, true);
 	}
 }

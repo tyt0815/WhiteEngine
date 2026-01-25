@@ -13,4 +13,6 @@ public:
 
 private:
 	float mElapsedTime = 0;
+
+	TWeakPtr<AMissileSwarmSystem> mMissileSystem;
 };

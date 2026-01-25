@@ -14,7 +14,7 @@ ATopAttackMissile::ATopAttackMissile()
 	if (auto ProjMoveComp = mProjectileMovementComponent.lock())
 	{
 		ProjMoveComp->mVelocity = XMFLOAT3(0, 0, 5);
-		ProjMoveComp->SetLifeSpan(2.5f);
+		ProjMoveComp->SetLifeSpan(10.0f);
 		ProjMoveComp->SetHoming(true);
 		ProjMoveComp->SetHomingTurnLimit(45);
 	}
@@ -22,7 +22,7 @@ ATopAttackMissile::ATopAttackMissile()
 	mTickGroup = ETickGroup::ETG_PostPhysics;
 }
 
-void ATopAttackMissile::SetTargetLocation(XMFLOAT3 Loc)
+void ATopAttackMissile::SetTargetPosition(XMFLOAT3 Pos)
 {
 	if (mTargetMarker.expired())
 	{
@@ -31,7 +31,7 @@ void ATopAttackMissile::SetTargetLocation(XMFLOAT3 Loc)
 
 	if (auto Marker = mTargetMarker.lock())
 	{
-		Marker->SetActorLocation(Loc);
+		Marker->SetActorLocation(Pos);
 
 		if (auto ProjMoveComp = mProjectileMovementComponent.lock())
 		{

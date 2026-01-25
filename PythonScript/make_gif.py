@@ -2,7 +2,7 @@ import os
 from moviepy import VideoFileClip
 import moviepy.video.fx as vfx
 
-def make_gif(input_path, output_path, start_time, end_time, fps=18, width=480, height=360):
+def make_gif(input_path, output_path, start_time, end_time, fps=18, width=1200, height=360):
     if not os.path.exists(input_path):
         print(f"파일을 찾을 수 없습니다: {input_path}")
         return
@@ -49,8 +49,8 @@ def make_gif(input_path, output_path, start_time, end_time, fps=18, width=480, h
 
 if __name__ == "__main__":
     # 파일 경로와 시간을 확인하세요
-    in_path = "일반 발사.mp4"
+    in_path = "TickRate 제한 전.mp4"
     folder_path, file_name = os.path.split(in_path)
     out_path = os.path.join(folder_path, file_name.split('.')[0] + '.gif')
     
-    make_gif(in_path, out_path, 5, 10)
+    make_gif(in_path, out_path, 3, 14.9, width=1280, height=720)

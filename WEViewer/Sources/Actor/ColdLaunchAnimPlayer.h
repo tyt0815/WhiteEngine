@@ -15,7 +15,7 @@ public:
 public:
 
 	template<typename TProjtile>
-	void PlayAnim();
+	void PlayAnim(XMFLOAT3 TargetPos);
 
 private:
 	TWeakPtr<WObjectAnimComponent> mAnimComp;
@@ -30,12 +30,13 @@ private:
 };
 
 template<typename TProjtile>
-inline void AColdLaunchAnimPlayer::PlayAnim()
+inline void AColdLaunchAnimPlayer::PlayAnim(XMFLOAT3 TargetPos)
 {
 	mProjectile = GetWorld()->SpawnActor<TProjtile>();
 	if (auto Proj = mProjectile.lock())
 	{
 		Proj->SetActorLocation(GetActorLocation());
+		Proj->SetTargetPosition(TargetPos);
 	}
 	mPlayTime = 0;
 }

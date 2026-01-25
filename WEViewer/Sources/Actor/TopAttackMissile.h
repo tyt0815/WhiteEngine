@@ -10,7 +10,7 @@ class ATopAttackMissile : public AActor
 public:
 	ATopAttackMissile();
 
-	void SetTargetLocation(XMFLOAT3 Loc);
+	void SetTargetPosition(XMFLOAT3 Pos);
 
 	virtual void OnDestroy() override;
 

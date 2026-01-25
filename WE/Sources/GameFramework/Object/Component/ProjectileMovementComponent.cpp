@@ -30,7 +30,7 @@ void WProjectileMovementComponent::TickComponent(float DeltaTime)
 
                 // 1. 두 벡터 사이의 각도 계산
                 float Radian = XMVectorGetX(XMVector3AngleBetweenNormals(ForwardV, ToTargetUnitV));
-                if (Radian > 0.001f) // 각도 차이가 있을 때만 회전
+                if (Radian > 0.0001f) // 각도 차이가 있을 때만 회전
                 {
                     // 2. 턴 리밋 적용 (mHomingTurnLimit가 도 단위라고 가정 시)
                     float MaxStep = XMConvertToRadians(mHomingTurnLimit);
@@ -39,6 +39,12 @@ void WProjectileMovementComponent::TickComponent(float DeltaTime)
                     float Alpha = (mHomingTurnLimit <= 0) ? 1.0f : min(1.0f, MaxStep / Radian * DeltaTime);
                     // 3. 축 계산 및 쿼터니언 생성
                     XMVECTOR AxisV = XMVector3Normalize(XMVector3Cross(ForwardV, ToTargetUnitV));
+                    if (XMVector3Equal(AxisV, XMVectorZero()))
+                    {
+                        XMFLOAT3 Right = Owner->GetRightVector();
+                        XMVECTOR RightV = XMLoadFloat3(&Right);
+                        AxisV = XMVector3Normalize(XMVector3Cross(RightV, ToTargetUnitV));
+                    }
                     XMVECTOR RotationQuatV = XMQuaternionRotationAxis(AxisV, Radian * Alpha);
 
                     // 4. 새로운 방향 벡터 계산

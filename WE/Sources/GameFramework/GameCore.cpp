@@ -24,11 +24,11 @@ std::atomic<int> g_FPS{ 0 };
 std::atomic<float> g_GameThreadDeltaMs{ 0.0f };
 std::atomic<float> g_RenderThreadDeltaMs{ 0.0f };
 
-inline constexpr int g_TickRateLimit = 165;
-inline constexpr int g_FPSLimit = 165;
+inline constexpr int g_TickRateLimit = 300;
+inline constexpr int g_FPSLimit = 300;
 inline constexpr float g_TickTimelimit = 1.0f / g_TickRateLimit;
 inline constexpr float g_FrameTimelimit = 1.0f / g_FPSLimit;
-inline constexpr bool g_bLimitTick = false;
+inline constexpr bool g_bLimitTick = true;
 inline constexpr bool g_bLimitFrame = true;
 
 

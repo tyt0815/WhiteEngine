@@ -7,25 +7,27 @@ class AMissileSwarmSystem : public AActor
 {
 public:
 	template<typename TColdLaunchAnimPlayer, typename TProjectile>
-	void Fire(int Row, int Col);
+	void Fire(int Row, int Col, XMFLOAT3 TargetPos);
 	
 private:
 
 };
 
 template<typename TColdLaunchAnimPlayer, typename TProjectile>
-inline void AMissileSwarmSystem::Fire(int Row, int Col)
+inline void AMissileSwarmSystem::Fire(int Row, int Col, XMFLOAT3 TargetOrigin)
 {
 	if (Row == 0 || Col == 0)
 	{
 		return;
 	}
-	XMFLOAT3 Origin = GetActorLocation();
-	XMVECTOR O = XMLoadFloat3(&Origin);
+	XMFLOAT3 SystemOrigin = GetActorLocation();
+	XMVECTOR SystemOriginV = XMLoadFloat3(&SystemOrigin);
 	XMFLOAT3 Forward = GetFowardVector();
 	XMFLOAT3 Right = GetRightVector();
-	XMVECTOR F = XMLoadFloat3(&Forward);
-	XMVECTOR R = XMLoadFloat3(&Right);
+	XMVECTOR ForwardV = XMLoadFloat3(&Forward);
+	XMVECTOR RightV = XMLoadFloat3(&Right);
+
+	XMVECTOR TargetOriginV = XMLoadFloat3(&TargetOrigin);
 
 	float Gap = 1;	// 간격
 
@@ -34,25 +36,28 @@ inline void AMissileSwarmSystem::Fire(int Row, int Col)
 
 	for (int r = 0; r < Row; ++r)
 	{
-		float rowPos = (float)r - halfRow;
+		float RowPos = (float)r - halfRow;
 		for (int c = 0; c < Col; ++c)
 		{
 			if (TSharedPtr<AColdLaunchAnimPlayer> AnimPlayer = GetWorld()->SpawnActor<TColdLaunchAnimPlayer>().lock())
 			{
 				// 2. 현재 인덱스에서 절반 값을 빼서 중앙 상대 좌표 구하기
 				// r=0일 때 -halfRow (뒤쪽), r=Row-1일 때 +halfRow (앞쪽)
-				float colPos = (float)c - halfCol;
+				float ColPos = (float)c - halfCol;
 
 				// 3. 실제 월드 좌표 계산
 				// Origin(O)에서 Forward(F)로 rowPos만큼, Right(R)로 colPos만큼 이동
-				XMVECTOR targetPosV = O + (F * rowPos * Gap) + (R * colPos * Gap);
+				XMVECTOR LaunchPosV = SystemOriginV + (ForwardV * RowPos * Gap) + (RightV * ColPos * Gap);
+				XMVECTOR TargetPosV = TargetOriginV + (ForwardV * RowPos * Gap) + (RightV * ColPos * Gap);
 
 				// 4. 결과값 저장
-				XMFLOAT3 finalPos;
-				XMStoreFloat3(&finalPos, targetPosV);
+				XMFLOAT3 LaunchPos;
+				XMStoreFloat3(&LaunchPos, LaunchPosV);
+				XMFLOAT3 TargetPos;
+				XMStoreFloat3(&TargetPos, TargetPosV);
 
-				AnimPlayer->SetActorLocation(finalPos);
-				AnimPlayer->PlayAnim<TProjectile>();
+				AnimPlayer->SetActorLocation(LaunchPos);
+				AnimPlayer->PlayAnim<TProjectile>(TargetPos);
 			}
 		}
 	}

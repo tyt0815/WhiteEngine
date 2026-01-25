@@ -5,6 +5,7 @@ AColdLaunchAnimPlayer::AColdLaunchAnimPlayer()
 	mAnimComp = CreateComponent<WObjectAnimComponent>();
 	if(auto Comp = mAnimComp.lock())
 	{
+		Comp->SetupAttachment(GetRootComponent());
 		Comp->LoadKeyframesFromOADAsset(L"OAD_ColdLaunch");
 		mAnimSampler = Comp->GetObjectAnimSampler("Projectile");
 	}
@@ -23,14 +24,8 @@ void AColdLaunchAnimPlayer::Tick(float DeltaSecond)
 		if (auto AnimComp = mAnimComp.lock())
 		{
 			Proj->SetActorTransform(AnimComp->SampleAnimWorldTransformBySecond(mAnimSampler, mPlayTime));
-
 			if (mPlayTime > AnimComp->GetDuration())
 			{
-				XMFLOAT3 Target = Proj->GetActorLocation();
-				Target.z -= 10;
-				Target.y += 10;
-				GetWorld()->DrawDebugLine(Proj->GetActorLocation(), Target, XMFLOAT4(1, 0, 0, 1), 2);
-				Proj->SetTargetLocation(Target);
 				mProjectile.reset();
 				Destroy();
 			}
