@@ -15,7 +15,6 @@ public:
 	
 
 private:
-	FCurveSampler() = default;
 
 	const FCurveView* mCurveView = nullptr;
 	int mLastIndex = 0;
@@ -35,6 +34,14 @@ public:
 	FCurveSampler GetCurveSampler(const std::string CurveName);
 
 	FTransform SampleTransform(float TargetFrame);
+
+	float SampleLocationX(float TargetFrame);
+
+	float SampleLocationY(float TargetFrame);
+
+	float SampleLocationZ(float TargetFrame);
+
+	XMFLOAT3 SampleLocation(float TargetFrame);
 
 private:
 	FObjectAnimSampler(const std::unordered_map<std::string, FCurveView>* InCurveViewMap);
@@ -69,7 +76,11 @@ public:
 
 	FTransform SampleAnimWorldTransformByFrame(FObjectAnimSampler* Sampler, float Frame);
 
+	XMFLOAT3 SampleAnimWorldLocationByFrame(FObjectAnimSampler* Sampler, float Frame);
+
 	FTransform SampleAnimWorldTransformBySecond(FObjectAnimSampler* Sampler, float Second);
+
+	XMFLOAT3 SampleAnimWorldLocationBySecond(FObjectAnimSampler* Sampler, float Second);
 
 private:
 	std::unordered_map<std::string, FObjectAnimSampler> mObjectAnimSamplerMap;

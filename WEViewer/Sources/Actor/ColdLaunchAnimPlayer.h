@@ -22,6 +22,10 @@ private:
 	
 	FObjectAnimSampler* mAnimSampler;
 
+	FCurveSampler mLocationZSampler;
+
+	FCurveSampler mRotationSampler;
+
 	TWeakPtr<ATopAttackMissile> mProjectile;
 
 	TWeakPtr<AActor> mCovers[4];

@@ -22,8 +22,8 @@ void WTestWorld::Tick(float DeltaSecond)
 		if (auto MissileSystem = mMissileSystem.lock())
 		{
 			XMFLOAT3 TargetOrigin = MissileSystem->GetActorLocation();
-			TargetOrigin.z += 5;
-			// TargetOrigin.x += 10;
+			TargetOrigin.z += 20;
+			TargetOrigin.x += 10;
 			MissileSystem->Fire<AColdLaunchAnimPlayer, ATopAttackMissile>(1, 1, TargetOrigin);
 			mElapsedTime = 0;
 		}

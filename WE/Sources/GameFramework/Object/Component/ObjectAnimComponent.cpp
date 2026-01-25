@@ -145,6 +145,30 @@ FTransform FObjectAnimSampler::SampleTransform(float TargetFrame)
 	return Transform;
 }
 
+float FObjectAnimSampler::SampleLocationX(float TargetFrame)
+{
+	return mLocationX.SampleAnimDataByFrame(TargetFrame);
+}
+
+float FObjectAnimSampler::SampleLocationY(float TargetFrame)
+{
+	return mLocationY.SampleAnimDataByFrame(TargetFrame);
+}
+
+float FObjectAnimSampler::SampleLocationZ(float TargetFrame)
+{
+	return mLocationZ.SampleAnimDataByFrame(TargetFrame);
+}
+
+XMFLOAT3 FObjectAnimSampler::SampleLocation(float TargetFrame)
+{
+	return XMFLOAT3(
+		SampleLocationX(TargetFrame),
+		SampleLocationY(TargetFrame),
+		SampleLocationZ(TargetFrame)
+	);
+}
+
 
 void WObjectAnimComponent::BeginComponent()
 {
@@ -190,7 +214,19 @@ FTransform WObjectAnimComponent::SampleAnimWorldTransformByFrame(FObjectAnimSamp
 	return Transform;
 }
 
+XMFLOAT3 WObjectAnimComponent::SampleAnimWorldLocationByFrame(FObjectAnimSampler* Sampler, float Frame)
+{
+	XMFLOAT3 Loc = Sampler->SampleLocation(Frame);
+	XMStoreFloat3(&Loc, XMVector3Transform(XMLoadFloat3(&Loc), GetWorldMatrix()));
+	return Loc;
+}
+
 FTransform WObjectAnimComponent::SampleAnimWorldTransformBySecond(FObjectAnimSampler* Sampler, float Second)
 {
 	return SampleAnimWorldTransformByFrame(Sampler, SecondToFrame(Second));
+}
+
+XMFLOAT3 WObjectAnimComponent::SampleAnimWorldLocationBySecond(FObjectAnimSampler* Sampler, float Second)
+{
+	return SampleAnimWorldLocationByFrame(Sampler, SecondToFrame(Second));
 }
