@@ -34,8 +34,11 @@ namespace Physics
 			if (Lock.Succeeded())
 			{
 				const Body& HitBody = Lock.GetBody();
-
 				HitResult.HitComponent = *reinterpret_cast<TWeakPtr<WPhysicsComponent>*>(HitBody.GetUserData());
+
+				RVec3 ImpactPoint = Direction * Result.mFraction;
+				ImpactPoint += Origin;
+				HitResult.ImpactPoint = ToDXLocation(ImpactPoint);
 			}
 		}
 	}

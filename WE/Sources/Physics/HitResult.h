@@ -5,4 +5,5 @@
 struct FHitResult
 {
 	TWeakPtr<WPhysicsComponent> HitComponent;
+	XMFLOAT3 ImpactPoint;
 };

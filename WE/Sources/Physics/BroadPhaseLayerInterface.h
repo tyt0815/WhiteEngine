@@ -27,5 +27,5 @@ public:
 #endif // JPH_EXTERNAL_PROFILE || JPH_PROFILE_ENABLED
 
 private:
-	JPH::BroadPhaseLayer mObjectToBroadPhase[EObjectChannel::NUM_LAYERS];
+	JPH::BroadPhaseLayer mObjectToBroadPhase[EObjectChannel::EOC_None];
 };

@@ -14,7 +14,7 @@ ATopAttackMissile::ATopAttackMissile()
 	if (auto ProjMoveComp = mProjectileMovementComponent.lock())
 	{
 		ProjMoveComp->mVelocity = XMFLOAT3(0, 0, 5);
-		ProjMoveComp->SetLifeSpan(10.0f);
+		ProjMoveComp->SetLifeSpan(2.5f);
 		ProjMoveComp->SetHoming(true);
 		ProjMoveComp->SetHomingTurnLimit(45);
 	}
@@ -59,6 +59,6 @@ void ATopAttackMissile::Tick(float DeltaSecond)
 	Start.x += Forward.x;
 	Start.y += Forward.y;
 	Start.z += Forward.z;
-	GetWorld()->DrawDebugLine(Start, End, XMFLOAT4(0, 1, 0, 1), 0);
+	GetWorld()->DrawDebugLine(Start, End, XMFLOAT4(0, 1, 1, 1), 0);
 }
 

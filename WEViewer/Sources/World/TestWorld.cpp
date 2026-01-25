@@ -23,8 +23,8 @@ void WTestWorld::Tick(float DeltaSecond)
 	XMFLOAT3 Start(0, 0, 0);
 	for (int i = 0; i < 10; ++i)
 	{
-		XMFLOAT3 End(0, -1 * (i + 1), i);
+		XMFLOAT3 End(0, -1.0f * (float)(i + 1), (float)i);
 		FHitResult HitResult;
-		LineTrace(Start, End, HitResult, true);
+		LineTrace(Start, End, HitResult, false);
 	}
 }

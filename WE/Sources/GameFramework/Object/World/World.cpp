@@ -311,17 +311,21 @@ void WWorld::LineTrace(XMFLOAT3 Start, XMFLOAT3 End, FHitResult& HitResult, bool
 
 	if (bDrawDebug)
 	{
+		XMFLOAT3 DebugStart = Start;
+		XMFLOAT3 DebugEnd;
 		XMFLOAT4 DebugColor;
 		if (HitResult.HitComponent.expired())
 		{
+			DebugEnd = End;
 			DebugColor = { 1,0,0,1 };
 		}
 		else
 		{
+			DebugEnd = HitResult.ImpactPoint;
 			DebugColor = { 0,1,0,1 };
 		}
 
-		DrawDebugLine(Start, End, DebugColor, DebugDuration);
+		DrawDebugLine(DebugStart, DebugEnd, DebugColor, DebugDuration);
 	}
 }
 

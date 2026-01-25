@@ -37,7 +37,6 @@ void WProjectileMovementComponent::TickComponent(float DeltaTime)
 
                     // 핵심: Slerp처럼 비율 계산
                     float Alpha = (mHomingTurnLimit <= 0) ? 1.0f : min(1.0f, MaxStep / Radian * DeltaTime);
-
                     // 3. 축 계산 및 쿼터니언 생성
                     XMVECTOR AxisV = XMVector3Normalize(XMVector3Cross(ForwardV, ToTargetUnitV));
                     XMVECTOR RotationQuatV = XMQuaternionRotationAxis(AxisV, Radian * Alpha);

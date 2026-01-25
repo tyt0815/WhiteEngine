@@ -14,12 +14,22 @@
 #pragma comment(lib, "D3D12.lib")
 #pragma comment(lib, "dxgi.lib")
 
+#include <timeapi.h>
+#pragma comment(lib, "winmm.lib")
+
 HINSTANCE g_hInst;
 
 std::atomic<int> g_TickRate{ 0 };
 std::atomic<int> g_FPS{ 0 };
 std::atomic<float> g_GameThreadDeltaMs{ 0.0f };
 std::atomic<float> g_RenderThreadDeltaMs{ 0.0f };
+
+inline constexpr int g_TickRateLimit = 165;
+inline constexpr int g_FPSLimit = 165;
+inline constexpr float g_TickTimelimit = 1.0f / g_TickRateLimit;
+inline constexpr float g_FrameTimelimit = 1.0f / g_FPSLimit;
+inline constexpr bool g_bLimitTick = false;
+inline constexpr bool g_bLimitFrame = true;
 
 
 FGameApplication::FGameApplication()
@@ -34,6 +44,10 @@ FGameApplication::~FGameApplication()
 
 void FGameApplication::Initialize()
 {
+	timeBeginPeriod(1); // 타이머 해상도를 1ms로 설정
+
+	// 프로그램 종료 시
+	
 	Physics::Startup();
 	FMeshGeometryManager::GetInstance();
 	FAssetManager::GetInstance()->LoadAssets();
@@ -48,7 +62,6 @@ void FGameApplication::Initialize()
 
 int FGameApplication::Run()
 {
-
 	// 프로파일링용 GUI
 	GUI::FDrawCommand Command;
 	Command.LifeSpan = -1;
@@ -80,6 +93,23 @@ void FGameApplication::Thread_GamePlay()
 	{
 		Timer.Tick();
 		float DeltaTime = (float)Timer.GetDeltaSecond();
+
+		if (g_bLimitTick && DeltaTime < g_TickTimelimit)
+		{
+			float RemainingTime = g_TickTimelimit - DeltaTime;
+			if (RemainingTime > 0.002f)
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds((int)((RemainingTime - 0.0015f) * 1000.0f)));
+			}
+
+			while (DeltaTime < g_TickTimelimit)
+			{
+				Timer.Tick();
+				DeltaTime += (float)Timer.GetDeltaSecond();
+
+				 std::this_thread::yield();
+			}
+		}
 
 		TimeElapsed += DeltaTime;
 		++FrameCount;
@@ -114,9 +144,30 @@ void FGameApplication::Thread_Render()
 		else
 		{
 			Timer.Tick();
+			float DeltaTime = (float)Timer.GetDeltaSecond();
+
+			// --- 틱레이트 제한 로직 시작 ---
+			if (g_bLimitFrame && DeltaTime < g_FrameTimelimit)
+			{
+				float RemainingTime = g_FrameTimelimit - DeltaTime;
+				if (RemainingTime > 0.002f)
+				{
+					std::this_thread::sleep_for(std::chrono::milliseconds((int)((RemainingTime - 0.0015f) * 1000.0f)));
+				}
+
+				while (DeltaTime < g_FrameTimelimit)
+				{
+					Timer.Tick();
+					DeltaTime += (float)Timer.GetDeltaSecond();
+
+					// CPU 점유율을 너무 높이지 않도록 힌트만 줌
+					std::this_thread::yield();
+				}
+			}
+			// --- 틱레이트 제한 로직 끝 ---
 
 
-			TimeElapsed += (float)Timer.GetDeltaSecond();
+			TimeElapsed += DeltaTime;
 			++FrameCount;
 			if (TimeElapsed >= 1)
 			{
@@ -130,9 +181,6 @@ void FGameApplication::Thread_Render()
 			FRenderItemProxy RIP = mWorld->mRenderItemProxy;
 			mWorld->mRenderItemProxyMetex.unlock();
 			mRenderer->Tick(RIP);
-			
-			double RenderDelta = Timer.GetDeltaSecond();
-
 		}
 	}
 
@@ -145,4 +193,6 @@ void FGameApplication::Terminate()
 	mRenderer->Destroy();
 	mWorld.reset();
 	mRenderer.reset();
+
+	timeEndPeriod(1);
 }

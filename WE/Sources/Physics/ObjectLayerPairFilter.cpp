@@ -5,9 +5,9 @@ bool FObjectLayerPairFilter::ShouldCollide(JPH::ObjectLayer inObject1, JPH::Obje
 {
 	switch (inObject1)
 	{
-	case EObjectChannel::NON_MOVING:
-		return inObject2 == EObjectChannel::MOVING; // Non moving only collides with moving
-	case EObjectChannel::MOVING:
+	case EObjectChannel::EOC_NoneMoving:
+		return inObject2 == EObjectChannel::EOC_Moving; // Non moving only collides with moving
+	case EObjectChannel::EOC_Moving:
 		return true; // Moving collides with everything
 	default:
 		JPH_ASSERT(false);

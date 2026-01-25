@@ -8,7 +8,10 @@
 // but only if you do collision testing).
 namespace EObjectChannel
 {
-	static constexpr JPH::ObjectLayer NON_MOVING = 0;
-	static constexpr JPH::ObjectLayer MOVING = 1;
-	static constexpr JPH::ObjectLayer NUM_LAYERS = 2;
+	enum EObjectChannel : JPH::ObjectLayer
+	{
+		EOC_NoneMoving = 0,
+		EOC_Moving,
+		EOC_None
+	};
 };

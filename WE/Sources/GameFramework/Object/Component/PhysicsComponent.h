@@ -2,6 +2,7 @@
 #pragma once
 #include "SceneComponent.h"
 #include "Physics/PhysicsBody.h"
+#include "Physics/ObjectChannel.h"
 #include "Utility/Delegate.h"
 #include "Utility/Memory.h"
 
@@ -11,17 +12,6 @@ DECLARE_DELEGATE_TwoParams(FComponentHitDelegate, TWeakPtr<WPhysicsComponent>, X
 DECLARE_DELEGATE_TwoParams(FComponentBeginOverlapDelegate, TWeakPtr<WPhysicsComponent>, XMFLOAT3);
 
 using EMotionType = JPH::EMotionType;
-
-namespace EObjectChannel
-{
-	enum EObjectChannel : JPH::ObjectLayer
-	{
-		// ObjectChannel의 값들과 일치해야함
-		EOC_NonMoving = 0,
-		EOC_Moving,
-		EOC_ChannelNum
-	};
-}
 
 class WPhysicsComponent : public WSceneComponent
 {

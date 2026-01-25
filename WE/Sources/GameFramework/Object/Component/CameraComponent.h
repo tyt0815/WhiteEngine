@@ -26,7 +26,7 @@ private:
 	XMFLOAT3 mRight = {};
 	XMFLOAT3 mUp = {};
 	XMFLOAT3 mLook = {};
-	float mFov = 120;
+	float mFov = 90;
 	float mNearZ = 0.1f;
 	float mFarZ = 1000.0f;
 	float mAspectRatio = 1;

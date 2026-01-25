@@ -6,9 +6,9 @@ bool FObjectVsBroadPhaseLayerFilter::ShouldCollide(JPH::ObjectLayer inLayer1, JP
 {
 	switch (inLayer1)
 	{
-	case EObjectChannel::NON_MOVING:
+	case EObjectChannel::EOC_NoneMoving:
 		return inLayer2 == BroadPhaseLayers::MOVING;
-	case EObjectChannel::MOVING:
+	case EObjectChannel::EOC_Moving:
 		return true;
 	default:
 		JPH_ASSERT(false);
