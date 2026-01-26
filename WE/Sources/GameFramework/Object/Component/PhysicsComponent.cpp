@@ -71,7 +71,12 @@ void WPhysicsComponent::UpdateFromPhysics()
 		Transform.Rotation = mBody->GetRotation();
 		Transform.Scale = mLastPhysicsTransform.Scale;
 
-		if (!Transform.Equal(mLastPhysicsTransform))
+		bool bIsNan =
+			std::isnan(Transform.Translation.x) || std::isnan(Transform.Translation.y) || std::isnan(Transform.Translation.z) ||
+			std::isnan(Transform.Rotation.x) || std::isnan(Transform.Rotation.y) || std::isnan(Transform.Rotation.z) ||
+			std::isnan(Transform.Scale.x) || std::isnan(Transform.Scale.y);
+
+		if (!Transform.Equal(mLastPhysicsTransform) && !bIsNan)
 		{
 			mLastPhysicsTransform = Transform;
 

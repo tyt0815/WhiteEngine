@@ -27,6 +27,8 @@ public:
 	// mHomingPathMarkerDeque의 front에 있는 Marker를 현재 목표지점으로 설정
 	void UpdateHomingPath();
 
+	TWeakPtr<AActor> GetCurrentHomingTarget() const;
+
 private:
 	void DestroyPathMarkers();
 

@@ -17,7 +17,7 @@ ATopAttackMissile::ATopAttackMissile()
 	if (auto StaticMeshComp = mStaticMesh.lock())
 	{
 		StaticMeshComp->SetupAttachment(mHitBoxComp);
-		StaticMeshComp->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(EStaticMeshType::ESMT_ScuffedGoldBox));
+		StaticMeshComp->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(EStaticMeshType::ESMT_MetalCylinder));
 		StaticMeshComp->SetLocalRotation(XMFLOAT3(90, 0, 0));
 		StaticMeshComp->SetLocalLocation(XMFLOAT3(0, 0, GetActorScale().z));
 	}
@@ -137,6 +137,16 @@ void ATopAttackMissile::UpdateHomingPath()
 			ProjComp->SetHomingTarget(mHomingPathMarkerDeque.front().lock()->GetRootComponent());
 		}
 	}
+}
+
+TWeakPtr<AActor> ATopAttackMissile::GetCurrentHomingTarget() const
+{
+	if (mHomingPathMarkerDeque.empty())
+	{
+		return TWeakPtr<AActor>();
+	}
+
+	return mHomingPathMarkerDeque.front();
 }
 
 void ATopAttackMissile::DestroyPathMarkers()

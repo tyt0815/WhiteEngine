@@ -26,11 +26,34 @@ void AColdLaunchAnimPlayer::Tick(float DeltaSecond)
 		if (auto AnimComp = mAnimComp.lock())
 		{
 			XMFLOAT3 ProjLoc = AnimComp->SampleAnimWorldLocationBySecond(mAnimSampler, mPlayTime);
-			Proj->SetActorLocation(ProjLoc);
+			Proj->SetActorLocation(ProjLoc);			
+			
+			XMFLOAT3 ProjRot;
+			XMVECTOR AxisV = XMLoadFloat3(&mRotationAxis);
+			float Alpha = mRotationSampler.SampleAnimDataByFrame(AnimComp->SecondToFrame(mPlayTime)) / -90.0f;
+			if (mPlayTime > AnimComp->GetDuration())
+			{
+				int a = 0;
+			}
+			if (mRotationRadian > 0.0001f && XMVector3NotEqual(AxisV, XMVectorZero()))
+			{
+				XMVECTOR RotationQuatV = XMQuaternionRotationAxis(AxisV, mRotationRadian * Alpha);
 
-			XMFLOAT3 ProjRot(0,0,0);
-			ProjRot.x = mRotationSampler.SampleAnimDataByFrame(AnimComp->SecondToFrame(mPlayTime));
-			Proj->SetActorRotation(GetActorRotation());
+				XMFLOAT3 Forward = GetFowardVector();
+				XMVECTOR NewForwardV = XMVector3Rotate(XMLoadFloat3(&Forward), RotationQuatV);
+				XMFLOAT3 Up = GetUpVector();
+				XMVECTOR NewUpV = XMVector3Rotate(XMLoadFloat3(&Up), RotationQuatV);
+				XMFLOAT3 Right = GetRightVector();
+				XMVECTOR NewRightV = XMVector3Rotate(XMLoadFloat3(&Right), RotationQuatV);
+
+				ProjRot = FDXMath::GetEulerRotationFromVectors(NewForwardV, NewRightV, NewUpV);
+			}
+			else
+			{
+				ProjRot = GetActorRotation();
+			}
+
+			Proj->SetActorRotation(ProjRot);
 
 			if (mPlayTime > AnimComp->GetDuration())
 			{
