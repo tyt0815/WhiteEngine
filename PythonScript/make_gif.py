@@ -49,8 +49,8 @@ def make_gif(input_path, output_path, start_time, end_time, fps=18, width=1200, 
 
 if __name__ == "__main__":
     # 파일 경로와 시간을 확인하세요
-    in_path = "TopAttack 궤적(막힘).mp4"
+    in_path = "콜드 런치 애니메이션_Blender.mp4"
     folder_path, file_name = os.path.split(in_path)
     out_path = os.path.join(folder_path, file_name.split('.')[0] + '.gif')
     
-    make_gif(in_path, out_path, 2.9, 6.9, width=1280, height=720)
+    make_gif(in_path, out_path, 1, 3, width=1280, height=720)
