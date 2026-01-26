@@ -19,6 +19,7 @@ enum EStaticMeshType : std::uint16_t
 	ESMT_DefaultFloor,
 	ESMT_MetalCylinder,
 	ESMT_MetalRing,
+	ESMT_LaminateFlooringBrownBox,
 	ESMT_None
 };
 

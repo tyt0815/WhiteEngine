@@ -78,6 +78,8 @@ def export_all_fcurves_to_xml(file_path):
                 # 핸들 좌표도 동일한 부호 반전 적용 (베지에 곡선 유지용)
                 h_left_y = -keypoint.handle_left[1] if bFlipValue else keypoint.handle_left[1]
                 h_right_y = -keypoint.handle_right[1] if bFlipValue else keypoint.handle_right[1]
+                h_left_y = math.degrees(h_left_y) if bRadian else h_left_y
+                h_right_y = math.degrees(h_right_y) if bRadian else h_right_y
                 
                 kp_node.set("h_left_x", f"{keypoint.handle_left[0]:.4f}")
                 kp_node.set("h_left_y", f"{h_left_y:.4f}")
@@ -92,4 +94,4 @@ def export_all_fcurves_to_xml(file_path):
     print(f"성공: {file_path}")
 
 # 경로 r 붙여서 실행
-export_all_fcurves_to_xml(r"C:\Users\tyt08\Documents\_Mugung\Project\WhiteEngine\Resources\Temp\ColdLaunch.xml")
+export_all_fcurves_to_xml("./Temp/ColdLaunch.xml")

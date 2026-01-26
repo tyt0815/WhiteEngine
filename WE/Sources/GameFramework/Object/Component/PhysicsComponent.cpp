@@ -58,13 +58,13 @@ void WPhysicsComponent::UpdateToPhysics()
 		}
 
 		mLastPhysicsTransform = WorldTransform;
-		mBody->SetTransform(GetWorldTransform());
+		mBody->SetTransform(WorldTransform);
 	}
 }
 
 void WPhysicsComponent::UpdateFromPhysics()
 {
-	if (mbPhysicSimulate && mMotionType != EMotionType::Static)
+	if (mbPhysicSimulate && mMotionType == EMotionType::Dynamic)
 	{
 		FTransform Transform = GetWorldTransform();
 		Transform.Translation = mBody->GetLocation();
@@ -75,7 +75,7 @@ void WPhysicsComponent::UpdateFromPhysics()
 		{
 			mLastPhysicsTransform = Transform;
 
-			SetWorldTransform(mLastPhysicsTransform);
+			SetWorldTransform(Transform);
 		}
 	}
 }

@@ -32,6 +32,9 @@
     <ClCompile Include="Sources\Actor\TopAttackMissile.cpp">
       <Filter>Sources\Actor</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Actor\PhysicsBox.cpp">
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\World\TestWorld.h">
@@ -47,6 +50,9 @@
       <Filter>Sources\Actor</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Actor\TopAttackMissile.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\PhysicsBox.h">
       <Filter>Sources\Actor</Filter>
     </ClInclude>
   </ItemGroup>

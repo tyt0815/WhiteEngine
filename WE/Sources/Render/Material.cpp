@@ -89,6 +89,28 @@ void FMaterialManager::BuildMaterials()
 		"Metal049A_Roughness",
 		FDXMath::Identity4x4()
 	);
+
+	BuildMaterial(
+		EMT_White,
+		ESM_DefaultLit,
+		EBM_Opaque,
+		"White",
+		"Black",
+		"White",
+		"White",
+		FDXMath::Identity4x4()
+	);
+
+	BuildMaterial(
+		EMT_Black,
+		ESM_DefaultLit,
+		EBM_Opaque,
+		"Black",
+		"Black",
+		"White",
+		"White",
+		FDXMath::Identity4x4()
+	);
 }
 
 void FMaterialManager::Internal_BuildMaterial(

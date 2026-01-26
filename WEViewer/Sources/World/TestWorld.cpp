@@ -1,15 +1,40 @@
 #include "TestWorld.h"
 #include "Actor/TopAttackMissile.h"
+#include "Actor/PhysicsBox.h"
 
 void WTestWorld::BeginPlay()
 {
 	Super::BeginPlay();
 
-	mMissileSystem = SpawnActor<AMissileSwarmSystem>();
-	if (auto MissileSystem = mMissileSystem.lock())
+	XMFLOAT3 LocationOffset = XMFLOAT3(-40, 0, 40);
+	XMFLOAT3 RotationOffset = XMFLOAT3(0, 90, 0);
+	mMissileSystems[0] = SpawnActor<AMissileSwarmSystem>();
+	if (auto MissileSystem = mMissileSystems[0].lock())
 	{
-		MissileSystem->SetActorLocation(XMFLOAT3(0, 0, 10));
+		MissileSystem->SetActorLocation(LocationOffset);
+		MissileSystem->SetActorRotation(RotationOffset);
+
+		mPlatform = SpawnActor<APhysicsBox>().lock();
+		if (auto Box = mPlatform.lock())
+		{
+			Box->SetActorScale(XMFLOAT3(5, 1, 5));
+			XMFLOAT3 Loc = CalcTargetOrigin(MissileSystem.get(), 80.0f);
+			Loc.y += 10;
+			Box->SetActorLocation(Loc);
+		}
 	}
+
+	LocationOffset = XMFLOAT3(-20, 0, 20);
+	RotationOffset = XMFLOAT3(0, 90, 0);
+	mMissileSystems[1] = SpawnActor<AMissileSwarmSystem>();
+	if (auto MissileSystem = mMissileSystems[1].lock())
+	{
+		MissileSystem->SetActorLocation(LocationOffset);
+		MissileSystem->SetActorRotation(RotationOffset);
+	}
+	
+
+	mElapsedTime = mDelay;
 }
 
 void WTestWorld::Tick(float DeltaSecond)
@@ -17,23 +42,50 @@ void WTestWorld::Tick(float DeltaSecond)
 	Super::Tick(DeltaSecond);
 
 	mElapsedTime += DeltaSecond;
-	if (mElapsedTime > 3)
+	if (mElapsedTime > mDelay)
 	{
-		if (auto MissileSystem = mMissileSystem.lock())
+		if (auto MissileSystem = mMissileSystems[0].lock())
 		{
-			XMFLOAT3 TargetOrigin = MissileSystem->GetActorLocation();
-			TargetOrigin.z += 20;
-			TargetOrigin.x += 10;
-			MissileSystem->Fire<AColdLaunchAnimPlayer, ATopAttackMissile>(1, 1, TargetOrigin);
+			XMFLOAT3 TargetOrigin = CalcTargetOrigin(MissileSystem.get(), 80.0f);
+			MissileSystem->Fire<AColdLaunchAnimPlayer, ATopAttackMissile>(5, 7, TargetOrigin);
+			mElapsedTime = 0;
+		}
+
+		if (auto MissileSystem = mMissileSystems[1].lock())
+		{
+			XMFLOAT3 TargetOrigin = CalcTargetOrigin(MissileSystem.get(), 40.0f);
+			MissileSystem->Fire<AColdLaunchAnimPlayer, ATopAttackMissile>(5, 7, TargetOrigin);
 			mElapsedTime = 0;
 		}
 	}
 
-	XMFLOAT3 Start(0, 0, 0);
-	for (int i = 0; i < 10; ++i)
+	if (auto Platform = mPlatform.lock())
 	{
-		XMFLOAT3 End(0, -1.0f * (float)(i + 1), (float)i);
-		FHitResult HitResult;
-		LineTrace(Start, End, HitResult, true);
+		static XMFLOAT3 Origin = Platform->GetActorLocation();
+		static float t = 0;
+		t += DeltaSecond;
+		Platform->SetActorLocation(XMFLOAT3(Origin.x, Origin.y + sinf(t), Origin.z));
 	}
+}
+
+XMFLOAT3 WTestWorld::CalcTargetOrigin(AActor* Actor, float TargetDistance)
+{
+	XMFLOAT3 TargetOrigin = Actor->GetActorLocation();
+	XMFLOAT3 Forward = Actor->GetFowardVector();
+	XMVECTOR TargetOriginV = XMLoadFloat3(&TargetOrigin);
+	XMVECTOR ForwardV = XMLoadFloat3(&Forward);
+	XMStoreFloat3(&TargetOrigin, XMVectorMultiplyAdd(ForwardV, XMVectorReplicate(TargetDistance), TargetOriginV));
+
+	XMFLOAT3 TraceStart = TargetOrigin;
+	XMFLOAT3 TraceEnd = TraceStart;
+	TraceEnd.y -= 20;
+	FHitResult Hit;
+	LineTrace(TraceStart, TraceEnd, Hit, true, 10.0f);
+
+	if(!Hit.HitComponent.expired())
+	{
+		TargetOrigin = Hit.ImpactPoint;
+	}
+
+	return TargetOrigin;
 }

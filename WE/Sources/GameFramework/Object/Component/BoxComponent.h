@@ -12,5 +12,5 @@ public:
 	XMFLOAT3 GetScaledExtent();
 
 protected:
-	XMFLOAT3 mExtent = { 1.0f, 1.0f, 1.0f };
+	XMFLOAT3 mExtent = { 0.5f, 0.5f, 0.5f };
 };

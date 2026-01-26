@@ -31,3 +31,5 @@ public:
 		return GetDeltaSecond() * 1000.0f;
 	}
 };
+
+#define TICK_TIMER(Timer, Variable) Timer.Tick(); double Variable = Timer.GetDeltaMilliSecond();

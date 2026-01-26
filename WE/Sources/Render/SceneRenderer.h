@@ -112,7 +112,9 @@ public:
     virtual ~FFrameResourceBase();
     void Flush();
 
+#if DEBUG_RENDER
     TUniquePtr<TUploadBuffer<FLine3DVertex>> mLine3DVB;
+#endif
 
 private:
     Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mCommandAllocator;

@@ -212,10 +212,12 @@ void Physics::Tick(float DeltaTime)
 
 	FUserDataManager::RemoveUserData();
 
+#if DEBUG_RENDER
 	g_DebugRenderer->Clear();
 	JPH::BodyManager::DrawSettings Settings;
 	Settings.mDrawShape = g_bDrawShape;
 	Settings.mDrawBoundingBox = g_bDrawBoundingBox;
 
 	g_PhysicsSystem->DrawBodies(Settings, g_DebugRenderer.get());
+#endif
 }

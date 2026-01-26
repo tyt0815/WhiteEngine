@@ -103,7 +103,7 @@ public:
 	/// Creates an mxn grid in the xz-plane with m rows and n columns, centered
 	/// at the origin with the specified width and depth.
 	///</summary>
-    MeshData CreateGrid(float width, float depth, uint32 m, uint32 n);
+    MeshData CreateGrid(float width, float depth, uint32 m, uint32 n, float TexCoordScale = 1);
 
 	///<summary>
 	/// Creates a quad aligned with the screen.  This is useful for postprocessing and screen effects.

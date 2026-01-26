@@ -28,7 +28,10 @@ inline constexpr int g_TickRateLimit = 300;
 inline constexpr int g_FPSLimit = 300;
 inline constexpr float g_TickTimelimit = 1.0f / g_TickRateLimit;
 inline constexpr float g_FrameTimelimit = 1.0f / g_FPSLimit;
-inline constexpr bool g_bLimitTick = true;
+
+inline constexpr bool g_bMultiThread = true;
+
+inline constexpr bool g_bLimitTick = false;
 inline constexpr bool g_bLimitFrame = true;
 
 
@@ -62,21 +65,94 @@ void FGameApplication::Initialize()
 
 int FGameApplication::Run()
 {
-	// 프로파일링용 GUI
-	GUI::FDrawCommand Command;
-	Command.LifeSpan = -1;
-	Command.DrawLambda = [&]()
+	if (g_bMultiThread)
 	{
-		ImGui::TextColored(ImVec4(0, 1, 0, 1), "FPS: %d", g_FPS.load());
-		ImGui::TextColored(ImVec4(0, 1, 0, 1), "Tick Rate: %d", g_TickRate.load()); 
-		ImGui::TextColored(ImVec4(0, 1, 0, 1), "RenderThread: %.3fms", g_RenderThreadDeltaMs.load());
-		ImGui::TextColored(ImVec4(0, 1, 0, 1), "GameThread: %.3fms", g_GameThreadDeltaMs.load());
-	};
-	GUI::AddProfilingCommand(Command);
+		// 프로파일링용 GUI
+		GUI::FDrawCommand Command;
+		Command.LifeSpan = -1;
+		Command.DrawLambda = [&]()
+		{
+			ImGui::TextColored(ImVec4(0, 1, 0, 1), "FPS: %d", g_FPS.load());
+			ImGui::TextColored(ImVec4(0, 1, 0, 1), "Tick Rate: %d", g_TickRate.load());
+			ImGui::TextColored(ImVec4(0, 1, 0, 1), "RenderThread: %.3fms", g_RenderThreadDeltaMs.load());
+			ImGui::TextColored(ImVec4(0, 1, 0, 1), "GameThread: %.3fms", g_GameThreadDeltaMs.load());
+		};
+		GUI::AddProfilingCommand(Command);
 
-	std::thread GameplayThread(&FGameApplication::Thread_GamePlay, this);
-	Thread_Render();
-	GameplayThread.join();
+		std::thread GameplayThread(&FGameApplication::Thread_GamePlay, this);
+		Thread_Render();
+		GameplayThread.join();
+	}
+	else
+	{
+		GUI::FDrawCommand Command;
+		Command.LifeSpan = -1;
+		Command.DrawLambda = [&]()
+		{
+			ImGui::TextColored(ImVec4(0, 1, 0, 1), "FPS: %d", g_FPS.load());
+			ImGui::TextColored(ImVec4(0, 1, 0, 1), "mspf: %.3fms", g_RenderThreadDeltaMs.load());
+		};
+		GUI::AddProfilingCommand(Command);
+
+		MSG msg = { 0 };
+
+		int FrameCount = 0;
+		float TimeElapsed = 0.0f;
+		FTimer Timer;
+
+		mWorld->BeginPlay();
+
+		while (msg.message != WM_QUIT)
+		{
+			Timer.Tick();
+			float DeltaTime = (float)Timer.GetDeltaSecond();
+
+			// --- 틱레이트 제한 로직 시작 ---
+			if (g_bLimitFrame && DeltaTime < g_FrameTimelimit)
+			{
+				float RemainingTime = g_FrameTimelimit - DeltaTime;
+				if (RemainingTime > 0.002f)
+				{
+					std::this_thread::sleep_for(std::chrono::milliseconds((int)((RemainingTime - 0.0015f) * 1000.0f)));
+				}
+
+				while (DeltaTime < g_FrameTimelimit)
+				{
+					Timer.Tick();
+					DeltaTime += (float)Timer.GetDeltaSecond();
+
+					// CPU 점유율을 너무 높이지 않도록 힌트만 줌
+					std::this_thread::yield();
+				}
+			}
+			// --- 틱레이트 제한 로직 끝 ---
+
+
+			TimeElapsed += DeltaTime;
+			++FrameCount;
+			if (TimeElapsed >= 1)
+			{
+				g_FPS = (int)(FrameCount / TimeElapsed);
+				g_RenderThreadDeltaMs = TimeElapsed / (float)FrameCount * 1000.0f;
+				FrameCount = 0;
+				TimeElapsed = 0.0f;
+			}
+
+			GetInputSystemManager()->Tick(DeltaTime);
+			mWorld->Tick(DeltaTime);
+
+
+			if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+			{
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+			else
+			{
+				mRenderer->Tick(mWorld->mRenderItemProxy);
+			}
+		}
+	}
 	Terminate();
 	return 0;
 }

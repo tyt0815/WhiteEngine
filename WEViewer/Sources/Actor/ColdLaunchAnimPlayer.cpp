@@ -29,8 +29,8 @@ void AColdLaunchAnimPlayer::Tick(float DeltaSecond)
 			Proj->SetActorLocation(ProjLoc);
 
 			XMFLOAT3 ProjRot(0,0,0);
-			ProjRot.z = mRotationSampler.SampleAnimDataByFrame(AnimComp->SecondToFrame(mPlayTime));
-			Proj->SetActorRotation(ProjRot);
+			ProjRot.x = mRotationSampler.SampleAnimDataByFrame(AnimComp->SecondToFrame(mPlayTime));
+			Proj->SetActorRotation(GetActorRotation());
 
 			if (mPlayTime > AnimComp->GetDuration())
 			{

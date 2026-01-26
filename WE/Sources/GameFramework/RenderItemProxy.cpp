@@ -7,6 +7,7 @@ void FRenderItemProxy::Cleanup(float Delta)
 	mStaticMeshProxies.clear();
 	mDirectionalLightProxies.clear();
 	
+#if DEBUG_RENDER
 	for (int i = 0; i < mDebugLine3DProxies.size(); ++i)
 	{
 		
@@ -21,6 +22,7 @@ void FRenderItemProxy::Cleanup(float Delta)
 		}
 		mDebugLine3DProxies[i].LifeSpan -= Delta;
 	}
+#endif
 }
 
 size_t FRenderItemProxy::AllocateMeshCbProxy()

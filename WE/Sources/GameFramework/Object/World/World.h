@@ -86,6 +86,7 @@ private:
 		double Time_Update_Physics;
 		double Time_Physics_Event;
 		double Time_Tick_PostPhysics;
+		double Time_Flush_DestroyQueue;
 		double Time_Update_Render_Items;
 	};
 	void UpdateProfilingData(float DeltaSecond, const FProfilingData& Data);

@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Actor\ColdLaunchAnimPlayer.cpp" />
+    <ClCompile Include="Sources\Actor\PhysicsBox.cpp" />
     <ClCompile Include="Sources\Actor\PhysicsSphere.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
@@ -35,6 +36,7 @@
   <ItemGroup>
     <ClInclude Include="Sources\Actor\ColdLaunchAnimPlayer.h" />
     <ClInclude Include="Sources\Actor\MissileSwarmSystem.h" />
+    <ClInclude Include="Sources\Actor\PhysicsBox.h" />
     <ClInclude Include="Sources\Actor\PhysicsSphere.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
@@ -111,7 +113,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);DEBUG_RENDER=1;DEBUG_RENDER=1;DEBUG_RENDER</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2020.3.7\include;$(SolutionDir)WE\Sources\GameFramework\Object</AdditionalIncludeDirectories>
     </ClCompile>
@@ -141,7 +143,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);DEBUG_RENDER=1;DEBUG_RENDER=1;DEBUG_RENDER</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>

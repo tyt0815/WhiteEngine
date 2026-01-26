@@ -12,7 +12,13 @@ public:
 	virtual void Tick(float DeltaSecond) override;
 
 private:
-	float mElapsedTime = 0;
+	XMFLOAT3 CalcTargetOrigin(AActor* Actor, float TargetDistance);
 
-	TWeakPtr<AMissileSwarmSystem> mMissileSystem;
+	float mDelay = 2;
+
+	float mElapsedTime;
+
+	TWeakPtr<AMissileSwarmSystem> mMissileSystems[2];
+
+	TWeakPtr<AActor> mPlatform;
 };

@@ -8,13 +8,13 @@ float4 MainPS(
     float Depth = gTexture[gDepthTextureIndex].Sample(gsamLinearClamp, TexC).r;
     clip(0.99 - Depth);
     
-    // GBuffer¿¡¼­ µ¥ÀÌÅÍ ÃßÃâ
+    // GBufferì—ì„œ ë°ì´í„° ì¶”ì¶œ
     float4 GBufferA = gTexture[gGBufferATextureIndex].Sample(gsamPointWrap, TexC);  // WorldNormal
     float3 WorldNormal = GBufferA.rgb;
     
     FMaterial Material;
     float4 GBufferB = gTexture[gGBufferBTextureIndex].Sample(gsamPointWrap, TexC);  // Specular, Roughness, Metallic
-    float Specular = GBufferB.r; // ÇöÀç 0.04f°ªÀÌ °íÁ¤ÀûÀ¸·Î µé¾î¿È
+    float Specular = GBufferB.r; // í˜„ì¬ 0.04fê°’ì´ ê³ ì •ì ìœ¼ë¡œ ë“¤ì–´ì˜´
     Material.Roughness = GBufferB.g;
     Material.Metallic = GBufferB.b;
     
@@ -27,13 +27,17 @@ float4 MainPS(
     float3 V = normalize(gEyePosW - WorldPosition);
     float3 Lo = (float3) 0.0f;
     
-    // Directional light °è»ê
+    // Directional light ê³„ì‚°
     for (uint i = 0; i < gDirectionalLightNum; ++i)
     {
         FDirectionalLight DirLight = gDirectionalLights[i];
+#ifdef SHADOWMAP
         float4 ShadowPosH = mul(float4(WorldPosition, 1.0f), DirLight.ShadowTransform);
         float ShadowFactor = CalculateShadowFactor(ShadowPosH, gTexture[DirLight.ShadowMapIndex]);
         Lo += ShadowFactor * ComputeDirectionalLight(gDirectionalLights[i], Material, V, WorldNormal, F0);
+#else
+        Lo += ComputeDirectionalLight(gDirectionalLights[i], Material, V, WorldNormal, F0);
+#endif
     }
     
 #ifdef IBL
@@ -55,7 +59,7 @@ float4 MainPS(
     float2 envBRDF = gTexture[gBRDFLUTIndex].Sample(gsamLinearWrap, float2(max(dot(WorldNormal, V), 0.0), Material.Roughness)).rg;
     float3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
     
-    // TODO: AO Àû¿ë. float3(1.0f)¸¦ AO·Î º¯°æ
+    // TODO: AO ì ìš©. float3(1.0f)ë¥¼ AOë¡œ ë³€ê²½
     float3 Ambient = (kD * Diffuse + specular) * (float3) 1.0f;
 #else
     float3 Ambient = (float3) 0.03f * Material.Albedo;

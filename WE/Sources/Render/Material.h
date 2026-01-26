@@ -32,6 +32,8 @@ enum EMaterialType : UINT16
 	EMT_ThickMortarStonework,
 	EMT_LaminateFlooringBrown,
 	EMT_Metal049A,
+	EMT_White,
+	EMT_Black,
 	EMT_None
 };
 

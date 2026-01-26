@@ -18,7 +18,7 @@ protected:
 
 	TWeakPtr<WCameraComponent> mCameraComponent;
 
-	float mMoveSpeed = 30.0f;
+	float mMoveSpeed = 8.0f;
 
 	float mCameraSpeed = 1.f;
 

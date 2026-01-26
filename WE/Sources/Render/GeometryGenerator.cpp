@@ -548,7 +548,7 @@ void FGeometryGenerator::BuildCylinderBottomCap(float bottomRadius, float topRad
 	}
 }
 
-FGeometryGenerator::MeshData FGeometryGenerator::CreateGrid(float width, float depth, uint32 m, uint32 n)
+FGeometryGenerator::MeshData FGeometryGenerator::CreateGrid(float width, float depth, uint32 m, uint32 n, float TexCoordScale)
 {
     MeshData meshData;
 
@@ -581,8 +581,8 @@ FGeometryGenerator::MeshData FGeometryGenerator::CreateGrid(float width, float d
 			meshData.Vertices[i*n+j].TangentU = XMFLOAT3(1.0f, 0.0f, 0.0f);
 
 			// Stretch texture over grid.
-			meshData.Vertices[i*n+j].TexC.x = j*du * width / 2 ;
-			meshData.Vertices[i*n+j].TexC.y = i*dv * depth / 2;
+			meshData.Vertices[i*n+j].TexC.x = j*du * width / 2 * TexCoordScale;
+			meshData.Vertices[i*n+j].TexC.y = i*dv * depth / 2 * TexCoordScale;
 		}
 	}
  

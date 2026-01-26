@@ -30,7 +30,9 @@ FFrameResourceBase::FFrameResourceBase(ID3D12Device* Device)
 	mMaterialStructuredBuffer = std::make_unique<TUploadBuffer<FMaterialStructuredBuffer>>(Device, EMT_None, false);
 	mDirectionalLightStructuredBuffer = std::make_unique<TUploadBuffer<FDirectionalLightStructuredBuffer>>(Device, DIR_LIGHTS_NUM, false);
 
+#if DEBUG_RENDER
 	mLine3DVB = std::make_unique<TUploadBuffer<FLine3DVertex>>(Device, 100000, false);	// TODO: 편의상 대충 지정해 뒀는데 프레임 엄청 떨어트림
+#endif
 }
 
 FFrameResourceBase::~FFrameResourceBase()
@@ -352,7 +354,9 @@ void FSceneRenderer::UpdateFrameBuffers(FFrameResourceBase* FrameResource, const
 	UpdateLightInfoCB(FrameResource->GetLightInfoCB(), RenderItemProxy);
 	UpdateMaterialSB(FrameResource->GetMaterialSB());
 	UpdateDirectionalLightSB(FrameResource->GetDirectionalLightSB(), RenderItemProxy);
+#if DEBUG_RENDER
 	UpdateDebugLine3DVB(FrameResource->mLine3DVB.get(), RenderItemProxy);
+#endif
 
 	// TODO: 테스트용 Skinned CB 업데이트
 	auto SkinnedCB = FrameResource->GetSkinnedCB();
@@ -730,6 +734,7 @@ void FSceneRenderer::UpdateDirectionalLightSB(TUploadBuffer<FDirectionalLightStr
 
 void FSceneRenderer::UpdateDebugLine3DVB(TUploadBuffer<FLine3DVertex>* DebugLine3DVB, const FRenderItemProxy& RenderItemProxy)
 {
+#if DEBUG_RENDER
 	std::vector<FLine3DVertex> LineVertices(DebugLine3DVB->GetElementCount());
 	int Index = 0;
 	for (const auto& Proxy : RenderItemProxy.mDebugLine3DProxies)
@@ -770,6 +775,7 @@ void FSceneRenderer::UpdateDebugLine3DVB(TUploadBuffer<FLine3DVertex>* DebugLine
 	}
 
 	DebugLine3DVB->CopyData(0, LineVertices.data(), (UINT)LineVertices.size());
+#endif
 }
 
 void FSceneRenderer::UpdateTargetFrameResource(const FRenderItemProxy& RenderItemProxy)

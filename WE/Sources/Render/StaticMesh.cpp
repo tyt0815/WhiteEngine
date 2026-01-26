@@ -21,8 +21,9 @@ void FStaticMeshManager::BuildStaticMeshs()
 	BuildStaticMesh(ESMT_ThickMortarStonework, "Sphere", EMT_ThickMortarStonework);
 	BuildStaticMesh(ESMT_ScuffedGoldBox, "Box", EMT_ScuffedGold);
 	BuildStaticMesh(ESMT_DefaultFloor, "Floor", EMT_LaminateFlooringBrown);
-	BuildStaticMesh(ESMT_MetalCylinder, "Cylinder", EMT_Metal049A);
+	BuildStaticMesh(ESMT_MetalCylinder, "Cylinder", EMT_Black);
 	BuildStaticMesh(ESMT_MetalRing, "Ring", EMT_ScuffedGold);
+	BuildStaticMesh(ESMT_LaminateFlooringBrownBox, "Box", EMT_LaminateFlooringBrown);
 }
 
 void FStaticMeshManager::BuildStaticMesh(EStaticMeshType Type, std::string MeshName, EMaterialType MaterialType)

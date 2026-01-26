@@ -488,6 +488,7 @@ void FDeferredShadingSceneRenderer::Render(
 		break;
 	}
 
+#if DEBUG_RENDER
 	// DrawDebugLine
 	mGBufferDepthStencil->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
@@ -516,7 +517,7 @@ void FDeferredShadingSceneRenderer::Render(
 	CommandList->SetGraphicsRootConstantBufferView(0, FrameResource->GetPassCB()->Resource()->GetGPUVirtualAddress());
 
 	CommandList->DrawInstanced(IndexCount, 1, 0, 0);
-
+#endif
 	
 	
 }

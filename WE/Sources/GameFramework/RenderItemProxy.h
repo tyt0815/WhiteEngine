@@ -77,7 +77,11 @@ public:
 
 	std::vector<FDirectionalLightProxy> mDirectionalLightProxies;
 
+#if DEBUG_RENDER
+
 	TArray<FDebugLine3DVBProxy> mDebugLine3DProxies;
+
+#endif
 
 public:
 	inline FMeshCBProxy* GetMeshCBProxy(size_t i)

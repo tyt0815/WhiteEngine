@@ -24,12 +24,15 @@ inline void AMissileSwarmSystem::Fire(int Row, int Col, XMFLOAT3 TargetOrigin)
 	XMVECTOR SystemOriginV = XMLoadFloat3(&SystemOrigin);
 	XMFLOAT3 Forward = GetFowardVector();
 	XMFLOAT3 Right = GetRightVector();
+	XMFLOAT3 Up = GetUpVector();
 	XMVECTOR ForwardV = XMLoadFloat3(&Forward);
 	XMVECTOR RightV = XMLoadFloat3(&Right);
+	XMVECTOR UpV = XMLoadFloat3(&Up);
 
 	XMVECTOR TargetOriginV = XMLoadFloat3(&TargetOrigin);
 
-	float Gap = 1;	// 간격
+	float LaunchPosGap = .2f;
+	float TargetPosGap = 2;	// 간격
 
 	float halfRow = (Row - 1) * 0.5f;
 	float halfCol = (Col - 1) * 0.5f;
@@ -47,8 +50,8 @@ inline void AMissileSwarmSystem::Fire(int Row, int Col, XMFLOAT3 TargetOrigin)
 
 				// 3. 실제 월드 좌표 계산
 				// Origin(O)에서 Forward(F)로 rowPos만큼, Right(R)로 colPos만큼 이동
-				XMVECTOR LaunchPosV = SystemOriginV + (ForwardV * RowPos * Gap) + (RightV * ColPos * Gap);
-				XMVECTOR TargetPosV = TargetOriginV + (ForwardV * RowPos * Gap) + (RightV * ColPos * Gap);
+				XMVECTOR LaunchPosV = SystemOriginV - (UpV * RowPos * LaunchPosGap) + (RightV * ColPos * LaunchPosGap);
+				XMVECTOR TargetPosV = TargetOriginV + (ForwardV * RowPos * TargetPosGap) + (RightV * ColPos * TargetPosGap);
 
 				// 4. 결과값 저장
 				XMFLOAT3 LaunchPos;
@@ -57,6 +60,7 @@ inline void AMissileSwarmSystem::Fire(int Row, int Col, XMFLOAT3 TargetOrigin)
 				XMStoreFloat3(&TargetPos, TargetPosV);
 
 				AnimPlayer->SetActorLocation(LaunchPos);
+				AnimPlayer->SetActorRotation(GetActorRotation());
 				AnimPlayer->PlayAnim<TProjectile>(TargetPos);
 			}
 		}

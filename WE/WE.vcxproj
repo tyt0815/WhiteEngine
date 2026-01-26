@@ -405,7 +405,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <PreprocessorDefinitions>PROJECT_DIR=R"($(ProjectDir))";PROJECT_DIR_W=LR"($(ProjectDir))";SOLUTION_DIR=R"($(SolutionDir))";SOLUTION_DIR_W=LR"($(SolutionDir))";JPH_FLOATING_POINT_EXCEPTIONS_ENABLED=1;JPH_OBJECT_STREAM=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PROJECT_DIR=R"($(ProjectDir))";PROJECT_DIR_W=LR"($(ProjectDir))";SOLUTION_DIR=R"($(SolutionDir))";SOLUTION_DIR_W=LR"($(SolutionDir))";JPH_FLOATING_POINT_EXCEPTIONS_ENABLED=1;JPH_OBJECT_STREAM=1;DEBUG_RENDER=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(SolutionDir)WE\Sources;$(SolutionDir)WE\Sources/GameFramework/Object;C:\Program Files\Autodesk\FBX\FBX SDK\2020.3.7\include;$(SolutionDir)ThirdParty\ImGui;$(SolutionDir)ThirdParty\ImGui\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>

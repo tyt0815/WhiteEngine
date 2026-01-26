@@ -37,6 +37,7 @@ void WWorld::BeginPlay()
 		ImGui::Text("Update_Physics:      %.3fms",		mProfilingData.Time_Update_Physics);
 		ImGui::Text("Physics_Event:       %.3fms",		mProfilingData.Time_Physics_Event);
 		ImGui::Text("Tick_PostPhysics:    %.3fms",		mProfilingData.Time_Tick_PostPhysics);
+		ImGui::Text("Time_Flush_DestroyQueue:    %.3fms", mProfilingData.Time_Flush_DestroyQueue);
 		ImGui::Text("Update_Render_Items: %.3fms",	mProfilingData.Time_Update_Render_Items);
 	};
 	GUI::AddProfilingCommand(Command);
@@ -114,6 +115,8 @@ void WWorld::Tick(float Delta)
 	ProfilingData.Time_Tick_PostPhysics = Timer.GetDeltaMilliSecond();
 
 	FlushDestroyQueue();
+	Timer.Tick();
+	ProfilingData.Time_Flush_DestroyQueue = Timer.GetDeltaMilliSecond();
 
 	// RenderItem 업데이트
 	
@@ -169,12 +172,14 @@ void WWorld::DestroyActor(const TSharedPtr<AActor>& Actor)
 
 void WWorld::DrawDebugLine(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT4 Color, float LifeSpan)
 {
+#if DEBUG_RENDER
 	FDebugLine3DVBProxy Proxy;
 	Proxy.Start = Start;
 	Proxy.End = End;
 	Proxy.Color = Color;
 	Proxy.LifeSpan = LifeSpan;
 	mRenderItemProxy.mDebugLine3DProxies.emplace_back(Proxy);
+#endif
 }
 
 void WWorld::EnqueueOnBeginOverlapEvent(const FPhysicEventInfo& Info)
@@ -331,10 +336,11 @@ void WWorld::LineTrace(XMFLOAT3 Start, XMFLOAT3 End, FHitResult& HitResult, bool
 
 void WWorld::FlushDestroyQueue()
 {
-	for (int i = 0; i < DestroyQueue.size(); ++i)
+	auto Copy = DestroyQueue;
+	DestroyQueue.clear();
+	for (int i = 0; i < Copy.size(); ++i)
 	{
-		TSharedPtr<AActor>& Actor = DestroyQueue[i];
-
+		TSharedPtr<AActor>& Actor = Copy[i];
 		int Id = Actor->mActorId;
 		Actor->mActorId = -1;
 		if (Id < mAllActors.size() - 1)
@@ -345,11 +351,17 @@ void WWorld::FlushDestroyQueue()
 		mAllActors.pop_back();
 		Actor->OnDestroy();
 	}
-	DestroyQueue.clear();
 }
 
 void WWorld::UpdateProfilingData(float DeltaSecond, const FProfilingData& Data)
 {
+	mProfilingData.Time_Tick_PrePhysics = max(mProfilingData.Time_Tick_PrePhysics, Data.Time_Tick_PrePhysics);
+	mProfilingData.Time_Update_Physics = max(mProfilingData.Time_Update_Physics, Data.Time_Update_Physics);
+	mProfilingData.Time_Physics_Event = max(mProfilingData.Time_Physics_Event, Data.Time_Physics_Event);
+	mProfilingData.Time_Tick_PostPhysics = max(mProfilingData.Time_Tick_PostPhysics, Data.Time_Tick_PostPhysics);
+	mProfilingData.Time_Flush_DestroyQueue = max(mProfilingData.Time_Flush_DestroyQueue, Data.Time_Flush_DestroyQueue);
+	mProfilingData.Time_Update_Render_Items = max(mProfilingData.Time_Update_Render_Items, Data.Time_Update_Render_Items);
+
 	static float ElapsedTime = 0;
 	static int CallCount = 0;
 	static FProfilingData AccumulatedData;
@@ -360,6 +372,7 @@ void WWorld::UpdateProfilingData(float DeltaSecond, const FProfilingData& Data)
 	AccumulatedData.Time_Update_Physics			+= Data.Time_Update_Physics;
 	AccumulatedData.Time_Physics_Event			+= Data.Time_Physics_Event;
 	AccumulatedData.Time_Tick_PostPhysics		+= Data.Time_Tick_PostPhysics;
+	AccumulatedData.Time_Flush_DestroyQueue		+= Data.Time_Flush_DestroyQueue;
 	AccumulatedData.Time_Update_Render_Items	+= Data.Time_Update_Render_Items;
 
 	if (ElapsedTime > 1)
@@ -368,12 +381,13 @@ void WWorld::UpdateProfilingData(float DeltaSecond, const FProfilingData& Data)
 		mProfilingData.Time_Update_Physics = AccumulatedData.Time_Update_Physics / CallCount;
 		mProfilingData.Time_Physics_Event = AccumulatedData.Time_Physics_Event / CallCount;
 		mProfilingData.Time_Tick_PostPhysics = AccumulatedData.Time_Tick_PostPhysics / CallCount;
+		mProfilingData.Time_Flush_DestroyQueue = AccumulatedData.Time_Flush_DestroyQueue / CallCount;
 		mProfilingData.Time_Update_Render_Items = AccumulatedData.Time_Update_Render_Items / CallCount;
 
 		ElapsedTime = 0;
 		CallCount = 0;
 		ZeroMemory(&AccumulatedData, sizeof(FProfilingData));
-	}	
+	}
 }		
 		
 		
