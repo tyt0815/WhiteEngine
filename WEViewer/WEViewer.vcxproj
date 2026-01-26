@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Actor\ColdLaunchAnimPlayer.cpp" />
+    <ClCompile Include="Sources\Actor\MissileSwarmSystem.cpp" />
     <ClCompile Include="Sources\Actor\PhysicsBox.cpp" />
     <ClCompile Include="Sources\Actor\PhysicsSphere.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>

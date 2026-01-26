@@ -47,14 +47,14 @@ void WTestWorld::Tick(float DeltaSecond)
 		if (auto MissileSystem = mMissileSystems[0].lock())
 		{
 			XMFLOAT3 TargetOrigin = CalcTargetOrigin(MissileSystem.get(), 80.0f);
-			MissileSystem->Fire<AColdLaunchAnimPlayer, ATopAttackMissile>(5, 7, TargetOrigin);
+			MissileSystem->Fire<AColdLaunchAnimPlayer>(5, 7, TargetOrigin);
 			mElapsedTime = 0;
 		}
 
 		if (auto MissileSystem = mMissileSystems[1].lock())
 		{
 			XMFLOAT3 TargetOrigin = CalcTargetOrigin(MissileSystem.get(), 40.0f);
-			MissileSystem->Fire<AColdLaunchAnimPlayer, ATopAttackMissile>(5, 7, TargetOrigin);
+			MissileSystem->Fire<AColdLaunchAnimPlayer>(5, 7, TargetOrigin);
 			mElapsedTime = 0;
 		}
 	}

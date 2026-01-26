@@ -35,6 +35,9 @@
     <ClCompile Include="Sources\Actor\PhysicsBox.cpp">
       <Filter>Sources\Actor</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Actor\MissileSwarmSystem.cpp">
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\World\TestWorld.h">

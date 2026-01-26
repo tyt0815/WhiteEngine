@@ -3,23 +3,47 @@
 #include "Actor/Actor.h"
 #include "ColdLaunchAnimPlayer.h"
 
+
+
 class AMissileSwarmSystem : public AActor
 {
+	typedef AActor Super;
+
+	struct FFireInfo
+	{
+		TWeakPtr<AColdLaunchAnimPlayer> AnimPlayer;
+		XMFLOAT3 TargetPos;
+	};
 public:
-	template<typename TColdLaunchAnimPlayer, typename TProjectile>
+	AMissileSwarmSystem();
+
+	virtual void Tick(float Delta) override;
+
+public:
+	template<typename TColdLaunchAnimPlayer>
 	void Fire(int Row, int Col, XMFLOAT3 TargetPos);
 	
 private:
+	TArray<TArray<FFireInfo>> mFireInfos;
 
+	float mFireDelay = 0.1f;
+
+	float mElapsedTime = 0.0f;
+
+	int mLastFiredRow = -1;
 };
 
-template<typename TColdLaunchAnimPlayer, typename TProjectile>
+template<typename TColdLaunchAnimPlayer>
 inline void AMissileSwarmSystem::Fire(int Row, int Col, XMFLOAT3 TargetOrigin)
 {
 	if (Row == 0 || Col == 0)
 	{
 		return;
 	}
+
+	mElapsedTime = 0.0f;
+	mLastFiredRow = -1;
+
 	XMFLOAT3 SystemOrigin = GetActorLocation();
 	XMVECTOR SystemOriginV = XMLoadFloat3(&SystemOrigin);
 	XMFLOAT3 Forward = GetFowardVector();
@@ -37,31 +61,27 @@ inline void AMissileSwarmSystem::Fire(int Row, int Col, XMFLOAT3 TargetOrigin)
 	float halfRow = (Row - 1) * 0.5f;
 	float halfCol = (Col - 1) * 0.5f;
 
+	mFireInfos.resize(Row);
 	for (int r = 0; r < Row; ++r)
 	{
 		float RowPos = (float)r - halfRow;
+		mFireInfos[r].resize(Col);
 		for (int c = 0; c < Col; ++c)
 		{
-			if (TSharedPtr<AColdLaunchAnimPlayer> AnimPlayer = GetWorld()->SpawnActor<TColdLaunchAnimPlayer>().lock())
+			float ColPos = (float)c - halfCol;
+
+			XMVECTOR LaunchPosV = SystemOriginV - (UpV * RowPos * LaunchPosGap) + (RightV * ColPos * LaunchPosGap);
+			XMVECTOR TargetPosV = TargetOriginV + (ForwardV * RowPos * TargetPosGap) + (RightV * ColPos * TargetPosGap);
+
+			XMFLOAT3 LaunchPos;
+			XMStoreFloat3(&LaunchPos, LaunchPosV);
+			XMStoreFloat3(&mFireInfos[r][c].TargetPos, TargetPosV);
+
+			mFireInfos[r][c].AnimPlayer = GetWorld()->SpawnActor<TColdLaunchAnimPlayer>();
+			if (TSharedPtr<AColdLaunchAnimPlayer> AnimPlayer = mFireInfos[r][c].AnimPlayer.lock())
 			{
-				// 2. 현재 인덱스에서 절반 값을 빼서 중앙 상대 좌표 구하기
-				// r=0일 때 -halfRow (뒤쪽), r=Row-1일 때 +halfRow (앞쪽)
-				float ColPos = (float)c - halfCol;
-
-				// 3. 실제 월드 좌표 계산
-				// Origin(O)에서 Forward(F)로 rowPos만큼, Right(R)로 colPos만큼 이동
-				XMVECTOR LaunchPosV = SystemOriginV - (UpV * RowPos * LaunchPosGap) + (RightV * ColPos * LaunchPosGap);
-				XMVECTOR TargetPosV = TargetOriginV + (ForwardV * RowPos * TargetPosGap) + (RightV * ColPos * TargetPosGap);
-
-				// 4. 결과값 저장
-				XMFLOAT3 LaunchPos;
-				XMStoreFloat3(&LaunchPos, LaunchPosV);
-				XMFLOAT3 TargetPos;
-				XMStoreFloat3(&TargetPos, TargetPosV);
-
 				AnimPlayer->SetActorLocation(LaunchPos);
 				AnimPlayer->SetActorRotation(GetActorRotation());
-				AnimPlayer->PlayAnim<TProjectile>(TargetPos);
 			}
 		}
 	}
