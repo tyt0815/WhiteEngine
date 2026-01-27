@@ -3,10 +3,12 @@
 
 ATopAttackMissile::ATopAttackMissile()
 {
+	mTickGroup = ETickGroup::ETG_PostPhysics;
+
 	mHitBoxComp = CreateComponent<WBoxComponent>();
-	SetRootComponent(mHitBoxComp);
 	if (auto BoxComp = mHitBoxComp.lock())
 	{
+		BoxComp->SetupAttachment(GetRootComponent());
 		BoxComp->ActivatePhysicBody();
 		BoxComp->SetLocalScale(XMFLOAT3(.1f, .1f, .2f));
 		BoxComp->SetMotionType(EMotionType::Kinematic);
@@ -31,7 +33,23 @@ ATopAttackMissile::ATopAttackMissile()
 		ProjMoveComp->SetHomingTurnLimit(360);
 	}
 
-	mTickGroup = ETickGroup::ETG_PostPhysics;
+	mObjAnimComp = CreateComponent<WObjectAnimComponent>();
+	if (auto AnimComp = mObjAnimComp.lock())
+	{
+		AnimComp->LoadKeyframesFromOADAsset(L"OAD_MissileTrack");
+
+		TArray<std::string> AnimSamplerList;
+		AnimComp->GetObjectAnimSamplerList(AnimSamplerList);
+		mMissileAnimSamplers.resize(AnimSamplerList.size());
+		for (int i = 0; i < mMissileAnimSamplers.size(); ++i)
+		{
+			mMissileAnimSamplers[i] = AnimComp->GetObjectAnimSampler(AnimSamplerList[i]);
+		}
+
+		mAnimFrameEnd = AnimComp->GetFrameEnd();
+	}
+
+	
 }
 
 void ATopAttackMissile::SetTargetPosition(XMFLOAT3 Pos)
@@ -71,27 +89,54 @@ void ATopAttackMissile::Tick(float DeltaSecond)
 {
 	Super::Tick(DeltaSecond);
 
+	mAnimElapsedTime += DeltaSecond;
+
 	XMFLOAT3 Start = GetActorLocation();
 	XMFLOAT3 Forward = GetFowardVector();
 	XMFLOAT3 End = Start;
 	Start.x += Forward.x;
 	Start.y += Forward.y;
 	Start.z += Forward.z;
-	GetWorld()->DrawDebugLine(Start, End, XMFLOAT4(0, 1, 1, 1), 0);
+	// GetWorld()->DrawDebugLine(Start, End, XMFLOAT4(0, 1, 1, 1), 0);
 
-	// UpdateHomingTarget
-	if (!mHomingPathMarkerDeque.empty())
+	if (auto CurrHomingTarget = GetCurrentHomingTarget().lock())
 	{
 		XMFLOAT3 CurrPos = GetActorLocation();
-		XMFLOAT3 TargetPos = mHomingPathMarkerDeque.front().lock()->GetActorLocation();
+		XMFLOAT3 TargetPos = CurrHomingTarget->GetActorLocation();
 		XMVECTOR CurrPosV = XMLoadFloat3(&CurrPos);
 		XMVECTOR TargetPosV = XMLoadFloat3(&TargetPos);
-
-		if (XMVectorGetX(XMVector3LengthSq(XMVectorSubtract(TargetPosV, CurrPosV))) < mArrivalThresholdSq)
+		float DistanceToTargetSq = XMVectorGetX(XMVector3LengthSq(XMVectorSubtract(TargetPosV, CurrPosV)));
+		if (DistanceToTargetSq < mArrivalThresholdSq)
 		{
 			NextHomingPath();
+
+			if (CurrHomingTarget = GetCurrentHomingTarget().lock())
+			{
+				TargetPos = CurrHomingTarget->GetActorLocation();
+				TargetPosV = XMLoadFloat3(&TargetPos);
+				DistanceToTargetSq = XMVectorGetX(XMVector3LengthSq(XMVectorSubtract(TargetPosV, CurrPosV)));
+			}
 		}
+
+		if (CurrHomingTarget)
+		{
+			auto Box = mHitBoxComp.lock();
+			if (mCurrAnimSampler && Box)
+			{
+				float Alpha = DistanceToTargetSq / mExpectedHomingDistanceSq;
+				float TargetFrame = mAnimFrameEnd * Alpha;
+				
+				XMFLOAT3 LocalLoc;
+				LocalLoc.x = mCurrAnimSampler->SampleLocationX(TargetFrame);
+				LocalLoc.y = mCurrAnimSampler->SampleLocationY(TargetFrame);
+				LocalLoc.z = 0;
+
+				Box->SetLocalLocation(LocalLoc);
+			}
+		}		
 	}
+
+	
 }
 
 void ATopAttackMissile::PushFrontHomingPath(XMFLOAT3 Loc)
@@ -126,15 +171,39 @@ void ATopAttackMissile::NextHomingPath()
 
 void ATopAttackMissile::UpdateHomingPath()
 {
+	// Path 교체
 	if (auto ProjComp = mProjectileMovementComponent.lock())
 	{
 		if (mHomingPathMarkerDeque.empty())
 		{
 			ProjComp->SetHomingTarget(TWeakPtr<WSceneComponent>());
+			mCurrAnimSampler = nullptr;
 		}
 		else
 		{
 			ProjComp->SetHomingTarget(mHomingPathMarkerDeque.front().lock()->GetRootComponent());
+
+			if (auto Target = GetCurrentHomingTarget().lock())
+			{
+				XMFLOAT3 CurrLoc = GetActorLocation();
+				XMFLOAT3 TargetLoc = Target->GetActorLocation();
+				
+				mExpectedHomingDistanceSq = 
+					XMVectorGetX(
+						XMVector3LengthSq(
+							XMVectorSubtract(XMLoadFloat3(&CurrLoc), XMLoadFloat3(&TargetLoc))
+						)
+					) - mArrivalThresholdSq;
+			}
+			
+
+			// 애니메이션 교체
+			mAnimElapsedTime = 0;
+			if (mMissileAnimSamplers.size() > 0)
+			{
+				int i = FDXMath::Rand(0, (int)mMissileAnimSamplers.size() - 1);
+				mCurrAnimSampler = mMissileAnimSamplers[i];
+			}
 		}
 	}
 }

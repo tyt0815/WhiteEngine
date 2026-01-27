@@ -4,6 +4,7 @@
 #include "Component/ProjectileMovementComponent.h"
 #include "Component/StaticMeshComponent.h"
 #include "Component/BoxComponent.h"
+#include "Component/ObjectAnimComponent.h"
 
 class ATopAttackMissile : public AActor
 {
@@ -38,6 +39,21 @@ private:
 
 	TWeakPtr<WStaticMeshComponent> mStaticMesh;
 
+	TWeakPtr<WObjectAnimComponent> mObjAnimComp;
+
+	TArray<FObjectAnimSampler*> mMissileAnimSamplers;
+
+	FObjectAnimSampler* mCurrAnimSampler;
+
+	float mAnimElapsedTime;
+
+	// 호밍 타겟이 설정된 지점부터, 호밍 타겟까지의 거리. 실제로 이동할 거리와는 오차가 있음
+	float mExpectedHomingDistanceSq;
+
+	// 미사일 애니메이션의 마지막 프레임
+	float mAnimFrameEnd = 0;
+
+	// 호밍 타겟. 데크의 front에 있는 액터를 향해서 날아간다.
 	TDeque<TWeakPtr<AActor>> mHomingPathMarkerDeque;
 
 	float mMaxAltitude = 30;		// 탑 어택시 경유할 목표지점의 높이

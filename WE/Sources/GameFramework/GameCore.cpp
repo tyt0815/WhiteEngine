@@ -31,8 +31,15 @@ inline constexpr float g_FrameTimelimit = 1.0f / g_FPSLimit;
 
 inline constexpr bool g_bMultiThread = true;
 
-inline constexpr bool g_bLimitTick = false;
+inline constexpr bool g_bLimitTick = true;
 inline constexpr bool g_bLimitFrame = true;
+
+namespace Physics
+{
+	bool g_bDrawShape = false;
+	bool g_bDrawBoundingBox = false;
+}
+
 
 
 FGameApplication::FGameApplication()
@@ -197,8 +204,8 @@ void FGameApplication::Thread_GamePlay()
 			TimeElapsed = 0.0f;
 		}
 
-		GetInputSystemManager()->Tick(DeltaTime);
-		mWorld->Tick(DeltaTime);
+		GetInputSystemManager()->Tick(DeltaTime * 0.5f);
+		mWorld->Tick(DeltaTime * 0.5f);
 	}
 }
 

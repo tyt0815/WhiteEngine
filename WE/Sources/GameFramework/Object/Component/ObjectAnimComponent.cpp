@@ -203,6 +203,16 @@ FObjectAnimSampler* WObjectAnimComponent::GetObjectAnimSampler(std::string Objec
 	return nullptr;
 }
 
+void WObjectAnimComponent::GetObjectAnimSamplerList(TArray<std::string>& List)
+{
+	List.resize(mObjectAnimSamplerMap.size());
+	int i = 0;
+	for (const auto& Pair : mObjectAnimSamplerMap)
+	{
+		List[i++] = Pair.first;
+	}
+}
+
 FTransform WObjectAnimComponent::SampleAnimWorldTransformByFrame(FObjectAnimSampler* Sampler, float Frame)
 {
 	XMMATRIX CM = GetWorldMatrix();

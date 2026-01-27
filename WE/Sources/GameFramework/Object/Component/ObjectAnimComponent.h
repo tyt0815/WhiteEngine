@@ -4,9 +4,9 @@
 #include <tinyxml2.h>
 #include <DirectXMath.h>
 #include <unordered_map>
-#include <vector>
 
 #include "Asset/ObjectAnimDataAsset.h"
+#include "Utility/Container.h"
 
 class FCurveSampler
 {
@@ -73,6 +73,8 @@ public:
 	bool LoadKeyframesFromOADAsset(const std::wstring& AssetName);
 
 	FObjectAnimSampler* GetObjectAnimSampler(std::string ObjectName);
+
+	void GetObjectAnimSamplerList(TArray<std::string>& List);
 
 	FTransform SampleAnimWorldTransformByFrame(FObjectAnimSampler* Sampler, float Frame);
 

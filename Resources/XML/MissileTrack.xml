@@ -1,0 +1,73 @@
+<?xml version="1.0" ?>
+<ObjectAnimation>
+   <Info fps="24" frame_start="0" frame_end="48"/>
+   <Object name="Proj1">
+      <Curve data_path="location" name="LocationZ">
+         <Keyframe frame="0.00" value="0.0000" interp="LINEAR" h_left_x="-16.0000" h_left_y="0.0000" h_right_x="16.0000" h_right_y="0.0000"/>
+         <Keyframe frame="48.00" value="20.0000" interp="LINEAR" h_left_x="32.0000" h_left_y="20.0000" h_right_x="64.0000" h_right_y="20.0000"/>
+      </Curve>
+   </Object>
+   <Object name="Proj3">
+      <Curve data_path="location" name="LocationZ">
+         <Keyframe frame="0.00" value="0.0000" interp="LINEAR" h_left_x="-16.0000" h_left_y="0.0000" h_right_x="16.0000" h_right_y="0.0000"/>
+         <Keyframe frame="48.00" value="20.0000" interp="LINEAR" h_left_x="32.0000" h_left_y="20.0000" h_right_x="64.0000" h_right_y="20.0000"/>
+      </Curve>
+      <Curve data_path="location" name="LocationY">
+         <Keyframe frame="0.00" value="0.0000" interp="BEZIER" h_left_x="-4.0000" h_left_y="0.0000" h_right_x="4.0000" h_right_y="0.0000"/>
+         <Keyframe frame="12.00" value="1.0000" interp="BEZIER" h_left_x="7.0592" h_left_y="1.3820" h_right_x="23.9254" h_right_y="0.0779"/>
+         <Keyframe frame="48.00" value="0.0000" interp="BEZIER" h_left_x="36.0000" h_left_y="0.0000" h_right_x="60.0000" h_right_y="0.0000"/>
+      </Curve>
+   </Object>
+   <Object name="Proj4">
+      <Curve data_path="location" name="LocationZ">
+         <Keyframe frame="0.00" value="0.0000" interp="LINEAR" h_left_x="-16.0000" h_left_y="0.0000" h_right_x="16.0000" h_right_y="0.0000"/>
+         <Keyframe frame="48.00" value="20.0000" interp="LINEAR" h_left_x="32.0000" h_left_y="20.0000" h_right_x="64.0000" h_right_y="20.0000"/>
+      </Curve>
+      <Curve data_path="location" name="LocationY">
+         <Keyframe frame="0.00" value="0.0000" interp="BEZIER" h_left_x="-8.0000" h_left_y="0.0000" h_right_x="8.0000" h_right_y="0.0000"/>
+         <Keyframe frame="24.00" value="1.0000" interp="BEZIER" h_left_x="16.0000" h_left_y="1.0000" h_right_x="32.0000" h_right_y="1.0000"/>
+         <Keyframe frame="48.00" value="0.0000" interp="BEZIER" h_left_x="40.0000" h_left_y="0.0000" h_right_x="56.0000" h_right_y="0.0000"/>
+      </Curve>
+   </Object>
+   <Object name="Proj5">
+      <Curve data_path="location" name="LocationZ">
+         <Keyframe frame="0.00" value="0.0000" interp="LINEAR" h_left_x="-16.0000" h_left_y="0.0000" h_right_x="16.0000" h_right_y="0.0000"/>
+         <Keyframe frame="48.00" value="20.0000" interp="LINEAR" h_left_x="32.0000" h_left_y="20.0000" h_right_x="64.0000" h_right_y="20.0000"/>
+      </Curve>
+      <Curve data_path="location" name="LocationY">
+         <Keyframe frame="0.00" value="0.0000" interp="BEZIER" h_left_x="-12.0000" h_left_y="0.0000" h_right_x="12.0000" h_right_y="0.0000"/>
+         <Keyframe frame="36.00" value="1.0000" interp="BEZIER" h_left_x="24.4879" h_left_y="0.0723" h_right_x="39.9871" h_right_y="1.3213"/>
+         <Keyframe frame="48.00" value="0.0000" interp="BEZIER" h_left_x="44.0000" h_left_y="0.0000" h_right_x="52.0000" h_right_y="0.0000"/>
+      </Curve>
+   </Object>
+   <Object name="Proj2">
+      <Curve data_path="location" name="LocationZ">
+         <Keyframe frame="0.00" value="0.0000" interp="LINEAR" h_left_x="-2.0000" h_left_y="0.0000" h_right_x="2.0000" h_right_y="0.0000"/>
+         <Keyframe frame="6.00" value="2.5000" interp="LINEAR" h_left_x="4.0000" h_left_y="1.2500" h_right_x="20.0000" h_right_y="11.2500"/>
+         <Keyframe frame="48.00" value="20.0000" interp="LINEAR" h_left_x="34.0000" h_left_y="20.0000" h_right_x="62.0000" h_right_y="20.0000"/>
+      </Curve>
+      <Curve data_path="location" name="LocationY">
+         <Keyframe frame="0.00" value="0.0000" interp="BEZIER" h_left_x="-2.0000" h_left_y="0.0000" h_right_x="2.0000" h_right_y="0.0000"/>
+         <Keyframe frame="6.00" value="0.1000" interp="BEZIER" h_left_x="4.0000" h_left_y="0.1000" h_right_x="8.0000" h_right_y="0.1000"/>
+         <Keyframe frame="12.00" value="-0.1000" interp="BEZIER" h_left_x="10.0000" h_left_y="-0.1000" h_right_x="14.0000" h_right_y="-0.1000"/>
+         <Keyframe frame="18.00" value="0.1000" interp="BEZIER" h_left_x="16.0000" h_left_y="0.1000" h_right_x="20.0000" h_right_y="0.1000"/>
+         <Keyframe frame="24.00" value="-0.1000" interp="BEZIER" h_left_x="22.0000" h_left_y="-0.1000" h_right_x="26.0000" h_right_y="-0.1000"/>
+         <Keyframe frame="30.00" value="0.1000" interp="BEZIER" h_left_x="28.0000" h_left_y="0.1000" h_right_x="32.0000" h_right_y="0.1000"/>
+         <Keyframe frame="36.00" value="-0.1000" interp="BEZIER" h_left_x="34.0000" h_left_y="-0.1000" h_right_x="38.0000" h_right_y="-0.1000"/>
+         <Keyframe frame="42.00" value="0.1000" interp="BEZIER" h_left_x="40.0000" h_left_y="0.1000" h_right_x="44.0000" h_right_y="0.1000"/>
+         <Keyframe frame="48.00" value="0.0000" interp="BEZIER" h_left_x="46.0000" h_left_y="0.0000" h_right_x="50.0000" h_right_y="0.0000"/>
+      </Curve>
+   </Object>
+   <Object name="Proj6">
+      <Curve data_path="location" name="LocationZ">
+         <Keyframe frame="0.00" value="0.0000" interp="LINEAR" h_left_x="-16.0000" h_left_y="0.0000" h_right_x="16.0000" h_right_y="0.0000"/>
+         <Keyframe frame="48.00" value="20.0000" interp="LINEAR" h_left_x="32.0000" h_left_y="20.0000" h_right_x="64.0000" h_right_y="20.0000"/>
+      </Curve>
+      <Curve data_path="location" name="LocationY">
+         <Keyframe frame="0.00" value="0.0000" interp="BEZIER" h_left_x="-4.0000" h_left_y="0.0000" h_right_x="4.0000" h_right_y="0.0000"/>
+         <Keyframe frame="12.00" value="1.0000" interp="BEZIER" h_left_x="7.0592" h_left_y="1.3820" h_right_x="19.9558" h_right_y="0.3849"/>
+         <Keyframe frame="36.00" value="-1.0000" interp="BEZIER" h_left_x="27.9779" h_left_y="-0.9087" h_right_x="40.0028" h_right_y="-1.0455"/>
+         <Keyframe frame="48.00" value="0.0000" interp="BEZIER" h_left_x="44.0000" h_left_y="0.0000" h_right_x="52.0000" h_right_y="0.0000"/>
+      </Curve>
+   </Object>
+</ObjectAnimation>
