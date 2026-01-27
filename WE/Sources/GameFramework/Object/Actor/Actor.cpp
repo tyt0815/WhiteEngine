@@ -42,7 +42,7 @@ void AActor::SetActorTransform(FTransform Transform)
 	}
 }
 
-XMFLOAT3 AActor::GetFowardVector() const
+XMFLOAT3 AActor::GetForwardVector() const
 {
 	XMMATRIX RotationMatrix = GetActorTransform().GetRotationMatrix();
 	XMVECTOR L = XMVector3Transform({ 0.0f, 0.0f, 1.0f }, RotationMatrix);

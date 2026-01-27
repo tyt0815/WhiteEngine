@@ -36,7 +36,7 @@ public:
 
 	void SetActorTransform(FTransform Transform);
 
-	XMFLOAT3 GetFowardVector() const;
+	XMFLOAT3 GetForwardVector() const;
 
 	XMFLOAT3 GetRightVector() const;
 

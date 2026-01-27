@@ -71,7 +71,7 @@ void WTestWorld::Tick(float DeltaSecond)
 XMFLOAT3 WTestWorld::CalcTargetOrigin(AActor* Actor, float TargetDistance)
 {
 	XMFLOAT3 TargetOrigin = Actor->GetActorLocation();
-	XMFLOAT3 Forward = Actor->GetFowardVector();
+	XMFLOAT3 Forward = Actor->GetForwardVector();
 	XMVECTOR TargetOriginV = XMLoadFloat3(&TargetOrigin);
 	XMVECTOR ForwardV = XMLoadFloat3(&Forward);
 	XMStoreFloat3(&TargetOrigin, XMVectorMultiplyAdd(ForwardV, XMVectorReplicate(TargetDistance), TargetOriginV));

@@ -65,7 +65,7 @@ void ATopAttackMissile::Tick(float DeltaSecond)
 	mAnimElapsedTime += DeltaSecond;
 
 	XMFLOAT3 Start = GetActorLocation();
-	XMFLOAT3 Forward = GetFowardVector();
+	XMFLOAT3 Forward = GetForwardVector();
 	XMFLOAT3 End = Start;
 	Start.x += Forward.x;
 	Start.y += Forward.y;
@@ -74,7 +74,7 @@ void ATopAttackMissile::Tick(float DeltaSecond)
 
 	// 액터 자체에 회전 변화
 	{
-		XMFLOAT3 Forward = GetFowardVector();
+		XMFLOAT3 Forward = GetForwardVector();
 		XMVECTOR ForwardV = XMLoadFloat3(&Forward);
 		XMVECTOR RotationQuatV = XMQuaternionRotationAxis(ForwardV, XMConvertToRadians(mRotationZStep) * DeltaSecond);
 

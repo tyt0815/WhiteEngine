@@ -24,7 +24,7 @@ void WProjectileMovementComponent::TickComponent(float DeltaTime)
             float DistanceSq = XMVectorGetX(XMVector3LengthSq(ToTargetV));
             if (DistanceSq > 0.00001f) // 거리 체크
             {
-                XMFLOAT3 Forward = Owner->GetFowardVector();
+                XMFLOAT3 Forward = Owner->GetForwardVector();
                 XMVECTOR ForwardV = XMLoadFloat3(&Forward);
                 XMVECTOR ToTargetUnitV = XMVector3Normalize(ToTargetV);
 

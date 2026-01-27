@@ -26,12 +26,12 @@ void AGhostCameraPawn::SetupPlayerInput()
 void AGhostCameraPawn::MoveForward(float Delta)
 {
 
-	AddMovementInput(GetFowardVector(), Delta * mMoveSpeedScaler);
+	AddMovementInput(GetForwardVector(), Delta * mMoveSpeedScaler);
 }
 
 void AGhostCameraPawn::MoveBackward(float Delta)
 {
-	AddMovementInput(GetFowardVector(), -Delta * mMoveSpeedScaler);
+	AddMovementInput(GetForwardVector(), -Delta * mMoveSpeedScaler);
 }
 
 void AGhostCameraPawn::MoveRight(float Delta)

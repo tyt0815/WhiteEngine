@@ -46,7 +46,7 @@ inline void AMissileSwarmSystem::Fire(int Row, int Col, XMFLOAT3 TargetOrigin)
 
 	XMFLOAT3 SystemOrigin = GetActorLocation();
 	XMVECTOR SystemOriginV = XMLoadFloat3(&SystemOrigin);
-	XMFLOAT3 Forward = GetFowardVector();
+	XMFLOAT3 Forward = GetForwardVector();
 	XMFLOAT3 Right = GetRightVector();
 	XMFLOAT3 Up = GetUpVector();
 	XMVECTOR ForwardV = XMLoadFloat3(&Forward);
