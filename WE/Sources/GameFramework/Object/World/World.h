@@ -55,6 +55,7 @@ public:
 private:
 	void FlushDestroyQueue();
 
+
 	TArray<TSharedPtr<AActor>> mAllActors;
 
 	TArray<AActor*> mActiveActorQueue;
@@ -65,7 +66,17 @@ private:
 
 	std::vector<TSharedPtr<AActor>> DestroyQueue;
 
-	std::array<std::array<std::vector<WObject*>, ETickPriority::ETP_None>, ETickGroup::ETG_None> mTickGroups;
+	std::array<std::array<std::vector<WObject*>, static_cast<int>(ETickPriority::ETP_None)>, static_cast<int>(ETickGroup::ETG_None)> mTickGroups;
+
+	__forceinline std::array<std::vector<WObject*>, static_cast<int>(ETickPriority::ETP_None)>& GetTickGroups(ETickGroup TickGroup)
+	{
+		return mTickGroups[static_cast<int>(TickGroup)];
+	}
+
+	__forceinline std::vector<WObject*>& GetTickGroup(ETickGroup TickGroup, ETickPriority Priority)
+	{
+		return GetTickGroups(TickGroup)[static_cast<int>(Priority)];
+	}
 
 	std::vector<WPhysicsComponent*> mPhysicsComponentQueue;
 

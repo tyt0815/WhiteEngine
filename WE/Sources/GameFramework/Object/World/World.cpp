@@ -49,9 +49,9 @@ void WWorld::Tick(float Delta)
 
 	FProfilingData ProfilingData;
 
-	for (auto TickGroups : mTickGroups[ETickGroup::ETG_PrePhysics])
+	for (auto TickGroup : GetTickGroups(ETickGroup::ETG_PrePhysics))
 	{
-		for (WObject* Object : TickGroups)
+		for (WObject* Object : TickGroup)
 		{
 			Object->Tick(Delta);
 		}
@@ -102,9 +102,9 @@ void WWorld::Tick(float Delta)
 	Timer.Tick();
 	ProfilingData.Time_Physics_Event = Timer.GetDeltaMilliSecond();
 
-	for (auto TickGroups : mTickGroups[ETickGroup::ETG_PostPhysics])
+	for (auto TickGroup : GetTickGroups(ETickGroup::ETG_PostPhysics))
 	{
-		for (WObject* Object : TickGroups)
+		for (WObject* Object : TickGroup)
 		{
 			Object->Tick(Delta);
 		}
@@ -226,8 +226,8 @@ void WWorld::EnqueueTick(WObject* Object)
 		return;
 	}
 
-	std::vector<WObject*>& TickGroup = mTickGroups[Object->mTickGroup][Object->mTickPriority];
-	Object->mTickId = TickGroup.size();
+	std::vector<WObject*>& TickGroup = GetTickGroup(Object->mTickGroup, Object->mTickPriority);
+	Object->mTickId = (int)TickGroup.size();
 	TickGroup.push_back(Object);
 }
 
@@ -240,7 +240,7 @@ void WWorld::DequeueTick(WObject* Object)
 
 	int Id = Object->mTickId;
 	Object->mTickId = -1;
-	std::vector<WObject*>& TickGroup = mTickGroups[Object->mTickGroup][Object->mTickPriority];
+	std::vector<WObject*>& TickGroup = GetTickGroup(Object->mTickGroup, Object->mTickPriority);
 	if (Id < TickGroup.size() - 1)
 	{
 		TickGroup[Id] = std::move(TickGroup.back());

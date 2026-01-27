@@ -5,7 +5,7 @@ void WObject::Tick(float DeltaSecond)
 {
 }
 
-void WObject::SetTickGroup(ETickGroup::ETickGroup TickGroup, ETickPriority::ETickPriority TickPriority)
+void WObject::SetTickGroup(ETickGroup TickGroup, ETickPriority TickPriority)
 {
 	mTickGroup = TickGroup;
 	mTickPriority = TickPriority;

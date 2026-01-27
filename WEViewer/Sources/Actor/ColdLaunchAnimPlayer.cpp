@@ -10,7 +10,7 @@ AColdLaunchAnimPlayer::AColdLaunchAnimPlayer()
 		mAnimSampler = Comp->GetObjectAnimSampler("Projectile");
 	}
 
-	SetTickGroup(ETickGroup::ETG_PostPhysics, ETickPriority::ETP_Early);
+	SetTickGroup(ETickGroup::ETG_PrePhysics, ETickPriority::ETP_Low);
 }
 
 void AColdLaunchAnimPlayer::Tick(float DeltaSecond)
@@ -25,7 +25,8 @@ void AColdLaunchAnimPlayer::Tick(float DeltaSecond)
 		{
 
 			FTransform ProjTransform = AnimComp->SampleAnimWorldTransformBySecond(mAnimSampler, mPlayTime);
-			 Proj->SetActorTransform(ProjTransform);
+			Proj->SetActorTransform(ProjTransform);
+			Proj->SetActorTransform(GetActorTransform());
 
 			if (mPlayTime > AnimComp->GetDuration())
 			{
