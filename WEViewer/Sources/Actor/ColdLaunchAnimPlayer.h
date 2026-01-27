@@ -20,17 +20,9 @@ private:
 	
 	FObjectAnimSampler* mAnimSampler;
 
-	FCurveSampler mLocationZSampler;
-
-	FCurveSampler mRotationSampler;
-
 	TWeakPtr<ATopAttackMissile> mProjectile;
 
-	TWeakPtr<AActor> mCovers[4];
-
-	XMFLOAT3 mRotationAxis;
-
-	float mRotationRadian;
+	XMFLOAT3 mTargetPos;
 
 	float mPlayTime = 0;
 };

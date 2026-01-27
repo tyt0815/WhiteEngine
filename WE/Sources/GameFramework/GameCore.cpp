@@ -37,7 +37,7 @@ inline constexpr bool g_bLimitFrame = true;
 namespace Physics
 {
 	bool g_bDrawShape = false;
-	bool g_bDrawBoundingBox = false;
+	bool g_bDrawBoundingBox = true;
 }
 
 
@@ -204,8 +204,8 @@ void FGameApplication::Thread_GamePlay()
 			TimeElapsed = 0.0f;
 		}
 
-		GetInputSystemManager()->Tick(DeltaTime * 0.5f);
-		mWorld->Tick(DeltaTime * 0.5f);
+		GetInputSystemManager()->Tick(DeltaTime);
+		mWorld->Tick(DeltaTime);
 	}
 }
 

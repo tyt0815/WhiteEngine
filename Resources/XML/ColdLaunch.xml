@@ -1,16 +1,21 @@
 <?xml version="1.0" ?>
 <ObjectAnimation>
-   <Info fps="24" frame_start="0" frame_end="24"/>
+   <Info fps="24" frame_start="0" frame_end="12"/>
    <Object name="Projectile">
       <Curve data_path="location" name="LocationZ">
-         <Keyframe frame="0.00" value="0.0000" interp="BEZIER" h_left_x="-0.0007" h_left_y="-4.0000" h_right_x="0.0010" h_right_y="5.5745"/>
-         <Keyframe frame="12.00" value="5.0000" interp="BEZIER" h_left_x="8.0000" h_left_y="5.0000" h_right_x="16.0000" h_right_y="5.0000"/>
+         <Keyframe frame="0.00" value="0.0000" interp="BEZIER" h_left_x="-2.6667" h_left_y="0.0000" h_right_x="2.6667" h_right_y="0.0000"/>
+         <Keyframe frame="8.00" value="2.2222" interp="BEZIER" h_left_x="5.3333" h_left_y="1.3333" h_right_x="9.3333" h_right_y="2.6667"/>
+         <Keyframe frame="12.00" value="3.0000" interp="BEZIER" h_left_x="10.6667" h_left_y="3.0000" h_right_x="13.3333" h_right_y="3.0000"/>
+      </Curve>
+      <Curve data_path="location" name="LocationY">
+         <Keyframe frame="0.00" value="0.0000" interp="BEZIER" h_left_x="-2.6667" h_left_y="0.0000" h_right_x="2.6667" h_right_y="0.0000"/>
+         <Keyframe frame="8.00" value="1.0000" interp="BEZIER" h_left_x="5.3333" h_left_y="1.0000" h_right_x="9.3333" h_right_y="1.0000"/>
+         <Keyframe frame="12.00" value="0.5000" interp="BEZIER" h_left_x="10.6667" h_left_y="0.5000" h_right_x="13.3333" h_right_y="0.5000"/>
       </Curve>
       <Curve data_path="rotation_euler" name="RotationX">
-         <Keyframe frame="12.00" value="-0.0000" interp="BEZIER" h_left_x="3.4864" h_left_y="1.3773" h_right_x="14.3165" h_right_y="-0.3747"/>
-         <Keyframe frame="19.00" value="-110.0000" interp="BEZIER" h_left_x="7.4691" h_left_y="-110.0339" h_right_x="26.1624" h_right_y="-109.9789"/>
-         <Keyframe frame="22.00" value="-80.0000" interp="BEZIER" h_left_x="21.9990" h_left_y="-83.6202" h_right_x="22.0086" h_right_y="-48.9612"/>
-         <Keyframe frame="24.00" value="-90.0000" interp="BEZIER" h_left_x="23.3333" h_left_y="-90.0000" h_right_x="24.6667" h_right_y="-90.0000"/>
+         <Keyframe frame="0.00" value="-45.0000" interp="BEZIER" h_left_x="-2.6667" h_left_y="-45.0000" h_right_x="2.6667" h_right_y="-45.0000"/>
+         <Keyframe frame="8.00" value="-0.0000" interp="BEZIER" h_left_x="5.3333" h_left_y="-37.5000" h_right_x="9.3333" h_right_y="18.7500"/>
+         <Keyframe frame="12.00" value="45.0000" interp="BEZIER" h_left_x="10.6667" h_left_y="45.0000" h_right_x="13.3333" h_right_y="45.0000"/>
       </Curve>
    </Object>
 </ObjectAnimation>

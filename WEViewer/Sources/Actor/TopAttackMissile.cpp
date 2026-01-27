@@ -21,16 +21,15 @@ ATopAttackMissile::ATopAttackMissile()
 		StaticMeshComp->SetupAttachment(mHitBoxComp);
 		StaticMeshComp->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(EStaticMeshType::ESMT_MetalCylinder));
 		StaticMeshComp->SetLocalRotation(XMFLOAT3(90, 0, 0));
-		StaticMeshComp->SetLocalLocation(XMFLOAT3(0, 0, GetActorScale().z));
 	}
 
 	mProjectileMovementComponent = CreateComponent<WProjectileMovementComponent>();
 	if (auto ProjMoveComp = mProjectileMovementComponent.lock())
 	{
-		ProjMoveComp->mVelocity = XMFLOAT3(0, 0, 40);
+		ProjMoveComp->mVelocity = XMFLOAT3(0, 0, 20);
 		ProjMoveComp->SetLifeSpan(10.0f);
 		ProjMoveComp->SetHoming(true);
-		ProjMoveComp->SetHomingTurnLimit(360);
+		ProjMoveComp->SetHomingTurnLimit(720);
 	}
 
 	mObjAnimComp = CreateComponent<WObjectAnimComponent>();
@@ -69,7 +68,9 @@ void ATopAttackMissile::SetTargetPosition(XMFLOAT3 Pos)
 	TraceEnd.y += min(Dist / 2, mMaxAltitude);
 	FHitResult HitResult;
 
-	GetWorld()->LineTrace(TraceStart, TraceEnd, HitResult, true);
+	GetWorld()->LineTrace(TraceStart, TraceEnd, HitResult, false);
+
+	GetWorld()->DrawDebugLine(Pos, TraceStart, XMFLOAT4(1, 0, 0, 1), 5);
 
 	if (HitResult.HitComponent.expired())
 	{
@@ -97,7 +98,7 @@ void ATopAttackMissile::Tick(float DeltaSecond)
 	Start.x += Forward.x;
 	Start.y += Forward.y;
 	Start.z += Forward.z;
-	// GetWorld()->DrawDebugLine(Start, End, XMFLOAT4(0, 1, 1, 1), 0);
+	GetWorld()->DrawDebugLine(Start, End, XMFLOAT4(0, 1, 1, 1), 0);
 
 	if (auto CurrHomingTarget = GetCurrentHomingTarget().lock())
 	{
@@ -206,6 +207,8 @@ void ATopAttackMissile::UpdateHomingPath()
 			}
 		}
 	}
+
+	// 
 }
 
 TWeakPtr<AActor> ATopAttackMissile::GetCurrentHomingTarget() const
