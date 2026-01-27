@@ -49,13 +49,12 @@ void WWorld::Tick(float Delta)
 
 	FProfilingData ProfilingData;
 
-	for (AActor* Actor : mActorTickGroups[ETickGroup::ETG_PrePhysics])
+	for (auto TickGroups : mTickGroups[ETickGroup::ETG_PrePhysics])
 	{
-		Actor->Tick(Delta);
-	}
-	for (WActorComponent* Comp : mActorComponentTickGroups[ETickGroup::ETG_PrePhysics])
-	{
-		Comp->TickComponent(Delta);
+		for (WObject* Object : TickGroups)
+		{
+			Object->Tick(Delta);
+		}
 	}
 	Timer.Tick();
 	ProfilingData.Time_Tick_PrePhysics = Timer.GetDeltaMilliSecond();
@@ -103,13 +102,12 @@ void WWorld::Tick(float Delta)
 	Timer.Tick();
 	ProfilingData.Time_Physics_Event = Timer.GetDeltaMilliSecond();
 
-	for (AActor* Actor : mActorTickGroups[ETickGroup::ETG_PostPhysics])
+	for (auto TickGroups : mTickGroups[ETickGroup::ETG_PostPhysics])
 	{
-		Actor->Tick(Delta);
-	}
-	for (WActorComponent* Comp : mActorComponentTickGroups[ETickGroup::ETG_PostPhysics])
-	{
-		Comp->TickComponent(Delta);
+		for (WObject* Object : TickGroups)
+		{
+			Object->Tick(Delta);
+		}
 	}
 	Timer.Tick();
 	ProfilingData.Time_Tick_PostPhysics = Timer.GetDeltaMilliSecond();
@@ -221,63 +219,32 @@ void WWorld::DeactivateActor(AActor* Actor)
 	}
 }
 
-void WWorld::EnqueueComponentTick(WActorComponent* ActorComp)
+void WWorld::EnqueueTick(WObject* Object)
 {
-	if (!ActorComp || ActorComp->mTickGroup == ETickGroup::ETG_None || ActorComp->mTickQueueId >= 0)
+	if (!Object || Object->mTickGroup == ETickGroup::ETG_None || Object->mTickPriority == ETickPriority::ETP_None || Object->mTickId >= 0)
 	{
 		return;
 	}
 
-	std::vector<WActorComponent*>& TickGroup = mActorComponentTickGroups[ActorComp->mTickGroup];
-	ActorComp->mTickQueueId = (int)TickGroup.size();
-	TickGroup.push_back(ActorComp);
+	std::vector<WObject*>& TickGroup = mTickGroups[Object->mTickGroup][Object->mTickPriority];
+	Object->mTickId = TickGroup.size();
+	TickGroup.push_back(Object);
 }
 
-void WWorld::EnqueueActorTick(AActor* Actor)
+void WWorld::DequeueTick(WObject* Object)
 {
-	if (!Actor || Actor->mTickGroup == ETickGroup::ETG_None || Actor->mTickQueueId >= 0)
+	if (!Object || Object->mTickGroup == ETickGroup::ETG_None || Object->mTickPriority == ETickPriority::ETP_None || Object->mTickId < 0)
 	{
 		return;
 	}
 
-	std::vector<AActor*>& TickGroup = mActorTickGroups[Actor->mTickGroup];
-	Actor->mTickQueueId = (int)TickGroup.size();
-	TickGroup.push_back(Actor);
-}
-
-void WWorld::DequeueComponentTick(WActorComponent* ActorComp)
-{
-	if (!ActorComp || ActorComp->mTickGroup == ETickGroup::ETG_None || ActorComp->mTickQueueId < 0)
+	int Id = Object->mTickId;
+	Object->mTickId = -1;
+	std::vector<WObject*>& TickGroup = mTickGroups[Object->mTickGroup][Object->mTickPriority];
+	if (Id < TickGroup.size() - 1)
 	{
-		return;
-	}
-
-	int i = ActorComp->mTickQueueId;
-	ActorComp->mTickQueueId = -1;
-	std::vector<WActorComponent*>& TickGroup = mActorComponentTickGroups[ActorComp->mTickGroup];
-	if (i < TickGroup.size() - 1)
-	{
-		TickGroup[i] = std::move(TickGroup.back());
-		TickGroup[i]->mTickQueueId = i;
-	}
-	
-	TickGroup.pop_back();
-}
-
-void WWorld::DequeueActorTick(AActor* Actor)
-{
-	if (!Actor || Actor->mTickGroup == ETickGroup::ETG_None || Actor->mTickQueueId < 0)
-	{
-		return;
-	}
-
-	int i = Actor->mTickQueueId;
-	Actor->mTickQueueId = -1;
-	std::vector<AActor*>& TickGroup = mActorTickGroups[Actor->mTickGroup];
-	if (i < TickGroup.size() - 1)
-	{
-		TickGroup[i] = std::move(TickGroup.back());
-		TickGroup[i]->mTickQueueId = i;
+		TickGroup[Id] = std::move(TickGroup.back());
+		TickGroup[Id]->mTickId = Id;
 	}
 	TickGroup.pop_back();
 }

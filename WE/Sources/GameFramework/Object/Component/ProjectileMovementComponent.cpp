@@ -1,7 +1,7 @@
 #include "ProjectileMovementComponent.h"
 #include "GameFramework/Object/Actor/Actor.h"
 
-void WProjectileMovementComponent::TickComponent(float DeltaTime)
+void WProjectileMovementComponent::Tick(float DeltaTime)
 {
     mLifeTimeElapsed += DeltaTime;
     auto Owner = GetOwner().lock();
@@ -61,6 +61,6 @@ void WProjectileMovementComponent::TickComponent(float DeltaTime)
         }
     }
 
-    Super::TickComponent(DeltaTime);
+    Super::Tick(DeltaTime);
 }
 

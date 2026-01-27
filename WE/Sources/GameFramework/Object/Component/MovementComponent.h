@@ -7,7 +7,7 @@ class WMovementComponent : public WActorComponent
 public:
 	WMovementComponent();
 
-	virtual void TickComponent(float DeltaTime) override;
+	virtual void Tick(float DeltaTime) override;
 
 public:
 	XMFLOAT3 mVelocity = { 0, 0, 0 };

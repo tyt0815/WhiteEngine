@@ -275,6 +275,9 @@
     <ClCompile Include="Sources\Physics\Trace.cpp">
       <Filter>Sources\Physics</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Object.cpp">
+      <Filter>Sources\GameFramework\Object</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -505,9 +508,6 @@
     <ClInclude Include="Sources\Asset\ObjectAnimDataAsset.h">
       <Filter>Sources\Asset</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\GameFramework\Object\TickGroup.h">
-      <Filter>Sources\GameFramework\Object</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\Physics\ContactListener.h">
       <Filter>Sources\Physics</Filter>
     </ClInclude>
@@ -534,6 +534,9 @@
     </ClInclude>
     <ClInclude Include="Sources\Physics\HitResult.h">
       <Filter>Sources\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Object.h">
+      <Filter>Sources\GameFramework\Object</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

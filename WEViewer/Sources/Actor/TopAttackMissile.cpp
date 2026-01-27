@@ -3,7 +3,7 @@
 
 ATopAttackMissile::ATopAttackMissile()
 {
-	mTickGroup = ETickGroup::ETG_PostPhysics;
+	SetTickGroup(ETickGroup::ETG_PostPhysics, ETickPriority::ETP_Early);
 
 	mHitBoxComp = CreateComponent<WBoxComponent>();
 	if (auto BoxComp = mHitBoxComp.lock())

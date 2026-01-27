@@ -209,7 +209,7 @@ ASpiralBulletSpawner::ASpiralBulletSpawner()
 		Spline->LoadSplineFromAsset(L"SDA_Spiral");
 	}
 	
-	mTickGroup = ETickGroup::ETG_PostPhysics;
+	SetTickGroup(ETickGroup::ETG_PostPhysics, ETickPriority::ETP_Early);
 }
 
 void ASpiralBulletSpawner::Tick(float Delta)
@@ -276,7 +276,8 @@ AWaveBulletSpanwer::AWaveBulletSpanwer()
 		}
 	}
 
-	mTickGroup = ETickGroup::ETG_PostPhysics;
+
+	SetTickGroup(ETickGroup::ETG_PostPhysics, ETickPriority::ETP_Early);
 }
 
 void AWaveBulletSpanwer::Tick(float Delta)
@@ -370,7 +371,7 @@ ARingProjectileSpawner::ARingProjectileSpawner()
 		Spline->LoadSplineFromAsset(L"SDA_RingPath");
 	}
 
-	mTickGroup = ETickGroup::ETG_PostPhysics;
+	SetTickGroup(ETickGroup::ETG_PostPhysics, ETickPriority::ETP_Early);
 }
 
 void ARingProjectileSpawner::Tick(float Delta)

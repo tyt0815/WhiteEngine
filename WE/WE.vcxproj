@@ -45,6 +45,7 @@
     <ClCompile Include="Sources\GameFramework\Object\Component\SphereComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\SplineComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\StaticMeshComponent.cpp" />
+    <ClCompile Include="Sources\GameFramework\Object\Object.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Pawn\GhostCameraPawn.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Pawn\Pawn.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\World\DefaultWorld.cpp" />
@@ -127,9 +128,9 @@
     <ClInclude Include="Sources\GameFramework\Object\Component\SphereComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\SplineComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\StaticMeshComponent.h" />
+    <ClInclude Include="Sources\GameFramework\Object\Object.h" />
     <ClInclude Include="Sources\GameFramework\Object\Pawn\GhostCameraPawn.h" />
     <ClInclude Include="Sources\GameFramework\Object\Pawn\Pawn.h" />
-    <ClInclude Include="Sources\GameFramework\Object\TickGroup.h" />
     <ClInclude Include="Sources\GameFramework\Object\World\DefaultWorld.h" />
     <ClInclude Include="Sources\GameFramework\Object\World\World.h" />
     <ClInclude Include="Sources\GameFramework\PhysicsEventProxy.h" />

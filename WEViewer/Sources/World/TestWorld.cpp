@@ -1,6 +1,7 @@
 #include "TestWorld.h"
 #include "Actor/TopAttackMissile.h"
 #include "Actor/PhysicsBox.h"
+#include <algorithm>
 
 void WTestWorld::BeginPlay()
 {
@@ -17,9 +18,9 @@ void WTestWorld::BeginPlay()
 		mPlatform = SpawnActor<APhysicsBox>().lock();
 		if (auto Box = mPlatform.lock())
 		{
-			Box->SetActorScale(XMFLOAT3(5, 1, 5));
+			Box->SetActorScale(XMFLOAT3(10, 1, 10));
 			XMFLOAT3 Loc = CalcTargetOrigin(MissileSystem.get(), 80.0f);
-			Loc.y += 5;
+			Loc.y += 20;
 			Box->SetActorLocation(Loc);
 		}
 	}
@@ -58,14 +59,6 @@ void WTestWorld::Tick(float DeltaSecond)
 			mElapsedTime = 0;
 		}
 	}
-
-	if (auto Platform = mPlatform.lock())
-	{
-		static XMFLOAT3 Origin = Platform->GetActorLocation();
-		static float t = 0;
-		t += DeltaSecond;
-		Platform->SetActorLocation(XMFLOAT3(Origin.x, Origin.y + sinf(t), Origin.z));
-	}
 }
 
 XMFLOAT3 WTestWorld::CalcTargetOrigin(AActor* Actor, float TargetDistance)
@@ -78,7 +71,7 @@ XMFLOAT3 WTestWorld::CalcTargetOrigin(AActor* Actor, float TargetDistance)
 
 	XMFLOAT3 TraceStart = TargetOrigin;
 	XMFLOAT3 TraceEnd = TraceStart;
-	TraceEnd.y -= 20;
+	TraceEnd.y -= 40;
 	FHitResult Hit;
 	LineTrace(TraceStart, TraceEnd, Hit, true, 10.0f);
 

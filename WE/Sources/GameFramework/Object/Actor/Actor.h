@@ -1,33 +1,30 @@
 #pragma once
 
+#include "Object.h"
 #include "GameFramework/Object/Component/SceneComponent.h"
 #include "Component/PhysicsComponent.h"
 #include "Utility/Class.h"
 #include "Utility/Container.h"
 #include "Physics/PhysicsCore.h"
-#include "TickGroup.h"
 
 #include <d3d12.h>
 #include <memory>
 
 extern const int gFrameResourcesNum;
 
-extern WWorld* g_World;
-
 class FMeshGeometry;
 class FMaterial;
 class WCameraComponent;
 
-class AActor : public std::enable_shared_from_this<AActor>
+class AActor : public WObject
 {
+	typedef WObject Super;
 public:
 	AActor();
 
 	virtual ~AActor() {};
 
 	virtual void BeginPlay();
-
-	virtual void Tick(float Delta) {};
 
 	template<typename T>
 	TWeakPtr<T> CreateComponent();
@@ -44,20 +41,18 @@ public:
 
 	XMFLOAT4 GetActorQuaternion();
 
-	void Destroy();
+	void Destroy() override;
 
-	void Activate();
+	void Activate() override;
 
-	void Deactivate();
+	void Deactivate() override;
 
 protected:
-	virtual void OnDestroy();
+	virtual void OnDestroy() override;
 
-	virtual void OnActivate();
+	virtual void OnActivate() override;
 
-	virtual void OnDeactivate();
-
-	ETickGroup::ETickGroup mTickGroup = ETickGroup::ETG_None;
+	virtual void OnDeactivate() override;
 
 private:
 	void UpdateRecursive();
@@ -78,21 +73,9 @@ private:
 
 	int mActiveActorQueueId = -1;
 
-	int mTickQueueId = -1;
-
 	bool mbPendingKill = false;
 
 public:
-	__forceinline TWeakPtr<AActor> GetWeakPtr()
-	{
-		return GetWeakPtr<AActor>();
-	}
-
-	template<typename T>
-	__forceinline TWeakPtr<T> GetWeakPtr()
-	{
-		return Cast<T>(shared_from_this());
-	}
 
 	__forceinline TWeakPtr<WSceneComponent> GetRootComponent() const
 	{
@@ -132,11 +115,6 @@ public:
 	__forceinline void SetActorScale(XMFLOAT3 Scale)
 	{
 		mRootComponent.lock()->SetLocalScale(Scale);
-	}
-
-	__forceinline WWorld* GetWorld() const
-	{
-		return g_World;
 	}
 
 	__forceinline bool IsPendingKill() const

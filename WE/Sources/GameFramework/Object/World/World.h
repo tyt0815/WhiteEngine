@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Pawn/Pawn.h"
-#include "TickGroup.h"
 #include "Physics/HitResult.h"
 #include "GameFramework/RenderItemProxy.h"
 #include "GameFramework/PhysicsEventProxy.h"
@@ -43,13 +42,9 @@ public:
 
 	void DeactivateActor(AActor* Actor);
 
-	void EnqueueComponentTick(WActorComponent* ActorComp);
+	void EnqueueTick(WObject* Object);
 
-	void EnqueueActorTick(AActor* Actor);
-
-	void DequeueComponentTick(WActorComponent* ActorComp);
-
-	void DequeueActorTick(AActor* Actor);
+	void DequeueTick(WObject* Object);
 
 	void EnqueuePhysicsComponent(WPhysicsComponent* PhysicsComp);
 
@@ -70,9 +65,7 @@ private:
 
 	std::vector<TSharedPtr<AActor>> DestroyQueue;
 
-	std::array<std::vector<AActor*>, ETickGroup::ETG_None> mActorTickGroups;
-
-	std::array<std::vector<WActorComponent*>, ETickGroup::ETG_None> mActorComponentTickGroups;
+	std::array<std::array<std::vector<WObject*>, ETickPriority::ETP_None>, ETickGroup::ETG_None> mTickGroups;
 
 	std::vector<WPhysicsComponent*> mPhysicsComponentQueue;
 

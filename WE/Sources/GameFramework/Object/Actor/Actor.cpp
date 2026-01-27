@@ -76,7 +76,7 @@ XMFLOAT4 AActor::GetActorQuaternion()
 
 void AActor::Destroy()
 {
-	GetWorld()->DestroyActor(GetWeakPtr().lock());
+	GetWorld()->DestroyActor(GetWeakPtr<AActor>().lock());
 }
 
 void AActor::Activate()
@@ -91,7 +91,7 @@ void AActor::Deactivate()
 
 void AActor::OnDestroy()
 {
-	Deactivate();
+	Super::OnDestroy();
 
 	for (auto Comp : mAllComponents)
 	{
@@ -101,7 +101,7 @@ void AActor::OnDestroy()
 
 void AActor::OnActivate()
 {
-	GetWorld()->EnqueueActorTick(this);
+	Super::OnActivate();
 	for (auto& Comp : mAllComponents)
 	{
 		Comp->OnActivate();
@@ -110,11 +110,11 @@ void AActor::OnActivate()
 
 void AActor::OnDeactivate()
 {
-	GetWorld()->DequeueActorTick(this);
 	for (auto& Comp : mAllComponents)
 	{
 		Comp->OnDeactivate();
 	}
+	Super::OnDeactivate();
 }
 
 void AActor::UpdateRecursive()
@@ -129,7 +129,7 @@ void AActor::BeginComponents()
 {
 	for (int i = 0; i < mAllComponents.size(); ++i)
 	{
-		mAllComponents[i]->SetOwner(GetWeakPtr());
+		mAllComponents[i]->SetOwner(GetWeakPtr<AActor>());
 		mAllComponents[i]->BeginComponent();
 	}
 }

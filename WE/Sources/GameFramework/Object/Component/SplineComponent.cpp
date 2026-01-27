@@ -5,9 +5,9 @@
 #include "../World/World.h"
 #include <algorithm>
 
-void WSplineComponent::TickComponent(float Delta)
+void WSplineComponent::Tick(float Delta)
 {
-	Super::TickComponent(Delta);
+	Super::Tick(Delta);
 
 	const XMFLOAT4 DebugColors[] = {
 		{1, 0, 0, 1}, {0, 1, 0, 1}, {0, 0, 1, 1},

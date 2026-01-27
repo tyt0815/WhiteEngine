@@ -25,7 +25,7 @@ class WSplineComponent : public WSceneComponent
 		float Property2;
 	};
 public:
-	virtual void TickComponent(float Delta) override;
+	virtual void Tick(float Delta) override;
 
 public:
 	void AddSplineNode(const FSplineNode& Node);

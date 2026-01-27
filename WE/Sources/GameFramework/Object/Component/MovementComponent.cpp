@@ -3,12 +3,12 @@
 
 WMovementComponent::WMovementComponent()
 {
-	mTickGroup = ETickGroup::ETG_PrePhysics;
+	SetTickGroup(ETickGroup::ETG_PrePhysics, ETickPriority::ETP_Early);
 }
 
-void WMovementComponent::TickComponent(float DeltaTime)
+void WMovementComponent::Tick(float DeltaTime)
 {
-	Super::TickComponent(DeltaTime);
+	Super::Tick(DeltaTime);
 
 	// 프레임마다 Owner를 이동시킴
 	if (auto Owner = GetOwner().lock())

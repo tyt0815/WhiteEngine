@@ -10,7 +10,7 @@ AColdLaunchAnimPlayer::AColdLaunchAnimPlayer()
 		mAnimSampler = Comp->GetObjectAnimSampler("Projectile");
 	}
 
-	mTickGroup = ETickGroup::ETG_PostPhysics;
+	SetTickGroup(ETickGroup::ETG_PostPhysics, ETickPriority::ETP_Early);
 }
 
 void AColdLaunchAnimPlayer::Tick(float DeltaSecond)
