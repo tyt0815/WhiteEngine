@@ -232,6 +232,9 @@ void ATopAttackMissile::NextHomingPath()
 
 void ATopAttackMissile::UpdateHomingPath()
 {
+	mRotationZStep = FDXMath::RandF(mMinRotationZStep, mMaxRotationZStep);
+	mArrivalThresholdSq = FDXMath::RandF(mMinArrivalThresholdSq, mMaxArrivalThresholdSq);
+
 	// Path 교체
 	if (auto ProjComp = mProjectileMovementComponent.lock())
 	{
@@ -267,8 +270,7 @@ void ATopAttackMissile::UpdateHomingPath()
 		}
 	}
 
-	mRotationZStep = FDXMath::RandF(mMinRotationZStep, mMaxRotationZStep);
-	mArrivalThresholdSq = FDXMath::RandF(mMinArrivalThresholdSq, mMaxArrivalThresholdSq);
+
 }
 
 TWeakPtr<AActor> ATopAttackMissile::GetCurrentHomingTarget() const
