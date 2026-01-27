@@ -6,7 +6,7 @@ void WTestWorld::BeginPlay()
 {
 	Super::BeginPlay();
 
-	XMFLOAT3 LocationOffset = XMFLOAT3(-40, 0, 40);
+	XMFLOAT3 LocationOffset = XMFLOAT3(-40, 10, 40);
 	XMFLOAT3 RotationOffset = XMFLOAT3(0, 90, 0);
 	mMissileSystems[0] = SpawnActor<AMissileSwarmSystem>();
 	if (auto MissileSystem = mMissileSystems[0].lock())
@@ -19,7 +19,7 @@ void WTestWorld::BeginPlay()
 		{
 			Box->SetActorScale(XMFLOAT3(5, 1, 5));
 			XMFLOAT3 Loc = CalcTargetOrigin(MissileSystem.get(), 80.0f);
-			Loc.y += 10;
+			Loc.y += 5;
 			Box->SetActorLocation(Loc);
 		}
 	}

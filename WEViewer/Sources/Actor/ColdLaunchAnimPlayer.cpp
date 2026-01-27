@@ -19,7 +19,7 @@ void AColdLaunchAnimPlayer::Tick(float DeltaSecond)
 
 	if (auto Proj = mProjectile.lock())
 	{
-		mPlayTime += DeltaSecond * 2.0f;
+		mPlayTime += DeltaSecond;
 
 		if (auto AnimComp = mAnimComp.lock())
 		{

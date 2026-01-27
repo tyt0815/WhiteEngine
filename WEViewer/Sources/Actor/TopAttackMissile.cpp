@@ -13,6 +13,7 @@ ATopAttackMissile::ATopAttackMissile()
 		BoxComp->SetLocalScale(XMFLOAT3(.1f, .1f, .2f));
 		BoxComp->SetMotionType(EMotionType::Kinematic);
 		BoxComp->SetObjectChannel(EObjectChannel::EOC_Moving);
+		BoxComp->GenerateOverlapEvent();
 	}
 
 	mStaticMesh = CreateComponent<WStaticMeshComponent>();
@@ -51,35 +52,6 @@ ATopAttackMissile::ATopAttackMissile()
 	
 }
 
-void ATopAttackMissile::SetTargetPosition(XMFLOAT3 Pos)
-{
-	DestroyPathMarkers();
-
-	PushBackHomingPath(Pos);
-
-	XMFLOAT3 CurrPos = GetActorLocation();
-	XMVECTOR TargetPosV = XMLoadFloat3(&Pos);
-	XMVECTOR CurrPosV = XMLoadFloat3(&CurrPos);
-	float Dist = XMVectorGetX(XMVector3Length(XMVectorSubtract(TargetPosV, CurrPosV)));
-
-	XMFLOAT3 TraceStart = Pos;
-	XMFLOAT3 TraceEnd = TraceStart;
-	TraceStart.y += 1;
-	TraceEnd.y += min(Dist / 2, mMaxAltitude);
-	FHitResult HitResult;
-
-	GetWorld()->LineTrace(TraceStart, TraceEnd, HitResult, false);
-
-	GetWorld()->DrawDebugLine(Pos, TraceStart, XMFLOAT4(1, 0, 0, 1), 5);
-
-	if (HitResult.HitComponent.expired())
-	{
-		PushFrontHomingPath(TraceEnd);
-	}
-
-	UpdateHomingPath();
-}
-
 void ATopAttackMissile::OnDestroy()
 {
 	DestroyPathMarkers();
@@ -100,13 +72,31 @@ void ATopAttackMissile::Tick(float DeltaSecond)
 	Start.z += Forward.z;
 	GetWorld()->DrawDebugLine(Start, End, XMFLOAT4(0, 1, 1, 1), 0);
 
+	// 액터 자체에 회전 변화
+	{
+		XMFLOAT3 Forward = GetFowardVector();
+		XMVECTOR ForwardV = XMLoadFloat3(&Forward);
+		XMVECTOR RotationQuatV = XMQuaternionRotationAxis(ForwardV, XMConvertToRadians(mRotationZStep) * DeltaSecond);
+
+		XMVECTOR NewForwardV = XMVector3Rotate(ForwardV, RotationQuatV);
+		XMFLOAT3 Up = GetUpVector();
+		XMVECTOR NewUpV = XMVector3Rotate(XMLoadFloat3(&Up), RotationQuatV);
+		XMFLOAT3 Right = GetRightVector();
+		XMVECTOR NewRightV = XMVector3Rotate(XMLoadFloat3(&Right), RotationQuatV);
+
+		XMFLOAT3 NewRotation = FDXMath::GetEulerRotationFromVectors(NewForwardV, NewRightV, NewUpV);
+		SetActorRotation(NewRotation);
+	}
+
+	// 다음 호밍 타겟 찾기
+	float DistanceToTargetSq = 0;
 	if (auto CurrHomingTarget = GetCurrentHomingTarget().lock())
 	{
 		XMFLOAT3 CurrPos = GetActorLocation();
 		XMFLOAT3 TargetPos = CurrHomingTarget->GetActorLocation();
 		XMVECTOR CurrPosV = XMLoadFloat3(&CurrPos);
 		XMVECTOR TargetPosV = XMLoadFloat3(&TargetPos);
-		float DistanceToTargetSq = XMVectorGetX(XMVector3LengthSq(XMVectorSubtract(TargetPosV, CurrPosV)));
+		DistanceToTargetSq = XMVectorGetX(XMVector3LengthSq(XMVectorSubtract(TargetPosV, CurrPosV)));
 		if (DistanceToTargetSq < mArrivalThresholdSq)
 		{
 			NextHomingPath();
@@ -117,27 +107,97 @@ void ATopAttackMissile::Tick(float DeltaSecond)
 				TargetPosV = XMLoadFloat3(&TargetPos);
 				DistanceToTargetSq = XMVectorGetX(XMVector3LengthSq(XMVectorSubtract(TargetPosV, CurrPosV)));
 			}
-		}
-
-		if (CurrHomingTarget)
-		{
-			auto Box = mHitBoxComp.lock();
-			if (mCurrAnimSampler && Box)
-			{
-				float Alpha = DistanceToTargetSq / mExpectedHomingDistanceSq;
-				float TargetFrame = mAnimFrameEnd * Alpha;
-				
-				XMFLOAT3 LocalLoc;
-				LocalLoc.x = mCurrAnimSampler->SampleLocationX(TargetFrame);
-				LocalLoc.y = mCurrAnimSampler->SampleLocationY(TargetFrame);
-				LocalLoc.z = 0;
-
-				Box->SetLocalLocation(LocalLoc);
-			}
-		}		
+		}	
 	}
 
-	
+	if (auto Box = mHitBoxComp.lock())
+	{
+		if (mCurrAnimSampler)
+		{
+			float Alpha = DistanceToTargetSq / mExpectedHomingDistanceSq;
+			float TargetFrame = mAnimFrameEnd * Alpha;
+
+			XMFLOAT3 LocalLoc;
+			LocalLoc.x = mCurrAnimSampler->SampleLocationX(TargetFrame);
+			LocalLoc.y = mCurrAnimSampler->SampleLocationY(TargetFrame);
+			LocalLoc.z = 0;
+
+			Box->SetLocalLocation(LocalLoc);
+		}
+		else
+		{
+			Box->SetLocalLocation(XMFLOAT3(0, 0, 0));
+		}
+	}
+}
+
+void ATopAttackMissile::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (auto Box = mHitBoxComp.lock())
+	{
+		Box->mOnBeginOverlapDelegate.Bind(this, &ATopAttackMissile::OnBoxOverlap);
+	}
+}
+
+void ATopAttackMissile::SetTargetPosition(XMFLOAT3 Pos)
+{
+	DestroyPathMarkers();
+
+	PushBackHomingPath(Pos);
+
+	XMFLOAT3 CurrPos = GetActorLocation();
+	XMVECTOR TargetPosV = XMLoadFloat3(&Pos);
+	XMVECTOR CurrPosV = XMLoadFloat3(&CurrPos);
+	XMVECTOR ToTargetV = XMVectorSubtract(TargetPosV, CurrPosV);
+	float Dist = XMVectorGetX(XMVector3Length(ToTargetV));
+
+	XMFLOAT3 TraceStart = Pos;
+	XMVECTOR TraceStartV = XMLoadFloat3(&TraceStart);
+	TraceStart.y += 1;
+	XMVECTOR ToTargetN = XMVector3Normalize(ToTargetV);
+	XMVECTOR UpN = XMVectorSet(0, 1, 0, 0);
+	float Radian = XMVectorGetX(XMVector3AngleBetweenNormals(UpN, ToTargetN));
+	if (XMConvertToRadians(90) <= Radian && Radian < 175)
+	{
+		XMVECTOR RightN = XMVector3Normalize(XMVector3Cross(UpN, ToTargetN));
+		XMVECTOR ForwardN = XMVector3Normalize(XMVector3Cross(RightN, UpN));
+		
+		XMVECTOR TraceEndV = XMVectorAdd(
+			TraceStartV,
+			XMVectorAdd(
+				XMVectorMultiply(
+					RightN, 
+					XMVectorReplicate(FDXMath::RandF(mMinHomingPathOffset.x, mMaxHomingPathOffset.x))
+				),
+				XMVectorAdd(
+					XMVectorMultiply(
+						UpN,
+						XMVectorReplicate(FDXMath::Clamp(Dist / 2.0f, mMinHomingPathOffset.y, mMaxHomingPathOffset.y))
+					),
+					XMVectorMultiply(
+						ForwardN,
+						XMVectorReplicate(FDXMath::RandF(mMinHomingPathOffset.z, mMaxHomingPathOffset.z))
+					)
+				)
+			)
+		);
+		XMFLOAT3 TraceEnd;
+		XMStoreFloat3(&TraceEnd, TraceEndV);
+		FHitResult HitResult;
+
+		GetWorld()->LineTrace(TraceStart, TraceEnd, HitResult, false);
+
+		GetWorld()->DrawDebugLine(Pos, TraceStart, XMFLOAT4(1, 0, 0, 1), 5);
+
+		if (HitResult.HitComponent.expired())
+		{
+			PushFrontHomingPath(TraceEnd);
+		}
+	}
+
+	UpdateHomingPath();
 }
 
 void ATopAttackMissile::PushFrontHomingPath(XMFLOAT3 Loc)
@@ -178,7 +238,6 @@ void ATopAttackMissile::UpdateHomingPath()
 		if (mHomingPathMarkerDeque.empty())
 		{
 			ProjComp->SetHomingTarget(TWeakPtr<WSceneComponent>());
-			mCurrAnimSampler = nullptr;
 		}
 		else
 		{
@@ -208,7 +267,8 @@ void ATopAttackMissile::UpdateHomingPath()
 		}
 	}
 
-	// 
+	mRotationZStep = FDXMath::RandF(mMinRotationZStep, mMaxRotationZStep);
+	mArrivalThresholdSq = FDXMath::RandF(mMinArrivalThresholdSq, mMaxArrivalThresholdSq);
 }
 
 TWeakPtr<AActor> ATopAttackMissile::GetCurrentHomingTarget() const
@@ -230,5 +290,10 @@ void ATopAttackMissile::DestroyPathMarkers()
 			Marker->Destroy();
 		}
 	}
+}
+
+void ATopAttackMissile::OnBoxOverlap(TWeakPtr<WPhysicsComponent> Another, XMFLOAT3 ImpactPoint)
+{
+	// Destroy();
 }
 
