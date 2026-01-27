@@ -54,7 +54,7 @@ AProjectile::AProjectile()
 		Comp->mVelocity = XMFLOAT3(1, 0, 0);
 	}
 
-	SetTickGroup(ETickGroup::ETG_PostPhysics, ETickPriority::ETP_Early);
+	SetTickGroup(ETickGroup::ETG_PostPhysics, ETickPriority::ETP_High);
 }
 
 void AProjectile::BeginPlay()
@@ -100,7 +100,7 @@ AProjectileAnimActor::AProjectileAnimActor()
 		mProjAnimSamplers[2] = ObjectAnimComp->GetObjectAnimSampler("Proj3");
 	}
 
-	SetTickGroup(ETickGroup::ETG_PostPhysics, ETickPriority::ETP_Early);
+	SetTickGroup(ETickGroup::ETG_PostPhysics, ETickPriority::ETP_High);
 }
 
 void AProjectileAnimActor::BeginPlay()

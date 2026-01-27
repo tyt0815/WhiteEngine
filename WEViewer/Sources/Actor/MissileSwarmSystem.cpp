@@ -2,7 +2,7 @@
 
 AMissileSwarmSystem::AMissileSwarmSystem()
 {
-	SetTickGroup(ETickGroup::ETG_PrePhysics, ETickPriority::ETP_Early);
+	SetTickGroup(ETickGroup::ETG_PrePhysics, ETickPriority::ETP_High);
 }
 
 void AMissileSwarmSystem::Tick(float Delta)

@@ -12,7 +12,8 @@ enum class ETickGroup : unsigned int
 
 enum class ETickPriority : unsigned int
 {
-	ETP_Early = 0,
+	ETP_High = 0,
+	ETP_Middle,
 	ETP_Low,
 	ETP_None
 };
