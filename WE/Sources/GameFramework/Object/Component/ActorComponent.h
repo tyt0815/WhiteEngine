@@ -31,11 +31,6 @@ public:
 
 	TWeakPtr<AActor> mOwner;
 
-protected:
-	virtual void OnActivate() override;
-
-	virtual void OnDeactivate() override;
-
 public:
 	inline TWeakPtr<AActor> GetOwner() const
 	{
