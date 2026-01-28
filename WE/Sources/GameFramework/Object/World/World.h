@@ -50,11 +50,37 @@ public:
 
 	void DequeuePhysicsComponent(WPhysicsComponent* PhysicsComp);
 
-	void LineTrace(XMFLOAT3 Start, XMFLOAT3 End, FHitResult& HitResult, bool bDrawDebug = false, float DebugDuration = 10);
+	void LineTrace(
+		XMFLOAT3 Start, XMFLOAT3 End,
+		const std::vector<AActor*>& ActorsToIgnore,
+		FHitResult& HitResult,
+		bool bDrawDebug = false,
+		float DebugDuration = 10
+	);
+
+	void LineTrace(
+		XMFLOAT3 Start, XMFLOAT3 End,
+		const std::vector<JPH::BodyID>& BodiesToIgnore,
+		FHitResult& HitResult,
+		bool bDrawDebug = false,
+		float DebugDuration = 10
+	);
+
+	void LineTraceByObjectChannel(
+		XMFLOAT3 Start, XMFLOAT3 End,
+		const std::vector<AActor*>& ActorsToIgnore,
+		const std::vector<JPH::ObjectLayer> ObjectChannels,
+		FHitResult& HitResult,
+		bool bDrawDebug = false,
+		float DebugDuration = 10
+	);
 
 private:
-	void FlushDestroyQueue();
+	void ExtractActorsPhysicsBodyID(const std::vector<AActor*>& Actors, std::vector<JPH::BodyID>& Bodies);
 
+	void AfterLineTrace(XMFLOAT3 Start, XMFLOAT3 End, const FHitResult& HitResult, bool bDrawDebug, float DebugDuration);
+
+	void FlushDestroyQueue();
 
 	TArray<TSharedPtr<AActor>> mAllActors;
 

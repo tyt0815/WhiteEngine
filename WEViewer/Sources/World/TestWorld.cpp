@@ -73,7 +73,10 @@ XMFLOAT3 WTestWorld::CalcTargetOrigin(AActor* Actor, float TargetDistance)
 	XMFLOAT3 TraceEnd = TraceStart;
 	TraceEnd.y -= 40;
 	FHitResult Hit;
-	LineTrace(TraceStart, TraceEnd, Hit, true, 10.0f);
+	TArray<AActor*> ActorsToIgnore;
+	TArray<JPH::ObjectLayer> Layers;
+	Layers.push_back(EObjectChannel::EOC_WorldStatic);
+	LineTraceByObjectChannel(TraceStart, TraceEnd, ActorsToIgnore, Layers, Hit, true, 10.0f);
 
 	if(!Hit.HitComponent.expired())
 	{

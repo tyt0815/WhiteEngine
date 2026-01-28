@@ -277,10 +277,49 @@ void WWorld::DequeuePhysicsComponent(WPhysicsComponent* PhysicsComp)
 	mPhysicsComponentQueue.pop_back();
 }
 
-void WWorld::LineTrace(XMFLOAT3 Start, XMFLOAT3 End, FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
+void WWorld::LineTrace(XMFLOAT3 Start, XMFLOAT3 End, const std::vector<AActor*>& ActorsToIgnore, FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
 {
-	Physics::LineTrace(Start, End, HitResult);
+	TArray<JPH::BodyID> BodiesToIgnore;
 
+	ExtractActorsPhysicsBodyID(ActorsToIgnore, BodiesToIgnore);
+
+	LineTrace(Start, End, BodiesToIgnore, HitResult, bDrawDebug, DebugDuration);
+}
+
+void WWorld::LineTrace(XMFLOAT3 Start, XMFLOAT3 End, const std::vector<JPH::BodyID>& BodiesToIgnore, FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
+{
+	Physics::LineTrace(Start, End, HitResult, BodiesToIgnore);
+
+	AfterLineTrace(Start, End, HitResult, bDrawDebug, DebugDuration);
+}
+
+void WWorld::LineTraceByObjectChannel(XMFLOAT3 Start, XMFLOAT3 End, const std::vector<AActor*>& ActorsToIgnore, const std::vector<JPH::ObjectLayer> ObjectChannels, FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
+{
+	TArray<JPH::BodyID> BodiesToIgnore;
+
+	ExtractActorsPhysicsBodyID(ActorsToIgnore, BodiesToIgnore);
+
+	Physics::LineTrace(Start, End, HitResult, ObjectChannels, BodiesToIgnore);
+
+	AfterLineTrace(Start, End, HitResult, bDrawDebug, DebugDuration);
+}
+
+void WWorld::ExtractActorsPhysicsBodyID(const std::vector<AActor*>& Actors, std::vector<JPH::BodyID>& Bodies)
+{
+	for (const AActor* Actor : Actors)
+	{
+		for (auto PhysCompWeak : Actor->mAllPhysicsComponents)
+		{
+			if (auto PhysComp = PhysCompWeak.lock())
+			{
+				Bodies.push_back(PhysComp->mBody->GetBodyID());
+			}
+		}
+	}
+}
+
+void WWorld::AfterLineTrace(XMFLOAT3 Start, XMFLOAT3 End, const FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
+{
 	if (bDrawDebug)
 	{
 		XMFLOAT3 DebugStart = Start;

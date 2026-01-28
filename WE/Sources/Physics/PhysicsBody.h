@@ -55,4 +55,9 @@ public:
 	{
 		return mBody != nullptr;
 	}
+
+	__forceinline JPH::BodyID GetBodyID() const
+	{
+		return mBody->GetID();
+	}
 };

@@ -185,7 +185,8 @@ void ATopAttackMissile::SetTargetPosition(XMFLOAT3 Pos)
 		XMStoreFloat3(&TraceEnd, TraceEndV);
 		FHitResult HitResult;
 
-		GetWorld()->LineTrace(TraceStart, TraceEnd, HitResult, false);
+		TArray<AActor*> ActorsToIgnore;
+		GetWorld()->LineTrace(TraceStart, TraceEnd, ActorsToIgnore, HitResult, false);
 
 		GetWorld()->DrawDebugLine(Pos, TraceStart, XMFLOAT4(1, 0, 0, 1), 5);
 
