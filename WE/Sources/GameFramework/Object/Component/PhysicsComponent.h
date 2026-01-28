@@ -54,7 +54,7 @@ protected:
 
 	EMotionType mMotionType = JPH::EMotionType::Dynamic;
 
-	EObjectChannel::EObjectChannel mObjectChannel = EObjectChannel::EOC_Moving;
+	EObjectChannel::EObjectChannel mObjectChannel = EObjectChannel::EOC_WorldDynamic;
 
 	bool mbGenerateOverlapEvent = false;
 

@@ -9,7 +9,9 @@
 // your broadphase layers define JPH_TRACK_BROADPHASE_STATS and look at the stats reported on the TTY.
 namespace BroadPhaseLayers
 {
-	static constexpr JPH::BroadPhaseLayer NON_MOVING(0);
-	static constexpr JPH::BroadPhaseLayer MOVING(1);
-	static constexpr JPH::uint NUM_LAYERS(2);
+	static constexpr JPH::BroadPhaseLayer WorldStatic(0);
+	static constexpr JPH::BroadPhaseLayer WorldDynamic(1);
+	static constexpr JPH::BroadPhaseLayer PhysicsBody(2);
+	static constexpr JPH::BroadPhaseLayer Projectile(3);
+	static constexpr JPH::uint Max(4);
 };

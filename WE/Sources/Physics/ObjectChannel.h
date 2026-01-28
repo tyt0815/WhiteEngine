@@ -10,8 +10,10 @@ namespace EObjectChannel
 {
 	enum EObjectChannel : JPH::ObjectLayer
 	{
-		EOC_NoneMoving = 0,
-		EOC_Moving,
-		EOC_None
+		EOC_WorldStatic = 0,
+		EOC_WorldDynamic,
+		EOC_PhysicsBody,
+		EOC_Projectile,
+		EOC_Max
 	};
 };

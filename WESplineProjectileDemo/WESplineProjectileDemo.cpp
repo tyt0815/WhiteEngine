@@ -18,7 +18,7 @@ AHitReactor::AHitReactor()
 		HitBox->GenerateOverlapEvent();
 		HitBox->SetExtent(XMFLOAT3(.33f, .33f, .33f));
 		HitBox->SetMotionType(EMotionType::Kinematic);
-		HitBox->SetObjectChannel(EObjectChannel::EOC_Moving);
+		HitBox->SetObjectChannel(EObjectChannel::EOC_PhysicsBody);
 	}
 
 	mSMComp = CreateComponent<WStaticMeshComponent>();
@@ -81,7 +81,7 @@ ABullet::ABullet()
 		HitBoxComp->ActivatePhysicBody();
 		HitBoxComp->SetExtent(XMFLOAT3(.15f, .15f, .5));
 		HitBoxComp->SetMotionType(EMotionType::Kinematic);
-		HitBoxComp->SetObjectChannel(EObjectChannel::EOC_Moving);
+		HitBoxComp->SetObjectChannel(EObjectChannel::EOC_Projectile);
 	}
 
 
@@ -147,7 +147,7 @@ ARingProjectile::ARingProjectile()
 			HitBox->ActivatePhysicBody();
 			HitBox->SetExtent(Extent);
 			HitBox->SetMotionType(EMotionType::Kinematic);
-			HitBox->SetObjectChannel(EObjectChannel::EOC_Moving);
+			HitBox->SetObjectChannel(EObjectChannel::EOC_PhysicsBody);
 
 			float x = cosf(Angle) * Radius;
 			float y = sinf(Angle) * Radius;

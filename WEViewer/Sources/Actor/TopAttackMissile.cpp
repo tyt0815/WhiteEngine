@@ -12,7 +12,7 @@ ATopAttackMissile::ATopAttackMissile()
 		BoxComp->ActivatePhysicBody();
 		BoxComp->SetLocalScale(XMFLOAT3(.1f, .1f, .2f));
 		BoxComp->SetMotionType(EMotionType::Kinematic);
-		BoxComp->SetObjectChannel(EObjectChannel::EOC_Moving);
+		BoxComp->SetObjectChannel(EObjectChannel::EOC_Projectile);
 		BoxComp->GenerateOverlapEvent();
 	}
 
@@ -48,8 +48,6 @@ ATopAttackMissile::ATopAttackMissile()
 
 		mAnimFrameEnd = AnimComp->GetFrameEnd();
 	}
-
-	
 }
 
 void ATopAttackMissile::OnDestroy()
@@ -296,6 +294,6 @@ void ATopAttackMissile::DestroyPathMarkers()
 
 void ATopAttackMissile::OnBoxOverlap(TWeakPtr<WPhysicsComponent> Another, XMFLOAT3 ImpactPoint)
 {
-	// Destroy();
+	Destroy();
 }
 
