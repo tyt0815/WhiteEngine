@@ -1,5 +1,6 @@
 #include "TopAttackMissile.h"
 #include "World/World.h"
+#include "Interface/HitInterface.h"
 
 ATopAttackMissile::ATopAttackMissile()
 {
@@ -286,5 +287,22 @@ void ATopAttackMissile::DestroyPathMarkers()
 
 void ATopAttackMissile::OnHit(WPhysicsComponent* HittedComp, XMFLOAT3 ImpactPoint)
 {
+	if (auto MissileSystem = mMissileSystem.lock())
+	{
+		if (auto StaticMesh = mStaticMesh.lock())
+		{
+			TArray<AActor*> ActorsToIgnore;
+			TArray<FHitResult> Hits;
+			GetWorld()->SphereOverlap(StaticMesh->GetWorldLocation(), 3, ActorsToIgnore, Hits, true, 2);
+			for (int i = 0; i < Hits.size(); ++i)
+			{
+				if (auto HitInt = dynamic_cast<IHitInterface*>(Hits[i].HitComponent.lock()->GetOwner().lock().get()))
+				{
+					HitInt->OnHit(this);
+				}
+			}
+		}
+	}
+	
 	Destroy();
 }

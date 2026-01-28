@@ -1,4 +1,5 @@
 #include "ColdLaunchAnimPlayer.h"
+#include "World/World.h"
 
 AColdLaunchAnimPlayer::AColdLaunchAnimPlayer()
 {
@@ -26,7 +27,6 @@ void AColdLaunchAnimPlayer::Tick(float DeltaSecond)
 
 			FTransform ProjTransform = AnimComp->SampleAnimWorldTransformBySecond(mAnimSampler, mPlayTime);
 			Proj->SetActorTransform(ProjTransform);
-			Proj->SetActorTransform(GetActorTransform());
 
 			if (mPlayTime > AnimComp->GetDuration())
 			{
@@ -38,11 +38,11 @@ void AColdLaunchAnimPlayer::Tick(float DeltaSecond)
 	}
 }
 
-void AColdLaunchAnimPlayer::PlayAnim(XMFLOAT3 TargetPos)
+void AColdLaunchAnimPlayer::PlayAnim(TWeakPtr<ATopAttackMissile> Projectile, XMFLOAT3 TargetPos)
 {
 	mPlayTime = 0;
 	FActorSpawnParameter Param;
 	Param.Transform = GetActorTransform();
-	mProjectile = GetWorld()->SpawnActor<ATopAttackMissile>(Param);
+	mProjectile = Projectile;
 	mTargetPos = TargetPos;
 }

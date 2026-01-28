@@ -83,10 +83,21 @@ public:
 		float DebugDuration = 10
 	);
 
+	void SphereOverlap(
+		XMFLOAT3 Location,
+		float Radius,
+		const std::vector<AActor*>& ActorsToIgnore,
+		TArray<FHitResult>& HitResults,
+		bool bDrawDebug,
+		float DebugDuration = 10
+	);
+
 private:
 	void ExtractActorsPhysicsBodyID(const std::vector<AActor*>& Actors, std::vector<JPH::BodyID>& Bodies);
 
 	void AfterLineTrace(XMFLOAT3 Start, XMFLOAT3 End, const FHitResult& HitResult, bool bDrawDebug, float DebugDuration);
+
+	void AfterSphereOverlap(XMFLOAT3 Location, float Radius, const TArray<FHitResult>& HitResults, bool bDrawDebug, float DebugDuration);
 
 	void FlushDestroyQueue();
 

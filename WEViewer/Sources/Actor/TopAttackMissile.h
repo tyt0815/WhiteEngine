@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Actor/Actor.h"
+#include "MissileSwarmSystem.h"
 #include "Component/ProjectileMovementComponent.h"
 #include "Component/StaticMeshComponent.h"
 #include "Component/BoxComponent.h"
@@ -42,6 +43,8 @@ private:
 	TWeakPtr<WStaticMeshComponent> mStaticMesh;
 
 	TWeakPtr<WObjectAnimComponent> mObjAnimComp;
+
+	TWeakPtr<AMissileSwarmSystem> mMissileSystem;
 
 	TArray<FObjectAnimSampler*> mMissileAnimSamplers;
 

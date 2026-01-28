@@ -1,8 +1,12 @@
 #include "Trace.h"
-#include <Jolt/Physics/Collision/NarrowPhaseQuery.h>
 #include <Jolt/Physics/Body/BodyInterface.h>
+#include <Jolt/Physics/Collision/NarrowPhaseQuery.h>
 #include <Jolt/Physics/Collision/CastResult.h>
 #include <Jolt/Physics/Collision/RayCast.h>
+#include <Jolt/Physics/Collision/ShapeCast.h>
+#include <Jolt/Physics/Collision/Shape/BoxShape.h>
+#include <Jolt/Physics/Collision/Shape/SphereShape.h>
+#include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
 #include "JPHUtility.h"
 
 using namespace JPH;
@@ -179,5 +183,178 @@ namespace Physics
 				HitResult.ImpactPoint = ToDXLocation(ImpactPoint);
 			}
 		}
+	}
+
+	void ShapeTrace(
+		ShapeRefC InShape,
+		RMat44 InMat,
+		RVec3 InDirection,
+		FHitResult& HitResult,
+		const BroadPhaseLayerFilter& inBroadPhaseLayerFilter,
+		const ObjectLayerFilter& inObjectLayerFilter,
+		const BodyFilter& inBodyFilter
+	)
+	{
+		HitResult = {};
+		RShapeCast ShapeTrace(
+			InShape,
+			Vec3::sReplicate(1.0f),
+			InMat,
+			InDirection
+		);
+
+		ShapeCastSettings Settings;
+		ClosestHitCollisionCollector<CastShapeCollector> Collector;
+
+		const NarrowPhaseQuery& Query = GetNarrowPhaseQuery();
+		Query.CastShape(ShapeTrace, Settings, Vec3::sZero(), Collector, inBroadPhaseLayerFilter, inObjectLayerFilter, inBodyFilter);
+		if (Collector.HadHit())
+		{
+			BodyLockRead Lock(GetBodyLockInterface(), Collector.mHit.mBodyID2);
+			if (Lock.Succeeded())
+			{
+				const Body& HitBody = Lock.GetBody();
+				HitResult.HitComponent = *reinterpret_cast<TWeakPtr<WPhysicsComponent>*>(HitBody.GetUserData());
+
+				HitResult.ImpactPoint = ToDXLocation(Collector.mHit.mContactPointOn2);
+			}
+		}
+	}
+
+	void BoxTrace(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT3 Extend, XMFLOAT4 Quaternion, FHitResult& HitResult, const JPH::BroadPhaseLayerFilter& inBroadPhaseLayerFilter, const JPH::ObjectLayerFilter& inObjectLayerFilter, const JPH::BodyFilter& inBodyFilter)
+	{
+		// Jolt는 중심에서부터의 거리(HalfExtent)를 사용합니다.
+		BoxShapeSettings Settings(RVec3(Extend.x, Extend.y, Extend.z));
+		ShapeRefC Box = Settings.Create().Get();
+
+		// 2. 오일러 각(Degree)을 Jolt 쿼터니언으로 변환
+		// Degree -> Radian 변환 후 YZX 순서(또는 엔진 기준 순서)로 쿼터니언 생성
+
+		Quat Rot = TOJPHQuatRotation(Quaternion);
+
+		// 3. 시작 지점의 행렬(Matrix) 구성
+		// 시작 위치와 회전값을 합쳐서 RMat44를 만듭니다.
+		RVec3 JPHStart = ToJPHPosition(Start);
+		RVec3 JPHEnd = ToJPHPosition(End);
+		RMat44 StartMat = RMat44::sRotationTranslation(Rot, JPHStart);
+
+		// 4. 이동 방향 벡터 계산 (End - Start)
+		RVec3 SweepVector = JPHEnd - JPHStart;
+
+		// 5. 앞서 만든 ShapeTrace 호출
+		ShapeTrace(
+			Box,
+			StartMat,
+			SweepVector,
+			HitResult,
+			inBroadPhaseLayerFilter,
+			inObjectLayerFilter,
+			inBodyFilter
+		);
+	}
+
+	void BoxTrace(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT3 Extend, XMFLOAT4 Quaternion, FHitResult& HitResult, const TArray<JPH::BodyID>& BodiesToIgnore)
+	{
+		FTraceBodyFilter BFilter(BodiesToIgnore);
+		BoxTrace(Start, End, Extend, Quaternion, HitResult, {}, {}, BFilter);
+	}
+
+	void BoxTrace(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT3 Extend, XMFLOAT4 Quaternion, FHitResult& HitResult, const TArray<JPH::ObjectLayer>& InObjectLayers, const TArray<JPH::BodyID>& BodiesToIgnore)
+	{
+		FTraceObjectLayerFilter OLFilter(InObjectLayers);
+		FTraceBodyFilter BFilter(BodiesToIgnore);
+		BoxTrace(Start, End, Extend, Quaternion, HitResult, {}, OLFilter, BFilter);
+	}
+
+	void ShapeOverlap(JPH::ShapeRefC InShape, JPH::RMat44 InMat, TArray<FHitResult>& HitResults, const JPH::BroadPhaseLayerFilter& inBPFilter, const JPH::ObjectLayerFilter& inObjFilter, const JPH::BodyFilter& inBodyFilter)
+	{
+		HitResults = {};
+		// 1. 제자리 충돌 설정
+		CollideShapeSettings Settings;
+		// 물체가 서로 얼마나 파묻혀야 충돌로 인정할지 (기본값 0.0f)
+		Settings.mActiveEdgeMode = EActiveEdgeMode::CollideOnlyWithActive;
+		Settings.mBackFaceMode = EBackFaceMode::IgnoreBackFaces;
+
+		// 2. 결과 수집기 (가장 가까운 충돌 하나만 수집)
+		AllHitCollisionCollector<CollideShapeCollector> Collector;
+
+		// 3. 제자리 검사 실행 (이동 방향 벡터가 없음)
+		const NarrowPhaseQuery& Query = GetNarrowPhaseQuery();
+		Query.CollideShape(
+			InShape,
+			Vec3::sReplicate(1.0f), // Scale
+			InMat,                  // 현재 위치/회전
+			Settings,
+			Vec3::sZero(),          // Base Offset
+			Collector,
+			inBPFilter,
+			inObjFilter,
+			inBodyFilter
+		);
+
+		if (Collector.HadHit())
+		{
+			HitResults.resize(Collector.mHits.size());
+			for(int i = 0; i < HitResults.size(); ++i)
+			{
+				BodyLockRead Lock(GetBodyLockInterface(), Collector.mHits[i].mBodyID2);
+				if (Lock.Succeeded())
+				{
+					const Body& HitBody = Lock.GetBody();
+
+					// UserData에서 컴포넌트 복원
+					HitResults[i].HitComponent = *reinterpret_cast<TWeakPtr<WPhysicsComponent>*>(HitBody.GetUserData());
+
+					// CollideShape는 mContactPointOn2를 제공합니다.
+					HitResults[i].ImpactPoint = ToDXLocation(Collector.mHits[i].mContactPointOn2);
+
+					//// 침투 방향(Penetration Axis)의 반대 방향이 충돌 법선이 됩니다.
+					//OutHitResult.Normal = ToDXLocation(-Collector.mHit.mPenetrationAxis.Normalized());
+
+					//// 제자리 충돌이므로 거리는 0으로 처리
+					//OutHitResult.Time = 0.0f;
+
+				}
+			}
+		}
+	}
+
+	void SphereOverlap(
+		XMFLOAT3 Location,
+		float Radius,
+		TArray<FHitResult>& HitResults,
+		const JPH::BroadPhaseLayerFilter& inBroadPhaseLayerFilter,
+		const JPH::ObjectLayerFilter& inObjectLayerFilter,
+		const JPH::BodyFilter& inBodyFilter)
+	{
+		// 1. 위치 변환 및 구체 모양 생성
+		RVec3 JPHPos = ToJPHPosition(Location);
+		SphereShapeSettings Settings(Radius);
+		ShapeRefC SphereShape = Settings.Create().Get();
+
+		// 2. 구체는 회전이 무의미하므로 단위 행렬에 위치만 더함
+		RMat44 CurrentMat = RMat44::sTranslation(JPHPos);
+
+		// 3. 앞서 만든 ShapeOverlap 호출
+		// (ShapeOverlap 내부에서 CollideShape를 호출하도록 설계되었으므로 그대로 사용)
+		ShapeOverlap(
+			SphereShape,
+			CurrentMat,
+			HitResults,
+			inBroadPhaseLayerFilter,
+			inObjectLayerFilter,
+			inBodyFilter
+		);
+	}
+	void SphereOverlap(XMFLOAT3 Location, float Radius, TArray<FHitResult>& HitResults, const TArray<JPH::BodyID>& BodiesToIgnore)
+	{
+		FTraceBodyFilter BFilter(BodiesToIgnore);
+		SphereOverlap(Location, Radius, HitResults, {}, {}, BFilter);
+	}
+	void SphereOverlap(XMFLOAT3 Location, float Radius, TArray<FHitResult>& HitResults, const TArray<JPH::ObjectLayer>& InObjectLayers, const TArray<JPH::BodyID>& BodiesToIgnore)
+	{
+		FTraceObjectLayerFilter OLFilter(InObjectLayers);
+		FTraceBodyFilter BFilter(BodiesToIgnore);
+		SphereOverlap(Location, Radius, HitResults, {}, OLFilter, BFilter);
 	}
 }

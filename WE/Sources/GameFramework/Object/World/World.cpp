@@ -305,6 +305,14 @@ void WWorld::LineTraceByObjectChannel(XMFLOAT3 Start, XMFLOAT3 End, const std::v
 	AfterLineTrace(Start, End, HitResult, bDrawDebug, DebugDuration);
 }
 
+void WWorld::SphereOverlap(XMFLOAT3 Location, float Radius, const std::vector<AActor*>& ActorsToIgnore, TArray<FHitResult>& HitResults, bool bDrawDebug, float DebugDuration)
+{
+	TArray<JPH::BodyID> BodiesToIgnore;
+	ExtractActorsPhysicsBodyID(ActorsToIgnore, BodiesToIgnore);
+	Physics::SphereOverlap(Location, Radius, HitResults, BodiesToIgnore);
+	AfterSphereOverlap(Location, Radius, HitResults, bDrawDebug, DebugDuration);
+}
+
 void WWorld::ExtractActorsPhysicsBodyID(const std::vector<AActor*>& Actors, std::vector<JPH::BodyID>& Bodies)
 {
 	for (const AActor* Actor : Actors)
@@ -338,6 +346,62 @@ void WWorld::AfterLineTrace(XMFLOAT3 Start, XMFLOAT3 End, const FHitResult& HitR
 		}
 
 		DrawDebugLine(DebugStart, DebugEnd, DebugColor, DebugDuration);
+	}
+}
+
+void WWorld::AfterSphereOverlap(
+	XMFLOAT3 Location,
+	float Radius,
+	const TArray<FHitResult>& HitResults,
+	bool bDrawDebug,
+	float DebugDuration
+)
+{
+	if (!bDrawDebug) return;
+
+	// 1. 충돌 여부에 따른 구체 가이드라인 색상 (겹치면 녹색, 아니면 빨간색)
+	bool bHasHit = (HitResults.size() > 0);
+	XMFLOAT4 GuideColor = bHasHit ? XMFLOAT4(0, 1, 0, 1) : XMFLOAT4(1, 0, 0, 1);
+	XMFLOAT4 CyanColor = XMFLOAT4(0, 1, 1, 1); // 시안색 (R:0, G:1, B:1)
+
+	// 2. 구체 형태를 나타내는 3축 라인 (Cross)
+	// X축
+	DrawDebugLine(
+		XMFLOAT3(Location.x - Radius, Location.y, Location.z),
+		XMFLOAT3(Location.x + Radius, Location.y, Location.z),
+		GuideColor, DebugDuration
+	);
+	// Y축
+	DrawDebugLine(
+		XMFLOAT3(Location.x, Location.y - Radius, Location.z),
+		XMFLOAT3(Location.x, Location.y + Radius, Location.z),
+		GuideColor, DebugDuration
+	);
+	// Z축
+	DrawDebugLine(
+		XMFLOAT3(Location.x, Location.y, Location.z - Radius),
+		XMFLOAT3(Location.x, Location.y, Location.z + Radius),
+		GuideColor, DebugDuration
+	);
+
+	// 3. 중심점에서 각 충돌 지점까지 라인 그리기
+	for (const FHitResult& Hit : HitResults)
+	{
+		// 구체 중심(Location) -> 충돌 지점(ImpactPoint) 연결
+		DrawDebugLine(
+			Location,
+			Hit.ImpactPoint,
+			CyanColor,
+			DebugDuration
+		);
+
+		// (선택사항) 충돌 지점 끝에 아주 작은 점 하나 찍어주면 더 잘 보입니다.
+		float TipSize = 0.02f;
+		DrawDebugLine(
+			XMFLOAT3(Hit.ImpactPoint.x - TipSize, Hit.ImpactPoint.y, Hit.ImpactPoint.z),
+			XMFLOAT3(Hit.ImpactPoint.x + TipSize, Hit.ImpactPoint.y, Hit.ImpactPoint.z),
+			CyanColor, DebugDuration
+		);
 	}
 }
 

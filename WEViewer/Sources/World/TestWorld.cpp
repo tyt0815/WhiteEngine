@@ -1,6 +1,7 @@
 #include "TestWorld.h"
 #include "Actor/TopAttackMissile.h"
 #include "Actor/PhysicsBox.h"
+#include "Actor/HitReactor.h"
 #include <algorithm>
 
 void WTestWorld::BeginPlay()
@@ -32,7 +33,14 @@ void WTestWorld::BeginPlay()
 	{
 		MissileSystem->SetActorLocation(LocationOffset);
 		MissileSystem->SetActorRotation(RotationOffset);
+
+		if (auto Box = SpawnActor<AHitReactor>().lock())
+		{
+			XMFLOAT3 Loc = CalcTargetOrigin(MissileSystem.get(), 40.0f);
+			Box->SetActorLocation(Loc);
+		}
 	}
+
 	
 
 	mElapsedTime = mDelay;
