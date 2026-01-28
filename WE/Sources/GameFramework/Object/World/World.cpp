@@ -33,12 +33,13 @@ void WWorld::BeginPlay()
 	{
 		ImGui::TextColored(ImVec4(1, 1, 0, 1), "WWorld::Tick"); // 노란색 제목
 		ImGui::Separator();
-		ImGui::Text("Tick_PrePhysics:     %.3fms",		mProfilingData.Time_Tick_PrePhysics);
-		ImGui::Text("Update_Physics:      %.3fms",		mProfilingData.Time_Update_Physics);
-		ImGui::Text("Physics_Event:       %.3fms",		mProfilingData.Time_Physics_Event);
-		ImGui::Text("Tick_PostPhysics:    %.3fms",		mProfilingData.Time_Tick_PostPhysics);
-		ImGui::Text("Time_Flush_DestroyQueue:    %.3fms", mProfilingData.Time_Flush_DestroyQueue);
-		ImGui::Text("Update_Render_Items: %.3fms",	mProfilingData.Time_Update_Render_Items);
+		ImGui::Text("Tick_PrePhysics:     %.3fms(%.3fms)",			mProfilingData.Time_Tick_PrePhysics,	mMaxProfilingData.Time_Tick_PrePhysics);
+		ImGui::Text("Update_Physics:      %.3fms(%.3fms)",			mProfilingData.Time_Update_Physics,		mMaxProfilingData.Time_Update_Physics);
+		ImGui::Text("Physics_Event:       %.3fms(%.3fms)",			mProfilingData.Time_Physics_Event,		mMaxProfilingData.Time_Physics_Event);
+		ImGui::Text("Tick_PostPhysics:    %.3fms(%.3fms)",			mProfilingData.Time_Tick_PostPhysics,	mMaxProfilingData.Time_Tick_PostPhysics);
+		ImGui::Text("Flush_DestroyQueue:  %.3fms(%.3fms)",			mProfilingData.Time_Flush_DestroyQueue,	mMaxProfilingData.Time_Flush_DestroyQueue);
+		ImGui::Text("Update_Render_Items: %.3fms(%.3fms)",			mProfilingData.Time_Update_Render_Items,mMaxProfilingData.Time_Update_Render_Items);
+		ImGui::Text("Total:               %.3fms(%.3fms)",          mProfilingData.Total(),                 mMaxProfilingData.Total());
 	};
 	GUI::AddProfilingCommand(Command);
 }
@@ -361,12 +362,12 @@ void WWorld::FlushDestroyQueue()
 
 void WWorld::UpdateProfilingData(float DeltaSecond, const FProfilingData& Data)
 {
-	mProfilingData.Time_Tick_PrePhysics = max(mProfilingData.Time_Tick_PrePhysics, Data.Time_Tick_PrePhysics);
-	mProfilingData.Time_Update_Physics = max(mProfilingData.Time_Update_Physics, Data.Time_Update_Physics);
-	mProfilingData.Time_Physics_Event = max(mProfilingData.Time_Physics_Event, Data.Time_Physics_Event);
-	mProfilingData.Time_Tick_PostPhysics = max(mProfilingData.Time_Tick_PostPhysics, Data.Time_Tick_PostPhysics);
-	mProfilingData.Time_Flush_DestroyQueue = max(mProfilingData.Time_Flush_DestroyQueue, Data.Time_Flush_DestroyQueue);
-	mProfilingData.Time_Update_Render_Items = max(mProfilingData.Time_Update_Render_Items, Data.Time_Update_Render_Items);
+	mMaxProfilingData.Time_Tick_PrePhysics =	max(mMaxProfilingData.Time_Tick_PrePhysics, Data.Time_Tick_PrePhysics);
+	mMaxProfilingData.Time_Update_Physics =		max(mMaxProfilingData.Time_Update_Physics, Data.Time_Update_Physics);
+	mMaxProfilingData.Time_Physics_Event =		max(mMaxProfilingData.Time_Physics_Event, Data.Time_Physics_Event);
+	mMaxProfilingData.Time_Tick_PostPhysics =	max(mMaxProfilingData.Time_Tick_PostPhysics, Data.Time_Tick_PostPhysics);
+	mMaxProfilingData.Time_Flush_DestroyQueue = max(mMaxProfilingData.Time_Flush_DestroyQueue, Data.Time_Flush_DestroyQueue);
+	mMaxProfilingData.Time_Update_Render_Items = max(mMaxProfilingData.Time_Update_Render_Items, Data.Time_Update_Render_Items);
 
 	static float ElapsedTime = 0;
 	static int CallCount = 0;

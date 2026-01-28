@@ -35,6 +35,8 @@ public:
 private:
 	void DestroyPathMarkers();
 
+	void OnHit(WPhysicsComponent* HittedComp, XMFLOAT3 ImpactPoint);
+
 	TWeakPtr<WProjectileMovementComponent> mProjectileMovementComponent;
 
 	TWeakPtr<WStaticMeshComponent> mStaticMesh;
@@ -56,7 +58,6 @@ private:
 	// 호밍 타겟. 데크의 front에 있는 액터를 향해서 날아간다.
 	TDeque<TWeakPtr<AActor>> mHomingPathMarkerDeque;
 
-
 	const XMFLOAT3 mMinHomingPathOffset = { -0.5f, 5, -6 };
 
 	const XMFLOAT3 mMaxHomingPathOffset = { 0.5f ,25, -5.5f };
@@ -74,4 +75,6 @@ private:
 	const float mMinRotationZStep = -45.f;
 
 	const float mMaxRotationZStep = 45.0f;
+
+	XMFLOAT3 mLastTickLocation;
 };

@@ -11,6 +11,11 @@
 
 class WPhysicsComponent;
 
+struct FActorSpawnParameter
+{
+	FTransform Transform;
+};
+
 class WWorld
 {
 public:
@@ -29,6 +34,9 @@ public:
 
 	template<typename T>
 	TWeakPtr<T> SpawnActor();
+
+	template<typename T>
+	TWeakPtr<T> SpawnActor(const FActorSpawnParameter& Param);
 
 	void DestroyActor(const TSharedPtr<AActor>& Actor);
 
@@ -112,6 +120,12 @@ private:
 
 	struct FProfilingData
 	{
+		double Total()
+		{
+			return Time_Tick_PrePhysics + Time_Update_Physics + Time_Physics_Event +
+				Time_Tick_PostPhysics + Time_Flush_DestroyQueue + Time_Update_Render_Items;
+		}
+
 		double Time_Tick_PrePhysics;
 		double Time_Update_Physics;
 		double Time_Physics_Event;
@@ -122,6 +136,8 @@ private:
 	void UpdateProfilingData(float DeltaSecond, const FProfilingData& Data);
 
 	FProfilingData mProfilingData;
+
+	FProfilingData mMaxProfilingData;
 
 public:
 	FRenderItemProxy mRenderItemProxy;
@@ -184,10 +200,18 @@ inline WWorld* GetWorld()
 template<typename T>
 inline TWeakPtr<T> WWorld::SpawnActor()
 {
+	FActorSpawnParameter Param;
+	return SpawnActor<T>(Param);
+}
+
+template<typename T>
+inline TWeakPtr<T> WWorld::SpawnActor(const FActorSpawnParameter& Param)
+{
 	TSharedPtr<T> Actor = MakeShared<T>();
 	int ActorId = (int)mAllActors.size();
 	mAllActors.emplace_back(Actor);
-	
+
+	Actor->SetActorTransform(Param.Transform);
 
 	Actor->mActorId = ActorId;
 	Actor->BeginPlay();

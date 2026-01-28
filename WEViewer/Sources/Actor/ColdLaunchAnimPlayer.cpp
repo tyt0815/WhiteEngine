@@ -41,6 +41,8 @@ void AColdLaunchAnimPlayer::Tick(float DeltaSecond)
 void AColdLaunchAnimPlayer::PlayAnim(XMFLOAT3 TargetPos)
 {
 	mPlayTime = 0;
-	mProjectile = GetWorld()->SpawnActor<ATopAttackMissile>();
+	FActorSpawnParameter Param;
+	Param.Transform = GetActorTransform();
+	mProjectile = GetWorld()->SpawnActor<ATopAttackMissile>(Param);
 	mTargetPos = TargetPos;
 }

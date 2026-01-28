@@ -17,7 +17,7 @@ ATopAttackMissile::ATopAttackMissile()
 	mProjectileMovementComponent = CreateComponent<WProjectileMovementComponent>();
 	if (auto ProjMoveComp = mProjectileMovementComponent.lock())
 	{
-		ProjMoveComp->mVelocity = XMFLOAT3(0, 0, 20);
+		ProjMoveComp->mVelocity = XMFLOAT3(0, 0, 30);
 		ProjMoveComp->SetLifeSpan(10.0f);
 		ProjMoveComp->SetHoming(true);
 		ProjMoveComp->SetHomingTurnLimit(720);
@@ -51,14 +51,6 @@ void ATopAttackMissile::Tick(float DeltaSecond)
 	Super::Tick(DeltaSecond);
 
 	mAnimElapsedTime += DeltaSecond;
-
-	XMFLOAT3 Start = GetActorLocation();
-	XMFLOAT3 Forward = GetForwardVector();
-	XMFLOAT3 End = Start;
-	Start.x += Forward.x;
-	Start.y += Forward.y;
-	Start.z += Forward.z;
-	GetWorld()->DrawDebugLine(Start, End, XMFLOAT4(0, 1, 1, 1), 0);
 
 	// 액터 자체에 회전 변화
 	{
@@ -116,12 +108,26 @@ void ATopAttackMissile::Tick(float DeltaSecond)
 		{
 			StaticMesh->SetLocalLocation(XMFLOAT3(0, 0, 0));
 		}
+
+		XMFLOAT3 CurrLocation = StaticMesh->GetWorldLocation();
+		TArray<AActor*> ActorsToIgnore;
+		FHitResult Hit;
+		GetWorld()->LineTrace(mLastTickLocation, CurrLocation, ActorsToIgnore, Hit, true, .1f);
+
+		if (!Hit.HitComponent.expired())
+		{
+			OnHit(Hit.HitComponent.lock().get(), Hit.ImpactPoint);
+		}
+
+		mLastTickLocation = CurrLocation;
 	}
 }
 
 void ATopAttackMissile::BeginPlay()
 {
 	Super::BeginPlay();
+
+	mLastTickLocation = GetActorLocation();
 }
 
 void ATopAttackMissile::SetTargetPosition(XMFLOAT3 Pos)
@@ -276,4 +282,9 @@ void ATopAttackMissile::DestroyPathMarkers()
 			Marker->Destroy();
 		}
 	}
+}
+
+void ATopAttackMissile::OnHit(WPhysicsComponent* HittedComp, XMFLOAT3 ImpactPoint)
+{
+	Destroy();
 }
