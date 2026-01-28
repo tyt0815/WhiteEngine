@@ -49,7 +49,7 @@ def make_gif(input_path, output_path, start_time, end_time, fps=18, width=1200, 
 
 if __name__ == "__main__":
     # 파일 경로와 시간을 확인하세요
-    in_path = "미사일 궤적2.mp4"
+    in_path = "투사체 충돌(수정전).mp4"
     folder_path, file_name = os.path.split(in_path)
     out_path = os.path.join(folder_path, file_name.split('.')[0] + '.gif')
     

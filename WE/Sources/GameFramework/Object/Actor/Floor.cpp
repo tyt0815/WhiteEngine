@@ -11,7 +11,7 @@ AFloor::AFloor()
 	if (auto BoxComp = mBoxComp.lock())
 	{
 		BoxComp->ActivatePhysicBody();
-		BoxComp->SetExtent(XMFLOAT3(50, 0.5f, 50));
+		BoxComp->SetExtent(XMFLOAT3(50, 0.05f, 50));
 		BoxComp->SetMotionType(EMotionType::Kinematic);
 		BoxComp->SetObjectChannel(EObjectChannel::EOC_WorldStatic);
 	}
@@ -21,6 +21,7 @@ AFloor::AFloor()
 	{
 		StaticMeshComp->SetupAttachment(GetRootComponent());
 		StaticMeshComp->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_DefaultFloor));
+		StaticMeshComp->SetLocalLocation(XMFLOAT3(0, 0.05f, 0));
 	}
 }
 

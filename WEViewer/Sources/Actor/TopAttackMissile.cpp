@@ -5,22 +5,12 @@ ATopAttackMissile::ATopAttackMissile()
 {
 	SetTickGroup(ETickGroup::ETG_PostPhysics, ETickPriority::ETP_High);
 
-	mHitBoxComp = CreateComponent<WBoxComponent>();
-	if (auto BoxComp = mHitBoxComp.lock())
-	{
-		BoxComp->SetupAttachment(GetRootComponent());
-		BoxComp->ActivatePhysicBody();
-		BoxComp->SetLocalScale(XMFLOAT3(.1f, .1f, .2f));
-		BoxComp->SetMotionType(EMotionType::Kinematic);
-		BoxComp->SetObjectChannel(EObjectChannel::EOC_Projectile);
-		BoxComp->GenerateOverlapEvent();
-	}
-
 	mStaticMesh = CreateComponent<WStaticMeshComponent>();
 	if (auto StaticMeshComp = mStaticMesh.lock())
 	{
-		StaticMeshComp->SetupAttachment(mHitBoxComp);
+		StaticMeshComp->SetupAttachment(GetRootComponent());
 		StaticMeshComp->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(EStaticMeshType::ESMT_MetalCylinder));
+		StaticMeshComp->SetLocalScale(XMFLOAT3(.1f, .2f, .1f));
 		StaticMeshComp->SetLocalRotation(XMFLOAT3(90, 0, 0));
 	}
 
@@ -108,7 +98,7 @@ void ATopAttackMissile::Tick(float DeltaSecond)
 		}	
 	}
 
-	if (auto Box = mHitBoxComp.lock())
+	if (auto StaticMesh = mStaticMesh.lock())
 	{
 		if (mCurrAnimSampler)
 		{
@@ -120,11 +110,11 @@ void ATopAttackMissile::Tick(float DeltaSecond)
 			LocalLoc.y = mCurrAnimSampler->SampleLocationY(TargetFrame);
 			LocalLoc.z = 0;
 
-			Box->SetLocalLocation(LocalLoc);
+			StaticMesh->SetLocalLocation(LocalLoc);
 		}
 		else
 		{
-			Box->SetLocalLocation(XMFLOAT3(0, 0, 0));
+			StaticMesh->SetLocalLocation(XMFLOAT3(0, 0, 0));
 		}
 	}
 }
@@ -132,11 +122,6 @@ void ATopAttackMissile::Tick(float DeltaSecond)
 void ATopAttackMissile::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (auto Box = mHitBoxComp.lock())
-	{
-		Box->mOnBeginOverlapDelegate.Bind(this, &ATopAttackMissile::OnBoxOverlap);
-	}
 }
 
 void ATopAttackMissile::SetTargetPosition(XMFLOAT3 Pos)
@@ -292,9 +277,3 @@ void ATopAttackMissile::DestroyPathMarkers()
 		}
 	}
 }
-
-void ATopAttackMissile::OnBoxOverlap(TWeakPtr<WPhysicsComponent> Another, XMFLOAT3 ImpactPoint)
-{
-	Destroy();
-}
-

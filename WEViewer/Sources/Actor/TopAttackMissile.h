@@ -35,10 +35,6 @@ public:
 private:
 	void DestroyPathMarkers();
 
-	void OnBoxOverlap(TWeakPtr<WPhysicsComponent> Another, XMFLOAT3 ImpactPoint);
-
-	TWeakPtr<WBoxComponent> mHitBoxComp;
-
 	TWeakPtr<WProjectileMovementComponent> mProjectileMovementComponent;
 
 	TWeakPtr<WStaticMeshComponent> mStaticMesh;
