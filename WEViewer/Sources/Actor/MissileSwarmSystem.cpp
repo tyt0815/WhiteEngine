@@ -1,4 +1,5 @@
 #include "MissileSwarmSystem.h"
+#include "World/World.h"
 
 AMissileSwarmSystem::AMissileSwarmSystem()
 {
@@ -9,34 +10,73 @@ void AMissileSwarmSystem::Tick(float Delta)
 {
 	Super::Tick(Delta);
 
-	mElapsedTime += Delta;
-
-	int r = (int)(mElapsedTime / mFireDelay);
-
-	if (r != mLastFiredRow && r < mFireInfos.size())
+	if (!mbIsLaunching)
 	{
-		mLastFiredRow = r;
+		return;
+	}
 
+	mElapsedTime += Delta;
+	int TargetIndex = min((int)mFireInfos.size() - 1, (int)(mElapsedTime / mFireDelay));
+	auto HitManager = mHitManager.lock();
+	for (int r = mLastFiredRow + 1; r <= TargetIndex; ++r)
+	{
 		for (auto FireInfo : mFireInfos[r])
 		{
 			if (TSharedPtr<AColdLaunchAnimPlayer> AnimPlayer = FireInfo.AnimPlayer.lock())
 			{
-				FireInfo.Missile = GetWorld()->SpawnActor<ATopAttackMissile>();
-				AnimPlayer->PlayAnim(FireInfo.Missile, FireInfo.TargetPos);
+				FActorSpawnParameter Param;
+				Param.Transform = AnimPlayer->GetActorTransform();
+				if (auto Missile = GetWorld()->SpawnActor<ATopAttackMissile>(Param).lock())
+				{
+					Missile->SetHitManager(mHitManager);
+					AnimPlayer->PlayAnim(Missile, FireInfo.TargetPos);
+				}
 			}
 		}
 	}
+	mLastFiredRow = TargetIndex;
+
+	if (mLastFiredRow + 1 >= mFireInfos.size())
+	{
+		mbIsLaunching = false;
+		mHitManager.reset();
+	}
+		
 }
 
-inline void AMissileSwarmSystem::Fire(int Row, int Col, XMFLOAT3 TargetOrigin)
+void AMissileSwarmSystem::CreateTargetMarkers(int Row, int Col, float GridInterval)
+{
+	mTargetMarker = GetWorld()->SpawnActor<ATargetMarker>();
+	auto Marker = mTargetMarker.lock();
+	Marker->CreateTargetMarkers(Row, Col, GridInterval);
+}
+
+void AMissileSwarmSystem::SetTargetMarkerTransform(FTransform Transform)
+{
+	if (auto TargetMarker = mTargetMarker.lock())
+	{
+		TargetMarker->SetActorTransform(Transform);
+	}
+}
+
+void AMissileSwarmSystem::Fire(int Row, int Col, XMFLOAT3 TargetOrigin)
 {
 	if (Row == 0 || Col == 0)
 	{
 		return;
 	}
 
+	if (mbIsLaunching)
+	{
+		return;
+	}
+
+	mbIsLaunching = true;
+
 	mElapsedTime = 0.0f;
 	mLastFiredRow = -1;
+
+	mHitManager = GetWorld()->SpawnActor<AHitManager>();
 
 	XMFLOAT3 SystemOrigin = GetActorLocation();
 	XMVECTOR SystemOriginV = XMLoadFloat3(&SystemOrigin);

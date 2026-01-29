@@ -2,10 +2,16 @@
 #include "Actor/TopAttackMissile.h"
 #include "Actor/PhysicsBox.h"
 #include "Actor/HitReactor.h"
+#include "Pawn/PlayerPawn.h"
 #include <algorithm>
 
 void WTestWorld::BeginPlay()
 {
+	if (auto Player = SpawnActor<APlayerPawn>().lock())
+	{
+		SetPlayer(Player);
+	}
+	
 	Super::BeginPlay();
 
 	XMFLOAT3 LocationOffset = XMFLOAT3(-40, 10, 40);
@@ -39,9 +45,20 @@ void WTestWorld::BeginPlay()
 			XMFLOAT3 Loc = CalcTargetOrigin(MissileSystem.get(), 40.0f);
 			Box->SetActorLocation(Loc);
 		}
+		if (auto Box = SpawnActor<AHitReactor>().lock())
+		{
+			XMFLOAT3 Loc = CalcTargetOrigin(MissileSystem.get(), 40.0f);
+			Loc.x -= 3;
+			Box->SetActorLocation(Loc);
+		}
+		if (auto Box = SpawnActor<AHitReactor>().lock())
+		{
+			XMFLOAT3 Loc = CalcTargetOrigin(MissileSystem.get(), 40.0f);
+			Loc.x -= 1.5f;
+			Loc.y -= 3;
+			Box->SetActorLocation(Loc);
+		}
 	}
-
-	
 
 	mElapsedTime = mDelay;
 }

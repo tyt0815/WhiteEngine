@@ -1,11 +1,12 @@
 #pragma once
 
 #include "Actor/Actor.h"
-#include "MissileSwarmSystem.h"
 #include "Component/ProjectileMovementComponent.h"
 #include "Component/StaticMeshComponent.h"
 #include "Component/BoxComponent.h"
 #include "Component/ObjectAnimComponent.h"
+#include "Actor/HitManager.h"
+#include "Physics/HitResult.h"
 
 class ATopAttackMissile : public AActor
 {
@@ -33,10 +34,12 @@ public:
 
 	TWeakPtr<AActor> GetCurrentHomingTarget() const;
 
+	void SetHitManager(TWeakPtr<AHitManager> HitManager);
+
 private:
 	void DestroyPathMarkers();
 
-	void OnHit(WPhysicsComponent* HittedComp, XMFLOAT3 ImpactPoint);
+	void OnHit(const FHitResult& Hit);
 
 	TWeakPtr<WProjectileMovementComponent> mProjectileMovementComponent;
 
@@ -44,7 +47,7 @@ private:
 
 	TWeakPtr<WObjectAnimComponent> mObjAnimComp;
 
-	TWeakPtr<AMissileSwarmSystem> mMissileSystem;
+	TWeakPtr<AHitManager> mHitManager;
 
 	TArray<FObjectAnimSampler*> mMissileAnimSamplers;
 

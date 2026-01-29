@@ -18,6 +18,9 @@
     <Filter Include="Sources\Interface">
       <UniqueIdentifier>{9170ee33-1e7e-4658-bcd5-57b0acc303ff}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Pawn">
+      <UniqueIdentifier>{2fa35f5e-e51e-4c9d-986f-8f36bc750324}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Main.cpp">
@@ -44,6 +47,15 @@
     <ClCompile Include="Sources\Actor\HitReactor.cpp">
       <Filter>Sources\Actor</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Actor\HitManager.cpp">
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Pawn\PlayerPawn.cpp">
+      <Filter>Sources\Pawn</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Actor\TargetMarker.cpp">
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\World\TestWorld.h">
@@ -68,6 +80,15 @@
       <Filter>Sources\Interface</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Actor\HitReactor.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\HitManager.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Pawn\PlayerPawn.h">
+      <Filter>Sources\Pawn</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\TargetMarker.h">
       <Filter>Sources\Actor</Filter>
     </ClInclude>
   </ItemGroup>

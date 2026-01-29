@@ -18,7 +18,7 @@ ATopAttackMissile::ATopAttackMissile()
 	mProjectileMovementComponent = CreateComponent<WProjectileMovementComponent>();
 	if (auto ProjMoveComp = mProjectileMovementComponent.lock())
 	{
-		ProjMoveComp->mVelocity = XMFLOAT3(0, 0, 30);
+		ProjMoveComp->mVelocity = XMFLOAT3(0, 0, 20);
 		ProjMoveComp->SetLifeSpan(10.0f);
 		ProjMoveComp->SetHoming(true);
 		ProjMoveComp->SetHomingTurnLimit(720);
@@ -117,7 +117,7 @@ void ATopAttackMissile::Tick(float DeltaSecond)
 
 		if (!Hit.HitComponent.expired())
 		{
-			OnHit(Hit.HitComponent.lock().get(), Hit.ImpactPoint);
+			OnHit(Hit);
 		}
 
 		mLastTickLocation = CurrLocation;
@@ -274,6 +274,20 @@ TWeakPtr<AActor> ATopAttackMissile::GetCurrentHomingTarget() const
 	return mHomingPathMarkerDeque.front();
 }
 
+void ATopAttackMissile::SetHitManager(TWeakPtr<AHitManager> HitManager)
+{
+	if (auto Manager = mHitManager.lock())
+	{
+		Manager->RemoveInstigator(this);
+	}
+
+	mHitManager = HitManager;
+	if (auto Manager = mHitManager.lock())
+	{
+		Manager->AddInstigator(this);
+	}
+}
+
 void ATopAttackMissile::DestroyPathMarkers()
 {
 	for (auto MarkerWeak : mHomingPathMarkerDeque)
@@ -285,20 +299,54 @@ void ATopAttackMissile::DestroyPathMarkers()
 	}
 }
 
-void ATopAttackMissile::OnHit(WPhysicsComponent* HittedComp, XMFLOAT3 ImpactPoint)
+void ATopAttackMissile::OnHit(const FHitResult& Hit)
 {
-	if (auto MissileSystem = mMissileSystem.lock())
+	XMVECTOR ImpactPointV = XMLoadFloat3(&Hit.ImpactPoint);
+	XMVECTOR ImpactPointNormalV = XMLoadFloat3(&Hit.Normal);
+	XMFLOAT3 ImpactPointWithOffset;		// ImpactPoint보다 Normal방향으로 offset을 더한 값
+	XMStoreFloat3(
+		&ImpactPointWithOffset,
+		XMVectorMultiplyAdd(ImpactPointNormalV, XMVectorReplicate(0.1f), ImpactPointV)
+	);
+
+	if (auto StaticMesh = mStaticMesh.lock())
 	{
-		if (auto StaticMesh = mStaticMesh.lock())
+		TArray<AActor*> ActorsToIgnore;
+		TArray<FHitResult> ExplosionHits;
+		TArray<JPH::ObjectLayer> ObjectChannels;
+		ObjectChannels.push_back(EObjectChannel::EOC_WorldStatic);
+
+		WWorld* World = GetWorld();
+
+		// 폭발 반경에 액터가 있는지 체크한다.
+		World->SphereOverlap(StaticMesh->GetWorldLocation(), 3, ActorsToIgnore, ExplosionHits, false, 2);
+		for (int i = 0; i < ExplosionHits.size(); ++i)
 		{
-			TArray<AActor*> ActorsToIgnore;
-			TArray<FHitResult> Hits;
-			GetWorld()->SphereOverlap(StaticMesh->GetWorldLocation(), 3, ActorsToIgnore, Hits, true, 2);
-			for (int i = 0; i < Hits.size(); ++i)
+			if (auto Comp = ExplosionHits[i].HitComponent.lock())
 			{
-				if (auto HitInt = dynamic_cast<IHitInterface*>(Hits[i].HitComponent.lock()->GetOwner().lock().get()))
+				// 폭발 위치와 대상자 사이에 장애물(벽)이 있는지 확인한다.
+				ActorsToIgnore.clear();
+				if (auto Actor = ExplosionHits[i].Actor.lock())
 				{
-					HitInt->OnHit(this);
+					ActorsToIgnore.push_back(Actor.get());
+				}
+
+				XMFLOAT3 CompLocation = Comp->GetWorldLocation();
+				
+				FHitResult LineHit;
+				World->LineTraceByObjectChannel(ImpactPointWithOffset, CompLocation, ActorsToIgnore, ObjectChannels, LineHit, false, 2);
+				if (!LineHit.HitComponent.expired())
+				{
+					continue;
+				}
+
+				// 해당 액터가 HitInterface를 가지고 있으면, Hit를 시도한다.
+				if (auto Owner = Comp->GetOwner().lock())
+				{
+					if (auto HitInt = dynamic_cast<IHitInterface*>(Owner.get()))
+					{
+						mHitManager.lock()->Hit(HitInt, this);
+					}
 				}
 			}
 		}

@@ -8,8 +8,12 @@
 void WDefaultWorld::BeginPlay()
 {
 	Super::BeginPlay();
-	auto Player = SpawnActor<AGhostCameraPawn>();
-	SetPlayer(Player);
+
+	if (GetPlayer().expired())
+	{
+		auto Player = SpawnActor<AGhostCameraPawn>();
+		SetPlayer(Player);
+	}
 
 	auto LightActor = SpawnActor<ADirectionalLight>().lock();
 	LightActor->SetActorRotation(XMFLOAT3(0.0f, -45, -45));

@@ -42,6 +42,8 @@ public:
 
 	void DrawDebugLine(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT4 Color, float LifeSpan);
 
+	void DrawDebugBox(XMFLOAT3 Center, XMFLOAT3 Extend, XMFLOAT4 Quaternion, XMFLOAT4 Color, float Duration);
+
 	void EnqueueOnBeginOverlapEvent(const FPhysicEventInfo& Info);
 
 	void EnqueueOnHitEvent(const FPhysicEventInfo& Info);
@@ -66,7 +68,7 @@ public:
 		float DebugDuration = 10
 	);
 
-	void LineTrace(
+	void LineTrace_Internal(
 		XMFLOAT3 Start, XMFLOAT3 End,
 		const std::vector<JPH::BodyID>& BodiesToIgnore,
 		FHitResult& HitResult,
@@ -83,6 +85,30 @@ public:
 		float DebugDuration = 10
 	);
 
+	void BoxTrace(
+		XMFLOAT3 Start, XMFLOAT3 End,
+		XMFLOAT3 Extend, XMFLOAT3 Rotation,
+		const std::vector<AActor*>& ActorsToIgnore, FHitResult& HitResult,
+		bool bDrawDebug = false, float DebugDuration = 10
+	);
+
+	void BoxTrace_Internal(
+		XMFLOAT3 Start, XMFLOAT3 End,
+		XMFLOAT3 Extend, XMFLOAT3 Rotation,
+		const std::vector<JPH::BodyID>& BodiesToIgnore,
+		FHitResult& HitResult,
+		bool bDrawDebug = false, float DebugDuration = 10
+	);
+
+	void BoxTraceByObjectChannel(
+		XMFLOAT3 Start, XMFLOAT3 End,
+		XMFLOAT3 Extend, XMFLOAT3 Rotation,
+		const std::vector<AActor*>& ActorsToIgnore,
+		const std::vector<JPH::ObjectLayer>& ObjectChannels,
+		FHitResult& HitResult,
+		bool bDrawDebug = false, float DebugDuration = 10
+	);
+
 	void SphereOverlap(
 		XMFLOAT3 Location,
 		float Radius,
@@ -96,6 +122,8 @@ private:
 	void ExtractActorsPhysicsBodyID(const std::vector<AActor*>& Actors, std::vector<JPH::BodyID>& Bodies);
 
 	void AfterLineTrace(XMFLOAT3 Start, XMFLOAT3 End, const FHitResult& HitResult, bool bDrawDebug, float DebugDuration);
+
+	void AfterBoxTrace(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT3 Extend, XMFLOAT4 Quaternion, const FHitResult& HitResult, bool bDrawDebug, float DebugDuration);
 
 	void AfterSphereOverlap(XMFLOAT3 Location, float Radius, const TArray<FHitResult>& HitResults, bool bDrawDebug, float DebugDuration);
 

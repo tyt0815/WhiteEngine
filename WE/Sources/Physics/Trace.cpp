@@ -7,6 +7,7 @@
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
+#include "PhysicsDebugRenderer.h"
 #include "JPHUtility.h"
 
 using namespace JPH;
@@ -165,22 +166,30 @@ namespace Physics
 		RRayCast Ray{ Origin, Direction };
 
 		// 단일 타격만 원할 경우:
-		RayCastResult Result;
+		RayCastResult InResult;
 
 		// 3. 쿼리 실행 (NarrowPhaseQuery 사용)
 		const NarrowPhaseQuery& Query = GetNarrowPhaseQuery();
-		if (Query.CastRay(Ray, Result, inBroadPhaseLayerFilter, inObjectLayerFilter, inBodyFilter))
+		if (Query.CastRay(Ray, InResult, inBroadPhaseLayerFilter, inObjectLayerFilter, inBodyFilter))
 		{
-			// result.mBodyID를 통해 충돌한 바디 정보를 가져옴
-			BodyLockRead Lock(GetBodyLockInterface(), Result.mBodyID);
+			BodyLockRead Lock(GetBodyLockInterface(), InResult.mBodyID);
 			if (Lock.Succeeded())
 			{
 				const Body& HitBody = Lock.GetBody();
-				HitResult.HitComponent = *reinterpret_cast<TWeakPtr<WPhysicsComponent>*>(HitBody.GetUserData());
+				HitResult.SetActorAndHitComponent(*reinterpret_cast<TWeakPtr<WPhysicsComponent>*>(HitBody.GetUserData()));
 
-				RVec3 ImpactPoint = Direction * Result.mFraction;
-				ImpactPoint += Origin;
+				// 1. ImpactPoint 계산 (이미 하신 부분)
+				RVec3 ImpactPoint = Ray.mOrigin + InResult.mFraction * Ray.mDirection;
 				HitResult.ImpactPoint = ToDXLocation(ImpactPoint);
+
+				// 2. Normal(법선) 계산 ★ 핵심 부분
+				// GetWorldSpaceSurfaceNormal 함수를 사용합니다.
+				Vec3 Normal = HitBody.GetWorldSpaceSurfaceNormal(InResult.mSubShapeID2, ImpactPoint);
+
+				// 3. HitResult에 저장 (XMFLOAT3로 변환 필요)
+				HitResult.Normal = ToDXLocation(Normal);
+
+				HitResult.Distance = InResult.mFraction;
 			}
 		}
 	}
@@ -214,9 +223,19 @@ namespace Physics
 			if (Lock.Succeeded())
 			{
 				const Body& HitBody = Lock.GetBody();
-				HitResult.HitComponent = *reinterpret_cast<TWeakPtr<WPhysicsComponent>*>(HitBody.GetUserData());
+				HitResult.SetActorAndHitComponent(*reinterpret_cast<TWeakPtr<WPhysicsComponent>*>(HitBody.GetUserData()));
 
-				HitResult.ImpactPoint = ToDXLocation(Collector.mHit.mContactPointOn2);
+				RVec3 ImpactPoint = Collector.mHit.mContactPointOn2;
+				HitResult.ImpactPoint = ToDXLocation(ImpactPoint);
+
+				// 2. Normal(법선) 계산 ★ 핵심 부분
+				// GetWorldSpaceSurfaceNormal 함수를 사용합니다.
+				Vec3 Normal = HitBody.GetWorldSpaceSurfaceNormal(Collector.mHit.mSubShapeID2, ImpactPoint);
+
+				// 3. HitResult에 저장 (XMFLOAT3로 변환 필요)
+				HitResult.Normal = ToDXLocation(Normal);
+
+				HitResult.Distance = Collector.mHit.mFraction;
 			}
 		}
 	}
@@ -303,17 +322,20 @@ namespace Physics
 					const Body& HitBody = Lock.GetBody();
 
 					// UserData에서 컴포넌트 복원
-					HitResults[i].HitComponent = *reinterpret_cast<TWeakPtr<WPhysicsComponent>*>(HitBody.GetUserData());
+					HitResults[i].SetActorAndHitComponent(*reinterpret_cast<TWeakPtr<WPhysicsComponent>*>(HitBody.GetUserData()));
 
 					// CollideShape는 mContactPointOn2를 제공합니다.
-					HitResults[i].ImpactPoint = ToDXLocation(Collector.mHits[i].mContactPointOn2);
+					RVec3 ImpactPoint = Collector.mHits[i].mContactPointOn2;
+					HitResults[i].ImpactPoint = ToDXLocation(ImpactPoint);
 
-					//// 침투 방향(Penetration Axis)의 반대 방향이 충돌 법선이 됩니다.
-					//OutHitResult.Normal = ToDXLocation(-Collector.mHit.mPenetrationAxis.Normalized());
+					// 2. Normal(법선) 계산 ★ 핵심 부분
+					// GetWorldSpaceSurfaceNormal 함수를 사용합니다.
+					Vec3 Normal = HitBody.GetWorldSpaceSurfaceNormal(Collector.mHits[i].mSubShapeID2, ImpactPoint);
 
-					//// 제자리 충돌이므로 거리는 0으로 처리
-					//OutHitResult.Time = 0.0f;
+					// 3. HitResult에 저장 (XMFLOAT3로 변환 필요)
+					HitResults[i].Normal = ToDXLocation(Normal);
 
+					HitResults[i].Distance = Collector.mHits[i].GetEarlyOutFraction();
 				}
 			}
 		}

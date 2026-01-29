@@ -278,6 +278,9 @@
     <ClCompile Include="Sources\GameFramework\Object\Object.cpp">
       <Filter>Sources\GameFramework\Object</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Physics\HitResult.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">

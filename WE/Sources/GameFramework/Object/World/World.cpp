@@ -181,6 +181,49 @@ void WWorld::DrawDebugLine(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT4 Color, float L
 #endif
 }
 
+void WWorld::DrawDebugBox(XMFLOAT3 Center, XMFLOAT3 Extend, XMFLOAT4 Quaternion, XMFLOAT4 Color, float Duration)
+{
+	// 1. 박스의 로컬 8개 꼭짓점 정의 (Center 기준 오프셋)
+	XMFLOAT3 Vertices[8] = {
+		{ -Extend.x, -Extend.y, -Extend.z }, { Extend.x, -Extend.y, -Extend.z },
+		{  Extend.x,  Extend.y, -Extend.z }, { -Extend.x,  Extend.y, -Extend.z },
+		{ -Extend.x, -Extend.y,  Extend.z }, { Extend.x, -Extend.y,  Extend.z },
+		{  Extend.x,  Extend.y,  Extend.z }, { -Extend.x,  Extend.y,  Extend.z }
+	};
+
+	XMVECTOR Quat = XMLoadFloat4(&Quaternion);
+	XMVECTOR Pos = XMLoadFloat3(&Center);
+
+	// 2. 각 꼭짓점을 회전시키고 월드 위치로 변환
+	XMFLOAT3 WorldVertices[8];
+	for (int i = 0; i < 8; ++i)
+	{
+		XMVECTOR LocalV = XMLoadFloat3(&Vertices[i]);
+		// 로컬 정점을 쿼터니언으로 회전 후 중심 위치 더함
+		XMVECTOR WorldV = XMVector3Rotate(LocalV, Quat) + Pos;
+		XMStoreFloat3(&WorldVertices[i], WorldV);
+	}
+
+	// 3. 12개의 선 그리기 (밑면 4개, 윗면 4개, 기둥 4개)
+	// 밑면 (0-1-2-3-0)
+	DrawDebugLine(WorldVertices[0], WorldVertices[1], Color, Duration);
+	DrawDebugLine(WorldVertices[1], WorldVertices[2], Color, Duration);
+	DrawDebugLine(WorldVertices[2], WorldVertices[3], Color, Duration);
+	DrawDebugLine(WorldVertices[3], WorldVertices[0], Color, Duration);
+
+	// 윗면 (4-5-6-7-4)
+	DrawDebugLine(WorldVertices[4], WorldVertices[5], Color, Duration);
+	DrawDebugLine(WorldVertices[5], WorldVertices[6], Color, Duration);
+	DrawDebugLine(WorldVertices[6], WorldVertices[7], Color, Duration);
+	DrawDebugLine(WorldVertices[7], WorldVertices[4], Color, Duration);
+
+	// 기둥 (밑면과 윗면 연결)
+	DrawDebugLine(WorldVertices[0], WorldVertices[4], Color, Duration);
+	DrawDebugLine(WorldVertices[1], WorldVertices[5], Color, Duration);
+	DrawDebugLine(WorldVertices[2], WorldVertices[6], Color, Duration);
+	DrawDebugLine(WorldVertices[3], WorldVertices[7], Color, Duration);
+}
+
 void WWorld::EnqueueOnBeginOverlapEvent(const FPhysicEventInfo& Info)
 {
 	std::lock_guard<std::mutex> Lock(mEventQueueMutex);
@@ -284,10 +327,10 @@ void WWorld::LineTrace(XMFLOAT3 Start, XMFLOAT3 End, const std::vector<AActor*>&
 
 	ExtractActorsPhysicsBodyID(ActorsToIgnore, BodiesToIgnore);
 
-	LineTrace(Start, End, BodiesToIgnore, HitResult, bDrawDebug, DebugDuration);
+	LineTrace_Internal(Start, End, BodiesToIgnore, HitResult, bDrawDebug, DebugDuration);
 }
 
-void WWorld::LineTrace(XMFLOAT3 Start, XMFLOAT3 End, const std::vector<JPH::BodyID>& BodiesToIgnore, FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
+void WWorld::LineTrace_Internal(XMFLOAT3 Start, XMFLOAT3 End, const std::vector<JPH::BodyID>& BodiesToIgnore, FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
 {
 	Physics::LineTrace(Start, End, HitResult, BodiesToIgnore);
 
@@ -303,6 +346,56 @@ void WWorld::LineTraceByObjectChannel(XMFLOAT3 Start, XMFLOAT3 End, const std::v
 	Physics::LineTrace(Start, End, HitResult, ObjectChannels, BodiesToIgnore);
 
 	AfterLineTrace(Start, End, HitResult, bDrawDebug, DebugDuration);
+}
+
+// 1. AActor 리스트 무시 버전 (오일러 각 그대로 전달)
+void WWorld::BoxTrace(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT3 Extend, XMFLOAT3 Rotation,
+	const std::vector<AActor*>& ActorsToIgnore, FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
+{
+	TArray<JPH::BodyID> BodiesToIgnore;
+	ExtractActorsPhysicsBodyID(ActorsToIgnore, BodiesToIgnore);
+
+	// 실제 로직이 들어있는 아래 함수를 호출
+	BoxTrace_Internal(Start, End, Extend, Rotation, BodiesToIgnore, HitResult, bDrawDebug, DebugDuration);
+}
+
+// 2. 실제 물리 호출부 (여기서 딱 한 번 쿼터니언 변환!)
+void WWorld::BoxTrace_Internal(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT3 Extend, XMFLOAT3 Rotation,
+	const std::vector<JPH::BodyID>& BodiesToIgnore, FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
+{
+	// 여기서만 쿼터니언으로 변환
+	XMVECTOR QuatVec = XMQuaternionRotationRollPitchYaw(
+		XMConvertToRadians(Rotation.x),
+		XMConvertToRadians(Rotation.y),
+		XMConvertToRadians(Rotation.z)
+	);
+	XMFLOAT4 Quaternion;
+	XMStoreFloat4(&Quaternion, QuatVec);
+
+	// 물리 엔진 호출
+	Physics::BoxTrace(Start, End, Extend, Quaternion, HitResult, BodiesToIgnore);
+
+	// 디버그 드로우
+	AfterBoxTrace(Start, End, Extend, Quaternion, HitResult, bDrawDebug, DebugDuration);
+}
+
+// 3. ObjectChannel 버전 (역시 오일러 각 전달)
+void WWorld::BoxTraceByObjectChannel(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT3 Extend, XMFLOAT3 Rotation,
+	const std::vector<AActor*>& ActorsToIgnore, const std::vector<JPH::ObjectLayer>& ObjectChannels,
+	FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
+{
+	TArray<JPH::BodyID> BodiesToIgnore;
+	ExtractActorsPhysicsBodyID(ActorsToIgnore, BodiesToIgnore);
+
+	// 여기서도 쿼터니언 변환이 필요하므로 내부 로직을 타거나, 
+	// 아니면 위 구조처럼 공통 쿼터니언 변환 헬퍼를 쓰는 게 좋겠네요.
+	XMVECTOR QuatVec = XMQuaternionRotationRollPitchYaw(
+		XMConvertToRadians(Rotation.x), XMConvertToRadians(Rotation.y), XMConvertToRadians(Rotation.z));
+	XMFLOAT4 Quaternion;
+	XMStoreFloat4(&Quaternion, QuatVec);
+
+	Physics::BoxTrace(Start, End, Extend, Quaternion, HitResult, ObjectChannels, BodiesToIgnore);
+	AfterBoxTrace(Start, End, Extend, Quaternion, HitResult, bDrawDebug, DebugDuration);
 }
 
 void WWorld::SphereOverlap(XMFLOAT3 Location, float Radius, const std::vector<AActor*>& ActorsToIgnore, TArray<FHitResult>& HitResults, bool bDrawDebug, float DebugDuration)
@@ -347,6 +440,56 @@ void WWorld::AfterLineTrace(XMFLOAT3 Start, XMFLOAT3 End, const FHitResult& HitR
 
 		DrawDebugLine(DebugStart, DebugEnd, DebugColor, DebugDuration);
 	}
+}
+
+void WWorld::AfterBoxTrace(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT3 Extend, XMFLOAT4 Quaternion, const FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
+{
+	if (!bDrawDebug) return;
+
+	XMVECTOR StartV = XMLoadFloat3(&Start);
+	XMVECTOR EndV = XMLoadFloat3(&End);
+
+	// 1. 박스의 실제 중심(Center)이 멈춘 위치 계산
+	// 충돌 시에는 Start에서 End 방향으로 Distance(0~1)만큼만 이동한 지점이 중심입니다.
+	XMVECTOR ActualCenterV;
+	if (HitResult.HitComponent.expired()) {
+		ActualCenterV = EndV;
+	}
+	else {
+		// 방향 벡터 * 이동 비율(Fraction)
+		ActualCenterV = StartV + (EndV - StartV) * HitResult.Distance;
+	}
+
+	XMFLOAT3 FinalCenter;
+	XMStoreFloat3(&FinalCenter, ActualCenterV);
+	XMFLOAT4 Color = HitResult.HitComponent.expired() ? XMFLOAT4(1, 0, 0, 1) : XMFLOAT4(0, 1, 0, 1);
+
+	// 2. 시작/끝 박스 그리기 (이제 벽에 딱 맞게 멈춤)
+	DrawDebugBox(Start, Extend, Quaternion, Color, DebugDuration);
+	DrawDebugBox(FinalCenter, Extend, Quaternion, Color, DebugDuration);
+
+	// 3. 4개 모서리 궤적 선 그리기
+	XMFLOAT3 Edges[4] = {
+		{  Extend.x,  Extend.y,  Extend.z },
+		{  Extend.x, -Extend.y,  Extend.z },
+		{ -Extend.x,  Extend.y,  Extend.z },
+		{ -Extend.x, -Extend.y,  Extend.z }
+	};
+
+	XMVECTOR Quat = XMLoadFloat4(&Quaternion);
+	for (int i = 0; i < 4; ++i)
+	{
+		XMVECTOR EdgeOffset = XMVector3Rotate(XMLoadFloat3(&Edges[i]), Quat);
+
+		XMFLOAT3 EdgeStart, EdgeEnd;
+		XMStoreFloat3(&EdgeStart, StartV + EdgeOffset);
+		XMStoreFloat3(&EdgeEnd, ActualCenterV + EdgeOffset);
+
+		DrawDebugLine(EdgeStart, EdgeEnd, Color, DebugDuration);
+	}
+
+	// 4. 중심선
+	DrawDebugLine(Start, FinalCenter, Color, DebugDuration);
 }
 
 void WWorld::AfterSphereOverlap(

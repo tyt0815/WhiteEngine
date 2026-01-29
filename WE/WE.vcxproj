@@ -54,6 +54,7 @@
     <ClCompile Include="Sources\GUI\GUICore.cpp" />
     <ClCompile Include="Sources\Physics\BodyActivationListener.cpp" />
     <ClCompile Include="Sources\Physics\BroadPhaseLayerInterface.cpp" />
+    <ClCompile Include="Sources\Physics\HitResult.cpp" />
     <ClCompile Include="Sources\Physics\ObjectLayerPairFilter.cpp" />
     <ClCompile Include="Sources\Physics\ObjectVsBroadPhaseLayerFilter.cpp" />
     <ClCompile Include="Sources\Physics\PhysicsBody.cpp" />
