@@ -149,6 +149,8 @@ void AMissileSwarmSystem::SetTargetMarkersLocation(XMFLOAT3 Origin, XMFLOAT3 Rig
 	if (Row == 0) return;
 	int Col = (int)mTargetMarkers[0].size();
 
+	WWorld* World = GetWorld();
+
 	// 1. 방향 벡터 직교화 (안전하게 변수에 담아 주소 전달)
 	XMVECTOR WorldUpV = XMVectorSet(0, 1, 0, 0);
 	XMVECTOR TempRightV = XMLoadFloat3(&Right);
@@ -161,8 +163,8 @@ void AMissileSwarmSystem::SetTargetMarkersLocation(XMFLOAT3 Origin, XMFLOAT3 Rig
 	XMStoreFloat3(&FinalRight, RightV);
 
 	// 2. 2차원 벡터 데이터 생성
-	std::vector<std::vector<XMFLOAT3>> GridPositions;
-	CalcGridLocation(Row, Col, GridInterval, Origin, FinalForward, FinalRight, GridPositions);
+	std::vector<std::vector<XMFLOAT3>> GridPositionOrigins;
+	CalcGridLocation(Row, Col, GridInterval, Origin, FinalForward, FinalRight, GridPositionOrigins);
 
 	// 3. 마커에 적용
 	FTransform Transform;
@@ -175,7 +177,22 @@ void AMissileSwarmSystem::SetTargetMarkersLocation(XMFLOAT3 Origin, XMFLOAT3 Rig
 			// std::weak_ptr나 raw pointer라고 가정하고 lock() 혹은 체크 후 사용
 			if (auto Marker = mTargetMarkers[r][c].lock())
 			{
-				Transform.Translation = GridPositions[r][c];
+				XMFLOAT3 TraceStart = GridPositionOrigins[r][c];
+				TraceStart.y += 2;
+				XMFLOAT3 TraceEnd = GridPositionOrigins[r][c];
+				TraceEnd.y -= 5;
+				TArray<AActor*> ActorsToIgnore;
+				FHitResult Hit;
+				World->LineTrace(TraceStart, TraceEnd, ActorsToIgnore, Hit, true, 0);
+				if(Hit.Actor.expired())
+				{
+					Transform.Translation = TraceEnd;
+				}
+				else
+				{
+					Transform.Translation = Hit.ImpactPoint;
+				}
+				
 				Marker->SetActorTransform(Transform);
 			}
 		}
