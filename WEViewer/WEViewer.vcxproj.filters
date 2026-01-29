@@ -47,7 +47,7 @@
     <ClCompile Include="Sources\Actor\HitReactor.cpp">
       <Filter>Sources\Actor</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Actor\HitManager.cpp">
+    <ClCompile Include="Sources\Actor\MissileGridManager.cpp">
       <Filter>Sources\Actor</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Pawn\PlayerPawn.cpp">
@@ -82,7 +82,7 @@
     <ClInclude Include="Sources\Actor\HitReactor.h">
       <Filter>Sources\Actor</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Actor\HitManager.h">
+    <ClInclude Include="Sources\Actor\MissileGridManager.h">
       <Filter>Sources\Actor</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Pawn\PlayerPawn.h">

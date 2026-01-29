@@ -8,9 +8,4 @@ public:
 	ATargetMarker();
 
 	virtual void Tick(float DeltaSecond) override;
-
-	void CreateTargetMarkers(int Row, int Col, float GridInterval);
-
-private:
-	TArray<TArray<XMFLOAT3>> mTargetPoints;
 };

@@ -17,7 +17,7 @@ void APlayerPawn::SetupPlayerInput()
 {
 	Super::SetupPlayerInput();
 
-	GetInputSystemManager()->BindKeyboardAction('1', this, &APlayerPawn::MissileSwarm);
+	GetInputSystemManager()->BindKeyboardAction('1', this, &APlayerPawn::TriggerMissileSwarm);
 }
 
 void APlayerPawn::Tick(float Delta)
@@ -53,32 +53,34 @@ void APlayerPawn::Tick(float Delta)
 				0
 			);
 
-			FTransform Transform;
-			Transform.Translation = HitResult.ImpactPoint;
-			XMVECTOR WorldUpV = XMVectorSet(0, 1, 0, 0);
-			XMVECTOR MarkerForwardV = XMVector3Cross(RightV, WorldUpV);
-			XMVECTOR MarkerRightV = XMVector3Cross(WorldUpV, MarkerForwardV);
-			Transform.Rotation = FDXMath::GetEulerRotationFromVectors(MarkerForwardV, MarkerRightV, WorldUpV);
-			MissileSystem->SetTargetMarkerTransform(Transform);
+			MissileSystem->SetTargetMarkersLocation(HitResult.ImpactPoint, Forward, Right, 1);
 		}
 	}	
 }
 
-void APlayerPawn::MissileSwarm(float Delta)
+void APlayerPawn::TriggerMissileSwarm(float Delta)
 {
+	mMissileSwarmTrigger += Delta;
+	if (mMissileSwarmTrigger < 0.3f)
+	{
+		return;
+	}
+	mMissileSwarmTrigger = 0;
+
 	mbMissileAiming = !mbMissileAiming;
 
-	// TODO: 미사일 발사 로직
-	if (!mbMissileAiming)
-	{
 
-	}
-	// 미사일 조준 준비
-	else
+	if (auto MissileSystem = mMissileSwarmSystem.lock())
 	{
-		if (auto MissileSystem = mMissileSwarmSystem.lock())
+		if (!mbMissileAiming)
 		{
-			MissileSystem->CreateTargetMarkers(4, 5, 1);
+			MissileSystem->Fire();
+		}
+		// 미사일 조준 준비
+		else
+		{
+			MissileSystem->CreateTargetMarkers(4, 5);
 		}
 	}
+	
 }

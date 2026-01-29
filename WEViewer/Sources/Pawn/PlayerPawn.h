@@ -17,7 +17,9 @@ public:
 private:
 	TWeakPtr<AMissileSwarmSystem> mMissileSwarmSystem;
 
-	void MissileSwarm(float Delta);
+	void TriggerMissileSwarm(float Delta);
+
+	float mMissileSwarmTrigger = 0;
 
 	bool mbMissileAiming = false;
 };

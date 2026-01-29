@@ -30,7 +30,6 @@ void AColdLaunchAnimPlayer::Tick(float DeltaSecond)
 
 			if (mPlayTime > AnimComp->GetDuration())
 			{
-				Proj->SetTargetPosition(mTargetPos);
 				mProjectile.reset();
 				Destroy();
 			}
@@ -38,11 +37,10 @@ void AColdLaunchAnimPlayer::Tick(float DeltaSecond)
 	}
 }
 
-void AColdLaunchAnimPlayer::PlayAnim(TWeakPtr<ATopAttackMissile> Projectile, XMFLOAT3 TargetPos)
+void AColdLaunchAnimPlayer::PlayAnim(TWeakPtr<ATopAttackMissile> Projectile)
 {
 	mPlayTime = 0;
 	FActorSpawnParameter Param;
 	Param.Transform = GetActorTransform();
 	mProjectile = Projectile;
-	mTargetPos = TargetPos;
 }

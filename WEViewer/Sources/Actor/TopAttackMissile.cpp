@@ -1,5 +1,6 @@
 #include "TopAttackMissile.h"
 #include "World/World.h"
+#include "MissileGridManager.h"
 #include "Interface/HitInterface.h"
 
 ATopAttackMissile::ATopAttackMissile()
@@ -18,7 +19,7 @@ ATopAttackMissile::ATopAttackMissile()
 	mProjectileMovementComponent = CreateComponent<WProjectileMovementComponent>();
 	if (auto ProjMoveComp = mProjectileMovementComponent.lock())
 	{
-		ProjMoveComp->mVelocity = XMFLOAT3(0, 0, 20);
+		ProjMoveComp->mVelocity = XMFLOAT3(0, 0, 15);
 		ProjMoveComp->SetLifeSpan(10.0f);
 		ProjMoveComp->SetHoming(true);
 		ProjMoveComp->SetHomingTurnLimit(720);
@@ -39,12 +40,6 @@ ATopAttackMissile::ATopAttackMissile()
 
 		mAnimFrameEnd = AnimComp->GetFrameEnd();
 	}
-}
-
-void ATopAttackMissile::OnDestroy()
-{
-	DestroyPathMarkers();
-	Super::OnDestroy();
 }
 
 void ATopAttackMissile::Tick(float DeltaSecond)
@@ -131,78 +126,36 @@ void ATopAttackMissile::BeginPlay()
 	mLastTickLocation = GetActorLocation();
 }
 
-void ATopAttackMissile::SetTargetPosition(XMFLOAT3 Pos)
+void ATopAttackMissile::OnDestroy()
 {
-	DestroyPathMarkers();
-
-	PushBackHomingPath(Pos);
-
-	XMFLOAT3 CurrPos = GetActorLocation();
-	XMVECTOR TargetPosV = XMLoadFloat3(&Pos);
-	XMVECTOR CurrPosV = XMLoadFloat3(&CurrPos);
-	XMVECTOR ToTargetV = XMVectorSubtract(TargetPosV, CurrPosV);
-	float Dist = XMVectorGetX(XMVector3Length(ToTargetV));
-
-	XMFLOAT3 TraceStart = Pos;
-	XMVECTOR TraceStartV = XMLoadFloat3(&TraceStart);
-	TraceStart.y += 1;
-	XMVECTOR ToTargetN = XMVector3Normalize(ToTargetV);
-	XMVECTOR UpN = XMVectorSet(0, 1, 0, 0);
-	float Radian = XMVectorGetX(XMVector3AngleBetweenNormals(UpN, ToTargetN));
-	if (XMConvertToRadians(90) <= Radian && Radian < 175)
+	if (mHitManager)
 	{
-		XMVECTOR RightN = XMVector3Normalize(XMVector3Cross(UpN, ToTargetN));
-		XMVECTOR ForwardN = XMVector3Normalize(XMVector3Cross(RightN, UpN));
-		
-		XMVECTOR TraceEndV = XMVectorAdd(
-			TraceStartV,
-			XMVectorAdd(
-				XMVectorMultiply(
-					RightN, 
-					XMVectorReplicate(FDXMath::RandF(mMinHomingPathOffset.x, mMaxHomingPathOffset.x))
-				),
-				XMVectorAdd(
-					XMVectorMultiply(
-						UpN,
-						XMVectorReplicate(FDXMath::Clamp(Dist / 2.0f, mMinHomingPathOffset.y, mMaxHomingPathOffset.y))
-					),
-					XMVectorMultiply(
-						ForwardN,
-						XMVectorReplicate(FDXMath::RandF(mMinHomingPathOffset.z, mMaxHomingPathOffset.z))
-					)
-				)
-			)
-		);
-		XMFLOAT3 TraceEnd;
-		XMStoreFloat3(&TraceEnd, TraceEndV);
-		FHitResult HitResult;
+		mHitManager->RemoveMissile(this);
+	}
 
-		TArray<AActor*> ActorsToIgnore;
-		GetWorld()->LineTrace(TraceStart, TraceEnd, ActorsToIgnore, HitResult, false);
+	Super::OnDestroy();
+}
 
-		GetWorld()->DrawDebugLine(Pos, TraceStart, XMFLOAT4(1, 0, 0, 1), 5);
-
-		if (HitResult.HitComponent.expired())
-		{
-			PushFrontHomingPath(TraceEnd);
-		}
+void ATopAttackMissile::Initialize(const TArray<TWeakPtr<AActor>>& HomingPaths, AMissileGridManager* HitManager)
+{
+	for (TWeakPtr<AActor> Path : HomingPaths)
+	{
+		mHomingPathMarkerDeque.push_back(Path);
 	}
 
 	UpdateHomingPath();
-}
 
-void ATopAttackMissile::PushFrontHomingPath(XMFLOAT3 Loc)
-{
-	TSharedPtr<AActor> Maker = GetWorld()->SpawnActor<AActor>().lock();
-	Maker->SetActorLocation(Loc);
-	mHomingPathMarkerDeque.push_front(Maker);
-}
 
-void ATopAttackMissile::PushBackHomingPath(XMFLOAT3 Loc)
-{
-	TSharedPtr<AActor> Maker = GetWorld()->SpawnActor<AActor>().lock();
-	Maker->SetActorLocation(Loc);
-	mHomingPathMarkerDeque.push_back(Maker);
+	if (mHitManager)
+	{
+		mHitManager->RemoveMissile(this);
+	}
+
+	mHitManager = HitManager;
+	if (mHitManager)
+	{
+		mHitManager->AddMissile(this);
+	}
 }
 
 void ATopAttackMissile::NextHomingPath()
@@ -212,10 +165,6 @@ void ATopAttackMissile::NextHomingPath()
 		return;
 	}
 
-	if (TSharedPtr<AActor> Marker = mHomingPathMarkerDeque.front().lock())
-	{
-		Marker->Destroy();
-	}
 	mHomingPathMarkerDeque.pop_front();
 
 	UpdateHomingPath();
@@ -274,31 +223,6 @@ TWeakPtr<AActor> ATopAttackMissile::GetCurrentHomingTarget() const
 	return mHomingPathMarkerDeque.front();
 }
 
-void ATopAttackMissile::SetHitManager(TWeakPtr<AHitManager> HitManager)
-{
-	if (auto Manager = mHitManager.lock())
-	{
-		Manager->RemoveInstigator(this);
-	}
-
-	mHitManager = HitManager;
-	if (auto Manager = mHitManager.lock())
-	{
-		Manager->AddInstigator(this);
-	}
-}
-
-void ATopAttackMissile::DestroyPathMarkers()
-{
-	for (auto MarkerWeak : mHomingPathMarkerDeque)
-	{
-		if (auto Marker = MarkerWeak.lock())
-		{
-			Marker->Destroy();
-		}
-	}
-}
-
 void ATopAttackMissile::OnHit(const FHitResult& Hit)
 {
 	XMVECTOR ImpactPointV = XMLoadFloat3(&Hit.ImpactPoint);
@@ -345,12 +269,24 @@ void ATopAttackMissile::OnHit(const FHitResult& Hit)
 				{
 					if (auto HitInt = dynamic_cast<IHitInterface*>(Owner.get()))
 					{
-						mHitManager.lock()->Hit(HitInt, this);
+						if (mHitManager)
+						{
+							mHitManager->Hit(HitInt, this);
+						}
+						else
+						{
+							HitInt->OnHit(this);
+						}
 					}
 				}
 			}
 		}
 	}
-	
+
+	if (mHitManager)
+	{
+		mHitManager->RemoveMissile(this);
+	}
+
 	Destroy();
 }

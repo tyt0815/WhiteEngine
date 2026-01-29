@@ -2,41 +2,43 @@
 #include "Actor/Actor.h"
 #include "ColdLaunchAnimPlayer.h"
 #include "TargetMarker.h"
-#include "HitManager.h"
+#include "MissileGridManager.h"
 
 class AMissileSwarmSystem : public AActor
 {
 	typedef AActor Super;
-
-	struct FFireInfo
-	{
-		TWeakPtr<AColdLaunchAnimPlayer> AnimPlayer;
-		XMFLOAT3 TargetPos;
-	};
 public:
 	AMissileSwarmSystem();
 
 	virtual void Tick(float Delta) override;
 
 public:
-	void CreateTargetMarkers(int Row, int Col, float GridInterval);
+	void ClearTargetMarkers();
 
-	void SetTargetMarkerTransform(FTransform Transform);
+	void CreateTargetMarkers(int Row, int Col);
 
-	void Fire(int Row, int Col, XMFLOAT3 TargetPos);
+	void CalcGridLocation(int Row, int Col, XMFLOAT3 Origin, XMFLOAT3 AxisX, XMFLOAT3 AxisY, TArray<XMFLOAT3>& Locations);
+
+	void SetTargetMarkersLocation(XMFLOAT3 Origin, XMFLOAT3 Forward, XMFLOAT3 Right, float GridInterval);
+
+	void Fire();
 
 private:
-	TWeakPtr<ATargetMarker> mTargetMarker;
+	void CreateHomingPaths(TWeakPtr<AActor> Target, TArray<TWeakPtr<AActor>>& HomingPaths);
 
-	TArray<TArray<FFireInfo>> mFireInfos;
+	TArray<TArray<TWeakPtr<ATargetMarker>>> mTargetMarkers;
 
-	TWeakPtr<AHitManager> mHitManager;
+	TWeakPtr<AMissileGridManager> mHitManager;
 
-	float mFireDelay = 0.1f;
+	float mFireDelay = 0.2f;
 
 	float mElapsedTime = 0.0f;
 
 	int mLastFiredRow = -1;
 
 	bool mbIsLaunching = false;
+
+	const XMFLOAT3 mMinHomingPathOffset = { -0.5f, 5, -6 };
+
+	const XMFLOAT3 mMaxHomingPathOffset = { 0.5f ,25, -5.5f };
 };

@@ -16,107 +16,189 @@ void AMissileSwarmSystem::Tick(float Delta)
 	}
 
 	mElapsedTime += Delta;
-	int TargetIndex = min((int)mFireInfos.size() - 1, (int)(mElapsedTime / mFireDelay));
+	int TargetIndex = min((int)mTargetMarkers.size() - 1, (int)(mElapsedTime / mFireDelay));
 	auto HitManager = mHitManager.lock();
+	int Row = (int)mTargetMarkers.size();
+	int Col = (int)mTargetMarkers[0].size();
+
 	for (int r = mLastFiredRow + 1; r <= TargetIndex; ++r)
 	{
-		for (auto FireInfo : mFireInfos[r])
+		for (auto WeakPtr : mTargetMarkers[r])
 		{
-			if (TSharedPtr<AColdLaunchAnimPlayer> AnimPlayer = FireInfo.AnimPlayer.lock())
+			if (auto Marker = WeakPtr.lock())
 			{
+				auto AnimPlayer = GetWorld()->SpawnActor<AColdLaunchAnimPlayer>().lock();
+				AnimPlayer->SetActorTransform(GetActorTransform());
 				FActorSpawnParameter Param;
 				Param.Transform = AnimPlayer->GetActorTransform();
 				if (auto Missile = GetWorld()->SpawnActor<ATopAttackMissile>(Param).lock())
 				{
-					Missile->SetHitManager(mHitManager);
-					AnimPlayer->PlayAnim(Missile, FireInfo.TargetPos);
+					TArray<TWeakPtr<AActor>> HomingPaths;
+					CreateHomingPaths(WeakPtr, HomingPaths);
+
+					Missile->Initialize(HomingPaths, mHitManager.lock().get());
+					
+					AnimPlayer->PlayAnim(Missile);
 				}
 			}
 		}
 	}
+
 	mLastFiredRow = TargetIndex;
 
-	if (mLastFiredRow + 1 >= mFireInfos.size())
+	if (mLastFiredRow + 1 >= mTargetMarkers.size())
 	{
 		mbIsLaunching = false;
 		mHitManager.reset();
+		mTargetMarkers.clear();
 	}
 		
 }
 
-void AMissileSwarmSystem::CreateTargetMarkers(int Row, int Col, float GridInterval)
+void AMissileSwarmSystem::ClearTargetMarkers()
 {
-	mTargetMarker = GetWorld()->SpawnActor<ATargetMarker>();
-	auto Marker = mTargetMarker.lock();
-	Marker->CreateTargetMarkers(Row, Col, GridInterval);
+	for (auto Row : mTargetMarkers)
+	{
+		for (auto Weak : Row)
+		{
+			if (auto Marker = Weak.lock())
+			{
+				Marker->Destroy();
+			}
+		}
+	}
+
+	mTargetMarkers.clear();
 }
 
-void AMissileSwarmSystem::SetTargetMarkerTransform(FTransform Transform)
+void AMissileSwarmSystem::CreateTargetMarkers(int Row, int Col)
 {
-	if (auto TargetMarker = mTargetMarker.lock())
+	mTargetMarkers.resize(Row);
+	for (int r = 0; r < Row; ++r)
 	{
-		TargetMarker->SetActorTransform(Transform);
+		mTargetMarkers[r].resize(Col);
+		for (int c = 0; c < Col; ++c)
+		{
+			mTargetMarkers[r][c] = GetWorld()->SpawnActor<ATargetMarker>();
+		}
 	}
 }
 
-void AMissileSwarmSystem::Fire(int Row, int Col, XMFLOAT3 TargetOrigin)
+void AMissileSwarmSystem::CalcGridLocation(int Row, int Col, XMFLOAT3 Origin, XMFLOAT3 AxisX, XMFLOAT3 AxisY, TArray<XMFLOAT3>& Locations)
 {
-	if (Row == 0 || Col == 0)
+}
+
+void AMissileSwarmSystem::SetTargetMarkersLocation(XMFLOAT3 Origin, XMFLOAT3 Forward, XMFLOAT3 Right, float GridInterval)
+{
+	int Row = (int)mTargetMarkers.size();
+	if (Row == 0)
+	{
+		return;
+	}
+	int Col = (int)mTargetMarkers[0].size();
+	if (Col == 0)
 	{
 		return;
 	}
 
-	if (mbIsLaunching)
+	XMVECTOR OriginV = XMLoadFloat3(&Origin);
+	XMVECTOR WorldUpV = XMVectorSet(0, 1, 0, 0);
+	XMVECTOR RightV = XMLoadFloat3(&Right);
+	XMVECTOR ForwardV = XMVector3Cross(RightV, WorldUpV);
+	RightV = XMVector3Cross(WorldUpV, ForwardV);
+
+	FTransform Transform;
+	Transform.Rotation = FDXMath::GetEulerRotationFromVectors(ForwardV, RightV, WorldUpV);
+
+	for (int r = 0; r < Row; ++r)
+	{
+		float ForwardOffset = r * GridInterval;
+
+		for (int c = 0; c < Col; ++c)
+		{
+			if (auto Marker = mTargetMarkers[r][c].lock())
+			{
+				float RightOffset = (c - (Col - 1) * 0.5f) * GridInterval;
+
+				XMVECTOR PosV = OriginV + (ForwardV * ForwardOffset) + (RightV * RightOffset);
+
+				XMStoreFloat3(&Transform.Translation, PosV);
+				Marker->SetActorTransform(Transform);
+			}
+		}
+	}
+}
+
+void AMissileSwarmSystem::Fire()
+{
+	if (mTargetMarkers.size() == 0 || mTargetMarkers[0].size() == 0)
 	{
 		return;
 	}
 
 	mbIsLaunching = true;
-
-	mElapsedTime = 0.0f;
 	mLastFiredRow = -1;
+	mElapsedTime = 0.0f;
+	mHitManager = GetWorld()->SpawnActor<AMissileGridManager>();
+}
 
-	mHitManager = GetWorld()->SpawnActor<AHitManager>();
-
-	XMFLOAT3 SystemOrigin = GetActorLocation();
-	XMVECTOR SystemOriginV = XMLoadFloat3(&SystemOrigin);
-	XMFLOAT3 Forward = GetForwardVector();
-	XMFLOAT3 Right = GetRightVector();
-	XMFLOAT3 Up = GetUpVector();
-	XMVECTOR ForwardV = XMLoadFloat3(&Forward);
-	XMVECTOR RightV = XMLoadFloat3(&Right);
-	XMVECTOR UpV = XMLoadFloat3(&Up);
-
-	XMVECTOR TargetOriginV = XMLoadFloat3(&TargetOrigin);
-
-	float LaunchPosGap = .2f;
-	float TargetPosGap = 2;	// 간격
-
-	float halfRow = (Row - 1) * 0.5f;
-	float halfCol = (Col - 1) * 0.5f;
-
-	mFireInfos.resize(Row);
-	for (int r = 0; r < Row; ++r)
+void AMissileSwarmSystem::CreateHomingPaths(TWeakPtr<AActor> Target, TArray<TWeakPtr<AActor>>& HomingPaths)
+{
+	if (auto TargetMarker = Target.lock())
 	{
-		float RowPos = (float)r - halfRow;
-		mFireInfos[r].resize(Col);
-		for (int c = 0; c < Col; ++c)
+		XMFLOAT3 CurrPos = GetActorLocation();
+		XMFLOAT3 TargetPos = TargetMarker->GetActorLocation();
+		XMVECTOR TargetPosV = XMLoadFloat3(&TargetPos);
+		XMVECTOR CurrPosV = XMLoadFloat3(&CurrPos);
+		XMVECTOR ToTargetV = XMVectorSubtract(TargetPosV, CurrPosV);
+		float Dist = XMVectorGetX(XMVector3Length(ToTargetV));
+
+		XMFLOAT3 TraceStart = TargetPos;
+		XMVECTOR TraceStartV = XMLoadFloat3(&TraceStart);
+		TraceStart.y += 0.1f;
+		XMVECTOR ToTargetN = XMVector3Normalize(ToTargetV);
+		XMVECTOR UpN = XMVectorSet(0, 1, 0, 0);
+		float Radian = XMVectorGetX(XMVector3AngleBetweenNormals(UpN, ToTargetN));
+		if (XMConvertToRadians(90) <= Radian && Radian < 175)
 		{
-			float ColPos = (float)c - halfCol;
+			XMVECTOR RightN = XMVector3Normalize(XMVector3Cross(UpN, ToTargetN));
+			XMVECTOR ForwardN = XMVector3Normalize(XMVector3Cross(RightN, UpN));
 
-			XMVECTOR LaunchPosV = SystemOriginV - (UpV * RowPos * LaunchPosGap) + (RightV * ColPos * LaunchPosGap);
-			XMVECTOR TargetPosV = TargetOriginV + (ForwardV * RowPos * TargetPosGap) + (RightV * ColPos * TargetPosGap);
+			XMVECTOR TraceEndV = XMVectorAdd(
+				TraceStartV,
+				XMVectorAdd(
+					XMVectorMultiply(
+						RightN,
+						XMVectorReplicate(FDXMath::RandF(mMinHomingPathOffset.x, mMaxHomingPathOffset.x))
+					),
+					XMVectorAdd(
+						XMVectorMultiply(
+							UpN,
+							XMVectorReplicate(FDXMath::Clamp(Dist / 2.0f, mMinHomingPathOffset.y, mMaxHomingPathOffset.y))
+						),
+						XMVectorMultiply(
+							ForwardN,
+							XMVectorReplicate(FDXMath::RandF(mMinHomingPathOffset.z, mMaxHomingPathOffset.z))
+						)
+					)
+				)
+			);
+			XMFLOAT3 TraceEnd;
+			XMStoreFloat3(&TraceEnd, TraceEndV);
+			FHitResult HitResult;
 
-			XMFLOAT3 LaunchPos;
-			XMStoreFloat3(&LaunchPos, LaunchPosV);
-			XMStoreFloat3(&mFireInfos[r][c].TargetPos, TargetPosV);
+			TArray<AActor*> ActorsToIgnore;
+			GetWorld()->LineTrace(TraceStart, TraceEnd, ActorsToIgnore, HitResult, true, 1.0f);
 
-			mFireInfos[r][c].AnimPlayer = GetWorld()->SpawnActor<AColdLaunchAnimPlayer>();
-			if (TSharedPtr<AColdLaunchAnimPlayer> AnimPlayer = mFireInfos[r][c].AnimPlayer.lock())
+			if (HitResult.HitComponent.expired())
 			{
-				AnimPlayer->SetActorLocation(LaunchPos);
-				AnimPlayer->SetActorRotation(GetActorRotation());
+				FActorSpawnParameter Param;
+				Param.Transform.Translation = TraceEnd;
+				TWeakPtr<AActor> Path = GetWorld()->SpawnActor<AActor>(Param);
+				HomingPaths.push_back(Path);
 			}
 		}
 	}
+
+	HomingPaths.push_back(Target);
 }

@@ -20,7 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Actor\ColdLaunchAnimPlayer.cpp" />
-    <ClCompile Include="Sources\Actor\HitManager.cpp" />
+    <ClCompile Include="Sources\Actor\MissileGridManager.cpp" />
     <ClCompile Include="Sources\Actor\HitReactor.cpp" />
     <ClCompile Include="Sources\Actor\MissileSwarmSystem.cpp" />
     <ClCompile Include="Sources\Actor\PhysicsBox.cpp" />
@@ -40,7 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Actor\ColdLaunchAnimPlayer.h" />
-    <ClInclude Include="Sources\Actor\HitManager.h" />
+    <ClInclude Include="Sources\Actor\MissileGridManager.h" />
     <ClInclude Include="Sources\Actor\HitReactor.h" />
     <ClInclude Include="Sources\Actor\MissileSwarmSystem.h" />
     <ClInclude Include="Sources\Actor\PhysicsBox.h" />

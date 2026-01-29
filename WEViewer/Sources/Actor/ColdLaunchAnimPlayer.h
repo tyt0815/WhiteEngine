@@ -12,7 +12,7 @@ public:
 	virtual void Tick(float DeltaSecond) override;
 
 public:
-	void PlayAnim(TWeakPtr<ATopAttackMissile> Projectile, XMFLOAT3 TargetPos);
+	void PlayAnim(TWeakPtr<ATopAttackMissile> Projectile);
 
 private:
 	TWeakPtr<WObjectAnimComponent> mAnimComp;
@@ -20,8 +20,6 @@ private:
 	FObjectAnimSampler* mAnimSampler;
 
 	TWeakPtr<ATopAttackMissile> mProjectile;
-
-	XMFLOAT3 mTargetPos;
 
 	float mPlayTime = 0;
 };
