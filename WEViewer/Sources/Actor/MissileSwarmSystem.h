@@ -15,11 +15,13 @@ public:
 public:
 	void ClearTargetMarkers();
 
-	void CreateTargetMarkers(int Row, int Col);
+	bool TryCreateTargetMarkers(int Row, int Col);
 
-	void CalcGridLocation(int Row, int Col, XMFLOAT3 Origin, XMFLOAT3 AxisX, XMFLOAT3 AxisY, TArray<XMFLOAT3>& Locations);
+	void CalcGridLocation(int Row, int Col, float GridInterval, XMFLOAT3 Origin, XMFLOAT3 AxisForward, XMFLOAT3 AxisRight, std::vector<std::vector<XMFLOAT3>>& OutLocations);
 
-	void SetTargetMarkersLocation(XMFLOAT3 Origin, XMFLOAT3 Forward, XMFLOAT3 Right, float GridInterval);
+	XMFLOAT3 GetGridLocationAtIndex(int r, int c, int TotalCol, float GridInterval, XMFLOAT3 Origin, XMFLOAT3 AxisForward, XMFLOAT3 AxisRight);
+
+	void SetTargetMarkersLocation(XMFLOAT3 Origin, XMFLOAT3 Right, float GridInterval);
 
 	void Fire();
 
@@ -28,7 +30,7 @@ private:
 
 	TArray<TArray<TWeakPtr<ATargetMarker>>> mTargetMarkers;
 
-	TWeakPtr<AMissileGridManager> mHitManager;
+	TWeakPtr<AMissileGridManager> mMissileGridManager;
 
 	float mFireDelay = 0.2f;
 

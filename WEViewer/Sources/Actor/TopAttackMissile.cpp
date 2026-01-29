@@ -128,9 +128,9 @@ void ATopAttackMissile::BeginPlay()
 
 void ATopAttackMissile::OnDestroy()
 {
-	if (mHitManager)
+	if (mMissileGridManager)
 	{
-		mHitManager->RemoveMissile(this);
+		mMissileGridManager->RemoveMissile(this);
 	}
 
 	Super::OnDestroy();
@@ -146,15 +146,15 @@ void ATopAttackMissile::Initialize(const TArray<TWeakPtr<AActor>>& HomingPaths, 
 	UpdateHomingPath();
 
 
-	if (mHitManager)
+	if (mMissileGridManager)
 	{
-		mHitManager->RemoveMissile(this);
+		mMissileGridManager->RemoveMissile(this);
 	}
 
-	mHitManager = HitManager;
-	if (mHitManager)
+	mMissileGridManager = HitManager;
+	if (mMissileGridManager)
 	{
-		mHitManager->AddMissile(this);
+		mMissileGridManager->AddMissile(this);
 	}
 }
 
@@ -269,9 +269,9 @@ void ATopAttackMissile::OnHit(const FHitResult& Hit)
 				{
 					if (auto HitInt = dynamic_cast<IHitInterface*>(Owner.get()))
 					{
-						if (mHitManager)
+						if (mMissileGridManager)
 						{
-							mHitManager->Hit(HitInt, this);
+							mMissileGridManager->Hit(HitInt, this);
 						}
 						else
 						{
@@ -283,9 +283,9 @@ void ATopAttackMissile::OnHit(const FHitResult& Hit)
 		}
 	}
 
-	if (mHitManager)
+	if (mMissileGridManager)
 	{
-		mHitManager->RemoveMissile(this);
+		mMissileGridManager->RemoveMissile(this);
 	}
 
 	Destroy();

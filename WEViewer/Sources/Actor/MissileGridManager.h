@@ -12,9 +12,9 @@ public:
 	/**
 	 * @brief 관리 대상에서 인스티게이터를 제거합니다.
 	 * @param Instigator 제거할 액터.
-	 * @param bDestroyIfEmpty true일 경우, 남은 인스티게이터가 없으면 매니저를 즉시 파괴(Decommission)합니다.
+	 * @param bSmartDestroy true일 경우, 남은 인스티게이터가 없으면 매니저를 즉시 파괴(Decommission)합니다.
 	 */
-	void RemoveMissile(ATopAttackMissile* Instigator, bool bDestroyIfEmpty = true);
+	void RemoveMissile(ATopAttackMissile* Instigator, bool bSmartDestroy = true);
 
 	// 해당 Instigator가 목록에 존재할 경우 목록의 인덱스 반환
 	// 없을 경우 -1 반환
@@ -24,7 +24,7 @@ public:
 	// 없을 경우 -1 반환
 	int GetHittedActorIndex(IHitInterface* HittedActors);
 
-	bool DestroyIfEmpty();
+	bool SmartDestroy();
 
 	void Hit(IHitInterface* Victim, ATopAttackMissile* Instigator);
 
@@ -34,4 +34,12 @@ private:
 	TArray<ATopAttackMissile*> mMissiles;
 
 	TArray<AActor*> mHomingPaths;
+
+	int mMissileCounting = 0;
+
+public:
+	__forceinline void SetMissileCounting(int Value)
+	{
+		mMissileCounting = Value;
+	}
 };

@@ -17,18 +17,19 @@ void AMissileGridManager::AddMissile(ATopAttackMissile* Instigator)
 	
 }
 
-void AMissileGridManager::RemoveMissile(ATopAttackMissile* Instigator, bool bDestroyIfEmpty)
+void AMissileGridManager::RemoveMissile(ATopAttackMissile* Instigator, bool bSmartDestroy)
 {
 	int i = GetMissileIndex(Instigator);
 	if (i >= 0)
 	{
+		--mMissileCounting;
 		mMissiles.erase(mMissiles.begin() + i);
-	}
 
-	if (bDestroyIfEmpty)
-	{
-		DestroyIfEmpty();
-	}
+		if (bSmartDestroy)
+		{
+			SmartDestroy();
+		}
+	}	
 }
 
 int AMissileGridManager::GetMissileIndex(ATopAttackMissile* Instigator)
@@ -45,9 +46,9 @@ int AMissileGridManager::GetHittedActorIndex(IHitInterface* HittedActors)
 	return Iter == mHittedActors.end() ? -1 : (int)(Iter - mHittedActors.begin());
 }
 
-bool AMissileGridManager::DestroyIfEmpty()
+bool AMissileGridManager::SmartDestroy()
 {
-	if (mMissiles.empty())
+	if (mMissileCounting <= 0)
 	{
 		for (AActor* Path : mHomingPaths)
 		{

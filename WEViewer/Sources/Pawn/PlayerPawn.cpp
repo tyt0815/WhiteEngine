@@ -53,7 +53,7 @@ void APlayerPawn::Tick(float Delta)
 				0
 			);
 
-			MissileSystem->SetTargetMarkersLocation(HitResult.ImpactPoint, Forward, Right, 1);
+			MissileSystem->SetTargetMarkersLocation(HitResult.ImpactPoint, Right, 1);
 		}
 	}	
 }
@@ -79,7 +79,10 @@ void APlayerPawn::TriggerMissileSwarm(float Delta)
 		// 미사일 조준 준비
 		else
 		{
-			MissileSystem->CreateTargetMarkers(4, 5);
+			if (!MissileSystem->TryCreateTargetMarkers(4, 5))
+			{
+				mbMissileAiming = false;
+			}			
 		}
 	}
 	

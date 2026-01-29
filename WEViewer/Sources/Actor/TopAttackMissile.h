@@ -40,7 +40,7 @@ private:
 
 	TWeakPtr<WObjectAnimComponent> mObjAnimComp;
 
-	AMissileGridManager* mHitManager = nullptr;
+	AMissileGridManager* mMissileGridManager = nullptr;
 
 	TArray<FObjectAnimSampler*> mMissileAnimSamplers;
 
