@@ -54,6 +54,10 @@ protected:
 
 	virtual void OnDeactivate() override;
 
+	void LoadBlueprint(const std::wstring& Name);
+
+	std::unordered_map<std::string, void*> mBlueprintMap;
+
 private:
 	void UpdateRecursive();
 

@@ -278,8 +278,20 @@
     <ClCompile Include="Sources\GameFramework\Object\Object.cpp">
       <Filter>Sources\GameFramework\Object</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Asset\BlueprintAsset.cpp">
+      <Filter>Sources\Asset</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Utility\Debug.cpp">
+      <Filter>Sources\Utility</Filter>
+    </ClCompile>
     <ClCompile Include="Sources\Physics\HitResult.cpp">
-      <Filter>Sources</Filter>
+      <Filter>Sources\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Actor\BlueprintActor.cpp">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Component\ComponentFactory.cpp">
+      <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -540,6 +552,21 @@
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\Object.h">
       <Filter>Sources\GameFramework\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Asset\BlueprintAsset.h">
+      <Filter>Sources\Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Utility\Serialization.h">
+      <Filter>Sources\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Utility\Debug.h">
+      <Filter>Sources\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Actor\BlueprintActor.h">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Component\ComponentFactory.h">
+      <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

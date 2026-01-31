@@ -4,6 +4,7 @@
 #include <Windows.h>
 #include <zlib.h>
 #include <lz4.h>
+#include <filesystem>
 
 using namespace tinyxml2;
 
@@ -46,14 +47,14 @@ void foo_recursive(XMLElement* Element)
 
 }
 
-bool Asset::LoadXML(const std::string& FilePath, tinyxml2::XMLDocument& Doc)
+bool Asset::LoadXML(const std::wstring& FilePath, tinyxml2::XMLDocument& Doc)
 {
-	XMLError Error = Doc.LoadFile(FilePath.c_str());
+	XMLError Error = Doc.LoadFile(WStringToString(FilePath).c_str());
 
 	if (Error != tinyxml2::XML_SUCCESS)
 	{
 		std::wstringstream ss;
-		ss << L"XML 파일을 열 수 없습니다." << AnsiToWString(FilePath) << "\n";
+		ss << L"XML 파일을 열 수 없습니다." << "\n";
 		OutputDebugStringW(ss.str().c_str());
 
 		return false;
@@ -62,10 +63,10 @@ bool Asset::LoadXML(const std::string& FilePath, tinyxml2::XMLDocument& Doc)
 	return true;
 }
 
-bool Asset::LoadZlib(const std::string& FilePath, std::vector<unsigned char>& RawBuffer)
+bool Asset::LoadZlib(const std::wstring& FilePath, std::vector<unsigned char>& RawBuffer)
 {
     // 1. 파일 열기 (바이너리 모드)
-    std::ifstream File(AnsiToWString(FilePath), std::ios::binary | std::ios::ate);
+    std::ifstream File(FilePath, std::ios::binary | std::ios::ate);
     if (!File.is_open())
     {
         return false;
@@ -113,7 +114,7 @@ bool Asset::LoadZlib(const std::string& FilePath, std::vector<unsigned char>& Ra
     return true;
 }
 
-bool Asset::LoadZLibXML(const std::string& FilePath, tinyxml2::XMLDocument& Doc)
+bool Asset::LoadZLibXML(const std::wstring& FilePath, tinyxml2::XMLDocument& Doc)
 {
     std::vector<unsigned char> RawBuffer;
     if (!LoadZlib(FilePath, RawBuffer))
@@ -125,7 +126,7 @@ bool Asset::LoadZLibXML(const std::string& FilePath, tinyxml2::XMLDocument& Doc)
     if (Error != tinyxml2::XML_SUCCESS)
     {
         std::wstringstream ss;
-        ss << L"XML 파일을 열 수 없습니다." << AnsiToWString(FilePath) << "\n";
+        ss << L"XML 파일을 열 수 없습니다." << FilePath << "\n";
         OutputDebugStringW(ss.str().c_str());
 
         return false;
@@ -133,10 +134,10 @@ bool Asset::LoadZLibXML(const std::string& FilePath, tinyxml2::XMLDocument& Doc)
     return true;
 }
 
-bool Asset::LoadLZ4(const std::string& FilePath, std::vector<unsigned char>& RawBuffer)
+bool Asset::LoadLZ4(const std::wstring& FilePath, std::vector<unsigned char>& RawBuffer)
 {
     // 1. 파일 열기 (바이너리 모드, 끝 지점에서 시작하여 크기 확인)
-    std::ifstream File(AnsiToWString(FilePath), std::ios::binary | std::ios::ate);
+    std::ifstream File(FilePath, std::ios::binary | std::ios::ate);
     if (!File.is_open())
     {
         return false;

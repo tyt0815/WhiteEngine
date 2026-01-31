@@ -1,0 +1,73 @@
+#include <vector>
+#include <string>
+#include <cstring>
+
+class FBinaryWriter 
+{
+public:
+    FBinaryWriter(std::vector<unsigned char>& InBuffer) : Buffer(InBuffer) {}
+
+    // 기본 타입 (int, float, bool 등)
+    template<typename T>
+    FBinaryWriter& operator<<(const T& Value) 
+    {
+        static_assert(std::is_arithmetic_v<T>, "Use specialized logic for non-arithmetic types.");
+        const unsigned char* Ptr = reinterpret_cast<const unsigned char*>(&Value);
+        Buffer.insert(Buffer.end(), Ptr, Ptr + sizeof(T));
+        return *this;
+    }
+
+    // std::string 특수화 (길이 -> 실제 데이터 순서)
+    FBinaryWriter& operator<<(const std::string& Value) 
+    {
+        uint32_t Length = static_cast<uint32_t>(Value.size());
+        *this << Length; // 먼저 4바이트 길이 정보 기록
+        Buffer.insert(Buffer.end(), Value.begin(), Value.end());
+        return *this;
+    }
+
+    FBinaryWriter& operator<<(const char* Value)
+    {
+        *this << (std::string(Value));
+        return *this;
+    }
+
+private:
+    std::vector<unsigned char>& Buffer;
+};
+
+class FBinaryReader 
+{
+public:
+    FBinaryReader(const std::vector<unsigned char>& InBuffer)
+        : Buffer(InBuffer), Offset(0) {}
+
+    // 기본 타입 (int, float, bool 등)
+    template<typename T>
+    FBinaryReader& operator>>(T& Value) 
+    {
+        static_assert(std::is_arithmetic_v<T>, "Use specialized logic for non-arithmetic types.");
+        if (Offset + sizeof(T) <= Buffer.size()) {
+            std::memcpy(&Value, &Buffer[Offset], sizeof(T));
+            Offset += sizeof(T);
+        }
+        return *this;
+    }
+
+    // std::string 특수화
+    FBinaryReader& operator>>(std::string& Value) 
+    {
+        uint32_t Length = 0;
+        *this >> Length; // 먼저 4바이트 길이 정보 읽기
+
+        if (Offset + Length <= Buffer.size()) {
+            Value.assign(reinterpret_cast<const char*>(&Buffer[Offset]), Length);
+            Offset += Length;
+        }
+        return *this;
+    }
+
+private:
+    const std::vector<unsigned char>& Buffer;
+    size_t Offset;
+};

@@ -2,6 +2,9 @@
 #include "GameFramework/Object/Component/SceneComponent.h"
 #include "GameFramework/Object/World/World.h"
 #include "Component/PrimitiveComponent.h"
+#include "Component/StaticMeshComponent.h"
+#include "Asset/AssetManager.h"
+#include "Asset/BlueprintAsset.h"
 
 AActor::AActor()
 {
@@ -115,6 +118,36 @@ void AActor::OnDeactivate()
 		Comp->OnDeactivate();
 	}
 	Super::OnDeactivate();
+}
+
+void AActor::LoadBlueprint(const std::wstring& Name)
+{
+	FBlueprintAsset* Asset = FAssetManager::GetAsset<FBlueprintAsset>(Name);
+
+	const auto& FloatMap = Asset->mFloatMap;
+	for (const auto& KeyValue : FloatMap)
+	{
+		const std::string& Key = KeyValue.first;
+		const float Value = KeyValue.second;
+
+		if (mBlueprintMap.count(Key))
+		{
+			*(reinterpret_cast<float*>(mBlueprintMap[Key])) = Value;
+		}
+	}
+
+	const auto& StaticMeshComponentMap = Asset->mStaticMeshComponentMap;
+	for (const auto& KeyValue : StaticMeshComponentMap)
+	{
+		const std::string& Key = KeyValue.first;
+		const auto& Info = KeyValue.second;
+
+		if (mBlueprintMap.count(Key))
+		{
+			WStaticMeshComponent* StaticMeshComp = reinterpret_cast<WStaticMeshComponent*>(mBlueprintMap[Key]);
+			StaticMeshComp->SetStaticMesh(GetStaticMeshManager()->GetInstance()->GetStaticMesh(ESMT_MetalRing));
+		}
+	}
 }
 
 void AActor::UpdateRecursive()

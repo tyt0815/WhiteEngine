@@ -14,6 +14,7 @@
     <ClCompile Include="Sources\Asset\Asset.cpp" />
     <ClCompile Include="Sources\Asset\AssetLoader.cpp" />
     <ClCompile Include="Sources\Asset\AssetManager.cpp" />
+    <ClCompile Include="Sources\Asset\BlueprintAsset.cpp" />
     <ClCompile Include="Sources\Asset\ObjectAnimDataAsset.cpp" />
     <ClCompile Include="Sources\Asset\SplineDataAsset.cpp" />
     <ClCompile Include="Sources\Asset\XMLDataAsset.cpp" />
@@ -29,11 +30,15 @@
     <ClCompile Include="Sources\GameFramework\GameCore.cpp" />
     <ClCompile Include="Sources\GameFramework\InputSystem\InputSystem.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Actor\Actor.cpp" />
+    <ClCompile Include="Sources\GameFramework\Object\Actor\BlueprintActor.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Actor\DirectionalLight.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Actor\Floor.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\ActorComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\BoxComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\CameraComponent.cpp" />
+    <ClCompile Include="Sources\GameFramework\Object\Component\ComponentFactory.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Sources\GameFramework\Object\Component\DirectionalLightComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\LightComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\MovementComponent.cpp" />
@@ -86,6 +91,7 @@
     <ClCompile Include="Sources\Render\StaticMesh.cpp" />
     <ClCompile Include="Sources\Render\Texture.cpp" />
     <ClCompile Include="Sources\Render\UnorderedAccessTexture2D.cpp" />
+    <ClCompile Include="Sources\Utility\Debug.cpp" />
     <ClCompile Include="Sources\Utility\Delegate.cpp" />
     <ClCompile Include="Sources\Utility\FileIO.cpp" />
     <ClCompile Include="Sources\Utility\Timer.cpp" />
@@ -98,6 +104,7 @@
     <ClInclude Include="Sources\Asset\Asset.h" />
     <ClInclude Include="Sources\Asset\AssetManager.h" />
     <ClInclude Include="Sources\Asset\AssetLoader.h" />
+    <ClInclude Include="Sources\Asset\BlueprintAsset.h" />
     <ClInclude Include="Sources\Asset\ObjectAnimDataAsset.h" />
     <ClInclude Include="Sources\Asset\SplineDataAsset.h" />
     <ClInclude Include="Sources\Asset\XMLDataAsset.h" />
@@ -113,11 +120,15 @@
     <ClInclude Include="Sources\GameFramework\GameCore.h" />
     <ClInclude Include="Sources\GameFramework\InputSystem\InputSystem.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\Actor.h" />
+    <ClInclude Include="Sources\GameFramework\Object\Actor\BlueprintActor.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\DirectionalLight.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\Floor.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\ActorComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\BoxComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\CameraComponent.h" />
+    <ClInclude Include="Sources\GameFramework\Object\Component\ComponentFactory.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\Component\DirectionalLightComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\LightComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\MovementComponent.h" />
@@ -178,10 +189,12 @@
     <ClInclude Include="Sources\Render\UploadBuffer.h" />
     <ClInclude Include="Sources\Utility\Class.h" />
     <ClInclude Include="Sources\Utility\Container.h" />
+    <ClInclude Include="Sources\Utility\Debug.h" />
     <ClInclude Include="Sources\Utility\Delegate.h" />
     <ClInclude Include="Sources\Utility\FileIO.h" />
     <ClInclude Include="Sources\Utility\Memory.h" />
     <ClInclude Include="Sources\Utility\Profiling.h" />
+    <ClInclude Include="Sources\Utility\Serialization.h" />
     <ClInclude Include="Sources\Utility\String.h" />
     <ClInclude Include="Sources\Utility\Timer.h" />
     <ClInclude Include="Sources\Window\Window.h" />

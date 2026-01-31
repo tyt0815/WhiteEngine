@@ -4,5 +4,5 @@
 
 bool FXMLDataAsset::LoadAsset(const std::wstring& FilePath)
 {
-	return Asset::LoadXML(WStringToString(FilePath), Document);
+	return Asset::LoadXML(FilePath, Document);
 }

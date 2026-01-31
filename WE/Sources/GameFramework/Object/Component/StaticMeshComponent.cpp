@@ -1,10 +1,13 @@
 #include "StaticMeshComponent.h"
 #include "Render/MeshGeometry.h"
 #include "GameFramework/Object/World/World.h"
+#include "Asset/BlueprintAsset.h"
 
 extern const int gFrameResourcesNum;
 
 using namespace JPH;
+
+using namespace BlueprintAsset;
 
 WStaticMeshComponent::WStaticMeshComponent()
 {

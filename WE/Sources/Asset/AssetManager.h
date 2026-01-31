@@ -22,6 +22,8 @@ public:
 	static TAsset* GetAsset(const std::wstring& Name);
 
 private:
+	void LoadBlueprints();
+
 	std::unordered_map<std::wstring, TUniquePtr<FAsset>> mAssets;
 };
 
@@ -34,6 +36,7 @@ inline bool FAssetManager::LoadAsset(const std::wstring& FilePath, const std::ws
 		std::wstringstream wss;
 		wss << L"에셋 로드에 실패하였습니다.: " << AssetName << L"\n";
 		OutputDebugStringW(wss.str().c_str());
+		assert(false);
 		return false;
 	}
 	Asset->mName = AssetName;

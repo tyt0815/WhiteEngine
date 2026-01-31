@@ -1,0 +1,48 @@
+<Blueprint Parent="AActor">
+
+    <Properties>
+        <float Name = "Value" Value = "1000.0" />
+    </Properties>
+
+    <Components>
+        <StaticMeshComponent Name = "StaticMesh">
+            <StaticMesh>MetalRing</StaticMesh>
+        </StaticMeshComponent>
+    </Components>
+
+    <!-- <Properties>
+        <Property Name="MaxSpeed" Value="1500.0" />
+        <Property Name="LifeTime" Value="5.0" />
+        <Property Name="Damage" Value="50" />
+    </Properties>
+
+    <Components>
+        <Component Type="StaticMesh">
+            <MeshPath>Assets/Models/Missile_A.fbx</MeshPath>
+            <Scale X="1.0" Y="1.0" Z="1.0" />
+        </Component>
+
+        <Component Type="ProjectileMovement">
+            <IsHoming>false</IsHoming>
+            <GravityScale>0.5</GravityScale>
+        </Component>
+
+        <Component Type="ParticleSystem" Name="Trail">
+            <EffectPath>FX/Missile_Trail.efx</EffectPath>
+        </Component>
+    </Components>
+
+    <Events>
+        <Event Name="OnSpawn">
+            <Action Type="PlaySound" SoundName="Missile_Launch" />
+            <Action Type="CallFunction" FuncName="StartEngine" Delay="0.1" />
+        </Event>
+
+        <Event Name="OnHit">
+            <Action Type="SpawnEmitter" EffectName="Explosion_Large" />
+            <Action Type="ApplyRadialDamage" Radius="300" Force="1000" />
+            <Action Type="DestroyActor" />
+        </Event>
+    </Events> -->
+
+</Blueprint>

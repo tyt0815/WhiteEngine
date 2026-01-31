@@ -7,6 +7,11 @@
 class AActor;
 class WWorld;
 
+namespace BlueprintAsset
+{
+	class FComponentInfoBase;
+}
+
 class WActorComponent : public WObject
 {
 	typedef WObject Super;

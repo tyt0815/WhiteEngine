@@ -14,6 +14,7 @@ class WPhysicsComponent;
 struct FActorSpawnParameter
 {
 	FTransform Transform;
+	std::wstring BlueprintName;
 };
 
 class WWorld
@@ -34,6 +35,9 @@ public:
 
 	template<typename T>
 	TWeakPtr<T> SpawnActor();
+
+	template<typename T>
+	TWeakPtr<T> SpawnActor(const std::wstring& BlueprintName);
 
 	template<typename T>
 	TWeakPtr<T> SpawnActor(const FActorSpawnParameter& Param);
@@ -244,6 +248,14 @@ inline TWeakPtr<T> WWorld::SpawnActor()
 }
 
 template<typename T>
+inline TWeakPtr<T> WWorld::SpawnActor(const std::wstring& BlueprintName)
+{
+	FActorSpawnParameter Param;
+	Param.BlueprintName = std::move(BlueprintName);
+	return SpawnActor<T>(Param);
+}
+
+template<typename T>
 inline TWeakPtr<T> WWorld::SpawnActor(const FActorSpawnParameter& Param)
 {
 	TSharedPtr<T> Actor = MakeShared<T>();
@@ -251,8 +263,13 @@ inline TWeakPtr<T> WWorld::SpawnActor(const FActorSpawnParameter& Param)
 	mAllActors.emplace_back(Actor);
 
 	Actor->SetActorTransform(Param.Transform);
-
 	Actor->mActorId = ActorId;
+
+	if (Param.BlueprintName.length() > 0)
+	{
+		Actor->LoadBlueprint(Param.BlueprintName);
+	}
+
 	Actor->BeginPlay();
 
 	return TWeakPtr<T>(Actor);

@@ -9,7 +9,7 @@
 
 namespace fs = std::filesystem;
 
-bool CompileXMLToOADLz4(const std::string& XMLPath, const std::string& OADLz4Path)
+bool CompileXMLToOADLz4(const std::wstring& XMLPath, const std::wstring& OADLz4Path)
 {
 	tinyxml2::XMLDocument Doc;
 	if (!Asset::LoadXML(XMLPath, Doc))
@@ -115,13 +115,13 @@ bool CompileXMLToOADLz4(const std::string& XMLPath, const std::string& OADLz4Pat
 	int compressedSize = LZ4_compress_default(Payload.data(), compressed.data(), originalSize, maxBound);
 
 	// 4. 저장 (Header: originalSize + Data: compressed)
-	std::ofstream outFile(AnsiToWString(OADLz4Path), std::ios::binary);
+	std::ofstream outFile(OADLz4Path, std::ios::binary);
 	if (outFile.is_open())
 	{
 		outFile.write((char*)&originalSize, sizeof(int));
 		outFile.write(compressed.data(), compressedSize);
 		outFile.close();
-		OutputDebugStringA(("OAD Compile Success: " + OADLz4Path + "\n").c_str());
+		OutputDebugStringW((L"OAD Compile Success: " + OADLz4Path + L"\n").c_str());
 	}
 
 	return true;
@@ -130,8 +130,8 @@ bool CompileXMLToOADLz4(const std::string& XMLPath, const std::string& OADLz4Pat
 bool FObjectAnimDataAsset::LoadAsset(const std::wstring& FilePath)
 {
 	// 경로 설정
-	std::string xmlPath = WStringToString(FilePath);
-	std::string lz4Path = xmlPath.substr(0, xmlPath.find_last_of('.')) + ".oad.lz4";
+	std::wstring xmlPath = FilePath;
+	std::wstring lz4Path = xmlPath.substr(0, xmlPath.find_last_of('.')) + L".oad.lz4";
 
 	bool bNeedCompile = false;
 
