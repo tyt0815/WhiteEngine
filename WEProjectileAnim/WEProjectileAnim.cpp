@@ -14,7 +14,7 @@ ARing::ARing()
 	if (auto Comp = mStaticMeshComp.lock())
 	{
 		Comp->SetupAttachment(GetRootComponent());
-		Comp->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_MetalRing));
+		Comp->SetStaticMesh(FStaticMeshManager::GetStaticMesh("SM_MetalRing"));
 	}
 }
 
@@ -35,7 +35,7 @@ AProjectile::AProjectile()
 	if (auto Comp = mStaticMeshComp.lock())
 	{
 		Comp->SetupAttachment(GetRootComponent());
-		Comp->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_ScuffedGoldBox));
+		Comp->SetStaticMesh(FStaticMeshManager::GetStaticMesh("SM_ScuffedGoldBox"));
 	}
 
 	mObjectAnimComp = CreateComponent<WObjectAnimComponent>();

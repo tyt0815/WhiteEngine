@@ -15,5 +15,5 @@ APhysicsSphere::APhysicsSphere()
 
 	auto Component = CreateComponent<WStaticMeshComponent>().lock();
 	Component->SetupAttachment(GetRootComponent());
-	Component->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_RustedIron2Sphere));
+	Component->SetStaticMesh(FStaticMeshManager::GetStaticMesh("SM_RustedIron2Sphere"));
 }

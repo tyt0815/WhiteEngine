@@ -2,7 +2,7 @@
 #include "Actor/TopAttackMissile.h"
 #include "Actor/PhysicsBox.h"
 #include "Actor/HitReactor.h"
-#include "Actor/BlueprintActor.h"
+#include "Actor/ProjectileBase.h"
 #include "Pawn/PlayerPawn.h"
 #include <algorithm>
 
@@ -15,7 +15,7 @@ void WTestWorld::BeginPlay()
 	
 	Super::BeginPlay();
 
-	SpawnActor<ABlueprintActor>(L"BP_Projectile");
+	SpawnActor<AProjectileBase>(L"BP_Projectile");
 
 	XMFLOAT3 LocationOffset = XMFLOAT3(-40, 10, 40);
 	XMFLOAT3 RotationOffset = XMFLOAT3(0, 90, 0);

@@ -20,7 +20,7 @@ AFloor::AFloor()
 	if (auto StaticMeshComp = mStaticMeshComp.lock())
 	{
 		StaticMeshComp->SetupAttachment(GetRootComponent());
-		StaticMeshComp->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_DefaultFloor));
+		StaticMeshComp->SetStaticMesh(FStaticMeshManager::GetStaticMesh("SM_DefaultFloor"));
 		StaticMeshComp->SetLocalLocation(XMFLOAT3(0, 0.05f, 0));
 	}
 }

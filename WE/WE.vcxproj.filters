@@ -293,6 +293,9 @@
     <ClCompile Include="Sources\GameFramework\Object\Component\ComponentFactory.cpp">
       <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Actor\ProjectileBase.cpp">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -567,6 +570,9 @@
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\Component\ComponentFactory.h">
       <Filter>Sources\GameFramework\Object\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Actor\ProjectileBase.h">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

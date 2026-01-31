@@ -4,7 +4,6 @@
 
 FStaticMeshManager::FStaticMeshManager()
 {
-	mStaticMeshs.resize(ESMT_None);
 	BuildStaticMeshs();
 }
 
@@ -15,21 +14,21 @@ FStaticMeshManager::~FStaticMeshManager()
 void FStaticMeshManager::BuildStaticMeshs()
 {
 	FStaticMesh StaticMesh;
-	BuildStaticMesh(ESMT_RustedIron2Sphere, "Sphere", EMT_RustedIron2);
-	BuildStaticMesh(ESMT_ScuffedGoldSphere, "Sphere", EMT_ScuffedGold);
-	BuildStaticMesh(ESMT_IceFieldGrid, "Grid", EMT_IceField);
-	BuildStaticMesh(ESMT_ThickMortarStonework, "Sphere", EMT_ThickMortarStonework);
-	BuildStaticMesh(ESMT_ScuffedGoldBox, "Box", EMT_ScuffedGold);
-	BuildStaticMesh(ESMT_DefaultFloor, "Floor", EMT_LaminateFlooringBrown);
-	BuildStaticMesh(ESMT_MetalCylinder, "Cylinder", EMT_Black);
-	BuildStaticMesh(ESMT_MetalRing, "Ring", EMT_ScuffedGold);
-	BuildStaticMesh(ESMT_LaminateFlooringBrownBox, "Box", EMT_LaminateFlooringBrown);
+	BuildStaticMesh("SM_RustedIron2Sphere", "Sphere", EMT_RustedIron2);
+	BuildStaticMesh("SM_ScuffedGoldSphere", "Sphere", EMT_ScuffedGold);
+	BuildStaticMesh("SM_IceFieldGrid", "Grid", EMT_IceField);
+	BuildStaticMesh("SM_ThickMortarStonework", "Sphere", EMT_ThickMortarStonework);
+	BuildStaticMesh("SM_ScuffedGoldBox", "Box", EMT_ScuffedGold);
+	BuildStaticMesh("SM_DefaultFloor", "Floor", EMT_LaminateFlooringBrown);
+	BuildStaticMesh("SM_MetalCylinder", "Cylinder", EMT_Black);
+	BuildStaticMesh("SM_MetalRing", "Ring", EMT_ScuffedGold);
+	BuildStaticMesh("SM_LaminateFlooringBrownBox", "Box", EMT_LaminateFlooringBrown);
 }
 
-void FStaticMeshManager::BuildStaticMesh(EStaticMeshType Type, std::string MeshName, EMaterialType MaterialType)
+void FStaticMeshManager::BuildStaticMesh(const std::string& Name, std::string MeshName, EMaterialType MaterialType)
 {
 	FStaticMesh StaticMesh;
 	StaticMesh.Geometry = GetMeshGeometryManager()->GetMeshGeometry(MeshName);
 	StaticMesh.Material = GetMaterialManager()->GetMaterial(MaterialType);
-	mStaticMeshs[Type] = StaticMesh;
+	mStaticMeshs[Name] = StaticMesh;
 }

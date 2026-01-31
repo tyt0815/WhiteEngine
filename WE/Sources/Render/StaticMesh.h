@@ -9,20 +9,6 @@
 class FMeshGeometry;
 class FMaterial;
 
-enum EStaticMeshType : std::uint16_t
-{
-	ESMT_RustedIron2Sphere,
-	ESMT_ScuffedGoldSphere,
-	ESMT_IceFieldGrid,
-	ESMT_ThickMortarStonework,
-	ESMT_ScuffedGoldBox,
-	ESMT_DefaultFloor,
-	ESMT_MetalCylinder,
-	ESMT_MetalRing,
-	ESMT_LaminateFlooringBrownBox,
-	ESMT_None
-};
-
 struct FStaticMesh
 {
 	FMeshGeometry* Geometry = nullptr;
@@ -36,16 +22,19 @@ public:
 
 private:
 	void BuildStaticMeshs();
-	void BuildStaticMesh(EStaticMeshType Type, std::string MeshName, EMaterialType MaterialType);
-	std::vector<FStaticMesh> mStaticMeshs;
-public:
-	inline FStaticMesh GetStaticMesh(size_t i)
+	void BuildStaticMesh(const std::string& Name, std::string MeshName, EMaterialType MaterialType);
+	std::unordered_map<std::string, FStaticMesh> mStaticMeshs;
+
+private:
+	__forceinline FStaticMesh GetStaticMesh_Internal(const std::string& Name)
 	{
-		return mStaticMeshs[i];
+		return mStaticMeshs[Name];
 	}
-	inline FStaticMesh GetStaticMesh(EStaticMeshType Type)
+public:
+
+	static __forceinline FStaticMesh GetStaticMesh(const std::string& Name)
 	{
-		return mStaticMeshs[Type];
+		return GetInstance()->GetStaticMesh_Internal(Name);
 	}
 };
 

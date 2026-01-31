@@ -1,11 +1,11 @@
-<Blueprint Parent="AActor">
+<Blueprint Parent="AProjectileBase">
 
     <Properties>
         <float Name = "Value" Value = "1000.0" />
     </Properties>
 
     <Components>
-        <StaticMeshComponent Name = "StaticMesh">
+        <StaticMeshComponent Name = "StaticMeshComponent">
             <StaticMesh>MetalRing</StaticMesh>
         </StaticMeshComponent>
     </Components>

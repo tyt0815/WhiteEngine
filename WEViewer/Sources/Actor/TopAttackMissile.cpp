@@ -11,7 +11,7 @@ ATopAttackMissile::ATopAttackMissile()
 	if (auto StaticMeshComp = mStaticMesh.lock())
 	{
 		StaticMeshComp->SetupAttachment(GetRootComponent());
-		StaticMeshComp->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(EStaticMeshType::ESMT_MetalCylinder));
+		StaticMeshComp->SetStaticMesh(FStaticMeshManager::GetStaticMesh("SM_MetalCylinder"));
 		StaticMeshComp->SetLocalScale(XMFLOAT3(.1f, .2f, .1f));
 		StaticMeshComp->SetLocalRotation(XMFLOAT3(90, 0, 0));
 	}

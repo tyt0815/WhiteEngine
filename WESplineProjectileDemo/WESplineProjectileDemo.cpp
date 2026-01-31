@@ -25,7 +25,7 @@ AHitReactor::AHitReactor()
 	if (auto SMComp = mSMComp.lock())
 	{
 		SMComp->SetupAttachment(GetRootComponent());
-		SMComp->SetStaticMesh(FStaticMeshManager::GetInstance()->GetStaticMesh(EStaticMeshType::ESMT_ScuffedGoldBox));
+		SMComp->SetStaticMesh(FStaticMeshManager::GetStaticMesh("SM_ScuffedGoldBox"));
 		SMComp->SetLocalScale(XMFLOAT3(0.6f, 0.6f, 0.6f));
 	}
 }
@@ -88,7 +88,7 @@ ABullet::ABullet()
 	mStaticMesh = CreateComponent<WStaticMeshComponent>();
 	if (auto StaticMesh = mStaticMesh.lock())
 	{
-		StaticMesh->SetStaticMesh(FStaticMeshManager::GetInstance()->GetStaticMesh(EStaticMeshType::ESMT_MetalCylinder));
+		StaticMesh->SetStaticMesh(FStaticMeshManager::GetStaticMesh("SM_MetalCylinder"));
 		StaticMesh->SetLocalRotation(XMFLOAT3(90, 0, 0));
 		StaticMesh->SetupAttachment(GetRootComponent());
 	}
@@ -119,7 +119,7 @@ ARingProjectile::ARingProjectile()
 	if (auto StaticMesh = mStaticMesh.lock())
 	{
 		StaticMesh->SetupAttachment(GetRootComponent());
-		StaticMesh->SetStaticMesh(FStaticMeshManager::GetInstance()->GetStaticMesh(EStaticMeshType::ESMT_MetalRing));
+		StaticMesh->SetStaticMesh(FStaticMeshManager::GetStaticMesh("SM_MetalRing"));
 		StaticMesh->SetLocalRotation(XMFLOAT3(90, 0, 0));
 	}
 

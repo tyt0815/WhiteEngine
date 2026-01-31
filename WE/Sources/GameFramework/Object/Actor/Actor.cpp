@@ -145,7 +145,7 @@ void AActor::LoadBlueprint(const std::wstring& Name)
 		if (mBlueprintMap.count(Key))
 		{
 			WStaticMeshComponent* StaticMeshComp = reinterpret_cast<WStaticMeshComponent*>(mBlueprintMap[Key]);
-			StaticMeshComp->SetStaticMesh(GetStaticMeshManager()->GetInstance()->GetStaticMesh(ESMT_MetalRing));
+			StaticMeshComp->SetStaticMesh(FStaticMeshManager::GetStaticMesh("SM_MetalRing"));
 		}
 	}
 }

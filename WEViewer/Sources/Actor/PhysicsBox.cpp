@@ -16,6 +16,6 @@ APhysicsBox::APhysicsBox()
 	if (auto StaticMeshComp = mStaticMeshComp.lock())
 	{
 		StaticMeshComp->SetupAttachment(GetRootComponent());
-		StaticMeshComp->SetStaticMesh(GetStaticMeshManager()->GetStaticMesh(ESMT_LaminateFlooringBrownBox));
+		StaticMeshComp->SetStaticMesh(FStaticMeshManager::GetStaticMesh("SM_LaminateFlooringBrownBox"));
 	}
 }
