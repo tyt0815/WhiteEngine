@@ -7,12 +7,17 @@ AProjectileBase::AProjectileBase()
 	if (auto StaticMeshComp = mStaticMeshComp.lock())
 	{
 		StaticMeshComp->SetupAttachment(GetRootComponent());
+		StaticMeshComp->SetStaticMesh("SM_LaminateFlooringBrownBox");
 		RegisterWProperty("StaticMeshComponent", StaticMeshComp.get());
 	}
 
 	mProjMoveComp = CreateComponent<WProjectileMovementComponent>();
 	if (auto Proj = mProjMoveComp.lock())
 	{
+		Proj->mVelocity = XMFLOAT3(0, 0, 1);
+		Proj->SetHoming(true);
+		Proj->SetLifeSpan(10.0f);
+		Proj->SetHomingTurnLimit(10);
 		RegisterWProperty("ProjMovementComp", Proj.get());
 	}
 
@@ -30,4 +35,12 @@ AProjectileBase::AProjectileBase()
 void AProjectileBase::PlayAnimation()
 {
 	mObjAnimComp.lock()->Play(true, ERootMotion::All);
+}
+
+void AProjectileBase::SetHomingTarget(TWeakPtr<WSceneComponent> Target)
+{
+	if (auto Proj = mProjMoveComp.lock())
+	{
+		Proj->SetHomingTarget(Target);
+	}
 }

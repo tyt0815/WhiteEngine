@@ -12,6 +12,8 @@ public:
 public:
 	void PlayAnimation();
 
+	void SetHomingTarget(TWeakPtr<WSceneComponent> Target);
+
 private:
 	TWeakPtr<WStaticMeshComponent> mStaticMeshComp;
 	TWeakPtr<WProjectileMovementComponent> mProjMoveComp;

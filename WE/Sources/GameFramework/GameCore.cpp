@@ -31,7 +31,7 @@ inline constexpr float g_FrameTimelimit = 1.0f / g_FPSLimit;
 
 inline constexpr bool g_bMultiThread = true;
 
-inline constexpr bool g_bLimitTick = true;
+inline constexpr bool g_bLimitTick = false;
 inline constexpr bool g_bLimitFrame = true;
 
 namespace Physics

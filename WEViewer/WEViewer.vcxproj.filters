@@ -91,5 +91,8 @@
     <ClInclude Include="Sources\Actor\TargetMarker.h">
       <Filter>Sources\Actor</Filter>
     </ClInclude>
+    <ClInclude Include="Sources\Actor\HomingProjectile.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
