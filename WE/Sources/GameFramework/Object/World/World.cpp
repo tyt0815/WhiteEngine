@@ -567,6 +567,13 @@ void WWorld::FlushDestroyQueue()
 	}
 }
 
+void WWorld::OnSpawnActor(AActor* Actor, const FActorSpawnParameter& Param)
+{
+	Actor->SetActorTransform(Param.Transform);
+
+	Actor->BeginPlay();
+}
+
 void WWorld::UpdateProfilingData(float DeltaSecond, const FProfilingData& Data)
 {
 	mMaxProfilingData.Time_Tick_PrePhysics =	max(mMaxProfilingData.Time_Tick_PrePhysics, Data.Time_Tick_PrePhysics);

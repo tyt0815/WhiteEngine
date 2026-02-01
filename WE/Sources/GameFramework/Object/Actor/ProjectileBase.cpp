@@ -6,12 +6,15 @@ AProjectileBase::AProjectileBase()
 	SetRootComponent(mStaticMeshComp);
 	if (auto StaticMeshComp = mStaticMeshComp.lock())
 	{
-		mBlueprintMap["StaticMeshComponent"] = StaticMeshComp.get();
+		RegisterWProperty("StaticMeshComponent", StaticMeshComp.get());
 	}
 
 	mProjMoveComp = CreateComponent<WProjectileMovementComponent>();
 	if (auto Proj = mProjMoveComp.lock())
 	{
-		mBlueprintMap["ProjectileMovementComponent"] = Proj.get();
+		RegisterWProperty("ProjMovementComp", Proj.get());
 	}
+
+	RegisterWProperty("Value", &Value);
+	RegisterWProperty("Boolean", &Boolean);
 }

@@ -30,7 +30,7 @@
     <ClCompile Include="Sources\GameFramework\GameCore.cpp" />
     <ClCompile Include="Sources\GameFramework\InputSystem\InputSystem.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Actor\Actor.cpp" />
-    <ClCompile Include="Sources\GameFramework\Object\Actor\BlueprintActor.cpp" />
+    <ClCompile Include="Sources\GameFramework\Object\Actor\ActorFactory.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Actor\DirectionalLight.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Actor\Floor.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Actor\ProjectileBase.cpp" />
@@ -121,7 +121,7 @@
     <ClInclude Include="Sources\GameFramework\GameCore.h" />
     <ClInclude Include="Sources\GameFramework\InputSystem\InputSystem.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\Actor.h" />
-    <ClInclude Include="Sources\GameFramework\Object\Actor\BlueprintActor.h" />
+    <ClInclude Include="Sources\GameFramework\Object\Actor\ActorFactory.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\DirectionalLight.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\Floor.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\ProjectileBase.h" />

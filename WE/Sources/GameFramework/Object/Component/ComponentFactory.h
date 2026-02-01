@@ -11,22 +11,22 @@ public:
     SINGLETON(FComponentFactory);    
 
 private:
-    std::shared_ptr<WActorComponent> CreateComponent(const std::wstring& Name);
+    std::shared_ptr<WActorComponent> CreateComponent(const std::string& Name);
 
-    std::unordered_map<std::wstring, ComponentCreator> mRegistry;
+    std::unordered_map<std::string, ComponentCreator> mRegistry;
 
 public:
-    __forceinline void RegisterComponent(const std::wstring& Name, ComponentCreator Creator)
+    __forceinline void RegisterComponent(const std::string& Name, ComponentCreator Creator)
     {
         mRegistry[Name] = Creator;
     }
 
-    __forceinline static std::shared_ptr<WActorComponent> CreateComponent(const std::wstring& Name)
+    __forceinline static std::shared_ptr<WActorComponent> CreateComponent(const std::string& Name)
     {
         GetInstance()->CreateComponent(Name);
     }
 };
 
-// 컴포넌트 클래스 내부 혹은 상단
+
 #define REGISTER_COMPONENT(ClassName) \
     FComponentFactory::RegisterComponent(L#ClassName, []() { return std::make_shared<ClassName>(); });

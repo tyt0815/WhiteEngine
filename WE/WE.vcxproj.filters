@@ -287,13 +287,13 @@
     <ClCompile Include="Sources\Physics\HitResult.cpp">
       <Filter>Sources\Physics</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\GameFramework\Object\Actor\BlueprintActor.cpp">
-      <Filter>Sources\GameFramework\Object\Actor</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\GameFramework\Object\Component\ComponentFactory.cpp">
       <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClCompile>
     <ClCompile Include="Sources\GameFramework\Object\Actor\ProjectileBase.cpp">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Actor\ActorFactory.cpp">
       <Filter>Sources\GameFramework\Object\Actor</Filter>
     </ClCompile>
   </ItemGroup>
@@ -565,13 +565,13 @@
     <ClInclude Include="Sources\Utility\Debug.h">
       <Filter>Sources\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\GameFramework\Object\Actor\BlueprintActor.h">
-      <Filter>Sources\GameFramework\Object\Actor</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\Component\ComponentFactory.h">
       <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\Actor\ProjectileBase.h">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Actor\ActorFactory.h">
       <Filter>Sources\GameFramework\Object\Actor</Filter>
     </ClInclude>
   </ItemGroup>

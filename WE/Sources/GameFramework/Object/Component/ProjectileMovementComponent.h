@@ -6,6 +6,8 @@ class WProjectileMovementComponent : public WMovementComponent
 {
 	typedef WMovementComponent Super;
 public:
+	WProjectileMovementComponent();
+
 	virtual void Tick(float DeltaTime) override;
 
 protected:

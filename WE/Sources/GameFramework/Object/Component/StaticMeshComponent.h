@@ -15,7 +15,11 @@ protected:
 
 	virtual void UpdateProxies() override;
 
+	virtual void LoadRawWProperties(TArray<const BlueprintAsset::FProperty*>& RawProperties) override;
+
 public:
+	void SetStaticMesh(const std::string& Name);
+
 	void SetStaticMesh(const FStaticMesh& StaticMesh);
 
 private:

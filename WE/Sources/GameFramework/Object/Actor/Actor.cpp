@@ -120,33 +120,15 @@ void AActor::OnDeactivate()
 	Super::OnDeactivate();
 }
 
-void AActor::LoadBlueprint(const std::wstring& Name)
+void AActor::LoadBlueprint(FBlueprintAsset* Asset)
 {
-	FBlueprintAsset* Asset = FAssetManager::GetAsset<FBlueprintAsset>(Name);
+	const auto* ActorNode = &Asset->mActorNode;
+	LoadWProperties(Asset->mActorNode.Properties);
 
-	const auto& FloatMap = Asset->mFloatMap;
-	for (const auto& KeyValue : FloatMap)
+	for (const auto& CompNode : ActorNode->Components)
 	{
-		const std::string& Key = KeyValue.first;
-		const float Value = KeyValue.second;
-
-		if (mBlueprintMap.count(Key))
-		{
-			*(reinterpret_cast<float*>(mBlueprintMap[Key])) = Value;
-		}
-	}
-
-	const auto& StaticMeshComponentMap = Asset->mStaticMeshComponentMap;
-	for (const auto& KeyValue : StaticMeshComponentMap)
-	{
-		const std::string& Key = KeyValue.first;
-		const auto& Info = KeyValue.second;
-
-		if (mBlueprintMap.count(Key))
-		{
-			WStaticMeshComponent* StaticMeshComp = reinterpret_cast<WStaticMeshComponent*>(mBlueprintMap[Key]);
-			StaticMeshComp->SetStaticMesh(FStaticMeshManager::GetStaticMesh("SM_MetalRing"));
-		}
+		WActorComponent* Comp = GetWPropertyPtr<WActorComponent>(CompNode->Name);
+		Comp->LoadWProperties(CompNode->Properties);
 	}
 }
 

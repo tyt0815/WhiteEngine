@@ -58,6 +58,24 @@ void WStaticMeshComponent::UpdateProxies()
 	}
 }
 
+void WStaticMeshComponent::LoadRawWProperties(TArray<const BlueprintAsset::FProperty*>& RawProperties)
+{
+	Super::LoadRawWProperties(RawProperties);
+
+	for (const auto* Prop : RawProperties)
+	{
+		if (Prop->Name == "StaticMesh")
+		{
+			SetStaticMesh(std::get<std::string>(Prop->Value));
+		}
+	}
+}
+
+void WStaticMeshComponent::SetStaticMesh(const std::string& Name)
+{
+	SetStaticMesh(FStaticMeshManager::GetStaticMesh(Name));
+}
+
 void WStaticMeshComponent::SetStaticMesh(const FStaticMesh& StaticMesh)
 {
 	mStaticMesh = StaticMesh;

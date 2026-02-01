@@ -1,6 +1,13 @@
 #include "ProjectileMovementComponent.h"
 #include "GameFramework/Object/Actor/Actor.h"
 
+WProjectileMovementComponent::WProjectileMovementComponent()
+{
+    RegisterWProperty("LifeSpan", &mLifeSpan);
+    RegisterWProperty("HomingTurnLimit", &mHomingTurnLimit);
+    RegisterWProperty("Homing", &mbHomingProjectile);
+}
+
 void WProjectileMovementComponent::Tick(float DeltaTime)
 {
     mLifeTimeElapsed += DeltaTime;

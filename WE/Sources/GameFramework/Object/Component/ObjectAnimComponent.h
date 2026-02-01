@@ -12,7 +12,6 @@ class FCurveSampler
 {
 public:
 	float SampleAnimDataByFrame(const float TargetFrame);
-	
 
 private:
 

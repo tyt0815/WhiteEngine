@@ -6,6 +6,7 @@
 #include "Utility/Class.h"
 #include "Utility/Container.h"
 #include "Physics/PhysicsCore.h"
+#include "ActorFactory.h"
 
 #include <d3d12.h>
 #include <memory>
@@ -54,9 +55,7 @@ protected:
 
 	virtual void OnDeactivate() override;
 
-	void LoadBlueprint(const std::wstring& Name);
-
-	std::unordered_map<std::string, void*> mBlueprintMap;
+	void LoadBlueprint(class FBlueprintAsset* Asset);
 
 private:
 	void UpdateRecursive();
@@ -132,6 +131,7 @@ public:
 	}
 
 	friend class WWorld;
+	friend class FActorFactory;
 };
 
 template<typename T>
@@ -159,3 +159,5 @@ __forceinline TWeakPtr<T> AActor::CreateComponent()
 	
 	return TWeakPtr<T>(CompT);
 }
+
+REGISTER_ACTOR(AActor);

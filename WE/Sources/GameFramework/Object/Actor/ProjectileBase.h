@@ -11,4 +11,9 @@ public:
 private:
 	TWeakPtr<WStaticMeshComponent> mStaticMeshComp;
 	TWeakPtr<WProjectileMovementComponent> mProjMoveComp;
+
+	float Value;
+	bool Boolean;
 };
+
+REGISTER_ACTOR(AProjectileBase);

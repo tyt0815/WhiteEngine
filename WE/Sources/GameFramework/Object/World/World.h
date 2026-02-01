@@ -14,7 +14,6 @@ class WPhysicsComponent;
 struct FActorSpawnParameter
 {
 	FTransform Transform;
-	std::wstring BlueprintName;
 };
 
 class WWorld
@@ -37,10 +36,13 @@ public:
 	TWeakPtr<T> SpawnActor();
 
 	template<typename T>
+	TWeakPtr<T> SpawnActor(const FActorSpawnParameter& Param);
+
+	template<typename T>
 	TWeakPtr<T> SpawnActor(const std::wstring& BlueprintName);
 
 	template<typename T>
-	TWeakPtr<T> SpawnActor(const FActorSpawnParameter& Param);
+	TWeakPtr<T> SpawnActor(const std::wstring& BlueprintName, const FActorSpawnParameter& Param);
 
 	void DestroyActor(const TSharedPtr<AActor>& Actor);
 
@@ -132,6 +134,11 @@ private:
 	void AfterSphereOverlap(XMFLOAT3 Location, float Radius, const TArray<FHitResult>& HitResults, bool bDrawDebug, float DebugDuration);
 
 	void FlushDestroyQueue();
+
+	template<typename T>
+	void RegisterActor(TSharedPtr<T>& Actor);
+
+	void OnSpawnActor(AActor* Actor, const FActorSpawnParameter& Param);
 
 	TArray<TSharedPtr<AActor>> mAllActors;
 
@@ -248,29 +255,38 @@ inline TWeakPtr<T> WWorld::SpawnActor()
 }
 
 template<typename T>
-inline TWeakPtr<T> WWorld::SpawnActor(const std::wstring& BlueprintName)
-{
-	FActorSpawnParameter Param;
-	Param.BlueprintName = std::move(BlueprintName);
-	return SpawnActor<T>(Param);
-}
-
-template<typename T>
 inline TWeakPtr<T> WWorld::SpawnActor(const FActorSpawnParameter& Param)
 {
 	TSharedPtr<T> Actor = MakeShared<T>();
-	int ActorId = (int)mAllActors.size();
-	mAllActors.emplace_back(Actor);
+	RegisterActor(Actor);
 
-	Actor->SetActorTransform(Param.Transform);
-	Actor->mActorId = ActorId;
-
-	if (Param.BlueprintName.length() > 0)
-	{
-		Actor->LoadBlueprint(Param.BlueprintName);
-	}
-
-	Actor->BeginPlay();
+	OnSpawnActor(Actor.get(), Param);
 
 	return TWeakPtr<T>(Actor);
+}
+
+template<typename T>
+inline TWeakPtr<T> WWorld::SpawnActor(const std::wstring& BlueprintName)
+{
+	FActorSpawnParameter Param;
+	return SpawnActor<T>(BlueprintName, Param);
+}
+
+template<typename T>
+inline TWeakPtr<T> WWorld::SpawnActor(const std::wstring& BlueprintName, const FActorSpawnParameter& Param)
+{
+	TSharedPtr<T> Actor = FActorFactory::CreateBlueprintActor<T>(BlueprintName);
+	RegisterActor(Actor);
+
+	OnSpawnActor(Actor.get(), Param);
+
+	return TWeakPtr<T>(Actor);
+}
+
+template<typename T>
+inline void WWorld::RegisterActor(TSharedPtr<T>& Actor)
+{
+	int ActorId = (int)mAllActors.size();
+	mAllActors.emplace_back(Actor);
+	Actor->mActorId = ActorId;
 }

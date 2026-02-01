@@ -1,0 +1,33 @@
+<Blueprint Parent="AProjectileBase">
+    <Properties>
+        <float Name = "Value" Value = "1000.0" />
+        <bool Name = "Boolean" Value = "True" />
+    </Properties>
+
+    <Components>
+        <StaticMeshComponent Name = "StaticMeshComponent">
+            <Properties>
+                <StaticMesh Name = "StaticMesh" Value = "SM_MetalRing"/>
+            </Properties>
+        </StaticMeshComponent>
+        <ProjectileMovementComponent Name = "ProjMovementComp">
+            <Properties>
+                <bool Name = "Homing" Value = "true" />
+                <float Name = "LifeSpan" Value = "10.0"/>
+            </Properties>
+        </ProjectileMovementComponent>
+    </Components>
+
+    <Events>
+        <Event Name="OnSpawn">
+            <Action Type="PlaySound" SoundName="Missile_Launch" />
+            <Action Type="CallFunction" FuncName="StartEngine" Delay="0.1" />
+        </Event>
+
+        <Event Name="OnHit">
+            <Action Type="SpawnEmitter" EffectName="Explosion_Large" />
+            <Action Type="ApplyRadialDamage" Radius="300" Force="1000" />
+            <Action Type="DestroyActor" />
+        </Event>
+    </Events>
+</Blueprint>

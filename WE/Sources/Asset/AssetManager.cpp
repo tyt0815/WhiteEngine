@@ -76,9 +76,8 @@ void FAssetManager::LoadBlueprints()
 
 	GetFileNameByExtension(FolderPath, Extension, BlueprintFileName);
 
-	const std::wstring Prefix = L"BP_";
 	for (const auto& FileName : BlueprintFileName)
 	{
-		LoadAsset<FBlueprintAsset>(FolderPath + L"\\" + FileName + Extension, Prefix + FileName);
+		LoadAsset<FBlueprintAsset>(FolderPath + L"\\" + FileName + Extension, FileName);
 	}
 }

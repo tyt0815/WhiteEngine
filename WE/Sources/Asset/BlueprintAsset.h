@@ -2,7 +2,9 @@
 
 #include "Asset.h"
 #include "Utility/Container.h"
+#include "Utility/Memory.h"
 #include <tinyxml2.h>
+#include <variant>
 
 using FXMLDocument = tinyxml2::XMLDocument;
 using FXMLElement = tinyxml2::XMLElement;
@@ -13,29 +15,57 @@ class FBinaryReader;
 
 namespace BlueprintAsset
 {
-
-	struct FStaticMeshComponentInfo
+	enum class EPropertyType : std::uint8_t
 	{
-		std::string StaticMesh;
+		EPT_Float = 0,
+		EPT_Boolean,
+		EPT_Raw,
+		EPT_TypeNum
+	};
+
+	struct FProperty
+	{
+		using FPropertyValue = std::variant<
+			float,
+			bool,
+			std::string
+		>;
+
+		std::string Name;
+		EPropertyType Type;
+		FPropertyValue Value;
+	};
+
+	struct FComponentNode
+	{
+		std::string Name;
+		std::string Class;
+		TArray<FProperty> Properties;
+	};
+
+	struct FActorNode
+	{
+		std::string ParentClass;
+
+		TArray<FProperty> Properties; 
+
+		TArray<TSharedPtr<FComponentNode>> Components;
 	};
 }
 
 class FBlueprintAsset : public FAsset
 {
-	
 public:
-	std::string mParentClass;
-
-	std::unordered_map<std::string, float> mFloatMap;
-
-	std::unordered_map<std::string, BlueprintAsset::FStaticMeshComponentInfo> mStaticMeshComponentMap;
+	BlueprintAsset::FActorNode mActorNode;
 
 private:
 	virtual bool LoadAsset(const std::wstring& FilePath) override;
 
-	void DeserializeProperties(FBinaryReader& Reader);
+	void DeserializeProperties(TArray<BlueprintAsset::FProperty>& Properties, FBinaryReader& Reader);
 
 	void DeserializeComponents(FBinaryReader& Reader);
+
+	void DeserializeComponent(BlueprintAsset::FComponentNode* CompNode, FBinaryReader& Reader);
 };
 
 class FBlueprintAssetCompiler : public FAssetCompiler
