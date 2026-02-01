@@ -14,10 +14,10 @@ AProjectileBase::AProjectileBase()
 	mProjMoveComp = CreateComponent<WProjectileMovementComponent>();
 	if (auto Proj = mProjMoveComp.lock())
 	{
-		Proj->mVelocity = XMFLOAT3(0, 0, 1);
+		Proj->mVelocity = XMFLOAT3(0, 0, 5);
 		Proj->SetHoming(true);
-		Proj->SetLifeSpan(10.0f);
-		Proj->SetHomingTurnLimit(10);
+		Proj->SetLifeSpan(2.5f);
+		Proj->SetHomingTurnLimit(45);
 		RegisterWProperty("ProjMovementComp", Proj.get());
 	}
 

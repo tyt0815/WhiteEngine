@@ -9,18 +9,30 @@ void WTestWorld::BeginPlay()
 {	
 	Super::BeginPlay();
 
-	if (auto Proj = SpawnActor<AHomingProjectile>().lock())
-	{
-		Proj->SetActorLocation(XMFLOAT3(0, 0, 10));
-		if (auto Target = SpawnActor<AActor>().lock())
-		{
-			Target->SetActorLocation(XMFLOAT3(0, 10, 10));
-			Proj->SetHomingTarget(Target->GetRootComponent());
-		}
-	}
+	
 }
 
 void WTestWorld::Tick(float DeltaSecond)
 {
 	Super::Tick(DeltaSecond);
+
+	static float a = 32;
+	a += DeltaSecond;
+
+	if (a > 3)
+	{
+		if (auto Proj = SpawnActor<AHomingProjectile>().lock())
+		{
+			XMFLOAT3 Loc = XMFLOAT3(0, 0, 10);
+			Proj->SetActorLocation(Loc);
+			if (auto Target = SpawnActor<AActor>().lock())
+			{
+				Loc.y += 10;
+				Loc.z -= 10;
+				Target->SetActorLocation(Loc);
+				Proj->SetHomingTarget(Target->GetRootComponent());
+			}
+		}
+		a = 0;
+	}
 }
