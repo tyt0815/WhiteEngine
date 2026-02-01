@@ -1,43 +1,44 @@
 #include "TestWorld.h"
-#include "Actor/TopAttackMissile.h"
 #include "Actor/PhysicsBox.h"
 #include "Actor/HitReactor.h"
 #include "Actor/ProjectileBase.h"
-#include "Pawn/PlayerPawn.h"
 #include <algorithm>
 
 void WTestWorld::BeginPlay()
 {
-	if (auto Player = SpawnActor<APlayerPawn>().lock())
-	{
-		SetPlayer(Player);
-	}
+	//if (auto Player = SpawnActor<APlayerPawn>().lock())
+	//{
+	//	SetPlayer(Player);
+	//}
 	
 	Super::BeginPlay();
 
-	SpawnActor<AProjectileBase>(L"BP_Projectile");
+	if (auto Proj = SpawnActor<AProjectileBase>(L"BP_Projectile").lock())
+	{
+		Proj->PlayAnimation();
+	}
 
 	XMFLOAT3 LocationOffset = XMFLOAT3(-40, 10, 40);
 	XMFLOAT3 RotationOffset = XMFLOAT3(0, 90, 0);
-	mMissileSystems[0] = SpawnActor<AMissileSwarmSystem>();
-	if (auto MissileSystem = mMissileSystems[0].lock())
-	{
-		MissileSystem->SetActorLocation(LocationOffset);
-		MissileSystem->SetActorRotation(RotationOffset);
+	//mMissileSystems[0] = SpawnActor<AMissileSwarmSystem>();
+	//if (auto MissileSystem = mMissileSystems[0].lock())
+	//{
+	//	MissileSystem->SetActorLocation(LocationOffset);
+	//	MissileSystem->SetActorRotation(RotationOffset);
 
-		mPlatform = SpawnActor<APhysicsBox>().lock();
-		if (auto Box = mPlatform.lock())
-		{
-			Box->SetActorScale(XMFLOAT3(10, 1, 10));
-			XMFLOAT3 Loc = CalcTargetOrigin(MissileSystem.get(), 80.0f);
-			Loc.y += 20;
-			Box->SetActorLocation(Loc);
-		}
-	}
+	//	mPlatform = SpawnActor<APhysicsBox>().lock();
+	//	if (auto Box = mPlatform.lock())
+	//	{
+	//		Box->SetActorScale(XMFLOAT3(10, 1, 10));
+	//		XMFLOAT3 Loc = CalcTargetOrigin(MissileSystem.get(), 80.0f);
+	//		Loc.y += 20;
+	//		Box->SetActorLocation(Loc);
+	//	}
+	//}
 
 	LocationOffset = XMFLOAT3(-20, 0, 20);
 	RotationOffset = XMFLOAT3(0, 90, 0);
-	mMissileSystems[1] = SpawnActor<AMissileSwarmSystem>();
+	/*mMissileSystems[1] = SpawnActor<AMissileSwarmSystem>();
 	if (auto MissileSystem = mMissileSystems[1].lock())
 	{
 		MissileSystem->SetActorLocation(LocationOffset);
@@ -61,7 +62,7 @@ void WTestWorld::BeginPlay()
 			Loc.y -= 3;
 			Box->SetActorLocation(Loc);
 		}
-	}
+	}*/
 
 	mElapsedTime = mDelay;
 }

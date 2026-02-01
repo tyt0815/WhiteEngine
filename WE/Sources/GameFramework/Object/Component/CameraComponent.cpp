@@ -7,16 +7,6 @@ WCameraComponent::WCameraComponent()
 {
 }
 
-void WCameraComponent::SetOwner(TWeakPtr<AActor> Owner)
-{
-	Super::SetOwner(Owner);
-
-	if (TSharedPtr<APawn> OwnerPawn = Cast<APawn>(Owner.lock()))
-	{
-		OwnerPawn->SetCameraComponent(GetWeakPtr<WCameraComponent>());
-	}
-}
-
 DirectX::XMFLOAT4X4 WCameraComponent::GetViewMatrix()
 {
 	UpdateViewMatrix();

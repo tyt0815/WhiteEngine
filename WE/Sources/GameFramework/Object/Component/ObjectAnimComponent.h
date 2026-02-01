@@ -30,6 +30,8 @@ public:
 class FObjectAnimSampler
 {
 public:
+	FObjectAnimSampler(const std::unordered_map<std::string, FCurveView>* InCurveViewMap);
+
 	FCurveSampler GetCurveSampler(const std::string CurveName);
 
 	FTransform SampleTransform(float TargetFrame);
@@ -43,7 +45,6 @@ public:
 	XMFLOAT3 SampleLocation(float TargetFrame);
 
 private:
-	FObjectAnimSampler(const std::unordered_map<std::string, FCurveView>* InCurveViewMap);
 
 	const std::unordered_map<std::string, FCurveView>* mCurveViewMap;
 
@@ -60,35 +61,52 @@ private:
 	friend class WObjectAnimComponent;
 };
 
-class WObjectAnimComponent : public WSceneComponent
+namespace ERootMotion
 {
-	typedef WSceneComponent Super;
+	enum Flags : uint16_t
+	{
+		None = 0,
+		LocX = 1 << 0, LocY = 1 << 1, LocZ = 1 << 2,
+		RotX = 1 << 3, RotY = 1 << 4, RotZ = 1 << 5,
+		ScaleX = 1 << 6, ScaleY = 1 << 7, ScaleZ = 1 << 8,
 
+		AllLoc = LocX | LocY | LocZ,
+		AllRot = RotX | RotY | RotZ,
+		AllScale = ScaleX | ScaleY | ScaleZ,
+		All = AllLoc | AllRot | AllScale
+	};
+}
+
+class WObjectAnimComponent : public WActorComponent
+{
+	typedef WActorComponent Super;
 
 public:
+	WObjectAnimComponent();
+
 	virtual void BeginComponent() override;
 
+	virtual void Tick(float DeltaTime) override;
+
 public:
-	bool LoadKeyframesFromOADAsset(const std::wstring& AssetName);
+	bool LoadKeyframesFromOADAsset(const std::wstring& AssetName, const std::string& AnimName);
 
-	FObjectAnimSampler* GetObjectAnimSampler(std::string ObjectName);
+	void Play(bool bLoop, uint16_t Flags);
 
-	void GetObjectAnimSamplerList(TArray<std::string>& List);
-
-	FTransform SampleAnimWorldTransformByFrame(FObjectAnimSampler* Sampler, float Frame);
-
-	XMFLOAT3 SampleAnimWorldLocationByFrame(FObjectAnimSampler* Sampler, float Frame);
-
-	FTransform SampleAnimWorldTransformBySecond(FObjectAnimSampler* Sampler, float Second);
-
-	XMFLOAT3 SampleAnimWorldLocationBySecond(FObjectAnimSampler* Sampler, float Second);
+	void Stop();
 
 private:
-	std::unordered_map<std::string, FObjectAnimSampler> mObjectAnimSamplerMap;
+	TUniquePtr<FObjectAnimSampler> mSampler;
+
+	TWeakPtr<WSceneComponent> mTarget;
 
 	float mFrameEnd = 0;
-
 	float mFps = 0;
+
+	float mCurrentTime = 0.0f;
+	bool  mIsPlaying = false;
+	bool  mLoop = false;
+	uint16_t mRootMotionFlags;
 
 public:
 	__forceinline float GetFrameEnd() const
@@ -107,4 +125,11 @@ public:
 	{
 		return mFps * Second;
 	}
+
+	__forceinline void SetTargetComponent(TWeakPtr<WSceneComponent> Comp)
+	{
+		mTarget = Comp;
+	}
 };
+
+REGISTER_COMPONENT(WObjectAnimComponent);

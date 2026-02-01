@@ -38,7 +38,7 @@
     <ClCompile Include="Sources\GameFramework\Object\Component\BoxComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\CameraComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\ComponentFactory.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Sources\GameFramework\Object\Component\DirectionalLightComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\LightComponent.cpp" />
@@ -129,7 +129,7 @@
     <ClInclude Include="Sources\GameFramework\Object\Component\BoxComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\CameraComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\ComponentFactory.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\Component\DirectionalLightComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\LightComponent.h" />

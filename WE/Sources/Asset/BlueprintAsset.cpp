@@ -85,6 +85,20 @@ void FBlueprintAsset::DeserializeProperties(TArray<FProperty>& Properties, FBina
     }
 }
 
+void FBlueprintAsset::DeserializeInitializers(TArray<BlueprintAsset::FInitializer>& Initializers, FBinaryReader& Reader)
+{
+    int InitializersNum;
+    Reader >> InitializersNum;
+
+    for (int i = 0; i < InitializersNum; ++i)
+    {
+        FInitializer Init;
+        Reader >> Init.Name;
+        Reader >> Init.Value;
+        Initializers.push_back(std::move(Init));
+    }
+}
+
 void FBlueprintAsset::DeserializeComponents(FBinaryReader& Reader)
 {
     // 1. 총 컴포넌트의 수 읽기
@@ -107,6 +121,8 @@ void FBlueprintAsset::DeserializeComponent(FComponentNode* CompNode, FBinaryRead
 
     // 3. 컴포넌트 프로퍼티 쓰기
     DeserializeProperties(CompNode->Properties, Reader);
+
+    DeserializeInitializers(CompNode->Initializers, Reader);
 }
 
 bool FBlueprintAssetCompiler::OnCompile(const std::wstring& SrcPath, std::vector<unsigned char>& OutBuffer)
@@ -196,6 +212,27 @@ void FBlueprintAssetCompiler::SerializeProperties(FXMLElement* PropertiesElement
     assert(PropertiesNum == FloatProperties.size() + BooleanProperties.size() + RawProperties.size());
 }
 
+void FBlueprintAssetCompiler::SerializeInitializer(FXMLElement* InitializersElement, FBinaryWriter& Writer)
+{
+    if (!InitializersElement)
+    {
+        Writer << (int)0;
+        return;
+    }
+
+    int InitializersNum = InitializersElement->ChildElementCount();
+    Writer << InitializersNum;
+
+    FXMLElement* InitElement = InitializersElement->FirstChildElement();
+    while (InitElement)
+    {
+        Writer << InitElement->Name();
+        Writer << InitElement->GetText();
+
+        InitElement = InitElement->NextSiblingElement();
+    }
+}
+
 void FBlueprintAssetCompiler::SerializeComponents(FXMLElement* ComponentsElement, FBinaryWriter& Writer)
 {
     if (ComponentsElement == nullptr)
@@ -216,8 +253,12 @@ void FBlueprintAssetCompiler::SerializeComponents(FXMLElement* ComponentsElement
         Writer << ComponentClass;
         Writer << CompElement->Attribute("Name");
 
+        FXMLElement* ChildElement = CompElement->FirstChildElement();
+
         // 3. 컴포넌트 프로퍼티 쓰기
         SerializeProperties(CompElement->FirstChildElement("Properties"), Writer);
+
+        SerializeInitializer(CompElement->FirstChildElement("Initializers"), Writer);
 
         CompElement = CompElement->NextSiblingElement();
     }

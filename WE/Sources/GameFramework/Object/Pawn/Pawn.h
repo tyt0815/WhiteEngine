@@ -4,8 +4,12 @@
 
 class APawn : public AActor
 {
+	typedef AActor Super;
 public:
 	virtual void SetupPlayerInput() {};
+
+protected:
+	virtual void OnCreateComponent(WActorComponent* Comp) override;
 
 protected:
 	void AddMovementInput(const XMFLOAT3& WorldDirection, float ScaleValue);
@@ -26,9 +30,5 @@ public:
 	inline TWeakPtr<WCameraComponent> GetCameraComponent() const
 	{
 		return mCameraComponent;
-	}
-	inline void SetCameraComponent(const TWeakPtr<WCameraComponent>& CameraComponent)
-	{
-		mCameraComponent = CameraComponent;
 	}
 };

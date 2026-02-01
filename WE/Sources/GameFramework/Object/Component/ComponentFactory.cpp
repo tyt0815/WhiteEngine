@@ -1,19 +1,23 @@
 #include "ComponentFactory.h"
+#include "GameFramework/Object/Component/ActorComponent.h"
 
-FComponentFactory::FComponentFactory()
+FComponentFactory::FComponentFactory() {}
+FComponentFactory::~FComponentFactory() {}
+
+void FComponentFactory::RegisterComponent(const std::string& Name, ComponentCreator Creator)
 {
-
+    mRegistry[Name] = Creator;
 }
 
-FComponentFactory::~FComponentFactory()
+std::shared_ptr<WActorComponent> FComponentFactory::CreateComponent(const std::string& ClassName)
 {
-
-}
-
-std::shared_ptr<WActorComponent> FComponentFactory::CreateComponent(const std::string& Name)
-{
-    if (mRegistry.find(Name) != mRegistry.end()) {
-        return mRegistry[Name](); // 등록된 생성 함수 실행
+    auto it = mRegistry.find(ClassName);
+    if (it != mRegistry.end())
+    {
+        return it->second();
     }
+
+    // 에러 로그나 어설트 추가 (디버깅용)
+    assert(false && "Unknown Component Class Name!");
     return nullptr;
 }

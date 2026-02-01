@@ -46,6 +46,8 @@ void WObject::LoadWProperties(const TArray<FProperty>& Properties)
 			RawProperties.push_back(&Prop);
 		}
 	}
+}
 
-	LoadRawWProperties(RawProperties);
+void WObject::LoadWInitializers(const TArray<BlueprintAsset::FInitializer>& Initializers)
+{
 }

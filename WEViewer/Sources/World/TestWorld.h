@@ -1,7 +1,6 @@
 #pragma once
 
 #include "GameFramework/Object/World/DefaultWorld.h"
-#include "Actor/MissileSwarmSystem.h"
 
 class WTestWorld : public WDefaultWorld
 {
@@ -18,7 +17,7 @@ private:
 
 	float mElapsedTime;
 
-	TWeakPtr<AMissileSwarmSystem> mMissileSystems[2];
+	// TWeakPtr<AMissileSwarmSystem> mMissileSystems[2];
 
 	TWeakPtr<AActor> mPlatform;
 };

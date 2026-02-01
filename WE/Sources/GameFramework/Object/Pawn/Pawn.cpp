@@ -1,5 +1,16 @@
 #include "Pawn.h"
 #include "Utility/Timer.h"
+#include "Component/CameraComponent.h"
+
+void APawn::OnCreateComponent(WActorComponent* Comp)
+{
+	Super::OnCreateComponent(Comp);
+
+	if (WCameraComponent* CameraComp = dynamic_cast<WCameraComponent*>(Comp))
+	{
+		mCameraComponent = Comp->GetWeakPtr<WCameraComponent>();
+	}
+}
 
 void APawn::AddMovementInput(const XMFLOAT3& WorldDirection, float ScaleValue)
 {

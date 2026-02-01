@@ -30,6 +30,9 @@ public:
 	template<typename T>
 	TWeakPtr<T> CreateComponent();
 
+	template<typename T>
+	TWeakPtr<T> CreateComponentByFactory(const std::string Name);
+
 	void SetRootComponent(TWeakPtr<WSceneComponent> Component);
 
 	void SetActorTransform(FTransform Transform);
@@ -56,6 +59,8 @@ protected:
 	virtual void OnDeactivate() override;
 
 	void LoadBlueprint(class FBlueprintAsset* Asset);
+
+	virtual void OnCreateComponent(WActorComponent* Comp);
 
 private:
 	void UpdateRecursive();
@@ -142,21 +147,21 @@ __forceinline TWeakPtr<T> AActor::CreateComponent()
 	TSharedPtr<T> CompT = MakeShared<T>();
 	mAllComponents.emplace_back(CompT);
 
-	if (TSharedPtr<WSceneComponent> SceneComp = Cast<WSceneComponent>(CompT))
-	{
-		mAllSceneComponent.emplace_back(SceneComp);
-		if (TSharedPtr<WPhysicsComponent> PhysicsComp = Cast<WPhysicsComponent>(SceneComp))
-		{
-			mAllPhysicsComponents.emplace_back(PhysicsComp);
-		}
-	}
-	else
-	{
-		mAllNoneSceneComponent.emplace_back(CompT);
-	}
+	OnCreateComponent(CompT.get());	
+	
+	return TWeakPtr<T>(CompT);
+}
 
-	
-	
+template<typename T>
+inline TWeakPtr<T> AActor::CreateComponentByFactory(const std::string Name)
+{
+	static_assert(IsDerivedFrom<WActorComponent, T>());
+
+	TSharedPtr<T> CompT = FComponentFactory::Create<T>(Name);
+	mAllComponents.emplace_back(CompT);
+
+	OnCreateComponent(CompT.get());
+
 	return TWeakPtr<T>(CompT);
 }
 

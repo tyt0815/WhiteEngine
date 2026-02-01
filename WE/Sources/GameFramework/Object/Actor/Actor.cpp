@@ -35,6 +35,8 @@ void AActor::SetRootComponent(TWeakPtr<WSceneComponent> Component)
 	}
 
 	mRootComponent = Component;
+
+	RegisterWPropertySafe("RootComponent", mRootComponent.lock().get());
 }
 
 void AActor::SetActorTransform(FTransform Transform)
@@ -127,8 +129,31 @@ void AActor::LoadBlueprint(FBlueprintAsset* Asset)
 
 	for (const auto& CompNode : ActorNode->Components)
 	{
-		WActorComponent* Comp = GetWPropertyPtr<WActorComponent>(CompNode->Name);
+		WActorComponent* Comp = GetWPropertyPtrSafe<WActorComponent>(CompNode->Name);
+		if (!Comp)
+		{
+			Comp = CreateComponentByFactory<WActorComponent>(CompNode->Class).lock().get();
+			RegisterWProperty(CompNode->Name, Comp);
+		}
 		Comp->LoadWProperties(CompNode->Properties);
+		Comp->LoadWInitializers(CompNode->Initializers);
+	}
+}
+
+void AActor::OnCreateComponent(WActorComponent* Comp)
+{
+	Comp->mOwner = this;
+	if (WSceneComponent* SceneComp = dynamic_cast<WSceneComponent*>(Comp))
+	{
+		mAllSceneComponent.emplace_back(SceneComp->GetWeakPtr<WSceneComponent>());
+		if (WPhysicsComponent* PhysicsComp = dynamic_cast<WPhysicsComponent*>(SceneComp))
+		{
+			mAllPhysicsComponents.emplace_back(PhysicsComp->GetWeakPtr<WPhysicsComponent>());
+		}
+	}
+	else
+	{
+		mAllNoneSceneComponent.emplace_back(Comp->GetWeakPtr<WActorComponent>());
 	}
 }
 
@@ -144,7 +169,6 @@ void AActor::BeginComponents()
 {
 	for (int i = 0; i < mAllComponents.size(); ++i)
 	{
-		mAllComponents[i]->SetOwner(GetWeakPtr<AActor>());
 		mAllComponents[i]->BeginComponent();
 	}
 }

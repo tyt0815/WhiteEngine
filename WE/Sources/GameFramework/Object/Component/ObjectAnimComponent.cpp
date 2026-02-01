@@ -2,7 +2,7 @@
 #include "Asset/AssetManager.h"
 #include "Asset/XMLDataAsset.h"
 #include "Asset/AssetLoader.h"
-
+#include "Actor/Actor.h"
 
 using namespace tinyxml2;
 
@@ -92,17 +92,7 @@ float FCurveSampler::SampleAnimDataByFrame(const float TargetFrame)
 	return Value;
 }
 
-FCurveSampler FObjectAnimSampler::GetCurveSampler(const std::string CurveName)
-{
-	FCurveSampler CurveSampler;
-	if (mCurveViewMap->count(CurveName))
-	{
-		CurveSampler.mCurveView = &mCurveViewMap->at(CurveName);
-	}
-	return CurveSampler;
-}
-
-FObjectAnimSampler::FObjectAnimSampler(const std::unordered_map<std::string, FCurveView>* InCurveViewMap):
+FObjectAnimSampler::FObjectAnimSampler(const std::unordered_map<std::string, FCurveView>* InCurveViewMap) :
 	mCurveViewMap(InCurveViewMap)
 {
 
@@ -115,6 +105,16 @@ FObjectAnimSampler::FObjectAnimSampler(const std::unordered_map<std::string, FCu
 	mScaleX = GetCurveSampler("ScaleX");
 	mScaleY = GetCurveSampler("ScaleY");
 	mScaleZ = GetCurveSampler("ScaleZ");
+}
+
+FCurveSampler FObjectAnimSampler::GetCurveSampler(const std::string CurveName)
+{
+	FCurveSampler CurveSampler;
+	if (mCurveViewMap->count(CurveName))
+	{
+		CurveSampler.mCurveView = &mCurveViewMap->at(CurveName);
+	}
+	return CurveSampler;
 }
 
 FTransform FObjectAnimSampler::SampleTransform(float TargetFrame) 
@@ -169,13 +169,147 @@ XMFLOAT3 FObjectAnimSampler::SampleLocation(float TargetFrame)
 	);
 }
 
+WObjectAnimComponent::WObjectAnimComponent()
+{
+	SetTickGroup(ETickGroup::ETG_PrePhysics, ETickPriority::ETP_Low);
+}
 
 void WObjectAnimComponent::BeginComponent()
 {
 	Super::BeginComponent();
 }
 
-bool WObjectAnimComponent::LoadKeyframesFromOADAsset(const std::wstring& AssetName)
+void WObjectAnimComponent::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (!mIsPlaying || !mSampler)
+	{
+		return;
+	}
+
+	// 1. 시간 업데이트 (이전 프레임 기록)
+	float prevTime = mCurrentTime;
+	mCurrentTime += DeltaTime;
+	float duration = GetDuration();
+
+	XMVECTOR vDeltaLoc;
+	XMVECTOR vDeltaRot;
+	XMVECTOR vDeltaScale;
+
+	if (mCurrentTime >= duration)
+	{
+		// 루프 시점 델타 보정
+		if (mLoop)
+		{
+			// A 구간: 이전 시간부터 끝까지의 움직임
+			FTransform prevT = mSampler->SampleTransform(SecondToFrame(prevTime));
+			FTransform endT = mSampler->SampleTransform(SecondToFrame(duration));
+
+			// B 구간: 처음부터 현재 리셋된 시간까지의 움직임
+			mCurrentTime = std::fmod(mCurrentTime, duration);
+			FTransform startT = mSampler->SampleTransform(0.0f);
+			FTransform currT = mSampler->SampleTransform(SecondToFrame(mCurrentTime));
+
+			vDeltaLoc = (XMLoadFloat3(&endT.Translation) - XMLoadFloat3(&prevT.Translation)) +
+				(XMLoadFloat3(&currT.Translation) - XMLoadFloat3(&startT.Translation));
+
+			vDeltaRot = (XMLoadFloat3(&endT.Rotation) - XMLoadFloat3(&prevT.Rotation)) +
+				(XMLoadFloat3(&currT.Rotation) - XMLoadFloat3(&startT.Rotation));
+
+			vDeltaScale = (XMLoadFloat3(&endT.Scale) - XMLoadFloat3(&prevT.Scale)) +
+				(XMLoadFloat3(&currT.Scale) - XMLoadFloat3(&startT.Scale));
+		}
+		else
+		{
+			// 종료 처리 (기존 로직 유지)
+			mCurrentTime = duration;
+			mIsPlaying = false;
+
+			FTransform prevT = mSampler->SampleTransform(SecondToFrame(prevTime));
+			FTransform endT = mSampler->SampleTransform(SecondToFrame(duration));
+			vDeltaLoc = XMLoadFloat3(&endT.Translation) - XMLoadFloat3(&prevT.Translation);
+			vDeltaRot = XMLoadFloat3(&endT.Rotation) - XMLoadFloat3(&prevT.Rotation);
+			vDeltaScale = XMLoadFloat3(&endT.Scale) - XMLoadFloat3(&prevT.Scale);
+		}
+	}
+	else
+	{
+		// 일반 프레임 델타 계산 (기존 로직)
+		FTransform prevT = mSampler->SampleTransform(SecondToFrame(prevTime));
+		FTransform currT = mSampler->SampleTransform(SecondToFrame(mCurrentTime));
+
+		vDeltaLoc = XMLoadFloat3(&currT.Translation) - XMLoadFloat3(&prevT.Translation);
+		vDeltaRot = XMLoadFloat3(&currT.Rotation) - XMLoadFloat3(&prevT.Rotation);
+		vDeltaScale = XMLoadFloat3(&currT.Scale) - XMLoadFloat3(&prevT.Scale);
+	}
+
+	// 비트 플래그에 따른 마스킹
+	XMFLOAT3 dLoc, dRot, dScale;
+	XMStoreFloat3(&dLoc, vDeltaLoc);
+	XMStoreFloat3(&dRot, vDeltaRot);
+	XMStoreFloat3(&dScale, vDeltaScale);
+
+	if (!(mRootMotionFlags & ERootMotion::LocX)) dLoc.x = 0.f;
+	if (!(mRootMotionFlags & ERootMotion::LocY)) dLoc.y = 0.f;
+	if (!(mRootMotionFlags & ERootMotion::LocZ)) dLoc.z = 0.f;
+
+	if (!(mRootMotionFlags & ERootMotion::RotX)) dRot.x = 0.f;
+	if (!(mRootMotionFlags & ERootMotion::RotY)) dRot.y = 0.f;
+	if (!(mRootMotionFlags & ERootMotion::RotZ)) dRot.z = 0.f;
+
+	if (!(mRootMotionFlags & ERootMotion::ScaleX)) dScale.x = 0.f;
+	if (!(mRootMotionFlags & ERootMotion::ScaleY)) dScale.y = 0.f;
+	if (!(mRootMotionFlags & ERootMotion::ScaleZ)) dScale.z = 0.f;
+
+	// 4. 최종 적용 대상 결정 (캐싱된 타겟이 없으면 액터)
+	if (auto Target = mTarget.lock()) // 특정 씬 컴포넌트를 조종할 때
+	{
+		// 컴포넌트는 상대(Local) 좌표계이므로 델타를 그냥 더해줌
+		FTransform T = Target->GetLocalTransform();
+
+		XMVECTOR NewLoc = XMLoadFloat3(&T.Translation) + XMLoadFloat3(&dLoc);
+		XMVECTOR NewRot = XMLoadFloat3(&T.Rotation) + XMLoadFloat3(&dRot);
+		XMVECTOR NewScale = XMLoadFloat3(&T.Scale) + XMLoadFloat3(&dScale);
+
+		FTransform NewT;
+		XMStoreFloat3(&NewT.Translation, NewLoc);
+		XMStoreFloat3(&NewT.Rotation, NewRot);
+		XMStoreFloat3(&NewT.Scale, NewScale);
+
+		Target->SetLocalTransform(NewT);
+	}
+	else if(AActor* OwnerPtr = GetOwner()) // 타겟이 없으면 액터(RootComponent)에 적용 (루트 모션)
+	{
+		// 위치는 액터의 현재 회전 방향을 고려해서 더해줘야 함
+		XMFLOAT4 ActorQuat = OwnerPtr->GetActorQuaternion();
+		XMVECTOR vActorQuat = XMLoadFloat4(&ActorQuat);
+		XMVECTOR vRotatedDeltaLoc = XMVector3Rotate(XMLoadFloat3(&dLoc), vActorQuat);
+
+		// 위치 적용
+		XMFLOAT3 curLoc = OwnerPtr->GetActorLocation();
+		XMVECTOR vNewLoc = XMLoadFloat3(&curLoc) + vRotatedDeltaLoc;
+		XMFLOAT3 finalLoc;
+		XMStoreFloat3(&finalLoc, vNewLoc);
+		OwnerPtr->SetActorLocation(finalLoc);
+
+		// 회전 적용 (Euler 누적)
+		XMFLOAT3 curRot = OwnerPtr->GetActorRotation();
+		XMVECTOR vNewRot = XMLoadFloat3(&curRot) + XMLoadFloat3(&dRot);
+		XMFLOAT3 finalRot;
+		XMStoreFloat3(&finalRot, vNewRot);
+		OwnerPtr->SetActorRotation(finalRot);
+
+		// 스케일 적용
+		XMFLOAT3 curScale = OwnerPtr->GetActorScale();
+		XMVECTOR vNewScale = XMLoadFloat3(&curScale) + XMLoadFloat3(&dScale);
+		XMFLOAT3 finalScale;
+		XMStoreFloat3(&finalScale, vNewScale);
+		OwnerPtr->SetActorScale(finalScale);
+	}
+}
+
+bool WObjectAnimComponent::LoadKeyframesFromOADAsset(const std::wstring& AssetName, const std::string& AnimName)
 {
 	if (FObjectAnimDataAsset* ObjectAnimData = FAssetManager::GetAsset<FObjectAnimDataAsset>(AssetName))
 	{
@@ -183,60 +317,23 @@ bool WObjectAnimComponent::LoadKeyframesFromOADAsset(const std::wstring& AssetNa
 		mFrameEnd = ObjectAnimData->GetFraneEnd();
 
 		const auto& ObjectCurveMap = ObjectAnimData->GetObjectCurveMap();
-		for (const auto& Data : ObjectCurveMap)
-		{
-			mObjectAnimSamplerMap.insert({ Data.first, FObjectAnimSampler(&Data.second) });
-		}
+		mSampler = MakeUnique<FObjectAnimSampler>(&ObjectCurveMap.at(AnimName));
 
-		return true;
+		return mSampler != nullptr;
 	}
-	
+
 	return false;
 }
 
-FObjectAnimSampler* WObjectAnimComponent::GetObjectAnimSampler(std::string ObjectName)
+void WObjectAnimComponent::Play(bool bLoop, uint16_t Flags)
 {
-	if (mObjectAnimSamplerMap.count(ObjectName))
-	{
-		return &mObjectAnimSamplerMap.at(ObjectName);
-	}
-	return nullptr;
+	mIsPlaying = true;
+	mLoop = bLoop;
+	mRootMotionFlags = Flags;
 }
 
-void WObjectAnimComponent::GetObjectAnimSamplerList(TArray<std::string>& List)
+void WObjectAnimComponent::Stop()
 {
-	List.resize(mObjectAnimSamplerMap.size());
-	int i = 0;
-	for (const auto& Pair : mObjectAnimSamplerMap)
-	{
-		List[i++] = Pair.first;
-	}
-}
-
-FTransform WObjectAnimComponent::SampleAnimWorldTransformByFrame(FObjectAnimSampler* Sampler, float Frame)
-{
-	XMMATRIX CM = GetWorldMatrix();
-	XMMATRIX M = Sampler->SampleTransform(Frame).GetTransformMatrix();
-
-	FTransform Transform;
-	Transform.SetByTransformMatrix(M * CM);
-
-	return Transform;
-}
-
-XMFLOAT3 WObjectAnimComponent::SampleAnimWorldLocationByFrame(FObjectAnimSampler* Sampler, float Frame)
-{
-	XMFLOAT3 Loc = Sampler->SampleLocation(Frame);
-	XMStoreFloat3(&Loc, XMVector3Transform(XMLoadFloat3(&Loc), GetWorldMatrix()));
-	return Loc;
-}
-
-FTransform WObjectAnimComponent::SampleAnimWorldTransformBySecond(FObjectAnimSampler* Sampler, float Second)
-{
-	return SampleAnimWorldTransformByFrame(Sampler, SecondToFrame(Second));
-}
-
-XMFLOAT3 WObjectAnimComponent::SampleAnimWorldLocationBySecond(FObjectAnimSampler* Sampler, float Second)
-{
-	return SampleAnimWorldLocationByFrame(Sampler, SecondToFrame(Second));
+	mIsPlaying = false;
+	mCurrentTime = 0.0f;
 }

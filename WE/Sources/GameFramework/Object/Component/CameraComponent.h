@@ -6,7 +6,6 @@ class WCameraComponent : public WSceneComponent
 	typedef WSceneComponent Super;
 public:
 	WCameraComponent();
-	virtual void SetOwner(TWeakPtr<AActor> Owner) override;
 
 public:
 

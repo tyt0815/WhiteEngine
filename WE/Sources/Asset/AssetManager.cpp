@@ -49,13 +49,9 @@ void FAssetManager::LoadAssets()
 	LoadAsset<FSplineDataAsset>(JsonDir + L"/WaveSpline.json", L"SDA_Wave");
 	LoadAsset<FSplineDataAsset>(JsonDir + L"/RingPathSpline.json", L"SDA_RingPath");
 
-	std::wstring XMLDir = SolutionDir + L"Resources/XML";	
-	LoadAsset<FObjectAnimDataAsset>(XMLDir + L"/MultiAnim.xml", L"OAD_MultiAnim");
-	LoadAsset<FObjectAnimDataAsset>(XMLDir + L"/LeftRight.xml", L"OAD_LeftRight");
-	LoadAsset<FObjectAnimDataAsset>(XMLDir + L"/ColdLaunch.xml", L"OAD_ColdLaunch");
-	LoadAsset<FObjectAnimDataAsset>(XMLDir + L"/MissileTrack.xml", L"OAD_MissileTrack");
-
 	LoadBlueprints();
+
+	LoadObjectAnimations();
 }
 
 FAsset* FAssetManager::GetAsset(const std::wstring& Name)
@@ -79,5 +75,19 @@ void FAssetManager::LoadBlueprints()
 	for (const auto& FileName : BlueprintFileName)
 	{
 		LoadAsset<FBlueprintAsset>(FolderPath + L"\\" + FileName + Extension, FileName);
+	}
+}
+
+void FAssetManager::LoadObjectAnimations()
+{
+	const std::wstring FolderPath = SOLUTION_DIR_W + std::wstring(L"Resources\\ObjectAnimations");
+	const std::wstring Extension = L".oa";
+	TArray<std::wstring> ObjAnimFileName;
+
+	GetFileNameByExtension(FolderPath, Extension, ObjAnimFileName);
+
+	for (const auto& FileName : ObjAnimFileName)
+	{
+		LoadAsset<FObjectAnimDataAsset>(FolderPath + L"\\" + FileName + Extension, FileName);
 	}
 }

@@ -11,7 +11,7 @@ WProjectileMovementComponent::WProjectileMovementComponent()
 void WProjectileMovementComponent::Tick(float DeltaTime)
 {
     mLifeTimeElapsed += DeltaTime;
-    auto Owner = GetOwner().lock();
+    AActor* Owner = GetOwner();
     if (!Owner || (mLifeSpan > 0 && mLifeTimeElapsed > mLifeSpan))
     {
         if (Owner) Owner->Destroy();

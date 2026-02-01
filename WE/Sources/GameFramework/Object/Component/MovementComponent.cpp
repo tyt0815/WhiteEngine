@@ -11,7 +11,7 @@ void WMovementComponent::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// 프레임마다 Owner를 이동시킴
-	if (auto Owner = GetOwner().lock())
+	if (AActor* Owner = GetOwner())
 	{
 		XMFLOAT4 Quat = Owner->GetActorTransform().GetQuaternionRotationFloat4();
 
@@ -26,7 +26,7 @@ void WMovementComponent::Tick(float DeltaTime)
 
 void WMovementComponent::MoveOwner(XMFLOAT3 Velocity)
 {
-	if (TSharedPtr<AActor> Owner = GetOwner().lock())
+	if (AActor* Owner = GetOwner())
 	{
 		XMFLOAT3 WorldLocation = Owner->GetActorTransform().Translation;
 		XMVECTOR DirectionVector = XMLoadFloat3(&Velocity);

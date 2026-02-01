@@ -1,32 +1,42 @@
 #pragma once
 #include "Utility/Class.h"
 #include <functional>
-#include "ActorComponent.h"
+#include <unordered_map>
+#include <string>
+#include "Utility/Memory.h"
 
-// ComponentFactory.h
+class WActorComponent;
+
+// 컴포넌트 생성 함수 정의
 using ComponentCreator = std::function<std::shared_ptr<WActorComponent>()>;
 
 class FComponentFactory {
 public:
-    SINGLETON(FComponentFactory);    
+    SINGLETON(FComponentFactory);
 
 private:
-    std::shared_ptr<WActorComponent> CreateComponent(const std::string& Name);
-
     std::unordered_map<std::string, ComponentCreator> mRegistry;
 
 public:
-    __forceinline void RegisterComponent(const std::string& Name, ComponentCreator Creator)
-    {
-        mRegistry[Name] = Creator;
-    }
+    // 컴포넌트 등록
+    void RegisterComponent(const std::string& Name, ComponentCreator Creator);
 
-    __forceinline static std::shared_ptr<WActorComponent> CreateComponent(const std::string& Name)
+    // 문자열로 컴포넌트 생성
+    std::shared_ptr<WActorComponent> CreateComponent(const std::string& ClassName);
+
+    // 템플릿 버전 (편의용)
+    template<typename T>
+    static std::shared_ptr<T> Create(const std::string& ClassName)
     {
-        GetInstance()->CreateComponent(Name);
+        return Cast<T>(GetInstance()->CreateComponent(ClassName));
     }
 };
 
-
+// 등록용 매크로
 #define REGISTER_COMPONENT(ClassName) \
-    FComponentFactory::RegisterComponent(L#ClassName, []() { return std::make_shared<ClassName>(); });
+    inline static bool ClassName##_CompRegistered = []() { \
+        FComponentFactory::GetInstance()->RegisterComponent(#ClassName, []() { \
+            return std::make_shared<ClassName>(); \
+        }); \
+        return true; \
+    }()

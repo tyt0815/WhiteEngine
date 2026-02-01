@@ -5,20 +5,32 @@
     </Properties>
 
     <Components>
-        <StaticMeshComponent Name = "StaticMeshComponent">
+        <WStaticMeshComponent Name = "StaticMeshComponent">
             <Properties>
-                <StaticMesh Name = "StaticMesh" Value = "SM_MetalRing"/>
+
             </Properties>
-        </StaticMeshComponent>
-        <ProjectileMovementComponent Name = "ProjMovementComp">
+            <Initializers>
+                <StaticMesh>SM_MetalRing</StaticMesh>
+            </Initializers>
+        </WStaticMeshComponent>
+        <WStaticMeshComponent Name = "StaticMeshComponent2">
+            <Properties>
+
+            </Properties>
+            <Initializers>
+                <StaticMesh>SM_LaminateFlooringBrownBox</StaticMesh>
+                <ParentComponent>StaticMeshComponent</ParentComponent>
+            </Initializers>
+        </WStaticMeshComponent>
+        <WProjectileMovementComponent Name = "ProjMovementComp">
             <Properties>
                 <bool Name = "Homing" Value = "true" />
-                <float Name = "LifeSpan" Value = "10.0"/>
+                <float Name = "LifeSpan" Value = "0"/>
             </Properties>
-        </ProjectileMovementComponent>
+        </WProjectileMovementComponent>
     </Components>
 
-    <Events>
+    <!-- <Events>
         <Event Name="OnSpawn">
             <Action Type="PlaySound" SoundName="Missile_Launch" />
             <Action Type="CallFunction" FuncName="StartEngine" Delay="0.1" />
@@ -29,5 +41,5 @@
             <Action Type="ApplyRadialDamage" Radius="300" Force="1000" />
             <Action Type="DestroyActor" />
         </Event>
-    </Events>
+    </Events> -->
 </Blueprint>

@@ -58,15 +58,15 @@ void WStaticMeshComponent::UpdateProxies()
 	}
 }
 
-void WStaticMeshComponent::LoadRawWProperties(TArray<const BlueprintAsset::FProperty*>& RawProperties)
+void WStaticMeshComponent::LoadWInitializers(const TArray<BlueprintAsset::FInitializer>& Initializers)
 {
-	Super::LoadRawWProperties(RawProperties);
+	Super::LoadWInitializers(Initializers);
 
-	for (const auto* Prop : RawProperties)
+	for (const auto& Init : Initializers)
 	{
-		if (Prop->Name == "StaticMesh")
+		if (Init.Name == "StaticMesh")
 		{
-			SetStaticMesh(std::get<std::string>(Prop->Value));
+			SetStaticMesh(Init.Value);
 		}
 	}
 }

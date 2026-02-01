@@ -131,7 +131,7 @@ bool FObjectAnimDataAsset::LoadAsset(const std::wstring& FilePath)
 {
 	// 경로 설정
 	std::wstring xmlPath = FilePath;
-	std::wstring lz4Path = xmlPath.substr(0, xmlPath.find_last_of('.')) + L".oad.lz4";
+	std::wstring lz4Path = FilePath + L"lz4";
 
 	bool bNeedCompile = false;
 

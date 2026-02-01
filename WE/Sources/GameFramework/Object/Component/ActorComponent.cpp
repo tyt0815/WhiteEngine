@@ -21,8 +21,3 @@ void WActorComponent::BeginComponent()
 {
 	OnActivate();
 }
-
-void WActorComponent::SetOwner(TWeakPtr<AActor> Owner)
-{
-	mOwner = Owner;
-}

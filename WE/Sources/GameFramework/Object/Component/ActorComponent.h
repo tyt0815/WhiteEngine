@@ -3,14 +3,10 @@
 #include "Object.h"
 #include "DirectX/DXMath.h"
 #include "Utility/Memory.h"
+#include "ComponentFactory.h"
 
 class AActor;
 class WWorld;
-
-namespace BlueprintAsset
-{
-	class FComponentInfoBase;
-}
 
 class WActorComponent : public WObject
 {
@@ -32,12 +28,10 @@ public:
 public:
 	virtual void BeginComponent();
 
-	virtual void SetOwner(TWeakPtr<AActor> Owner);
-
-	TWeakPtr<AActor> mOwner;
+	AActor* mOwner;
 
 public:
-	inline TWeakPtr<AActor> GetOwner() const
+	inline AActor* GetOwner() const
 	{
 		return mOwner;
 	}

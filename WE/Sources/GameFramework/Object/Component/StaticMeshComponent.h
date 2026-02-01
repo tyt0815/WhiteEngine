@@ -15,7 +15,7 @@ protected:
 
 	virtual void UpdateProxies() override;
 
-	virtual void LoadRawWProperties(TArray<const BlueprintAsset::FProperty*>& RawProperties) override;
+	virtual void LoadWInitializers(const TArray<BlueprintAsset::FInitializer>& Initializers) override;
 
 public:
 	void SetStaticMesh(const std::string& Name);
@@ -34,3 +34,5 @@ public:
 		mbCastShadow = bCast;
 	}
 };
+
+REGISTER_COMPONENT(WStaticMeshComponent);

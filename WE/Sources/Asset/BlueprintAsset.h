@@ -36,11 +36,18 @@ namespace BlueprintAsset
 		FPropertyValue Value;
 	};
 
+	struct FInitializer
+	{
+		std::string Name;
+		std::string Value;
+	};
+
 	struct FComponentNode
 	{
 		std::string Name;
 		std::string Class;
 		TArray<FProperty> Properties;
+		TArray<FInitializer> Initializers;
 	};
 
 	struct FActorNode
@@ -50,6 +57,8 @@ namespace BlueprintAsset
 		TArray<FProperty> Properties; 
 
 		TArray<TSharedPtr<FComponentNode>> Components;
+
+		TArray<FInitializer> Initializers;
 	};
 }
 
@@ -63,6 +72,8 @@ private:
 
 	void DeserializeProperties(TArray<BlueprintAsset::FProperty>& Properties, FBinaryReader& Reader);
 
+	void DeserializeInitializers(TArray<BlueprintAsset::FInitializer>& Initializers, FBinaryReader& Reader);
+
 	void DeserializeComponents(FBinaryReader& Reader);
 
 	void DeserializeComponent(BlueprintAsset::FComponentNode* CompNode, FBinaryReader& Reader);
@@ -73,6 +84,8 @@ class FBlueprintAssetCompiler : public FAssetCompiler
 	virtual bool OnCompile(const std::wstring& SrcPath, std::vector<unsigned char>& OutBuffer) override;
 
 	void SerializeProperties(FXMLElement* PropertiesElement, FBinaryWriter& Writer);
+
+	void SerializeInitializer(FXMLElement* InitializersElement, FBinaryWriter& Writer);
 
 	void SerializeComponents(FXMLElement* ComponentsElement, FBinaryWriter& Writer);
 };

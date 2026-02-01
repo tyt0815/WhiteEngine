@@ -94,4 +94,4 @@ def export_all_fcurves_to_xml(file_path):
     print(f"성공: {file_path}")
 
 # 경로 r 붙여서 실행
-export_all_fcurves_to_xml("./Temp/ColdLaunch.xml")
+export_all_fcurves_to_xml("./Temp/ColdLaunch.oa")

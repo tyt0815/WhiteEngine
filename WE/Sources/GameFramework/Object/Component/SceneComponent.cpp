@@ -1,4 +1,18 @@
 #include "SceneComponent.h"
+#include "Actor/Actor.h"
+
+void WSceneComponent::LoadWInitializers(const TArray<BlueprintAsset::FInitializer>& Initializers)
+{
+	Super::LoadWInitializers(Initializers);
+	for (const auto& Init : Initializers)
+	{
+		if (Init.Name == "ParentComponent")
+		{
+			WSceneComponent* Parent = GetOwner()->GetWPropertyPtr<WSceneComponent>(Init.Value);
+			SetupAttachment(Parent->GetWeakPtr<WSceneComponent>());
+		}
+	}
+}
 
 void WSceneComponent::UpdateWorldMatrix()
 {

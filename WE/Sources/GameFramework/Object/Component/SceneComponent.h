@@ -8,10 +8,14 @@ class AActor;
 
 class WSceneComponent : public WActorComponent
 {
+	typedef WActorComponent Super;
 public:
 	WSceneComponent() {};
 
 	virtual ~WSceneComponent() noexcept override {};
+
+protected:
+	virtual void LoadWInitializers(const TArray<BlueprintAsset::FInitializer>& Initializers) override;
 
 public:
 	void UpdateWorldMatrix();

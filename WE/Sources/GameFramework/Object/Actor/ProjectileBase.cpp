@@ -3,9 +3,10 @@
 AProjectileBase::AProjectileBase()
 {
 	mStaticMeshComp = CreateComponent<WStaticMeshComponent>();
-	SetRootComponent(mStaticMeshComp);
+	
 	if (auto StaticMeshComp = mStaticMeshComp.lock())
 	{
+		StaticMeshComp->SetupAttachment(GetRootComponent());
 		RegisterWProperty("StaticMeshComponent", StaticMeshComp.get());
 	}
 
@@ -15,6 +16,18 @@ AProjectileBase::AProjectileBase()
 		RegisterWProperty("ProjMovementComp", Proj.get());
 	}
 
+	mObjAnimComp = CreateComponent<WObjectAnimComponent>();
+	if (auto AnimComp = mObjAnimComp.lock())
+	{
+		RegisterWProperty("ObjectAnimComp", AnimComp.get());
+		AnimComp->LoadKeyframesFromOADAsset(L"OA_MissileTrack", "Proj3");
+	}
+
 	RegisterWProperty("Value", &Value);
 	RegisterWProperty("Boolean", &Boolean);
+}
+
+void AProjectileBase::PlayAnimation()
+{
+	mObjAnimComp.lock()->Play(true, ERootMotion::All);
 }

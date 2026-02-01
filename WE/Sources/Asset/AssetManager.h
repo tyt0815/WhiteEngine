@@ -24,6 +24,8 @@ public:
 private:
 	void LoadBlueprints();
 
+	void LoadObjectAnimations();
+
 	std::unordered_map<std::wstring, TUniquePtr<FAsset>> mAssets;
 };
 
