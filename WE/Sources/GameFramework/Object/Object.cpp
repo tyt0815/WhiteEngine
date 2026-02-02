@@ -47,7 +47,3 @@ void WObject::LoadWProperties(const TArray<FProperty>& Properties)
 		}
 	}
 }
-
-void WObject::LoadWInitializers(const TArray<BlueprintAsset::FInitializer>& Initializers)
-{
-}

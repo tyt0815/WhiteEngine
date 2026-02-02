@@ -15,7 +15,6 @@ public:
 	virtual ~WSceneComponent() noexcept override {};
 
 protected:
-	virtual void LoadWInitializers(const TArray<BlueprintAsset::FInitializer>& Initializers) override;
 
 public:
 	void UpdateWorldMatrix();

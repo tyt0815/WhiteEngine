@@ -36,18 +36,11 @@ namespace BlueprintAsset
 		FPropertyValue Value;
 	};
 
-	struct FInitializer
-	{
-		std::string Name;
-		std::string Value;
-	};
-
 	struct FComponentNode
 	{
 		std::string Name;
 		std::string Class;
 		TArray<FProperty> Properties;
-		TArray<FInitializer> Initializers;
 	};
 
 	struct FActorNode
@@ -57,8 +50,6 @@ namespace BlueprintAsset
 		TArray<FProperty> Properties; 
 
 		TArray<TSharedPtr<FComponentNode>> Components;
-
-		TArray<FInitializer> Initializers;
 	};
 }
 
@@ -67,25 +58,33 @@ class FBlueprintAsset : public FAsset
 public:
 	BlueprintAsset::FActorNode mActorNode;
 
-private:
-	virtual bool LoadAsset(const std::wstring& FilePath) override;
+protected:
+	virtual bool OnCompile(const std::wstring& SrcPath, std::vector<unsigned char>& OutBuffer);
+
+	void SerializeProperties(FXMLElement* PropertiesElement, FBinaryWriter& Writer);
+
+	void SerializeComponents(FXMLElement* ComponentsElement, FBinaryWriter& Writer);
 
 	void DeserializeProperties(TArray<BlueprintAsset::FProperty>& Properties, FBinaryReader& Reader);
-
-	void DeserializeInitializers(TArray<BlueprintAsset::FInitializer>& Initializers, FBinaryReader& Reader);
 
 	void DeserializeComponents(FBinaryReader& Reader);
 
 	void DeserializeComponent(BlueprintAsset::FComponentNode* CompNode, FBinaryReader& Reader);
+
+private:
+	virtual bool LoadAsset(const std::wstring& FilePath) override final;
+
+	bool SmartLoad(const std::wstring& FilePath, TArray<unsigned char>& RawBuffer);
+
+	bool CheckIfNeedCompile(const std::wstring& Src, const std::wstring& Bin);
 };
 
-class FBlueprintAssetCompiler : public FAssetCompiler
+class FActorBlueprintAsset : public FBlueprintAsset
 {
-	virtual bool OnCompile(const std::wstring& SrcPath, std::vector<unsigned char>& OutBuffer) override;
 
-	void SerializeProperties(FXMLElement* PropertiesElement, FBinaryWriter& Writer);
+};
 
-	void SerializeInitializer(FXMLElement* InitializersElement, FBinaryWriter& Writer);
+class FComponentBlueprintAsset : public FBlueprintAsset
+{
 
-	void SerializeComponents(FXMLElement* ComponentsElement, FBinaryWriter& Writer);
 };

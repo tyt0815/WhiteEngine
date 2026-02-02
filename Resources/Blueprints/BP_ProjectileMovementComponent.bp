@@ -1,0 +1,5 @@
+<Component Parent="WProjectileMovementComponent">
+    <Properties>
+        <float Name = "LifeSpan" Value = "1000.0" />
+    </Properties>
+</Component>

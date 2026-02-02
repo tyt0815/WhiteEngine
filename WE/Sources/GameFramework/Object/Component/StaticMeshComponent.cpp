@@ -58,19 +58,6 @@ void WStaticMeshComponent::UpdateProxies()
 	}
 }
 
-void WStaticMeshComponent::LoadWInitializers(const TArray<BlueprintAsset::FInitializer>& Initializers)
-{
-	Super::LoadWInitializers(Initializers);
-
-	for (const auto& Init : Initializers)
-	{
-		if (Init.Name == "StaticMesh")
-		{
-			SetStaticMesh(Init.Value);
-		}
-	}
-}
-
 void WStaticMeshComponent::SetStaticMesh(const std::string& Name)
 {
 	SetStaticMesh(FStaticMeshManager::GetStaticMesh(Name));

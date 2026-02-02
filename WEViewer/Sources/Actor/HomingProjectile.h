@@ -5,3 +5,5 @@
 class AHomingProjectile : public AProjectileBase
 {
 };
+
+REGISTER_ACTOR(AHomingProjectile);

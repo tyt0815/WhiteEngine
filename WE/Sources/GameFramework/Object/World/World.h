@@ -276,6 +276,7 @@ template<typename T>
 inline TWeakPtr<T> WWorld::SpawnActor(const std::wstring& BlueprintName, const FActorSpawnParameter& Param)
 {
 	TSharedPtr<T> Actor = FActorFactory::CreateBlueprintActor<T>(BlueprintName);
+	assert(Actor != nullptr && "부모 클래스를 제대로 설정했는지 확인");
 	RegisterActor(Actor);
 
 	OnSpawnActor(Actor.get(), Param);

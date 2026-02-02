@@ -136,7 +136,6 @@ void AActor::LoadBlueprint(FBlueprintAsset* Asset)
 			RegisterWProperty(CompNode->Name, Comp);
 		}
 		Comp->LoadWProperties(CompNode->Properties);
-		Comp->LoadWInitializers(CompNode->Initializers);
 	}
 }
 

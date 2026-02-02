@@ -53,8 +53,6 @@ protected:
 
 	void LoadWProperties(const TArray<BlueprintAsset::FProperty>& Properties);
 
-	virtual void LoadWInitializers(const TArray<BlueprintAsset::FInitializer>& Initializers);
-
 	template <typename T>
 	void RegisterWProperty(const std::string& Name, T* ValuePtr);
 

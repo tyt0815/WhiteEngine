@@ -15,8 +15,6 @@ protected:
 
 	virtual void UpdateProxies() override;
 
-	virtual void LoadWInitializers(const TArray<BlueprintAsset::FInitializer>& Initializers) override;
-
 public:
 	void SetStaticMesh(const std::string& Name);
 
