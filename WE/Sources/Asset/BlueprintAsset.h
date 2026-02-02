@@ -19,7 +19,7 @@ namespace BlueprintAsset
 	{
 		EPT_Float = 0,
 		EPT_Boolean,
-		EPT_Raw,
+		EPT_String,
 		EPT_TypeNum
 	};
 
@@ -36,11 +36,32 @@ namespace BlueprintAsset
 		FPropertyValue Value;
 	};
 
+	struct FInputParameter
+	{
+		std::string Name;
+		std::string Value;
+	};
+
+	struct FFunctionNode
+	{
+		std::string Target;
+		std::string Name;
+		TArray<FInputParameter> Inputs;
+	};
+
+	struct FEventNode
+	{
+		std::string Name;
+		TArray<FFunctionNode> Functions;
+	};
+
 	struct FComponentNode
 	{
 		std::string ParentClass;
 
 		TArray<FProperty> Properties;
+
+		TArray<FEventNode> Events;
 	};
 
 	struct FAttachedComponentNode
@@ -57,6 +78,8 @@ namespace BlueprintAsset
 		TArray<FProperty> Properties; 
 
 		TArray<TSharedPtr<FAttachedComponentNode>> AttachedComponents;
+
+		TArray<FEventNode> Events;
 	};
 }
 
@@ -77,9 +100,17 @@ protected:
 
 	void DeserializeProperties(TArray<BlueprintAsset::FProperty>& Properties, FBinaryReader& Reader);
 
-	void SerializeComponent(FXMLElement* ComponentsElement, FBinaryWriter& Writer);
+	void SerializeComponent(FXMLElement* ComponentElement, FBinaryWriter& Writer);
 
 	void DeserializeComponent(FBinaryReader& Reader, BlueprintAsset::FComponentNode* CompNode);
+
+	void SerializeEvents(FXMLElement* EventsElement, FBinaryWriter& Writer);
+
+	void SerializeEvent(FXMLElement* EventElement, FBinaryWriter& Writer);
+
+	void DeserializeEvents(FBinaryReader& Reader, TArray<BlueprintAsset::FEventNode>& EventsNode);
+
+	void DeserializeEvent(FBinaryReader& Reader, BlueprintAsset::FEventNode* EventNode);
 
 private:
 	virtual bool LoadAsset(const std::wstring& FilePath) override final;
@@ -92,21 +123,21 @@ private:
 class FActorBlueprintAsset : public FBlueprintAsset
 {
 	typedef FBlueprintAsset Super;
-public:
-	BlueprintAsset::FActorNode mActorNode;
-
 protected:
 	virtual void Serialize(FXMLElement* RootElement, FBinaryWriter& Writer) override;
 
 	virtual void Deserialize(FBinaryReader& Reader) override;
 
-	void SerializeAttachedComponents(FXMLElement* ComponentsElement, FBinaryWriter& Writer);
+	void SerializeAttachedComponents(FXMLElement* AttachedComponentsElement, FBinaryWriter& Writer);
 
 	void DeserializeAttachedComponents(FBinaryReader& Reader);
 
-	void DeserializeAttachedComponent(BlueprintAsset::FAttachedComponentNode* CompNode, FBinaryReader& Reader);
+	void DeserializeAttachedComponent(BlueprintAsset::FAttachedComponentNode* AttachedCompNode, FBinaryReader& Reader);
 
 	virtual void RegisterToFactory() override;
+
+private:
+	BlueprintAsset::FActorNode mRootNode;
 };
 
 class FComponentBlueprintAsset : public FBlueprintAsset

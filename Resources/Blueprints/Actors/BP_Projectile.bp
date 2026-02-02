@@ -1,19 +1,23 @@
-<AHomingProjectile>
+<AActor>
     <Properties>
-        <float Name = "Value" Value = "1000.0" />
-        <bool Name = "Boolean" Value = "True" />
     </Properties>
 
     <Components>
         <WStaticMeshComponent Name = "StaticMeshComponent">
+            <Events>
+                <BeginPlay>
+                    <function Target = "this" Name = "SetStaticMesh" StaticMesh = "SM_MetalRing"/>
+                </BeginPlay>
+            </Events>
         </WStaticMeshComponent>
-        <WStaticMeshComponent Name = "StaticMeshComponent2">
-        </WStaticMeshComponent>
-        <WProjectileMovementComponent Name = "ProjMovementComp">
+
+        <BP_ProjectileMovementComponent Name = "ProjMovementComp2">
             <Properties>
                 <bool Name = "Homing" Value = "false" />
-                <float Name = "LifeSpan" Value = "1"/>
+                <float Name = "LifeSpan" Value = "2.5"/>
             </Properties>
-        </WProjectileMovementComponent>
+        </BP_ProjectileMovementComponent>
     </Components>
-</AHomingProjectile>
+
+
+</AActor>

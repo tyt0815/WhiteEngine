@@ -6,6 +6,7 @@ WProjectileMovementComponent::WProjectileMovementComponent()
     RegisterWProperty("LifeSpan", &mLifeSpan);
     RegisterWProperty("HomingTurnLimit", &mHomingTurnLimit);
     RegisterWProperty("Homing", &mbHomingProjectile);
+    RegisterWProperty("Speed", &mSpeed);
 }
 
 void WProjectileMovementComponent::Tick(float DeltaTime)
@@ -75,5 +76,12 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
     }
 
     Super::Tick(DeltaTime);
+}
+
+void WProjectileMovementComponent::BeginComponent()
+{
+    Super::BeginComponent();
+
+    mVelocity = XMFLOAT3(0, 0, mSpeed);
 }
 

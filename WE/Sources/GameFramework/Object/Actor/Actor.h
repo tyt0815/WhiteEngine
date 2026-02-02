@@ -63,7 +63,7 @@ protected:
 
 	virtual void OnDeactivate() override;
 
-	virtual void LoadBlueprint(BlueprintAsset::FActorNode* ActorNode);
+	virtual void LoadBlueprint(BlueprintAsset::FActorNode* RootNode);
 
 	virtual void OnCreateComponent(WActorComponent* Comp);
 

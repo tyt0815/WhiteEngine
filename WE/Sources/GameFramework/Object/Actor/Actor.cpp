@@ -122,11 +122,11 @@ void AActor::OnDeactivate()
 	Super::OnDeactivate();
 }
 
-void AActor::LoadBlueprint(BlueprintAsset::FActorNode* ActorNode)
+void AActor::LoadBlueprint(BlueprintAsset::FActorNode* RootNode)
 {
-	LoadWProperties(ActorNode->Properties);
+	LoadWProperties(RootNode->Properties);
 
-	for (const auto& CompNode : ActorNode->AttachedComponents)
+	for (const auto& CompNode : RootNode->AttachedComponents)
 	{
 		WActorComponent* Comp = GetWPropertyPtrSafe<WActorComponent>(CompNode->Name);
 		if (!Comp)

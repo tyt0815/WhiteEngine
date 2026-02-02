@@ -10,6 +10,8 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void BeginComponent() override;
+
 protected:
 	// 투사체 수명. 0일시 영구 지속
 	float mLifeSpan = 5.0f;
@@ -24,6 +26,8 @@ private:
 	float mHomingTurnLimit = 0;
 
 	bool mbHomingProjectile = false;
+
+	float mSpeed = 1;
 
 public:
 	void SetLifeSpan(float LifeSpan)
@@ -46,3 +50,5 @@ public:
 		mHomingTarget = Target;
 	}
 };
+
+REGISTER_COMPONENT(WProjectileMovementComponent);

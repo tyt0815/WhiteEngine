@@ -54,7 +54,6 @@
     <ClInclude Include="Sources\Actor\ColdLaunchAnimPlayer.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="Sources\Actor\HomingProjectile.h" />
     <ClInclude Include="Sources\Actor\MissileGridManager.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClInclude>
