@@ -66,16 +66,33 @@ FAsset* FAssetManager::GetAsset(const std::wstring& Name)
 
 void FAssetManager::LoadBlueprints()
 {
-	const std::wstring FolderPath = SOLUTION_DIR_W + std::wstring(L"Resources\\Blueprints");
+	const std::wstring BlueprintsPath = SOLUTION_DIR_W + std::wstring(L"Resources\\Blueprints");
 	const std::wstring Extension = L".bp";
-	TArray<std::wstring> BlueprintFileName;
 
-	GetFileNameByExtension(FolderPath, Extension, BlueprintFileName);
-
-	for (const auto& FileName : BlueprintFileName)
+	// Actor Blueprints
 	{
-		LoadAsset<FBlueprintAsset>(FolderPath + L"\\" + FileName + Extension, FileName);
+		TArray<std::wstring> BlueprintFileName;
+		const std::wstring FolderPath = BlueprintsPath + L"\\Actors";
+		GetFileNameByExtension(FolderPath, Extension, BlueprintFileName);
+
+		for (const auto& FileName : BlueprintFileName)
+		{
+			LoadAsset<FActorBlueprintAsset>(FolderPath + L"\\" + FileName + Extension, FileName);
+		}
 	}
+
+	// Component Blueprints
+	{
+		TArray<std::wstring> BlueprintFileName;
+		const std::wstring FolderPath = BlueprintsPath + L"\\Components";
+		GetFileNameByExtension(FolderPath, Extension, BlueprintFileName);
+
+		for (const auto& FileName : BlueprintFileName)
+		{
+			LoadAsset<FComponentBlueprintAsset>(FolderPath + L"\\" + FileName + Extension, FileName);
+		}
+	}
+	
 }
 
 void FAssetManager::LoadObjectAnimations()

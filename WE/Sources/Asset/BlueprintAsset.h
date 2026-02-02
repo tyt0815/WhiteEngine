@@ -36,7 +36,7 @@ namespace BlueprintAsset
 		FPropertyValue Value;
 	};
 
-	struct FComponentNode
+	struct FAttachedComponentNode
 	{
 		std::string Name;
 		std::string Class;
@@ -49,27 +49,31 @@ namespace BlueprintAsset
 
 		TArray<FProperty> Properties; 
 
-		TArray<TSharedPtr<FComponentNode>> Components;
+		TArray<TSharedPtr<FAttachedComponentNode>> Components;
 	};
 }
 
 class FBlueprintAsset : public FAsset
 {
+	typedef FAsset Super;
 public:
 	BlueprintAsset::FActorNode mActorNode;
 
 protected:
 	virtual bool OnCompile(const std::wstring& SrcPath, std::vector<unsigned char>& OutBuffer);
 
-	void SerializeProperties(FXMLElement* PropertiesElement, FBinaryWriter& Writer);
+	virtual void RegisterToFactory() = 0;
 
-	void SerializeComponents(FXMLElement* ComponentsElement, FBinaryWriter& Writer);
+	void SerializeProperties(FXMLElement* PropertiesElement, FBinaryWriter& Writer);
 
 	void DeserializeProperties(TArray<BlueprintAsset::FProperty>& Properties, FBinaryReader& Reader);
 
+
+	void SerializeComponents(FXMLElement* ComponentsElement, FBinaryWriter& Writer);
+
 	void DeserializeComponents(FBinaryReader& Reader);
 
-	void DeserializeComponent(BlueprintAsset::FComponentNode* CompNode, FBinaryReader& Reader);
+	void DeserializeComponent(BlueprintAsset::FAttachedComponentNode* CompNode, FBinaryReader& Reader);
 
 private:
 	virtual bool LoadAsset(const std::wstring& FilePath) override final;
@@ -81,10 +85,28 @@ private:
 
 class FActorBlueprintAsset : public FBlueprintAsset
 {
+	typedef FBlueprintAsset Super;
+protected:
+	virtual bool OnCompile(const std::wstring& SrcPath, std::vector<unsigned char>& OutBuffer) override;
 
+	virtual void RegisterToFactory() override;
+
+private:
+	//void SerializeAttachedComponents(FXMLElement* ComponentsElement, FBinaryWriter& Writer);
+
+	//void DeserializeAttachedComponents(FBinaryReader& Reader);
+
+	//void DeserializeAttachedComponent(BlueprintAsset::FAttachedComponentNode* CompNode, FBinaryReader& Reader);
 };
 
 class FComponentBlueprintAsset : public FBlueprintAsset
 {
+	typedef FBlueprintAsset Super;
+protected:
+	virtual bool OnCompile(const std::wstring& SrcPath, std::vector<unsigned char>& OutBuffer) override;
+
+	virtual void RegisterToFactory() override;
+
+private:
 
 };
