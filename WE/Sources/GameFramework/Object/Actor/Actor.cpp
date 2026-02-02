@@ -122,20 +122,19 @@ void AActor::OnDeactivate()
 	Super::OnDeactivate();
 }
 
-void AActor::LoadBlueprint(FBlueprintAsset* Asset)
+void AActor::LoadBlueprint(BlueprintAsset::FActorNode* ActorNode)
 {
-	const auto* ActorNode = &Asset->mActorNode;
-	LoadWProperties(Asset->mActorNode.Properties);
+	LoadWProperties(ActorNode->Properties);
 
-	for (const auto& CompNode : ActorNode->Components)
+	for (const auto& CompNode : ActorNode->AttachedComponents)
 	{
 		WActorComponent* Comp = GetWPropertyPtrSafe<WActorComponent>(CompNode->Name);
 		if (!Comp)
 		{
-			Comp = CreateComponentByFactory<WActorComponent>(CompNode->Class).lock().get();
+			Comp = CreateComponentByFactory<WActorComponent>(CompNode->ComponentNode.ParentClass).lock().get();
 			RegisterWProperty(CompNode->Name, Comp);
 		}
-		Comp->LoadWProperties(CompNode->Properties);
+		Comp->LoadBlueprint(&CompNode->ComponentNode);
 	}
 }
 

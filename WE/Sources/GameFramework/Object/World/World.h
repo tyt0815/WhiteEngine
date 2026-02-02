@@ -39,10 +39,10 @@ public:
 	TWeakPtr<T> SpawnActor(const FActorSpawnParameter& Param);
 
 	template<typename T>
-	TWeakPtr<T> SpawnActor(const std::wstring& BlueprintName);
+	TWeakPtr<T> SpawnActorByFactory(const std::string& Name);
 
 	template<typename T>
-	TWeakPtr<T> SpawnActor(const std::wstring& BlueprintName, const FActorSpawnParameter& Param);
+	TWeakPtr<T> SpawnActorByFactory(const std::string& Name, const FActorSpawnParameter& Param);
 
 	void DestroyActor(const TSharedPtr<AActor>& Actor);
 
@@ -266,18 +266,19 @@ inline TWeakPtr<T> WWorld::SpawnActor(const FActorSpawnParameter& Param)
 }
 
 template<typename T>
-inline TWeakPtr<T> WWorld::SpawnActor(const std::wstring& BlueprintName)
+inline TWeakPtr<T> WWorld::SpawnActorByFactory(const std::string& Name)
 {
 	FActorSpawnParameter Param;
-	return SpawnActor<T>(BlueprintName, Param);
+
+	return SpawnActorByFactory<T>(Name, Param);
 }
 
 template<typename T>
-inline TWeakPtr<T> WWorld::SpawnActor(const std::wstring& BlueprintName, const FActorSpawnParameter& Param)
+inline TWeakPtr<T> WWorld::SpawnActorByFactory(const std::string& Name, const FActorSpawnParameter& Param)
 {
-	TSharedPtr<T> Actor = FActorFactory::CreateBlueprintActor<T>(BlueprintName);
+	TSharedPtr<T> Actor = FActorFactory::CreateActor<T>(Name);
 	assert(Actor != nullptr && "부모 클래스를 제대로 설정했는지 확인");
-	RegisterActor(Actor);
+	RegisterActor<T>(Actor);
 
 	OnSpawnActor(Actor.get(), Param);
 

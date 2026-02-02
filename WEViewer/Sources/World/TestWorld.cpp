@@ -21,7 +21,7 @@ void WTestWorld::Tick(float DeltaSecond)
 
 	if (a > 3)
 	{
-		if (auto Proj = SpawnActor<AHomingProjectile>(L"BP_Projectile").lock())
+		if (auto Proj = SpawnActorByFactory<AHomingProjectile>("BP_Projectile").lock())
 		{
 			XMFLOAT3 Loc = XMFLOAT3(0, 0, 10);
 			Proj->SetActorLocation(Loc);

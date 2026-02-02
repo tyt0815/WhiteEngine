@@ -2,8 +2,9 @@
 #include "AssetLoader.h"
 #include "Utility/Serialization.h"
 #include "Utility/FileIO.h"
-#include "Actor/ActorFactory.h"
-#include "Component/ComponentFactory.h"
+#include "Utility/String.h"
+#include "Actor/Actor.h"
+#include "Component/ActorComponent.h"
 #include <filesystem>
 
 using namespace BlueprintAsset;
@@ -45,18 +46,9 @@ bool FBlueprintAsset::OnCompile(const std::wstring& SrcPath, std::vector<unsigne
         return false;
     }
 
-    std::string ParentClass = RootElement->Attribute("Parent");
-
     FBinaryWriter Writer(OutBuffer);
 
-    // 1. 액터 기본정보 쓰기
-    Writer << ParentClass;
-
-    // 2. 액터 프로퍼티 쓰기
-    SerializeProperties(RootElement->FirstChildElement("Properties"), Writer);
-
-    // 3. 컴포넌트 쓰기
-    SerializeComponents(RootElement->FirstChildElement("Components"), Writer);
+    Serialize(RootElement, Writer);
 
     return true;
 }
@@ -106,36 +98,12 @@ void FBlueprintAsset::SerializeProperties(FXMLElement* PropertiesElement, FBinar
     assert(PropertiesNum == FloatProperties.size() + BooleanProperties.size() + RawProperties.size());
 }
 
-void FBlueprintAsset::SerializeComponents(FXMLElement* ComponentsElement, FBinaryWriter& Writer)
+void FBlueprintAsset::DeserializeComponent(FBinaryReader& Reader, BlueprintAsset::FComponentNode* CompNode)
 {
-    if (ComponentsElement == nullptr)
-    {
-        Writer << (int)0;
-        return;
-    }
+    Reader >> CompNode->ParentClass;
 
-    // 1. 총 컴포넌트의 수 쓰기
-    int ComponentsNum = ComponentsElement->ChildElementCount();
-    Writer << ComponentsNum;
-
-    FXMLElement* CompElement = ComponentsElement->FirstChildElement();
-    while (CompElement)
-    {
-        // 2. 컴포넌트 기본 정보 쓰기
-        const std::string ComponentClass = CompElement->Name();
-        const std::string ComponentName = CompElement->Attribute("Name");
-        Writer << ComponentClass;
-        Writer << ComponentName;
-
-        FXMLElement* ChildElement = CompElement->FirstChildElement();
-
-        // 3. 컴포넌트 프로퍼티 쓰기
-        SerializeProperties(CompElement->FirstChildElement("Properties"), Writer);
-
-        //SerializeInitializer(CompElement->FirstChildElement("Initializers"), Writer);
-
-        CompElement = CompElement->NextSiblingElement();
-    }
+    // 3. 컴포넌트 프로퍼티 쓰기
+    DeserializeProperties(CompNode->Properties, Reader);
 }
 
 bool FBlueprintAsset::LoadAsset(const std::wstring& FilePath)
@@ -149,13 +117,8 @@ bool FBlueprintAsset::LoadAsset(const std::wstring& FilePath)
 
     // 1. 액터 기본 정보 읽기
     FBinaryReader Reader(RawBuffer);
-    Reader >> mActorNode.ParentClass;
-
-    // 2. 프로퍼티 읽기
-    DeserializeProperties(mActorNode.Properties, Reader);
-
-    // 3. 컴포넌트 읽기
-    DeserializeComponents(Reader);
+    
+    Deserialize(Reader);
 
     RegisterToFactory();
 
@@ -236,57 +199,116 @@ void FBlueprintAsset::DeserializeProperties(TArray<FProperty>& Properties, FBina
     }
 }
 
-void FBlueprintAsset::DeserializeComponents(FBinaryReader& Reader)
+void FBlueprintAsset::SerializeComponent(FXMLElement* ComponentsElement, FBinaryWriter& Writer)
+{
+    const std::string ParentClass = ComponentsElement->Name();
+    Writer << ParentClass;
+
+    // 3. 컴포넌트 프로퍼티 쓰기
+    SerializeProperties(ComponentsElement->FirstChildElement("Properties"), Writer);
+}
+
+void FActorBlueprintAsset::Serialize(FXMLElement* RootElement, FBinaryWriter& Writer)
+{
+    // 1. 액터 기본정보 쓰기
+    std::string ParentClass = RootElement->Name();
+    Writer << ParentClass;
+
+    // 2. 액터 프로퍼티 쓰기
+    SerializeProperties(RootElement->FirstChildElement("Properties"), Writer);
+
+    // 3. 컴포넌트 쓰기
+    SerializeAttachedComponents(RootElement->FirstChildElement("Components"), Writer);
+}
+
+void FActorBlueprintAsset::Deserialize(FBinaryReader& Reader)
+{
+    Reader >> mActorNode.ParentClass;
+
+    // 2. 프로퍼티 읽기
+    DeserializeProperties(mActorNode.Properties, Reader);
+
+    // 3. 컴포넌트 읽기
+    DeserializeAttachedComponents(Reader);
+}
+
+void FActorBlueprintAsset::SerializeAttachedComponents(FXMLElement* ComponentsElement, FBinaryWriter& Writer)
+{
+    if (ComponentsElement == nullptr)
+    {
+        Writer << (int)0;
+        return;
+    }
+
+    // 1. 총 컴포넌트의 수 쓰기
+    int ComponentsNum = ComponentsElement->ChildElementCount();
+    Writer << ComponentsNum;
+
+    FXMLElement* CompElement = ComponentsElement->FirstChildElement();
+    while (CompElement)
+    {
+        // 2. 컴포넌트 기본 정보 쓰기
+        const std::string ComponentName = CompElement->Attribute("Name");
+        Writer << ComponentName;
+
+        SerializeComponent(CompElement, Writer);
+
+        CompElement = CompElement->NextSiblingElement();
+    }
+}
+
+void FActorBlueprintAsset::DeserializeAttachedComponents(FBinaryReader& Reader)
 {
     // 1. 총 컴포넌트의 수 읽기
     int ComponentsNum;
     Reader >> ComponentsNum;
 
-    mActorNode.Components.resize(ComponentsNum);
+    TArray<TSharedPtr<BlueprintAsset::FAttachedComponentNode>>& Components = mActorNode.AttachedComponents;
+    Components.clear();
+    Components.resize(ComponentsNum);
     for (int i = 0; i < ComponentsNum; ++i)
     {
-        mActorNode.Components[i] = MakeShared<FAttachedComponentNode>();
-        DeserializeComponent(mActorNode.Components[i].get(), Reader);
+        Components[i] = MakeShared<FAttachedComponentNode>();
+        DeserializeAttachedComponent(Components[i].get(), Reader);
     }
 }
 
-void FBlueprintAsset::DeserializeComponent(FAttachedComponentNode* CompNode, FBinaryReader& Reader)
+void FActorBlueprintAsset::DeserializeAttachedComponent(BlueprintAsset::FAttachedComponentNode* AttachedCompNode, FBinaryReader& Reader)
 {
     // 2. 컴포넌트 기본 정보 읽기
-    Reader >> CompNode->Class;
-    Reader >> CompNode->Name;
+    Reader >> AttachedCompNode->Name;
 
-    // 3. 컴포넌트 프로퍼티 쓰기
-    DeserializeProperties(CompNode->Properties, Reader);
-
-}
-
-bool FActorBlueprintAsset::OnCompile(const std::wstring& SrcPath, std::vector<unsigned char>& OutBuffer)
-{
-    if (!Super::OnCompile(SrcPath, OutBuffer))
-    {
-        return false;
-    }
-
-
-    return true;
+    DeserializeComponent(Reader, &AttachedCompNode->ComponentNode);
 }
 
 void FActorBlueprintAsset::RegisterToFactory()
 {
+    FActorFactory::RegisterActor(WStringToString(mName), [&]()
+        {
+            TSharedPtr<AActor> Actor = FActorFactory::CreateActor<AActor>(mActorNode.ParentClass);
+            Actor->LoadBlueprint(&mActorNode);
+            return Actor;
+        }
+    );
 }
 
-bool FComponentBlueprintAsset::OnCompile(const std::wstring& SrcPath, std::vector<unsigned char>& OutBuffer)
+void FComponentBlueprintAsset::Serialize(FXMLElement* RootElement, FBinaryWriter& Writer)
 {
-    if (!Super::OnCompile(SrcPath, OutBuffer))
-    {
-        return false;
-    }
 
+}
 
-    return true;
+void FComponentBlueprintAsset::Deserialize(FBinaryReader& Reader)
+{
+
 }
 
 void FComponentBlueprintAsset::RegisterToFactory()
 {
+    FComponentFactory::RegisterComponent(WStringToString(mName), [&]()
+        {
+            TSharedPtr<WActorComponent> Comp = FComponentFactory::CreateComponent<WActorComponent>(mRootNode.ParentClass);
+            Comp->LoadBlueprint(&mRootNode);
+            return Comp;
+        }
+    );
 }

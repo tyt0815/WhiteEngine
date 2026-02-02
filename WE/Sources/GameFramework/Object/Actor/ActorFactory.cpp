@@ -14,30 +14,19 @@ FActorFactory::~FActorFactory()
 
 }
 
-std::shared_ptr<AActor> FActorFactory::CreateActorInternal(const std::string& Name)
+std::shared_ptr<AActor> FActorFactory::CreateActor_Internal(const std::string& Name)
 {
     auto it = mRegistry.find(Name);
     if (it != mRegistry.end())
     {
         return it->second();
     }
+    // 등록되지 않은 클래스일 경우 디버깅을 위해 어설트
+    assert(false && "Actor Class not registered in Factory!");
     return nullptr;
 }
 
-std::shared_ptr<AActor> FActorFactory::CreateBlueprintActor_Internal(const std::wstring& BlueprintName)
-{
-    FBlueprintAsset* Asset = FAssetManager::GetAsset<FBlueprintAsset>(BlueprintName);
-    const auto& ActorNode = Asset->mActorNode;
-    assert(mRegistry.count(ActorNode.ParentClass));
-
-    TSharedPtr<AActor> Actor = CreateActorInternal(ActorNode.ParentClass);
-
-    Actor->LoadBlueprint(Asset);
-    
-    return Actor;
-}
-
-void FActorFactory::RegisterActor(const std::string& Name, ActorCreator Creator)
+void FActorFactory::RegisterActor_Internal(const std::string& Name, ActorCreator Creator)
 {
     mRegistry[Name] = Creator;
 }

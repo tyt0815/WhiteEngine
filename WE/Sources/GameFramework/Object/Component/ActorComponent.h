@@ -28,6 +28,8 @@ public:
 public:
 	virtual void BeginComponent();
 
+	void LoadBlueprint(const BlueprintAsset::FComponentNode* RootNode);
+
 	AActor* mOwner;
 
 public:

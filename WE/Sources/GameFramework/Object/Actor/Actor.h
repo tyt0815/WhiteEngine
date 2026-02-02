@@ -17,6 +17,11 @@ class FMeshGeometry;
 class FMaterial;
 class WCameraComponent;
 
+namespace BlueprintAsset
+{
+	struct FActorNode;
+}
+
 class AActor : public WObject
 {
 	typedef WObject Super;
@@ -58,7 +63,7 @@ protected:
 
 	virtual void OnDeactivate() override;
 
-	void LoadBlueprint(class FBlueprintAsset* Asset);
+	virtual void LoadBlueprint(BlueprintAsset::FActorNode* ActorNode);
 
 	virtual void OnCreateComponent(WActorComponent* Comp);
 
@@ -137,6 +142,7 @@ public:
 
 	friend class WWorld;
 	friend class FActorFactory;
+	friend class FActorBlueprintAsset;
 };
 
 template<typename T>
@@ -157,7 +163,7 @@ inline TWeakPtr<T> AActor::CreateComponentByFactory(const std::string Name)
 {
 	static_assert(IsDerivedFrom<WActorComponent, T>());
 
-	TSharedPtr<T> CompT = FComponentFactory::Create<T>(Name);
+	TSharedPtr<T> CompT = FComponentFactory::CreateComponent<T>(Name);
 	mAllComponents.emplace_back(CompT);
 
 	OnCreateComponent(CompT.get());

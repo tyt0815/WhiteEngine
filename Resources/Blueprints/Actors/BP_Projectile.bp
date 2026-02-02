@@ -1,4 +1,4 @@
-<Actor Parent="AHomingProjectile">
+<AHomingProjectile>
     <Properties>
         <float Name = "Value" Value = "1000.0" />
         <bool Name = "Boolean" Value = "True" />
@@ -12,8 +12,8 @@
         <WProjectileMovementComponent Name = "ProjMovementComp">
             <Properties>
                 <bool Name = "Homing" Value = "false" />
-                <float Name = "LifeSpan" Value = "0"/>
+                <float Name = "LifeSpan" Value = "1"/>
             </Properties>
         </WProjectileMovementComponent>
     </Components>
-</Actor>
+</AHomingProjectile>

@@ -33,6 +33,7 @@ template<typename TAsset>
 inline bool FAssetManager::LoadAsset(const std::wstring& FilePath, const std::wstring& AssetName)
 {
 	TUniquePtr<FAsset> Asset = std::make_unique<TAsset>();
+	Asset->mName = AssetName;
 	if (!Asset->LoadAsset(FilePath))
 	{
 		std::wstringstream wss;
@@ -41,7 +42,6 @@ inline bool FAssetManager::LoadAsset(const std::wstring& FilePath, const std::ws
 		assert(false);
 		return false;
 	}
-	Asset->mName = AssetName;
 	GetInstance()->mAssets[AssetName] = std::move(Asset);
 
 	return true;

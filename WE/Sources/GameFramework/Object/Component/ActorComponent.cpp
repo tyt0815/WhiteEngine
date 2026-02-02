@@ -21,3 +21,8 @@ void WActorComponent::BeginComponent()
 {
 	OnActivate();
 }
+
+void WActorComponent::LoadBlueprint(const BlueprintAsset::FComponentNode* RootNode)
+{
+	LoadWProperties(RootNode->Properties);
+}
