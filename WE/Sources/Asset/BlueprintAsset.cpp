@@ -158,28 +158,7 @@ void FBlueprintAsset::SerializeEvent(FXMLElement* EventElement, FBinaryWriter& W
         std::string Name = FunctionElement->Attribute("Name");
         Writer << Target << Name;
 
-        const FXMLAttribute* Attribute = FunctionElement->FirstAttribute();
-        TArray<FInputParameter> Params;
-        while (Attribute)
-        {
-            const std::string AttributeName = Attribute->Name();
-            if (AttributeName == "Target" || AttributeName == "Name")
-            {
-                Attribute = Attribute->Next();
-                continue;
-            }
-            
-            const std::string Value = Attribute->Value();
-            Params.push_back({ AttributeName, Value });
-
-            Attribute = Attribute->Next();
-        }
-
-        Writer << (int)Params.size();
-        for (const auto& Param : Params)
-        {
-            Writer << Param.Name << Param.Value;
-        }
+        SerializeProperties(FunctionElement, Writer);
 
         FunctionElement = FunctionElement->NextSiblingElement();
     }
@@ -217,13 +196,7 @@ void FBlueprintAsset::DeserializeEvent(FBinaryReader& Reader, BlueprintAsset::FE
     {
         Reader >> Func.Target >> Func.Name;
 
-        int InputsNum;
-        Reader >> InputsNum;
-        Func.Inputs.resize(InputsNum);
-        for (auto& Input : Func.Inputs)
-        {
-            Reader >> Input.Name >> Input.Value;
-        }
+        DeserializeProperties(Func.Inputs, Reader);
     }
 }
 
@@ -346,6 +319,8 @@ void FActorBlueprintAsset::Serialize(FXMLElement* RootElement, FBinaryWriter& Wr
 
     // 3. 컴포넌트 쓰기
     SerializeAttachedComponents(RootElement->FirstChildElement("Components"), Writer);
+
+    SerializeEvents(RootElement->FirstChildElement("Events"), Writer);
 }
 
 void FActorBlueprintAsset::Deserialize(FBinaryReader& Reader)
@@ -357,6 +332,8 @@ void FActorBlueprintAsset::Deserialize(FBinaryReader& Reader)
 
     // 3. 컴포넌트 읽기
     DeserializeAttachedComponents(Reader);
+
+    DeserializeEvents(Reader, mRootNode.Events);
 }
 
 void FActorBlueprintAsset::SerializeAttachedComponents(FXMLElement* AttachedComponentsElement, FBinaryWriter& Writer)

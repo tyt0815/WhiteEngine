@@ -1,6 +1,7 @@
 #pragma once
 #include "Utility/Memory.h"
 #include "Asset/BlueprintAsset.h"
+#include <functional>
 
 extern class WWorld* g_World;
 
@@ -22,6 +23,8 @@ enum class ETickPriority : unsigned int
 class WObject : public std::enable_shared_from_this<WObject>
 {
 public:
+	WObject();
+
 	virtual void Tick(float DeltaSecond);
 
 	void SetTickGroup(ETickGroup TickGroup, ETickPriority TickPriority);
@@ -45,6 +48,21 @@ public:
 	void RegisterWPropertySafe(const std::string& Name, T* ValuePtr);
 
 protected:
+	using WFunctionParam = BlueprintAsset::FProperty;
+	using WFunctionParamArray = TArray<WFunctionParam>;
+	using WFunction = std::function<void(const WFunctionParamArray&)>;
+
+	class WEvent
+	{
+	public:
+		void LoadEvent(WObject* Context, const BlueprintAsset::FEventNode& Event);
+
+		void Dispatch() const;
+
+	private:
+		TArray<std::function<void()>> mFunctions;
+	};
+
 	virtual void OnDestroy();
 
 	virtual void OnActivate();
@@ -53,8 +71,12 @@ protected:
 
 	void LoadWProperties(const TArray<BlueprintAsset::FProperty>& Properties);
 
+	void LoadEvents(const TArray<BlueprintAsset::FEventNode>& Events);
+
 	template <typename T>
 	void RegisterWProperty(const std::string& Name, T* ValuePtr);
+
+	void RegisterWFunction(const std::string& Name, WFunction Func);
 
 private:
 	ETickGroup mTickGroup = ETickGroup::ETG_None;
@@ -63,9 +85,18 @@ private:
 
 	std::unordered_map<std::string, void*> mBlueprintPropertiesMap;
 
+	std::unordered_map<std::string, std::function<void(const TArray<BlueprintAsset::FProperty>&)>> mWFunctions;
+
+	std::unordered_map<std::string, WEvent> mWEvents;
+
 	int mTickId = -1;
 
 public:
+	__forceinline const WEvent* GetEvent(const std::string& Name)
+	{
+		return &mWEvents[Name];
+	}
+
 	template<typename T>
 	__forceinline TWeakPtr<T> GetWeakPtr()
 	{
@@ -84,7 +115,10 @@ public:
 template<typename T>
 inline void WObject::RegisterWProperty(const std::string& Name, T* ValuePtr)
 {
-	assert(mBlueprintPropertiesMap.count(Name) == 0);
+	if (mBlueprintPropertiesMap.count(Name) > 0)
+	{
+		assert(mBlueprintPropertiesMap[Name] != ValuePtr && "Alreay registered Name");
+	}
 
 	mBlueprintPropertiesMap[Name] = ValuePtr;
 }

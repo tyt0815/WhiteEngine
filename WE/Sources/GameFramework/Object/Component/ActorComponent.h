@@ -12,7 +12,7 @@ class WActorComponent : public WObject
 {
 	typedef WObject Super;
 public:
-	WActorComponent() {};
+	WActorComponent();
 
 	virtual ~WActorComponent() noexcept = default;
 
@@ -31,6 +31,8 @@ public:
 	void LoadBlueprint(const BlueprintAsset::FComponentNode* RootNode);
 
 	AActor* mOwner;
+
+	const WEvent* mBeginComponentEvent;
 
 public:
 	inline AActor* GetOwner() const

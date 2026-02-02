@@ -444,7 +444,7 @@ void FDeferredShadingSceneRenderer::Render(
 		FrameResource
 	);
 
-	mEnvironmentMapRenderer->Render(CommandList, Rtv, Dsv, Viewport);
+	mEnvironmentMapRenderer->Render(CommandList, Rtv, Dsv, Viewport, &RenderItemProxy);
 
 	switch (mScreenMode)
 	{

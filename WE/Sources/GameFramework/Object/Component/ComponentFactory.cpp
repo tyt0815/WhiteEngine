@@ -13,7 +13,6 @@ std::shared_ptr<WActorComponent> FComponentFactory::CreateComponent_Internal(con
         return it->second();
     }
 
-    // 등록되지 않은 클래스일 경우 디버깅을 위해 어설트
     assert(false && "Component Class not registered in Factory!");
     return nullptr;
 }

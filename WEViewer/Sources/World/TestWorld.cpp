@@ -1,7 +1,7 @@
 #include "TestWorld.h"
 #include "Actor/PhysicsBox.h"
 #include "Actor/HitReactor.h"
-#include <algorithm>
+#include "Actor/ProjectileBase.h"
 
 void WTestWorld::BeginPlay()
 {	
@@ -19,7 +19,7 @@ void WTestWorld::Tick(float DeltaSecond)
 
 	if (a > 3)
 	{
-		if (auto Proj = SpawnActorByFactory<AActor>("BP_Projectile").lock())
+		if (auto Proj = SpawnActorByFactory<AProjectileBase>("BP_Projectile").lock())
 		{
 			XMFLOAT3 Loc = XMFLOAT3(0, 0, 10);
 			Proj->SetActorLocation(Loc);

@@ -1,6 +1,19 @@
 #include "SceneComponent.h"
 #include "Actor/Actor.h"
 
+WSceneComponent::WSceneComponent()
+{
+	RegisterWFunction("SetupAttachment", [this](const WFunctionParamArray& Inputs)
+		{
+			if (WSceneComponent* Parent = GetOwner()->GetWPropertyPtrSafe<WSceneComponent>(std::get<std::string>(Inputs[0].Value)))
+			{
+				this->SetupAttachment(Parent->GetWeakPtr<WSceneComponent>());
+			}
+			
+		}
+	);
+}
+
 void WSceneComponent::UpdateWorldMatrix()
 {
 	if (mbWorldFloat4x4Dirty)

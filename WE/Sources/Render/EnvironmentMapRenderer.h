@@ -45,7 +45,8 @@ public:
 		ID3D12GraphicsCommandList* CommandList,
 		D3D12_CPU_DESCRIPTOR_HANDLE Rtv,
 		D3D12_CPU_DESCRIPTOR_HANDLE Dsv,
-		D3D12_VIEWPORT Viewport
+		D3D12_VIEWPORT Viewport,
+		const class FRenderItemProxy* RenderItemProxy
 	);
 
 private:
@@ -76,7 +77,7 @@ private:
 	void PreRenderPrefilteredMapPass(ID3D12GraphicsCommandList* CommandList);
 	void PreRenderBRDFLUTPass(ID3D12GraphicsCommandList* CommandList);
 
-	void UpdateBuffers();
+	void UpdateBuffers(const FRenderItemProxy* RenderItemProxy);
 
 	TUniquePtr<FCubeRenderTarget> mIrradianceMapRenderTarget;
 	TUniquePtr<FCubeRenderTarget> mPrefilteredMapRenderTarget;

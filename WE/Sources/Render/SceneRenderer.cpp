@@ -2,7 +2,6 @@
 #include <DirectXColors.h>
 #include "ShapeDrawer.h"
 #include "DirectX/DXResourceManager.h"
-#include "GameFramework/Object/Component/CameraComponent.h"
 #include "Utility/Timer.h"
 #include "DirectX/CBVSRVUAVHeap.h"
 #include "MeshGeometry.h"

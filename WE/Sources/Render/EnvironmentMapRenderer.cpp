@@ -3,8 +3,7 @@
 #include "DirectX/DXMath.h"
 #include "DirectX/CBVSRVUAVHeap.h"
 #include "ShapeDrawer.h"
-#include "GameFramework/Object/World/World.h"
-#include "GameFramework/Object/Component/CameraComponent.h"
+#include "GameFramework/RenderItemProxy.h"
 
 FEnvironmentMapRenderer::FEnvironmentMapRenderer(FTexture* TextureCube):
 	mDevice(GetDXResourceManagerPtr()->GetDevicePtr()),
@@ -22,10 +21,11 @@ void FEnvironmentMapRenderer::Render(
 	ID3D12GraphicsCommandList* CommandList,
 	D3D12_CPU_DESCRIPTOR_HANDLE Rtv,
 	D3D12_CPU_DESCRIPTOR_HANDLE Dsv,
-	D3D12_VIEWPORT Viewport
+	D3D12_VIEWPORT Viewport,
+	const FRenderItemProxy* RenderItemProxy
 )
 {
-	UpdateBuffers();
+	UpdateBuffers(RenderItemProxy);
 
 	CommandList->RSSetViewports(1, &Viewport);
 	D3D12_RECT ScissorRect = FDXUtility::MakeScissorRectFromViewport(Viewport);
@@ -539,13 +539,12 @@ void FEnvironmentMapRenderer::PreRenderBRDFLUTPass(ID3D12GraphicsCommandList* Co
 	mDepthStencil->TransitionResourceBarrier(CommandList, D3D12_RESOURCE_STATE_DEPTH_READ);
 }
 
-void FEnvironmentMapRenderer::UpdateBuffers()
+void FEnvironmentMapRenderer::UpdateBuffers(const FRenderItemProxy* RenderItemProxy)
 {
-	WCameraComponent* Camera = GetWorld()->GetPlayerCamera().lock().get();
 	FEnvironmentMapPassCB CB;
-	CB.EyePosW = Camera->GetLocalLocation();
-	XMFLOAT4X4 View = Camera->GetViewMatrix();
-	XMFLOAT4X4 Proj = Camera->GetProjMatrix();
+	CB.EyePosW = RenderItemProxy->EyePosW;
+	XMFLOAT4X4 View = RenderItemProxy->ViewMatrix;
+	XMFLOAT4X4 Proj = RenderItemProxy->ProjMatrix;
 	XMMATRIX V = XMLoadFloat4x4(&View);
 	XMMATRIX P = XMLoadFloat4x4(&Proj);
 	XMMATRIX VP = V * P;

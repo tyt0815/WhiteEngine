@@ -123,6 +123,7 @@
     <ClInclude Include="Sources\GameFramework\Object\Actor\ActorFactory.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\DirectionalLight.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\Floor.h" />
+    <ClInclude Include="Sources\GameFramework\Object\Actor\ProjectileBase.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\ActorComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\BoxComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\CameraComponent.h" />

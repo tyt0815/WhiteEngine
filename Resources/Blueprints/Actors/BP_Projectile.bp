@@ -1,23 +1,28 @@
-<AActor>
+<AProjectileBase>
     <Properties>
     </Properties>
 
     <Components>
         <WStaticMeshComponent Name = "StaticMeshComponent">
             <Events>
-                <BeginPlay>
-                    <function Target = "this" Name = "SetStaticMesh" StaticMesh = "SM_MetalRing"/>
-                </BeginPlay>
+                <BeginComponent>
+                    <function Target = "this" Name = "SetupAttachment">
+                        <string Name = "Parent" Value = "RootComponent"/>
+                    </function>
+                    <function Target = "this" Name = "SetStaticMesh">
+                        <string Name = "StaticMesh" Value = "SM_MetalRing"/>
+                    </function>
+                </BeginComponent>
             </Events>
         </WStaticMeshComponent>
 
         <BP_ProjectileMovementComponent Name = "ProjMovementComp2">
             <Properties>
                 <bool Name = "Homing" Value = "false" />
-                <float Name = "LifeSpan" Value = "2.5"/>
+                <float Name = "LifeSpan" Value = "10"/>
             </Properties>
         </BP_ProjectileMovementComponent>
     </Components>
 
 
-</AActor>
+</AProjectileBase>

@@ -36,17 +36,11 @@ namespace BlueprintAsset
 		FPropertyValue Value;
 	};
 
-	struct FInputParameter
-	{
-		std::string Name;
-		std::string Value;
-	};
-
 	struct FFunctionNode
 	{
 		std::string Target;
 		std::string Name;
-		TArray<FInputParameter> Inputs;
+		TArray<FProperty> Inputs;
 	};
 
 	struct FEventNode

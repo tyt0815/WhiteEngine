@@ -10,7 +10,7 @@ class WSceneComponent : public WActorComponent
 {
 	typedef WActorComponent Super;
 public:
-	WSceneComponent() {};
+	WSceneComponent();
 
 	virtual ~WSceneComponent() noexcept override {};
 

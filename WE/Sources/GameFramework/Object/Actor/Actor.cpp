@@ -125,6 +125,7 @@ void AActor::OnDeactivate()
 void AActor::LoadBlueprint(BlueprintAsset::FActorNode* RootNode)
 {
 	LoadWProperties(RootNode->Properties);
+	LoadEvents(RootNode->Events);
 
 	for (const auto& CompNode : RootNode->AttachedComponents)
 	{
