@@ -279,7 +279,7 @@ void WObjectAnimComponent::Tick(float DeltaTime)
 
 		Target->SetLocalTransform(NewT);
 	}
-	else if(AActor* OwnerPtr = GetOwner()) // 타겟이 없으면 액터(RootComponent)에 적용 (루트 모션)
+	else if(AActor* OwnerPtr = GetOwner().lock().get()) // 타겟이 없으면 액터(RootComponent)에 적용 (루트 모션)
 	{
 		// 위치는 액터의 현재 회전 방향을 고려해서 더해줘야 함
 		XMFLOAT4 ActorQuat = OwnerPtr->GetActorQuaternion();

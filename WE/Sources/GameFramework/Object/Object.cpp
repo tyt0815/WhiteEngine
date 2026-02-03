@@ -5,7 +5,7 @@ using namespace BlueprintAsset;
 
 WObject::WObject()
 {
-	mBlueprintPropertiesMap["this"] = this;
+	RegisterWProperty("this", this);
 }
 
 void WObject::Tick(float DeltaSecond)
@@ -36,7 +36,6 @@ void WObject::OnDeactivate()
 
 void WObject::LoadWProperties(const TArray<FProperty>& Properties)
 {
-	TArray<const FProperty*> RawProperties;
 	for (const auto& Prop : Properties)
 	{
 		if (Prop.Type == EPropertyType::EPT_Float)
@@ -47,24 +46,28 @@ void WObject::LoadWProperties(const TArray<FProperty>& Properties)
 		{
 			SetWProperty<bool>(Prop.Name, std::get<bool>(Prop.Value));
 		}
+		else if (Prop.Type == EPropertyType::EPT_String)
+		{
+			SetWProperty<std::string>(Prop.Name, std::get<std::string>(Prop.Value));
+		}
 		else
 		{
-			RawProperties.push_back(&Prop);
+			assert(false && "Undefined Property");
 		}
 	}
 }
 
-void WObject::RegisterWFunction(const std::string& Name, std::function<void(const TArray<BlueprintAsset::FProperty>&)> Func)
+void WObject::RegisterWFunction(const std::string& Name, WFunction Func)
 {
 	assert(mWFunctions.count(Name) == 0 && "Already registered function name");
 	mWFunctions[Name] = Func;
 }
 
-void WObject::LoadEvents(const TArray<BlueprintAsset::FEventNode>& Events)
+void WObject::LoadEvents(WObject* Context, const TArray<BlueprintAsset::FEventNode>& Events)
 {
 	for (const auto& Event : Events)
 	{
-		mWEvents[Event.Name].LoadEvent(this, Event);
+		mWEvents[Event.Name].LoadEvent(Context, Event);
 	}
 }
 
@@ -72,16 +75,50 @@ void WObject::WEvent::LoadEvent(WObject* Context, const BlueprintAsset::FEventNo
 {
 	for (const auto& FuncNode : Event.Functions)
 	{
-		WObject* Target = Context->GetWPropertyPtr<WObject>(FuncNode.Target);
-		assert(Target && "Target is not found");
-		WFunction* Func = &Target->mWFunctions[FuncNode.Name];
-		const WFunctionParamArray* Inputs = &FuncNode.Inputs;
 		mFunctions.push_back([=]()
 			{
-				(*Func)(*Inputs);
+				CallFunction(Context, FuncNode.get());
 			}
 		);
 	}
+}
+
+WObject::WFunctionReturn WObject::WEvent::CallFunction(WObject* Context, const BlueprintAsset::FFunctionNode* FuncNode)
+{
+	WFunction& Function = Context->GetWPropertyPtr<WObject>(FuncNode->Target)->mWFunctions[FuncNode->Call];
+	WFunctionParams Params;
+	for (const auto& StaticParam : FuncNode->StaticParameters)
+	{
+		TSharedPtr<WFunctionParameter> Param = MakeShared<WFunctionParameter>();
+		Param->Name = StaticParam.Name;
+		if (StaticParam.Type == BlueprintAsset::EPropertyType::EPT_Boolean)
+		{
+			Param->Value = MakeShared<bool>(std::get<bool>(StaticParam.Value));
+		}
+		else if (StaticParam.Type == BlueprintAsset::EPropertyType::EPT_Float)
+		{
+			Param->Value = MakeShared<float>(std::get<float>(StaticParam.Value));
+		}
+		else if (StaticParam.Type == BlueprintAsset::EPropertyType::EPT_String)
+		{
+			Param->Value = MakeShared<std::string>(std::get<std::string>(StaticParam.Value));
+		}
+		else
+		{
+			assert(false && "Undefined property");
+		}
+		Params.push_back(std::move(Param));
+	}
+
+	for (const auto& FuncParam : FuncNode->FunctionParameters)
+	{
+		TSharedPtr<WFunctionParameter> Param = MakeShared<WFunctionParameter>();
+		Param->Name = FuncParam->Name;
+		Param->Value = CallFunction(Context, FuncParam.get());
+		Params.push_back(Param);
+	}
+
+	return Function(Params);
 }
 
 void WObject::WEvent::Dispatch() const

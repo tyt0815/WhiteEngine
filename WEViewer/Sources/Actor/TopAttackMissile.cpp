@@ -265,7 +265,7 @@ void ATopAttackMissile::OnHit(const FHitResult& Hit)
 				}
 
 				// 해당 액터가 HitInterface를 가지고 있으면, Hit를 시도한다.
-				if (AActor* Owner = Comp->GetOwner())
+				if (AActor* Owner = Comp->GetOwner().lock().get())
 				{
 					if (auto HitInt = dynamic_cast<IHitInterface*>(Owner))
 					{

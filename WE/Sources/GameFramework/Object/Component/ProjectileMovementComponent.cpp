@@ -12,7 +12,7 @@ WProjectileMovementComponent::WProjectileMovementComponent()
 void WProjectileMovementComponent::Tick(float DeltaTime)
 {
     mLifeTimeElapsed += DeltaTime;
-    AActor* Owner = GetOwner();
+    AActor* Owner = GetOwner().lock().get();
     if (!Owner || (mLifeSpan > 0 && mLifeTimeElapsed > mLifeSpan))
     {
         if (Owner) Owner->Destroy();
@@ -62,7 +62,7 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
 
                     // 4. 새로운 방향 벡터 계산                    
 
-                    XMFLOAT4 CurrQuat = GetOwner()->GetActorQuaternion();
+                    XMFLOAT4 CurrQuat = GetOwner().lock()->GetActorQuaternion();
                     XMVECTOR CurrQuatV = XMLoadFloat4(&CurrQuat);
 
                     XMFLOAT4 NewQuat;

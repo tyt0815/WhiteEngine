@@ -10,7 +10,7 @@ struct FHitResult
 	inline void SetActorAndHitComponent(TWeakPtr<WPhysicsComponent> InHitComponent)
 	{
 		HitComponent = InHitComponent;
-		Actor = HitComponent.lock()->GetOwner()->GetWeakPtr<AActor>();
+		Actor = HitComponent.lock()->GetOwner().lock()->GetWeakPtr<AActor>();
 	}
 
 	TWeakPtr<AActor> Actor;

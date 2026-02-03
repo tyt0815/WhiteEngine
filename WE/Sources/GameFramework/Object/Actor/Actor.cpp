@@ -10,12 +10,22 @@ AActor::AActor()
 {
 	TWeakPtr<WSceneComponent> DummyRoot = CreateComponent<WSceneComponent>();
 	SetRootComponent(DummyRoot);
+
+	RegisterWFunction("GetRootComponent", [this](const WFunctionParams& Params)
+		{
+			return MakeShared<TWeakPtr<WSceneComponent>>(GetRootComponent());
+		}
+	);
+
+	mBeginPlayEvent = RegisterEvent("BeginPlay");
 }
 
 void AActor::BeginPlay()
 {
 	Activate();
 	BeginComponents();
+
+	mBeginPlayEvent->Dispatch();
 }
 
 void AActor::SetRootComponent(TWeakPtr<WSceneComponent> Component)
@@ -125,7 +135,7 @@ void AActor::OnDeactivate()
 void AActor::LoadBlueprint(BlueprintAsset::FActorNode* RootNode)
 {
 	LoadWProperties(RootNode->Properties);
-	LoadEvents(RootNode->Events);
+	LoadEvents(this, RootNode->Events);
 
 	for (const auto& CompNode : RootNode->AttachedComponents)
 	{
@@ -135,7 +145,7 @@ void AActor::LoadBlueprint(BlueprintAsset::FActorNode* RootNode)
 			Comp = CreateComponentByFactory<WActorComponent>(CompNode->ComponentNode.ParentClass).lock().get();
 			RegisterWProperty(CompNode->Name, Comp);
 		}
-		Comp->LoadBlueprint(&CompNode->ComponentNode);
+		Comp->LoadBlueprint(this ,&CompNode->ComponentNode);
 	}
 }
 

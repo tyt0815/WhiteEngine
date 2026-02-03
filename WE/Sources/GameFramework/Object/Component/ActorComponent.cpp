@@ -4,7 +4,8 @@
 
 WActorComponent::WActorComponent()
 {
-	mBeginComponentEvent = GetEvent("BeginComponent");
+	RegisterWProperty("Owner", mOwner);
+	mBeginComponentEvent = RegisterEvent("BeginComponent");
 }
 
 void WActorComponent::Destroy()
@@ -22,14 +23,19 @@ void WActorComponent::Deactivate()
 	OnDeactivate();
 }
 
+TWeakPtr<AActor> WActorComponent::GetOwner() const
+{
+	return mOwner->GetWeakPtr<AActor>();
+}
+
 void WActorComponent::BeginComponent()
 {
 	OnActivate();
 	mBeginComponentEvent->Dispatch();
 }
 
-void WActorComponent::LoadBlueprint(const BlueprintAsset::FComponentNode* RootNode)
+void WActorComponent::LoadBlueprint(WObject* Context, const BlueprintAsset::FComponentNode* RootNode)
 {
 	LoadWProperties(RootNode->Properties);
-	LoadEvents(RootNode->Events);
+	LoadEvents(Context, RootNode->Events);
 }

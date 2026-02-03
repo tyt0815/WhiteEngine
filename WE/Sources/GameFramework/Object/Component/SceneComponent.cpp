@@ -3,15 +3,19 @@
 
 WSceneComponent::WSceneComponent()
 {
-	RegisterWFunction("SetupAttachment", [this](const WFunctionParamArray& Inputs)
+	RegisterWFunction("SetupAttachment", [this](const WFunctionParams& Params) -> TSharedPtr<void>
 		{
-			if (WSceneComponent* Parent = GetOwner()->GetWPropertyPtrSafe<WSceneComponent>(std::get<std::string>(Inputs[0].Value)))
+			for (const auto& Param : Params)
 			{
-				this->SetupAttachment(Parent->GetWeakPtr<WSceneComponent>());
+				if (Param->Name == "Parent")
+				{
+					this->SetupAttachment(Param->Get<TWeakPtr<WSceneComponent>>());
+					break;
+				}
 			}
-			
-		}
-	);
+
+			return nullptr;
+		});
 }
 
 void WSceneComponent::UpdateWorldMatrix()

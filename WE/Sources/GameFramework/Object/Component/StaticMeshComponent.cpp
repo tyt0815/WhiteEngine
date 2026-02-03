@@ -11,9 +11,17 @@ using namespace BlueprintAsset;
 
 WStaticMeshComponent::WStaticMeshComponent()
 {
-	RegisterWFunction("SetStaticMesh", [this](const WFunctionParamArray& Inputs)
+	RegisterWFunction("SetStaticMesh", [this](const WFunctionParams& Params)
 		{
-			this->SetStaticMesh(std::get<std::string>(Inputs[0].Value));
+			for (const auto& Param : Params)
+			{
+				if (Param->Name == "StaticMesh")
+				{
+					this->SetStaticMesh(Param->Get<std::string>());
+					break;
+				}
+			}
+			return nullptr;
 		}
 	);
 }

@@ -48,20 +48,50 @@ public:
 	void RegisterWPropertySafe(const std::string& Name, T* ValuePtr);
 
 protected:
-	using WFunctionParam = BlueprintAsset::FProperty;
-	using WFunctionParamArray = TArray<WFunctionParam>;
-	using WFunction = std::function<void(const WFunctionParamArray&)>;
+	struct WFunctionParameter
+	{
+		std::string Name;
+		TSharedPtr<void> Value;
+
+		template<typename T>
+		T Get() const
+		{
+			if (!Value)
+			{
+				assert(false);
+				return T();
+			}
+
+			TSharedPtr<T> TypedPtr = std::static_pointer_cast<T>(Value);
+
+			if (!TypedPtr)
+			{
+				assert(false && "Invalid Type Cast in WFunctionParameter::Get");
+				return T();
+			}
+
+			return *TypedPtr;
+		}
+	};
+
+	using WFunctionParams = TArray<TSharedPtr<WFunctionParameter>>;
+	using WFunctionReturn = TSharedPtr<void>;
+	using WFunction = std::function<WFunctionReturn(WFunctionParams)>;
 
 	class WEvent
 	{
 	public:
 		void LoadEvent(WObject* Context, const BlueprintAsset::FEventNode& Event);
 
+		WFunctionReturn CallFunction(WObject* Context, const BlueprintAsset::FFunctionNode* FuncNode);
+
 		void Dispatch() const;
 
 	private:
 		TArray<std::function<void()>> mFunctions;
 	};
+
+
 
 	virtual void OnDestroy();
 
@@ -71,7 +101,7 @@ protected:
 
 	void LoadWProperties(const TArray<BlueprintAsset::FProperty>& Properties);
 
-	void LoadEvents(const TArray<BlueprintAsset::FEventNode>& Events);
+	void LoadEvents(WObject* Context, const TArray<BlueprintAsset::FEventNode>& Events);
 
 	template <typename T>
 	void RegisterWProperty(const std::string& Name, T* ValuePtr);
@@ -85,14 +115,14 @@ private:
 
 	std::unordered_map<std::string, void*> mBlueprintPropertiesMap;
 
-	std::unordered_map<std::string, std::function<void(const TArray<BlueprintAsset::FProperty>&)>> mWFunctions;
+	std::unordered_map<std::string, WFunction> mWFunctions;
 
 	std::unordered_map<std::string, WEvent> mWEvents;
 
 	int mTickId = -1;
 
 public:
-	__forceinline const WEvent* GetEvent(const std::string& Name)
+	__forceinline const WEvent* RegisterEvent(const std::string& Name)
 	{
 		return &mWEvents[Name];
 	}

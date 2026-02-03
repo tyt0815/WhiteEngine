@@ -6,12 +6,13 @@
         <WStaticMeshComponent Name = "StaticMeshComponent">
             <Events>
                 <BeginComponent>
-                    <function Target = "this" Name = "SetupAttachment">
-                        <string Name = "Parent" Value = "RootComponent"/>
-                    </function>
-                    <function Target = "this" Name = "SetStaticMesh">
+                    <Call Func = "SetupAttachment" Target = "StaticMeshComponent">
+                        <Call Func = "GetRootComponent" Target = "this" Name = "Parent"/>
+                    </Call>
+
+                    <Call Func = "SetStaticMesh" Target = "StaticMeshComponent">
                         <string Name = "StaticMesh" Value = "SM_MetalRing"/>
-                    </function>
+                    </Call>
                 </BeginComponent>
             </Events>
         </WStaticMeshComponent>

@@ -20,18 +20,6 @@ int CountChildElement(FXMLElement* Parent, const std::string& Name)
     return Count;
 }
 
-template<typename T>
-void WriteProperty(const TArray<std::pair<std::string, T>>& Properties, FBinaryWriter& Writer)
-{
-    int PropertiesNum = (int)Properties.size();
-    Writer << PropertiesNum;
-    for (const auto& Pair : Properties)
-    {
-        Writer << Pair.first;
-        Writer << Pair.second;
-    }
-}
-
 bool FBlueprintAsset::OnCompile(const std::wstring& SrcPath, std::vector<unsigned char>& OutBuffer)
 {
     tinyxml2::XMLDocument Document;
@@ -77,32 +65,40 @@ void FBlueprintAsset::SerializeProperties(FXMLElement* PropertiesElement, FBinar
     FXMLElement* PropertyElement = PropertiesElement->FirstChildElement();
     while (PropertyElement)
     {
-        const std::string PropertyType = PropertyElement->Name();
-        if (PropertyType == "float")
-        {
-            FloatProperties.push_back({ PropertyElement->Attribute("Name"), PropertyElement->FloatAttribute("Value") });
-        }
-        else if (PropertyType == "bool")
-        {
-            BooleanProperties.push_back({ PropertyElement->Attribute("Name"), PropertyElement->BoolAttribute("Value") });
-        }
-        else if (PropertyType == "string")
-        {
-            StringProperties.push_back({ PropertyElement->Attribute("Name"), PropertyElement->Attribute("Value") });
-        }
-        else
-        {
-            assert(false && "Undefined Property");
-        }
+        SerializeProperty(PropertyElement, Writer);
 
         PropertyElement = PropertyElement->NextSiblingElement();
     }
+}
 
-    // 2. 각각의 프로퍼티 쓰기
-    // EPropertyType의 순서에 맞게 호출해야함
-    WriteProperty(FloatProperties, Writer);
-    WriteProperty(BooleanProperties, Writer);
-    WriteProperty(StringProperties, Writer);
+void FBlueprintAsset::SerializeProperty(FXMLElement* PropertyElement, FBinaryWriter& Writer)
+{
+    const std::string PropertyType = PropertyElement->Name();
+
+    Writer << PropertyElement->Attribute("Name");
+    
+    if (PropertyType == "float")
+    {
+        Writer << (int)EPropertyType::EPT_Float;
+        const float Value = PropertyElement->FloatAttribute("Value");
+        Writer << Value;
+    }
+    else if (PropertyType == "bool")
+    {
+        Writer << (int)EPropertyType::EPT_Boolean;
+        const bool Value = PropertyElement->BoolAttribute("Value");;
+        Writer << Value;
+    }
+    else if (PropertyType == "string")
+    {
+        Writer << (int)EPropertyType::EPT_String;
+        const std::string Value = PropertyElement->Attribute("Value");
+        Writer << Value;
+    }
+    else
+    {
+        assert(false && "Undefined Property");
+    }
 }
 
 void FBlueprintAsset::DeserializeComponent(FBinaryReader& Reader, BlueprintAsset::FComponentNode* CompNode)
@@ -154,13 +150,44 @@ void FBlueprintAsset::SerializeEvent(FXMLElement* EventElement, FBinaryWriter& W
     FXMLElement* FunctionElement = EventElement->FirstChildElement();
     while (FunctionElement)
     {
-        std::string Target = FunctionElement->Attribute("Target");
-        std::string Name = FunctionElement->Attribute("Name");
-        Writer << Target << Name;
-
-        SerializeProperties(FunctionElement, Writer);
+        SerializeFunction(FunctionElement, Writer);
 
         FunctionElement = FunctionElement->NextSiblingElement();
+    }
+}
+
+void FBlueprintAsset::SerializeFunction(FXMLElement* FuncElement, FBinaryWriter& Writer)
+{
+    const std::string FunctionName = FuncElement->Attribute("Func");
+    std::string Target = FuncElement->Attribute("Target");
+    std::string Name;
+    if (const char* Attribute = FuncElement->Attribute("Name"))
+    {
+        Name = Attribute;
+    }
+    Writer << FunctionName << Target << Name;
+
+    int ParametersNum = FuncElement->ChildElementCount();
+    Writer << ParametersNum;
+
+    FXMLElement* ParamElement = FuncElement->FirstChildElement();
+    while (ParamElement)
+    {
+        std::string ElementName = ParamElement->Name();
+        // 함수
+        if (ElementName == "Call")
+        {
+            Writer << (int)EFunctionParameterType::EFPT_Function;
+            SerializeFunction(ParamElement, Writer);
+        }
+        // 정적인 값
+        else
+        {
+            Writer << (int)EFunctionParameterType::EFPT_Property;
+            SerializeProperty(ParamElement, Writer);
+        }
+
+        ParamElement = ParamElement->NextSiblingElement();
     }
 }
 
@@ -194,9 +221,33 @@ void FBlueprintAsset::DeserializeEvent(FBinaryReader& Reader, BlueprintAsset::FE
     EventNode->Functions.resize(FunctionNum);
     for (auto& Func : EventNode->Functions)
     {
-        Reader >> Func.Target >> Func.Name;
+        Func = MakeShared<FFunctionNode>();
+        DeserializeFunction(Reader, Func.get());
+    }
+}
 
-        DeserializeProperties(Func.Inputs, Reader);
+void FBlueprintAsset::DeserializeFunction(FBinaryReader& Reader, BlueprintAsset::FFunctionNode* FuncNode)
+{
+    Reader >> FuncNode->Call >> FuncNode->Target >> FuncNode->Name;
+
+    int ParametersNum;
+    Reader >> ParametersNum;
+
+    for (int i = 0; i < ParametersNum; ++i)
+    {
+        int ParameterType;
+        Reader >> ParameterType;
+
+        if (ParameterType == (int)EFunctionParameterType::EFPT_Function)
+        {
+            FuncNode->FunctionParameters.push_back(MakeShared<FFunctionNode>());
+            DeserializeFunction(Reader, FuncNode->FunctionParameters.back().get());
+        }
+        else
+        {
+            FuncNode->StaticParameters.push_back(FProperty());
+            DeserializeProperty(FuncNode->StaticParameters.back(), Reader);
+        }
     }
 }
 
@@ -243,42 +294,6 @@ bool FBlueprintAsset::CheckIfNeedCompile(const std::wstring& Src, const std::wst
     return std::filesystem::last_write_time(Src) > std::filesystem::last_write_time(Bin);
 }
 
-void ReadProperties(EPropertyType Type, FBinaryReader& Reader, TArray<FProperty>& Properties)
-{
-    int PropertiesNum;
-    Reader >> PropertiesNum;
-    for (int i = 0; i < PropertiesNum; ++i)
-    {
-        FProperty Prop;
-        Prop.Type = Type;
-        Reader >> Prop.Name; // 이름 복구
-
-        if (Type == EPropertyType::EPT_Float) 
-        {
-            float v;
-            Reader >> v;
-            Prop.Value = v;
-        }
-        else if (Type == EPropertyType::EPT_Boolean) 
-        {
-            bool v;
-            Reader >> v;
-            Prop.Value = v;
-        }
-        else if (Type == EPropertyType::EPT_String)
-        {
-            std::string v;
-            Reader >> v;
-            Prop.Value = v;
-        }
-        else 
-        {
-            assert(false && "Undefined Property");
-        }
-        Properties.push_back(std::move(Prop));
-    }
-}
-
 void FBlueprintAsset::DeserializeProperties(TArray<FProperty>& Properties, FBinaryReader& Reader)
 {
     // 1. 총 프로퍼티의 수 읽기
@@ -290,10 +305,41 @@ void FBlueprintAsset::DeserializeProperties(TArray<FProperty>& Properties, FBina
         return;
     }
 
+    Properties.resize(PropertyNum);
     // 2. 각각의 프로퍼티 읽기
-    for (int i = 0; i < (int)EPropertyType::EPT_TypeNum; ++i)
+    for (int i = 0; i < PropertyNum; ++i)
     {
-        ReadProperties((EPropertyType)i, Reader, Properties);
+        DeserializeProperty(Properties[i], Reader);
+    }
+}
+
+void FBlueprintAsset::DeserializeProperty(BlueprintAsset::FProperty& Property, FBinaryReader& Reader)
+{
+    Reader >> Property.Name;
+    int Type;
+    Reader >> Type;
+    Property.Type = (EPropertyType)Type;
+    if (Type == (int)EPropertyType::EPT_Float)
+    {
+        float Value;
+        Reader >> Value;
+        Property.Value = Value;
+    }
+    else if (Type == (int)EPropertyType::EPT_Boolean)
+    {
+        bool Value;
+        Reader >> Value;
+        Property.Value = Value;
+    }
+    else if (Type == (int)EPropertyType::EPT_String)
+    {
+        std::string Value;
+        Reader >> Value;
+        Property.Value = Value;
+    }
+    else
+    {
+        assert(false && "Undefined Property");
     }
 }
 
@@ -411,7 +457,7 @@ void FComponentBlueprintAsset::RegisterToFactory()
     FComponentFactory::RegisterComponent(WStringToString(mName), [&]()
         {
             TSharedPtr<WActorComponent> Comp = FComponentFactory::CreateComponent<WActorComponent>(mRootNode.ParentClass);
-            Comp->LoadBlueprint(&mRootNode);
+            Comp->LoadBlueprint(Comp.get(), &mRootNode);
             return Comp;
         }
     );

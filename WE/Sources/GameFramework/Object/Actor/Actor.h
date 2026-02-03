@@ -82,6 +82,8 @@ private:
 
 	TWeakPtr<WSceneComponent> mRootComponent;
 
+	const WEvent* mBeginPlayEvent;
+
 	int mActorId = -1;
 
 	int mActiveActorQueueId = -1;

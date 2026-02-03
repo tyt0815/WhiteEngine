@@ -25,20 +25,18 @@ public:
 	// TODO: 미구현
 	void Deactivate() override;
 
+	TWeakPtr<AActor> GetOwner() const;
+
 public:
 	virtual void BeginComponent();
 
-	void LoadBlueprint(const BlueprintAsset::FComponentNode* RootNode);
+	void LoadBlueprint(WObject* Context, const BlueprintAsset::FComponentNode* RootNode);
 
 	AActor* mOwner;
 
 	const WEvent* mBeginComponentEvent;
 
 public:
-	inline AActor* GetOwner() const
-	{
-		return mOwner;
-	}
 
 	friend class AActor;
 	friend class WWorld;

@@ -15,7 +15,7 @@ class FBinaryReader;
 
 namespace BlueprintAsset
 {
-	enum class EPropertyType : std::uint8_t
+	enum class EPropertyType : int
 	{
 		EPT_Float = 0,
 		EPT_Boolean,
@@ -36,17 +36,32 @@ namespace BlueprintAsset
 		FPropertyValue Value;
 	};
 
+	enum class EFunctionParameterType : int
+	{
+		EFPT_Function = 0,
+		EFPT_Property
+	};
+
 	struct FFunctionNode
 	{
+		// 호출되는 함수 이름
+		std::string Call;
+
+		// 함수를 호출할 객체
 		std::string Target;
+
+		// 함수의 리턴이 반환될 WProperty 이름
 		std::string Name;
-		TArray<FProperty> Inputs;
+
+		TArray<FProperty> StaticParameters;
+
+		TArray<TSharedPtr<FFunctionNode>> FunctionParameters;
 	};
 
 	struct FEventNode
 	{
 		std::string Name;
-		TArray<FFunctionNode> Functions;
+		TArray<TSharedPtr<FFunctionNode>> Functions;
 	};
 
 	struct FComponentNode
@@ -92,7 +107,11 @@ protected:
 
 	void SerializeProperties(FXMLElement* PropertiesElement, FBinaryWriter& Writer);
 
+	void SerializeProperty(FXMLElement* PropertyElement, FBinaryWriter& Writer);
+
 	void DeserializeProperties(TArray<BlueprintAsset::FProperty>& Properties, FBinaryReader& Reader);
+
+	void DeserializeProperty(BlueprintAsset::FProperty& Property, FBinaryReader& Reader);
 
 	void SerializeComponent(FXMLElement* ComponentElement, FBinaryWriter& Writer);
 
@@ -102,9 +121,13 @@ protected:
 
 	void SerializeEvent(FXMLElement* EventElement, FBinaryWriter& Writer);
 
+	void SerializeFunction(FXMLElement* FuncElement, FBinaryWriter& Writer);
+
 	void DeserializeEvents(FBinaryReader& Reader, TArray<BlueprintAsset::FEventNode>& EventsNode);
 
 	void DeserializeEvent(FBinaryReader& Reader, BlueprintAsset::FEventNode* EventNode);
+
+	void DeserializeFunction(FBinaryReader& Reader, BlueprintAsset::FFunctionNode* FuncNode);
 
 private:
 	virtual bool LoadAsset(const std::wstring& FilePath) override final;
