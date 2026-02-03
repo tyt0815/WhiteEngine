@@ -11,7 +11,24 @@ using namespace BlueprintAsset;
 
 EPropertyType StringToType(const std::string& s)
 {
+    // 정적 맵을 사용하여 매번 맵을 생성하지 않도록 최적화
+    static const std::unordered_map<std::string, EPropertyType> TypeMap = {
+        { "float",        EPropertyType::EPT_Float },
+        { "float3",       EPropertyType::EPT_Float3 },
+        { "bool",         EPropertyType::EPT_Boolean },
+        { "string",       EPropertyType::EPT_String },
+        { "array_string", EPropertyType::EPT_StringArray }
+    };
 
+    auto it = TypeMap.find(s);
+    if (it != TypeMap.end())
+    {
+        return it->second;
+    }
+
+    // 정의되지 않은 타입이 들어왔을 때
+    assert(false && "Undefined Property Type String");
+    return EPropertyType::EPT_Float; // EPT_None이 없다면 적절한 기본값 사용
 }
 
 int CountChildElement(FXMLElement* Parent, const std::string& Name)
