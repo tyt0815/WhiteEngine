@@ -293,6 +293,9 @@
     <ClCompile Include="Sources\GameFramework\Object\Actor\ActorFactory.cpp">
       <Filter>Sources\GameFramework\Object\Actor</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Actor\ProjectileBase.cpp">
+      <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">

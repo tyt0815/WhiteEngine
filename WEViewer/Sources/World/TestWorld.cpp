@@ -17,11 +17,11 @@ void WTestWorld::Tick(float DeltaSecond)
 	static float a = 32;
 	a += DeltaSecond;
 
-	if (a > 3)
+	if (a > 1)
 	{
 		if (auto Proj = SpawnActorByFactory<AProjectileBase>("BP_Projectile").lock())
 		{
-			XMFLOAT3 Loc = XMFLOAT3(0, 0, 10);
+			XMFLOAT3 Loc = XMFLOAT3(0, -1, 10);
 			Proj->SetActorLocation(Loc);
 			if (auto Target = SpawnActor<AActor>().lock())
 			{

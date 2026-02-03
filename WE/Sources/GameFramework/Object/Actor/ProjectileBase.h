@@ -6,6 +6,11 @@
 
 class AProjectileBase : public AActor
 {
+public:
+	AProjectileBase();
+
+private:
+	void SmartSetHomingTarget();
 
 };
 

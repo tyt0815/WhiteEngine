@@ -6,11 +6,13 @@ using namespace BlueprintAsset;
 WObject::WObject()
 {
 	RegisterWProperty("this", this);
+
+	mTickEvent = RegisterEvent("Tick");
 }
 
 void WObject::Tick(float DeltaSecond)
 {
-	
+	mTickEvent->Dispatch();
 }
 
 void WObject::SetTickGroup(ETickGroup TickGroup, ETickPriority TickPriority)

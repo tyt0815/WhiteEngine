@@ -91,8 +91,6 @@ protected:
 		TArray<std::function<void()>> mFunctions;
 	};
 
-
-
 	virtual void OnDestroy();
 
 	virtual void OnActivate();
@@ -118,6 +116,8 @@ private:
 	std::unordered_map<std::string, WFunction> mWFunctions;
 
 	std::unordered_map<std::string, WEvent> mWEvents;
+
+	const WEvent* mTickEvent;
 
 	int mTickId = -1;
 

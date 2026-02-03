@@ -33,6 +33,7 @@
     <ClCompile Include="Sources\GameFramework\Object\Actor\ActorFactory.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Actor\DirectionalLight.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Actor\Floor.cpp" />
+    <ClCompile Include="Sources\GameFramework\Object\Actor\ProjectileBase.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\ActorComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\BoxComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\CameraComponent.cpp" />
