@@ -20,6 +20,8 @@ namespace BlueprintAsset
 		EPT_Float = 0,
 		EPT_Boolean,
 		EPT_String,
+		EPT_Float3,
+		EPT_StringArray,
 		EPT_TypeNum
 	};
 
@@ -27,8 +29,10 @@ namespace BlueprintAsset
 	{
 		using FPropertyValue = std::variant<
 			float,
+			XMFLOAT3,
 			bool,
-			std::string
+			std::string,
+			std::vector<std::string>
 		>;
 
 		std::string Name;
@@ -39,7 +43,8 @@ namespace BlueprintAsset
 	enum class EFunctionParameterType : int
 	{
 		EFPT_Function = 0,
-		EFPT_Property
+		EFPT_Property,
+		EFPT_ConstValue
 	};
 
 	struct FFunctionNode
@@ -54,6 +59,8 @@ namespace BlueprintAsset
 		std::string Name;
 
 		TArray<FProperty> StaticParameters;
+
+		TArray<FProperty> PropertyParameters;
 
 		TArray<TSharedPtr<FFunctionNode>> FunctionParameters;
 	};
@@ -70,6 +77,8 @@ namespace BlueprintAsset
 
 		TArray<FProperty> Properties;
 
+		TArray<FProperty> Variables;
+
 		TArray<FEventNode> Events;
 	};
 
@@ -85,6 +94,8 @@ namespace BlueprintAsset
 		std::string ParentClass;
 
 		TArray<FProperty> Properties; 
+
+		TArray<FProperty> Variables;
 
 		TArray<TSharedPtr<FAttachedComponentNode>> AttachedComponents;
 

@@ -10,6 +10,7 @@ ATopAttackMissile::ATopAttackMissile()
 	mStaticMesh = CreateComponent<WStaticMeshComponent>();
 	if (auto StaticMeshComp = mStaticMesh.lock())
 	{
+		RegisterWProperty("StaticMeshComp", StaticMeshComp.get());
 		StaticMeshComp->SetupAttachment(GetRootComponent());
 		StaticMeshComp->SetStaticMesh(FStaticMeshManager::GetStaticMesh("SM_MetalCylinder"));
 		StaticMeshComp->SetLocalScale(XMFLOAT3(.1f, .2f, .1f));
@@ -19,34 +20,22 @@ ATopAttackMissile::ATopAttackMissile()
 	mProjectileMovementComponent = CreateComponent<WProjectileMovementComponent>();
 	if (auto ProjMoveComp = mProjectileMovementComponent.lock())
 	{
-		ProjMoveComp->mVelocity = XMFLOAT3(0, 0, 15);
+		RegisterWProperty("ProjMovementComp", ProjMoveComp.get());
+		ProjMoveComp->SetSpeed(20.0f);
 		ProjMoveComp->SetLifeSpan(10.0f);
 		ProjMoveComp->SetHoming(true);
 		ProjMoveComp->SetHomingTurnLimit(720);
 	}
 
-	mObjAnimComp = CreateComponent<WObjectAnimComponent>();
-	if (auto AnimComp = mObjAnimComp.lock())
-	{
-		AnimComp->LoadKeyframesFromOADAsset(L"OAD_MissileTrack");
-
-		TArray<std::string> AnimSamplerList;
-		AnimComp->GetObjectAnimSamplerList(AnimSamplerList);
-		mMissileAnimSamplers.resize(AnimSamplerList.size());
-		for (int i = 0; i < mMissileAnimSamplers.size(); ++i)
-		{
-			mMissileAnimSamplers[i] = AnimComp->GetObjectAnimSampler(AnimSamplerList[i]);
-		}
-
-		mAnimFrameEnd = AnimComp->GetFrameEnd();
-	}
+	RegisterWProperty("MinArrivalThresholdSq", &mMinArrivalThresholdSq);
+	RegisterWProperty("MaxArrivalThresholdSq", &mMaxArrivalThresholdSq);
+	RegisterWProperty("MinRotationZStep", &mMinRotationZStep);
+	RegisterWProperty("MaxRotationZStep", &mMaxRotationZStep);
 }
 
 void ATopAttackMissile::Tick(float DeltaSecond)
 {
 	Super::Tick(DeltaSecond);
-
-	mAnimElapsedTime += DeltaSecond;
 
 	// 액터 자체에 회전 변화
 	{
@@ -88,23 +77,6 @@ void ATopAttackMissile::Tick(float DeltaSecond)
 
 	if (auto StaticMesh = mStaticMesh.lock())
 	{
-		if (mCurrAnimSampler)
-		{
-			float Alpha = DistanceToTargetSq / mExpectedHomingDistanceSq;
-			float TargetFrame = mAnimFrameEnd * Alpha;
-
-			XMFLOAT3 LocalLoc;
-			LocalLoc.x = mCurrAnimSampler->SampleLocationX(TargetFrame);
-			LocalLoc.y = mCurrAnimSampler->SampleLocationY(TargetFrame);
-			LocalLoc.z = 0;
-
-			StaticMesh->SetLocalLocation(LocalLoc);
-		}
-		else
-		{
-			StaticMesh->SetLocalLocation(XMFLOAT3(0, 0, 0));
-		}
-
 		XMFLOAT3 CurrLocation = StaticMesh->GetWorldLocation();
 		TArray<AActor*> ActorsToIgnore;
 		FHitResult Hit;
@@ -180,7 +152,7 @@ void ATopAttackMissile::UpdateHomingPath()
 	{
 		if (mHomingPathMarkerDeque.empty())
 		{
-			ProjComp->SetHomingTarget(TWeakPtr<WSceneComponent>());
+			ProjComp->SetHomingTarget(nullptr);
 		}
 		else
 		{
@@ -197,15 +169,6 @@ void ATopAttackMissile::UpdateHomingPath()
 							XMVectorSubtract(XMLoadFloat3(&CurrLoc), XMLoadFloat3(&TargetLoc))
 						)
 					) - mArrivalThresholdSq;
-			}
-			
-
-			// 애니메이션 교체
-			mAnimElapsedTime = 0;
-			if (mMissileAnimSamplers.size() > 0)
-			{
-				int i = FDXMath::Rand(0, (int)mMissileAnimSamplers.size() - 1);
-				mCurrAnimSampler = mMissileAnimSamplers[i];
 			}
 		}
 	}

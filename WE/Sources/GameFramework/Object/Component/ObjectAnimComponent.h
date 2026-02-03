@@ -89,11 +89,13 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	bool LoadKeyframesFromOADAsset(const std::wstring& AssetName, const std::string& AnimName);
+	bool LoadAnimation(const std::string& AssetName, const std::string& AnimName);
 
 	void Play(bool bLoop, uint16_t Flags);
 
 	void Stop();
+
+	void SetTargetComponent(WSceneComponent* Comp);
 
 private:
 	TUniquePtr<FObjectAnimSampler> mSampler;
@@ -124,11 +126,6 @@ public:
 	__forceinline float SecondToFrame(float Second) const
 	{
 		return mFps * Second;
-	}
-
-	__forceinline void SetTargetComponent(TWeakPtr<WSceneComponent> Comp)
-	{
-		mTarget = Comp;
 	}
 };
 

@@ -1,5 +1,0 @@
-<WProjectileMovementComponent>
-    <Properties>
-        <float Name = "LifeSpan" Value = "2" />
-    </Properties>
-</WProjectileMovementComponent>

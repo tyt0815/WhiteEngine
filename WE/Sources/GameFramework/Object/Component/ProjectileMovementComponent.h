@@ -12,6 +12,11 @@ public:
 
 	virtual void BeginComponent() override;
 
+public:
+	void SetHomingTarget(WSceneComponent* Target);
+
+	void SetSpeed(float Value);
+
 protected:
 	// 투사체 수명. 0일시 영구 지속
 	float mLifeSpan = 5.0f;
@@ -43,11 +48,6 @@ public:
 	void SetHomingTurnLimit(float Value)
 	{
 		mHomingTurnLimit = Value;
-	}
-
-	void SetHomingTarget(TWeakPtr<WSceneComponent> Target)
-	{
-		mHomingTarget = Target;
 	}
 };
 

@@ -2,9 +2,12 @@
 #include "Actor/PhysicsBox.h"
 #include "Actor/HitReactor.h"
 #include "Actor/ProjectileBase.h"
+#include "Pawn/PlayerPawn.h"
 
 void WTestWorld::BeginPlay()
 {	
+	SetPlayer(SpawnActor<APlayerPawn>());
+
 	Super::BeginPlay();
 
 	

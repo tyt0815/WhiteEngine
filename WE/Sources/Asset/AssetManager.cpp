@@ -5,6 +5,7 @@
 #include "ObjectAnimDataAsset.h"
 #include "BlueprintAsset.h"
 #include "Utility/Container.h"
+#include "Utility/String.h"
 
 void GetFileNameByExtension(const std::wstring& InPath, const std::wstring& InExtension, TArray<std::wstring>& OutFileNames)
 {
@@ -39,22 +40,22 @@ FAssetManager::~FAssetManager()
 void FAssetManager::LoadAssets()
 {
 	std::wstring SolutionDir(SOLUTION_DIR_W);
-	LoadAsset<FSplineDataAsset>(SolutionDir + L"Resources/JSON/SplineData.json", L"SDA_ProjectilePath");
-	LoadAsset<FSplineDataAsset>(SolutionDir + L"Resources/JSON/ForwardSpline.json", L"SDA_Forward");
-	LoadAsset<FSplineDataAsset>(SolutionDir + L"Resources/JSON/RightSpline.json", L"SDA_Right");
-	LoadAsset<FSplineDataAsset>(SolutionDir + L"Resources/JSON/UpSpline.json", L"SDA_Up");
+	LoadAsset<FSplineDataAsset>(SolutionDir + L"Resources/JSON/SplineData.json", "SDA_ProjectilePath");
+	LoadAsset<FSplineDataAsset>(SolutionDir + L"Resources/JSON/ForwardSpline.json", "SDA_Forward");
+	LoadAsset<FSplineDataAsset>(SolutionDir + L"Resources/JSON/RightSpline.json", "SDA_Right");
+	LoadAsset<FSplineDataAsset>(SolutionDir + L"Resources/JSON/UpSpline.json", "SDA_Up");
 
 	std::wstring JsonDir = SolutionDir + L"Resources/JSON";
-	LoadAsset<FSplineDataAsset>(JsonDir + L"/SpiralSpline.json", L"SDA_Spiral");
-	LoadAsset<FSplineDataAsset>(JsonDir + L"/WaveSpline.json", L"SDA_Wave");
-	LoadAsset<FSplineDataAsset>(JsonDir + L"/RingPathSpline.json", L"SDA_RingPath");
+	LoadAsset<FSplineDataAsset>(JsonDir + L"/SpiralSpline.json", "SDA_Spiral");
+	LoadAsset<FSplineDataAsset>(JsonDir + L"/WaveSpline.json", "SDA_Wave");
+	LoadAsset<FSplineDataAsset>(JsonDir + L"/RingPathSpline.json", "SDA_RingPath");
 
 	LoadBlueprints();
 
 	LoadObjectAnimations();
 }
 
-FAsset* FAssetManager::GetAsset(const std::wstring& Name)
+FAsset* FAssetManager::GetAsset(const std::string& Name)
 {
 	if (mAssets.find(Name) == mAssets.end())
 	{
@@ -77,7 +78,7 @@ void FAssetManager::LoadBlueprints()
 
 		for (const auto& FileName : BlueprintFileName)
 		{
-			LoadAsset<FActorBlueprintAsset>(FolderPath + L"\\" + FileName + Extension, FileName);
+			LoadAsset<FActorBlueprintAsset>(FolderPath + L"\\" + FileName + Extension, WStringToString(FileName));
 		}
 	}
 
@@ -89,7 +90,7 @@ void FAssetManager::LoadBlueprints()
 
 		for (const auto& FileName : BlueprintFileName)
 		{
-			LoadAsset<FComponentBlueprintAsset>(FolderPath + L"\\" + FileName + Extension, FileName);
+			LoadAsset<FComponentBlueprintAsset>(FolderPath + L"\\" + FileName + Extension, WStringToString(FileName));
 		}
 	}
 	
@@ -105,6 +106,6 @@ void FAssetManager::LoadObjectAnimations()
 
 	for (const auto& FileName : ObjAnimFileName)
 	{
-		LoadAsset<FObjectAnimDataAsset>(FolderPath + L"\\" + FileName + Extension, FileName);
+		LoadAsset<FObjectAnimDataAsset>(FolderPath + L"\\" + FileName + Extension, WStringToString(FileName));
 	}
 }

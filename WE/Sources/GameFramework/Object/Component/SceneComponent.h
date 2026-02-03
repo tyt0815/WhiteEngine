@@ -37,7 +37,7 @@ public:
 
 	void UpdateRecursive();
 
-	void SetupAttachment(TWeakPtr<WSceneComponent> Parent);
+	void SetupAttachment(WSceneComponent* Parent);
 
 	void SetLocalRotation(DirectX::XMFLOAT3 Rotation);
 

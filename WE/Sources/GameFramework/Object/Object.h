@@ -35,6 +35,9 @@ public:
 
 	virtual void Deactivate() = 0;
 
+	template<typename T>
+	T GetWProperty(const std::string& Name);
+
 	template <typename T>
 	T* GetWPropertyPtr(const std::string& Name);
 
@@ -99,6 +102,8 @@ protected:
 
 	void LoadWProperties(const TArray<BlueprintAsset::FProperty>& Properties);
 
+	void LoadWVariables(const TArray<BlueprintAsset::FProperty>& Variables);
+
 	void LoadEvents(WObject* Context, const TArray<BlueprintAsset::FEventNode>& Events);
 
 	template <typename T>
@@ -112,6 +117,8 @@ private:
 	ETickPriority mTickPriority = ETickPriority::ETP_None;
 
 	std::unordered_map<std::string, void*> mBlueprintPropertiesMap;
+
+	std::vector<TSharedPtr<void>> mWVariables;
 
 	std::unordered_map<std::string, WFunction> mWFunctions;
 
@@ -154,8 +161,15 @@ inline void WObject::RegisterWProperty(const std::string& Name, T* ValuePtr)
 }
 
 template<typename T>
+inline T WObject::GetWProperty(const std::string& Name)
+{
+	return *GetWPropertyPtr<T>(Name);
+}
+
+template<typename T>
 inline T* WObject::GetWPropertyPtr(const std::string& Name)
 {
+	assert(mBlueprintPropertiesMap.count(Name) > 0 && "Property not found.");
 	return static_cast<T*>(mBlueprintPropertiesMap.at(Name));
 }
 
@@ -184,3 +198,8 @@ inline void WObject::RegisterWPropertySafe(const std::string& Name, T* ValuePtr)
 		mBlueprintPropertiesMap[Name] = ValuePtr;
 	}
 }
+
+#define BEGIN_WFUNCTION(Name) RegisterWFunction(#Name, [this](const WFunctionParams& Params)
+#define END_WFUNCTION );
+
+#define REGISTER_GETTER_WFUNCTION(Name, Type) BEGIN_WFUNCTION(Name) { return MakeShared<Type>(Name()); } END_WFUNCTION

@@ -1,5 +1,6 @@
 #include "MissileSwarmSystem.h"
 #include "World/World.h"
+#include "TopAttackMissile.h"
 
 AMissileSwarmSystem::AMissileSwarmSystem()
 {
@@ -26,21 +27,15 @@ void AMissileSwarmSystem::Tick(float Delta)
 		{
 			if (auto Marker = mTargetMarkers[r][c].lock())
 			{
-				auto AnimPlayer = GetWorld()->SpawnActor<AColdLaunchAnimPlayer>().lock();
-				FTransform Transform = GetActorTransform();
-				Transform.Translation = GetGridLocationAtIndex(r, c, Col, 0.3f, GetActorLocation(), XMFLOAT3(0, 1, 0), GetRightVector());
-				AnimPlayer->SetActorTransform(Transform);
 				FActorSpawnParameter Param;
-				Param.Transform = AnimPlayer->GetActorTransform();
-				if (auto Missile = GetWorld()->SpawnActor<ATopAttackMissile>(Param).lock())
+				Param.Transform = GetActorTransform();
+				Param.Transform.Translation = GetGridLocationAtIndex(r, c, Col, 0.3f, GetActorLocation(), XMFLOAT3(0, 1, 0), GetRightVector());
+				if (auto Missile = GetWorld()->SpawnActorByFactory<ATopAttackMissile>("BP_TopAttackMissile", Param).lock())
 				{
 					TArray<TWeakPtr<AActor>> HomingPaths;
 					CreateHomingPaths(mTargetMarkers[r][c], HomingPaths);
 
 					Missile->Initialize(HomingPaths, mMissileGridManager.lock().get());
-					
-					
-					AnimPlayer->PlayAnim(Missile);
 				}
 			}
 		}

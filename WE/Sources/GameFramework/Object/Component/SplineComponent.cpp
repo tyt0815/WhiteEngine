@@ -74,7 +74,7 @@ void WSplineComponent::AddSplineNode(const FSplineNode& Node)
 	}
 }
 
-void WSplineComponent::LoadSplineFromAsset(const std::wstring& AssetName)
+void WSplineComponent::LoadSplineFromAsset(const std::string& AssetName)
 {
 	FSplineDataAsset* SplineDataAsset = FAssetManager::GetAsset<FSplineDataAsset>(AssetName);
 	if (SplineDataAsset == nullptr)

@@ -7,6 +7,12 @@ WObject::WObject()
 {
 	RegisterWProperty("this", this);
 
+	BEGIN_WFUNCTION(Get)
+	{
+		return MakeShared<WObject*>(this);
+	}
+	END_WFUNCTION
+
 	mTickEvent = RegisterEvent("Tick");
 }
 
@@ -44,6 +50,10 @@ void WObject::LoadWProperties(const TArray<FProperty>& Properties)
 		{
 			SetWProperty<float>(Prop.Name, std::get<float>(Prop.Value));
 		}
+		else if (Prop.Type == EPropertyType::EPT_Float3)
+		{
+			SetWProperty<XMFLOAT3>(Prop.Name, std::get<XMFLOAT3>(Prop.Value));
+		}
 		else if (Prop.Type == EPropertyType::EPT_Boolean)
 		{
 			SetWProperty<bool>(Prop.Name, std::get<bool>(Prop.Value));
@@ -52,11 +62,52 @@ void WObject::LoadWProperties(const TArray<FProperty>& Properties)
 		{
 			SetWProperty<std::string>(Prop.Name, std::get<std::string>(Prop.Value));
 		}
+		else if (Prop.Type == EPropertyType::EPT_StringArray)
+		{
+			SetWProperty<std::vector<std::string>>(Prop.Name, std::get<std::vector<std::string>> (Prop.Value));
+		}
 		else
 		{
 			assert(false && "Undefined Property");
 		}
 	}
+}
+
+void WObject::LoadWVariables(const TArray<FProperty>& Variables)
+{
+	for (const auto& v : Variables)
+	{
+		TSharedPtr<void> Value;
+		if (v.Type == EPropertyType::EPT_Float)
+		{
+			Value = MakeShared<float>(std::get<float>(v.Value));
+		}
+		else if (v.Type == EPropertyType::EPT_Float3)
+		{
+			Value = MakeShared<XMFLOAT3>(std::get<XMFLOAT3>(v.Value));
+		}
+		else if (v.Type == EPropertyType::EPT_Boolean)
+		{
+			Value = MakeShared<bool>(std::get<bool>(v.Value));
+		}
+		else if (v.Type == EPropertyType::EPT_String)
+		{
+			Value = MakeShared<std::string>(std::get<std::string>(v.Value));
+		}
+		else if (v.Type == EPropertyType::EPT_StringArray)
+		{
+			Value = MakeShared<std::vector<std::string>>(std::get<std::vector<std::string>>(v.Value));
+		}
+		else
+		{
+			assert(false && "Undefined Property");
+		}
+
+		mWVariables.push_back(Value);
+		RegisterWProperty(v.Name, Value.get());
+	}
+
+	LoadWProperties(Variables);
 }
 
 void WObject::RegisterWFunction(const std::string& Name, WFunction Func)
@@ -101,15 +152,38 @@ WObject::WFunctionReturn WObject::WEvent::CallFunction(WObject* Context, const B
 		{
 			Param->Value = MakeShared<float>(std::get<float>(StaticParam.Value));
 		}
+		else if (StaticParam.Type == BlueprintAsset::EPropertyType::EPT_Float3)
+		{
+			Param->Value = MakeShared<XMFLOAT3>(std::get<XMFLOAT3>(StaticParam.Value));
+		}
 		else if (StaticParam.Type == BlueprintAsset::EPropertyType::EPT_String)
 		{
 			Param->Value = MakeShared<std::string>(std::get<std::string>(StaticParam.Value));
+		}
+		else if (StaticParam.Type == BlueprintAsset::EPropertyType::EPT_StringArray)
+		{
+			Param->Value = MakeShared<std::vector<std::string>>(std::get<std::vector<std::string>>(StaticParam.Value));
 		}
 		else
 		{
 			assert(false && "Undefined property");
 		}
 		Params.push_back(std::move(Param));
+	}
+
+	for (const auto& PropParam : FuncNode->PropertyParameters)
+	{
+		TSharedPtr<WFunctionParameter> Param = MakeShared<WFunctionParameter>();
+		Param->Name = PropParam.Name;
+		std::visit([&](auto&& arg)
+			{
+				using T = std::decay_t<decltype(arg)>;
+
+				Param->Value = MakeShared<T>(GetWProperty<T>(PropParam));
+			}, PropParam.Value
+		);
+		Param->Value = GetWProperty(PropParam.Property);
+		Params.push_back(Param);
 	}
 
 	for (const auto& FuncParam : FuncNode->FunctionParameters)

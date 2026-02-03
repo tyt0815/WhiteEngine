@@ -13,33 +13,30 @@ class FAssetManager final
 public:
 	void LoadAssets();
 
-	FAsset* GetAsset(const std::wstring& Name);
+	FAsset* GetAsset(const std::string& Name);
 
 	template<typename TAsset>
-	static bool LoadAsset(const std::wstring& FilePath, const std::wstring& AssetName);
+	static bool LoadAsset(const std::wstring& FilePath, const std::string& AssetName);
 
 	template<typename TAsset>
-	static TAsset* GetAsset(const std::wstring& Name);
+	static TAsset* GetAsset(const std::string& Name);
 
 private:
 	void LoadBlueprints();
 
 	void LoadObjectAnimations();
 
-	std::unordered_map<std::wstring, TUniquePtr<FAsset>> mAssets;
+	std::unordered_map<std::string, TUniquePtr<FAsset>> mAssets;
 };
 
 template<typename TAsset>
-inline bool FAssetManager::LoadAsset(const std::wstring& FilePath, const std::wstring& AssetName)
+inline bool FAssetManager::LoadAsset(const std::wstring& FilePath, const std::string& AssetName)
 {
 	TUniquePtr<FAsset> Asset = std::make_unique<TAsset>();
 	Asset->mName = AssetName;
 	if (!Asset->LoadAsset(FilePath))
 	{
-		std::wstringstream wss;
-		wss << L"에셋 로드에 실패하였습니다.: " << AssetName << L"\n";
-		OutputDebugStringW(wss.str().c_str());
-		assert(false);
+		assert(false && "Fail to load asset");
 		return false;
 	}
 	GetInstance()->mAssets[AssetName] = std::move(Asset);
@@ -48,7 +45,7 @@ inline bool FAssetManager::LoadAsset(const std::wstring& FilePath, const std::ws
 }
 
 template<typename TAsset>
-inline TAsset* FAssetManager::GetAsset(const std::wstring& Name)
+inline TAsset* FAssetManager::GetAsset(const std::string& Name)
 {
 	return dynamic_cast<TAsset*>(GetInstance()->GetAsset(Name));
 }

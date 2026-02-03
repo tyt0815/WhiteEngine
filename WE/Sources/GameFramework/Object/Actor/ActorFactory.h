@@ -42,4 +42,4 @@ public:
             return std::make_shared<ClassName>(); \
         }); \
         return true; \
-    }()
+    }();

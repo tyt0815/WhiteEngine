@@ -82,6 +82,23 @@ void WProjectileMovementComponent::BeginComponent()
 {
     Super::BeginComponent();
 
-    mVelocity = XMFLOAT3(0, 0, mSpeed);
+    SetSpeed(mSpeed);
 }
 
+void WProjectileMovementComponent::SetHomingTarget(WSceneComponent* Target)
+{
+    if (Target)
+    {
+        mHomingTarget = Target->GetWeakPtr<WSceneComponent>();
+    }
+    else
+    {
+        mHomingTarget.reset();
+    }
+}
+
+void WProjectileMovementComponent::SetSpeed(float Value)
+{
+    mSpeed = Value;
+    mVelocity = XMFLOAT3(0, 0, mSpeed);
+}

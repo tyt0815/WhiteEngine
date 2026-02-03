@@ -15,7 +15,7 @@ public:
 	virtual bool LoadAsset(const std::wstring& FilePath) = 0;
 
 protected:
-	std::wstring mName;
+	std::string mName;
 
 	friend class FAssetManager;
 };

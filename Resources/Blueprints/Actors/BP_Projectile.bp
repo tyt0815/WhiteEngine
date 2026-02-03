@@ -6,10 +6,6 @@
         <WStaticMeshComponent Name = "StaticMeshComponent">
             <Events>
                 <BeginComponent>
-                
-                    <Call Func = "SetupAttachment" Target = "StaticMeshComponent">
-                        <Call Func = "GetRootComponent" Target = "this" Name = "Parent"/>
-                    </Call>
 
                     <Call Func = "SetStaticMesh" Target = "StaticMeshComponent">
                         <string Name = "StaticMesh" Value = "SM_MetalRing"/>
@@ -19,12 +15,39 @@
             </Events>
         </WStaticMeshComponent>
 
-        <BP_ProjectileMovementComponent Name = "ProjMovementComp2">
-            <Properties>
-                <bool Name = "Homing" Value = "false" />
-                <float Name = "LifeSpan" Value = "10"/>
-            </Properties>
-        </BP_ProjectileMovementComponent>
+        <WStaticMeshComponent Name = "StaticMeshComponent2">
+            <Events>
+                <BeginComponent>
+
+                    <Call Func = "SetStaticMesh" Target = "StaticMeshComponent2">
+                        <string Name = "StaticMesh" Value = "SM_LaminateFlooringBrownBox"/>
+                    </Call>
+
+                </BeginComponent>
+            </Events>
+        </WStaticMeshComponent>
+
+        <WObjectAnimComponent Name = "ObjectAnimComp">
+            <Events>
+                <BeginComponent>
+                    <Call Func = "LoadAnimation" Target = "ObjectAnimComp">
+                        <string Name ="AssetName" Value = "OA_MissileTrack"/>
+                        <string Name = "AnimName" Value = "Proj1"/>
+                    </Call>
+
+                    <Call Func = "SetTargetComponent" Target = "ObjectAnimComp">
+                        <Call Func = "Get" Target = "StaticMeshComponent2" Name = "Component"/>
+                    </Call>
+
+                    <Call Func = "Play" Target = "ObjectAnimComp">
+                        <bool Name = "Loop" Value = "true"/>
+                        <string Name = "Loc" Value = "XYZ"/>
+                    </Call>
+
+                </BeginComponent>
+            </Events>
+        </WObjectAnimComponent>
+
     </Components>
 
 

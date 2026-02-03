@@ -9,7 +9,7 @@ WSceneComponent::WSceneComponent()
 			{
 				if (Param->Name == "Parent")
 				{
-					this->SetupAttachment(Param->Get<TWeakPtr<WSceneComponent>>());
+					this->SetupAttachment(Param->Get<WSceneComponent*>());
 					break;
 				}
 			}
@@ -85,13 +85,16 @@ void WSceneComponent::UpdateRecursive()
 	}
 }
 
-void WSceneComponent::SetupAttachment(TWeakPtr<WSceneComponent> InParent)
+void WSceneComponent::SetupAttachment(WSceneComponent* InParent)
 {
-	mParent = InParent;
-
-	if (auto Parent = mParent.lock())
+	if (InParent)
 	{
-		Parent->mChilds.push_back(GetWeakPtr<WSceneComponent>());
+		mParent = InParent->GetWeakPtr<WSceneComponent>();
+
+		if (auto Parent = mParent.lock())
+		{
+			Parent->mChilds.push_back(GetWeakPtr<WSceneComponent>());
+		}
 	}
 }
 

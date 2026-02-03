@@ -4,7 +4,6 @@
 #include "Component/ProjectileMovementComponent.h"
 #include "Component/StaticMeshComponent.h"
 #include "Component/BoxComponent.h"
-#include "Component/ObjectAnimComponent.h"
 #include "Physics/HitResult.h"
 
 class AMissileGridManager;
@@ -38,21 +37,10 @@ private:
 
 	TWeakPtr<WStaticMeshComponent> mStaticMesh;
 
-	TWeakPtr<WObjectAnimComponent> mObjAnimComp;
-
 	AMissileGridManager* mMissileGridManager = nullptr;
-
-	TArray<FObjectAnimSampler*> mMissileAnimSamplers;
-
-	FObjectAnimSampler* mCurrAnimSampler = nullptr;
-
-	float mAnimElapsedTime;
 
 	// 호밍 타겟이 설정된 지점부터, 호밍 타겟까지의 거리. 실제로 이동할 거리와는 오차가 있음
 	float mExpectedHomingDistanceSq;
-
-	// 미사일 애니메이션의 마지막 프레임
-	float mAnimFrameEnd = 0;
 
 	// 호밍 타겟. 데크의 front에 있는 액터를 향해서 날아간다.
 	TDeque<TWeakPtr<AActor>> mHomingPathMarkerDeque;
@@ -60,18 +48,20 @@ private:
 	// 호밍 타겟의 해당 변수의 반경에 진입했을 때, 호밍 타겟을 제거하기 위한 값
 	float mArrivalThresholdSq;	
 
-	const float mMinArrivalThresholdSq = 1.0f;
+	float mMinArrivalThresholdSq = 10;
 
-	const float mMaxArrivalThresholdSq = 25.0f;
+	float mMaxArrivalThresholdSq = 25;
 
 	// 틱당 액터에 더해질 RotationZ.
 	float mRotationZStep = 0.0f;
 
-	const float mMinRotationZStep = -45.f;
+	float mMinRotationZStep = 0;
 
-	const float mMaxRotationZStep = 45.0f;
+	float mMaxRotationZStep = 0;
 
 	XMFLOAT3 mLastTickLocation;
 
 	friend class AMissileGridManager;
 };
+
+REGISTER_ACTOR(ATopAttackMissile)

@@ -11,11 +11,7 @@ AActor::AActor()
 	TWeakPtr<WSceneComponent> DummyRoot = CreateComponent<WSceneComponent>();
 	SetRootComponent(DummyRoot);
 
-	RegisterWFunction("GetRootComponent", [this](const WFunctionParams& Params)
-		{
-			return MakeShared<TWeakPtr<WSceneComponent>>(GetRootComponent());
-		}
-	);
+	REGISTER_GETTER_WFUNCTION(GetRootComponent, WSceneComponent*);
 
 	mBeginPlayEvent = RegisterEvent("BeginPlay");
 }
@@ -40,7 +36,7 @@ void AActor::SetRootComponent(TWeakPtr<WSceneComponent> Component)
 		}
 		else
 		{
-			OldRoot->SetupAttachment(NewRoot);
+			OldRoot->SetupAttachment(NewRoot.get());
 		}
 	}
 
@@ -135,6 +131,7 @@ void AActor::OnDeactivate()
 void AActor::LoadBlueprint(BlueprintAsset::FActorNode* RootNode)
 {
 	LoadWProperties(RootNode->Properties);
+	LoadWVariables(RootNode->Variables);
 	LoadEvents(this, RootNode->Events);
 
 	for (const auto& CompNode : RootNode->AttachedComponents)
@@ -143,6 +140,10 @@ void AActor::LoadBlueprint(BlueprintAsset::FActorNode* RootNode)
 		if (!Comp)
 		{
 			Comp = CreateComponentByFactory<WActorComponent>(CompNode->ComponentNode.ParentClass).lock().get();
+			if (WSceneComponent* SceneComp = dynamic_cast<WSceneComponent*>(Comp))
+			{
+				SceneComp->SetupAttachment(GetRootComponent());
+			}
 			RegisterWProperty(CompNode->Name, Comp);
 		}
 		Comp->LoadBlueprint(this ,&CompNode->ComponentNode);

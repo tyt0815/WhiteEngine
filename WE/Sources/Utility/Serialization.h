@@ -17,6 +17,17 @@ public:
         return *this;
     }
 
+    template<typename T>
+    FBinaryWriter& operator<<(const std::vector<T>& Array)
+    {
+        *this << (int)Array.size();
+        for (const auto& Value : Array)
+        {
+            *this << Value;
+        }
+        return *this;
+    }
+
     // std::string 특수화 (길이 -> 실제 데이터 순서)
     FBinaryWriter& operator<<(const std::string& Value) 
     {
@@ -29,6 +40,12 @@ public:
     FBinaryWriter& operator<<(const char* Value)
     {
         *this << (std::string(Value));
+        return *this;
+    }
+
+    FBinaryWriter& operator<<(const DirectX::XMFLOAT3& Value)
+    {
+        *this << Value.x << Value.y << Value.z;
         return *this;
     }
 
@@ -54,6 +71,19 @@ public:
         return *this;
     }
 
+    template<typename T>
+    FBinaryReader& operator>>(std::vector<T>& Array)
+    {
+        int Count;
+        *this >> Count;
+        Array.resize(Count);
+        for (int i = 0; i < Count; ++i)
+        {
+            *this >> Array[i];
+        }
+        return *this;
+    }
+
     // std::string 특수화
     FBinaryReader& operator>>(std::string& Value) 
     {
@@ -64,6 +94,12 @@ public:
             Value.assign(reinterpret_cast<const char*>(&Buffer[Offset]), Length);
             Offset += Length;
         }
+        return *this;
+    }
+
+    FBinaryReader& operator>>(DirectX::XMFLOAT3& Value)
+    {
+        *this >> Value.x >> Value.y >> Value.z;
         return *this;
     }
 

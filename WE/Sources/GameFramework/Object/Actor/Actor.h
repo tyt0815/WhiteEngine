@@ -92,9 +92,9 @@ private:
 
 public:
 
-	__forceinline TWeakPtr<WSceneComponent> GetRootComponent() const
+	__forceinline WSceneComponent* GetRootComponent() const
 	{
-		return mRootComponent;
+		return mRootComponent.lock().get();
 	}
 
 	__forceinline FTransform GetActorTransform() const

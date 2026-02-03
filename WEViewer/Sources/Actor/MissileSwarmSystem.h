@@ -1,6 +1,5 @@
 #pragma once
 #include "Actor/Actor.h"
-#include "ColdLaunchAnimPlayer.h"
 #include "TargetMarker.h"
 #include "MissileGridManager.h"
 

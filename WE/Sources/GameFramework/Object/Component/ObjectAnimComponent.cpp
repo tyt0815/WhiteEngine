@@ -172,6 +172,107 @@ XMFLOAT3 FObjectAnimSampler::SampleLocation(float TargetFrame)
 WObjectAnimComponent::WObjectAnimComponent()
 {
 	SetTickGroup(ETickGroup::ETG_PrePhysics, ETickPriority::ETP_Low);
+
+	RegisterWFunction("LoadAnimation", [this](const WFunctionParams& Params)
+		{
+			std::string AssetName;
+			std::string AnimName;
+			for (const auto Param : Params)
+			{
+				if (Param->Name == "AssetName")
+				{
+					AssetName = Param->Get<std::string>();
+				}
+				else if (Param->Name == "AnimName")
+				{
+					AnimName = Param->Get<std::string>();
+				}
+			}
+			LoadAnimation(AssetName, AnimName);
+			return nullptr;
+		}
+	);
+
+	BEGIN_WFUNCTION(SetTargetComponent)
+	{
+		WSceneComponent* Component = nullptr;
+		for (const auto& Param : Params)
+		{
+			if (Param->Name == "Component")
+			{
+				Component = Param->Get<WSceneComponent*>();
+			}
+		}
+		SetTargetComponent(Component);
+		return nullptr;
+	}
+	END_WFUNCTION
+
+	RegisterWFunction("Play", [this](const WFunctionParams& Params)
+		{
+			bool bLoop = false;
+			uint16_t Flags = 0;
+
+			for (const auto& Param : Params)
+			{
+				if (Param->Name == "Loop")
+				{
+					bLoop = Param->Get<bool>();
+				}
+				else if (Param->Name == "Loc")
+				{
+					std::string LocFlag = Param->Get<std::string>();
+					if (LocFlag.find('X') != std::string::npos)
+					{
+						Flags |= ERootMotion::LocX;
+					}
+					if (LocFlag.find('Y') != std::string::npos)
+					{
+						Flags |= ERootMotion::LocY;
+					}
+					if (LocFlag.find('Z') != std::string::npos)
+					{
+						Flags |= ERootMotion::LocZ;
+					}
+				}
+				else if (Param->Name == "Rot")
+				{
+					std::string RotFlag = Param->Get<std::string>();
+					if (RotFlag.find('X') != std::string::npos)
+					{
+						Flags |= ERootMotion::RotX;
+					}
+					if (RotFlag.find('Y') != std::string::npos)
+					{
+						Flags |= ERootMotion::RotY;
+					}
+					if (RotFlag.find('Z') != std::string::npos)
+					{
+						Flags |= ERootMotion::RotZ;
+					}
+				}
+				else if (Param->Name == "Scale")
+				{
+					std::string ScaleFlag = Param->Get<std::string>();
+					if (ScaleFlag.find('X') != std::string::npos)
+					{
+						Flags |= ERootMotion::ScaleX;
+					}
+					if (ScaleFlag.find('Y') != std::string::npos)
+					{
+						Flags |= ERootMotion::ScaleY;
+					}
+					if (ScaleFlag.find('Z') != std::string::npos)
+					{
+						Flags |= ERootMotion::ScaleZ;
+					}
+				}
+			}
+
+			Play(bLoop, Flags == 0 ? ERootMotion::All : Flags);
+			return nullptr;
+		}
+	);
 }
 
 void WObjectAnimComponent::BeginComponent()
@@ -309,7 +410,7 @@ void WObjectAnimComponent::Tick(float DeltaTime)
 	}
 }
 
-bool WObjectAnimComponent::LoadKeyframesFromOADAsset(const std::wstring& AssetName, const std::string& AnimName)
+bool WObjectAnimComponent::LoadAnimation(const std::string& AssetName, const std::string& AnimName)
 {
 	if (FObjectAnimDataAsset* ObjectAnimData = FAssetManager::GetAsset<FObjectAnimDataAsset>(AssetName))
 	{
@@ -336,4 +437,12 @@ void WObjectAnimComponent::Stop()
 {
 	mIsPlaying = false;
 	mCurrentTime = 0.0f;
+}
+
+void WObjectAnimComponent::SetTargetComponent(WSceneComponent* Comp)
+{
+	if (Comp)
+	{
+		mTarget = Comp->GetWeakPtr<WSceneComponent>();
+	}
 }

@@ -9,6 +9,11 @@
 
 using namespace BlueprintAsset;
 
+EPropertyType StringToType(const std::string& s)
+{
+
+}
+
 int CountChildElement(FXMLElement* Parent, const std::string& Name)
 {
     int Count = 0;
@@ -83,6 +88,14 @@ void FBlueprintAsset::SerializeProperty(FXMLElement* PropertyElement, FBinaryWri
         const float Value = PropertyElement->FloatAttribute("Value");
         Writer << Value;
     }
+    else if (PropertyType == "float3")
+    {
+        Writer << (int)EPropertyType::EPT_Float3;
+        std::string Float3 = PropertyElement->Attribute("Value");
+        XMFLOAT3 Value;
+        sscanf_s(Float3.c_str(), "(%f, %f, %f)", &Value.x, &Value.y, &Value.z);
+        Writer << Value;
+    }
     else if (PropertyType == "bool")
     {
         Writer << (int)EPropertyType::EPT_Boolean;
@@ -95,6 +108,19 @@ void FBlueprintAsset::SerializeProperty(FXMLElement* PropertyElement, FBinaryWri
         const std::string Value = PropertyElement->Attribute("Value");
         Writer << Value;
     }
+    else if (PropertyType == "array_string")
+    {
+        Writer << (int)EPropertyType::EPT_StringArray;
+        std::vector<std::string> Values;
+        FXMLElement* ValueElement = PropertyElement->FirstChildElement();
+        while (ValueElement)
+        {
+            Values.push_back(ValueElement->Attribute("Value"));
+            ValueElement = ValueElement->NextSiblingElement();
+        }
+        
+        Writer << Values;
+    }
     else
     {
         assert(false && "Undefined Property");
@@ -106,6 +132,8 @@ void FBlueprintAsset::DeserializeComponent(FBinaryReader& Reader, BlueprintAsset
     Reader >> CompNode->ParentClass;
 
     DeserializeProperties(CompNode->Properties, Reader);
+
+    DeserializeProperties(CompNode->Variables, Reader);
 
     DeserializeEvents(Reader, CompNode->Events);
 }
@@ -180,11 +208,23 @@ void FBlueprintAsset::SerializeFunction(FXMLElement* FuncElement, FBinaryWriter&
             Writer << (int)EFunctionParameterType::EFPT_Function;
             SerializeFunction(ParamElement, Writer);
         }
-        // 정적인 값
         else
         {
-            Writer << (int)EFunctionParameterType::EFPT_Property;
-            SerializeProperty(ParamElement, Writer);
+            if (ParamElement->Attribute("Property"))
+            {
+                Writer << (int)EFunctionParameterType::EFPT_Property;
+                std::string Type = ParamElement->Name();
+                std::string Name = ParamElement->Attribute("Name");
+                std::string Target = ParamElement->Attribute("Target");
+                std::string Value = ParamElement->Attribute("Value");
+                Writer << Type << Name << Target << Value;
+            }
+            // 정적인 값
+            else
+            {
+                Writer << (int)EFunctionParameterType::EFPT_ConstValue;
+                SerializeProperty(ParamElement, Writer);
+            }
         }
 
         ParamElement = ParamElement->NextSiblingElement();
@@ -242,6 +282,11 @@ void FBlueprintAsset::DeserializeFunction(FBinaryReader& Reader, BlueprintAsset:
         {
             FuncNode->FunctionParameters.push_back(MakeShared<FFunctionNode>());
             DeserializeFunction(Reader, FuncNode->FunctionParameters.back().get());
+        }
+        else if (ParameterType == (int)EFunctionParameterType::EFPT_Property)
+        {
+            FuncNode->PropertyParameters.push_back(FProperty());
+            DeserializeProperty(FuncNode->PropertyParameters.back(), Reader);
         }
         else
         {
@@ -325,6 +370,12 @@ void FBlueprintAsset::DeserializeProperty(BlueprintAsset::FProperty& Property, F
         Reader >> Value;
         Property.Value = Value;
     }
+    else if (Type == (int)EPropertyType::EPT_Float3)
+    {
+        XMFLOAT3 Value;
+        Reader >> Value;
+        Property.Value = Value;
+    }
     else if (Type == (int)EPropertyType::EPT_Boolean)
     {
         bool Value;
@@ -336,6 +387,12 @@ void FBlueprintAsset::DeserializeProperty(BlueprintAsset::FProperty& Property, F
         std::string Value;
         Reader >> Value;
         Property.Value = Value;
+    }
+    else if (Type == (int)EPropertyType::EPT_StringArray)
+    {
+        std::vector<std::string> Values;
+        Reader >> Values;
+        Property.Value = Values;
     }
     else
     {
@@ -351,6 +408,8 @@ void FBlueprintAsset::SerializeComponent(FXMLElement* ComponentElement, FBinaryW
     
     SerializeProperties(ComponentElement->FirstChildElement("Properties"), Writer);
 
+    SerializeProperties(ComponentElement->FirstChildElement("Variables"), Writer);
+
     SerializeEvents(ComponentElement->FirstChildElement("Events"), Writer);
 }
 
@@ -362,6 +421,8 @@ void FActorBlueprintAsset::Serialize(FXMLElement* RootElement, FBinaryWriter& Wr
 
     // 2. 액터 프로퍼티 쓰기
     SerializeProperties(RootElement->FirstChildElement("Properties"), Writer);
+
+    SerializeProperties(RootElement->FirstChildElement("Variables"), Writer);
 
     // 3. 컴포넌트 쓰기
     SerializeAttachedComponents(RootElement->FirstChildElement("Components"), Writer);
@@ -375,6 +436,8 @@ void FActorBlueprintAsset::Deserialize(FBinaryReader& Reader)
 
     // 2. 프로퍼티 읽기
     DeserializeProperties(mRootNode.Properties, Reader);
+
+    DeserializeProperties(mRootNode.Variables, Reader);
 
     // 3. 컴포넌트 읽기
     DeserializeAttachedComponents(Reader);
@@ -433,7 +496,7 @@ void FActorBlueprintAsset::DeserializeAttachedComponent(BlueprintAsset::FAttache
 
 void FActorBlueprintAsset::RegisterToFactory()
 {
-    FActorFactory::RegisterActor(WStringToString(mName), [&]()
+    FActorFactory::RegisterActor(mName, [&]()
         {
             TSharedPtr<AActor> Actor = FActorFactory::CreateActor<AActor>(mRootNode.ParentClass);
             Actor->LoadBlueprint(&mRootNode);
@@ -454,7 +517,7 @@ void FComponentBlueprintAsset::Deserialize(FBinaryReader& Reader)
 
 void FComponentBlueprintAsset::RegisterToFactory()
 {
-    FComponentFactory::RegisterComponent(WStringToString(mName), [&]()
+    FComponentFactory::RegisterComponent(mName, [&]()
         {
             TSharedPtr<WActorComponent> Comp = FComponentFactory::CreateComponent<WActorComponent>(mRootNode.ParentClass);
             Comp->LoadBlueprint(Comp.get(), &mRootNode);

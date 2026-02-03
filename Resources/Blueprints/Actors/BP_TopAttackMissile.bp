@@ -1,0 +1,33 @@
+<ATopAttackMissile>
+    <Properties>
+        <float Name = "MinArrivalThresholdSq" Value = "64"/>
+        <float Name = "MaxArrivalThresholdSq" Value = "100"/>
+        <float Name = "MinRotationZStep" Value = "-45"/>
+        <float Name = "MaxRotationZStep" Value = "45"/>
+    </Properties>
+
+    <Variables>
+        <string Name = "SM" Value = "SM_MetalRing"/>
+
+        <array_string Name = "Test">
+            <string Value = "a"/>
+        </array_string>
+    </Variables>
+
+    <Components>
+        <WStaticMeshComponent Name = "StaticMeshComp">
+            <Events>
+                <BeginComponent>
+                    <Call Func = "SetStaticMesh" Target = "StaticMeshComp">
+                        <string Name = "StaticMesh" Target = "this" Value = "SM" Property = "true"/>
+                    </Call>
+                </BeginComponent>
+            </Events>
+        </WStaticMeshComponent>
+
+        <WProjectileMovementComponent Name = "ProjMovementComp">
+
+        </WProjectileMovementComponent>
+    </Components>
+
+</ATopAttackMissile>

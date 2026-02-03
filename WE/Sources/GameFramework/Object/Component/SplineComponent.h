@@ -30,7 +30,7 @@ public:
 public:
 	void AddSplineNode(const FSplineNode& Node);
 
-	void LoadSplineFromAsset(const std::wstring& AssetName);
+	void LoadSplineFromAsset(const std::string& AssetName);
 
 	// InputKey의 범위는 [0, n - 1] 여기서 n: SplineNode의 수
 	XMFLOAT3 GetLocalLocationAtSplineInputKey(float InputKey);

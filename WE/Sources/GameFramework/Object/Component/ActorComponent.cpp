@@ -37,5 +37,6 @@ void WActorComponent::BeginComponent()
 void WActorComponent::LoadBlueprint(WObject* Context, const BlueprintAsset::FComponentNode* RootNode)
 {
 	LoadWProperties(RootNode->Properties);
+	LoadWVariables(RootNode->Variables);
 	LoadEvents(Context, RootNode->Events);
 }
