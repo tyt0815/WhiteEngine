@@ -33,6 +33,10 @@ public:
 
 	DirectX::XMFLOAT3 GetWorldLocation();
 
+	DirectX::XMFLOAT3 GetWorldRotation();
+
+	DirectX::XMFLOAT3 GetWorldScale();
+
 	FTransform GetWorldTransform();
 
 	void UpdateRecursive();

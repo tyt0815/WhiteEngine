@@ -16,6 +16,15 @@ WSceneComponent::WSceneComponent()
 
 			return nullptr;
 		});
+
+	REGISTER_GETTER_WFUNCTION(GetLocalTransform, FTransform);
+	REGISTER_GETTER_WFUNCTION(GetLocalLocation, XMFLOAT3);
+	REGISTER_GETTER_WFUNCTION(GetLocalRotation, XMFLOAT3);
+	REGISTER_GETTER_WFUNCTION(GetLocalScale, XMFLOAT3);
+	REGISTER_GETTER_WFUNCTION(GetWorldTransform, FTransform)
+	REGISTER_GETTER_WFUNCTION(GetWorldLocation, XMFLOAT3);
+	REGISTER_GETTER_WFUNCTION(GetWorldRotation, XMFLOAT3);
+	REGISTER_GETTER_WFUNCTION(GetWorldScale, XMFLOAT3);
 }
 
 void WSceneComponent::UpdateWorldMatrix()
@@ -135,6 +144,16 @@ DirectX::XMFLOAT4 WSceneComponent::GetWorldQuatRotation()
 DirectX::XMFLOAT3 WSceneComponent::GetWorldLocation()
 {
 	return GetWorldTransform().Translation;
+}
+
+DirectX::XMFLOAT3 WSceneComponent::GetWorldRotation()
+{
+	return GetWorldTransform().Rotation;
+}
+
+DirectX::XMFLOAT3 WSceneComponent::GetWorldScale()
+{
+	return GetWorldTransform().Scale;
 }
 
 FTransform WSceneComponent::GetWorldTransform()

@@ -26,8 +26,21 @@
         </WStaticMeshComponent>
 
         <WProjectileMovementComponent Name = "ProjMovementComp">
-
+            <Properties>
+                <float Name = "Speed" Value = "30"/>
+            </Properties>
         </WProjectileMovementComponent>
     </Components>
+
+    <Events>
+        <BeginPlay>
+            <Call Func = "SpawnActor" Target = "this">
+                <string Name = "Class" Value = "BP_Projectile"/>
+                <!-- <float3 Name = "Location" Value = "(1, 1, 1)"/> -->
+                <!-- <Call Func = "GetActorLocation" Name = "Location" Target = "this"/> -->
+                <Call Func = "GetActorTransform" Name = "Transform" Target = "this"/>
+            </Call>
+        </BeginPlay>
+    </Events>
 
 </ATopAttackMissile>

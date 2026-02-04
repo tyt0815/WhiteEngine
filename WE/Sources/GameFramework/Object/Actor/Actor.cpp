@@ -13,6 +13,46 @@ AActor::AActor()
 
 	REGISTER_GETTER_WFUNCTION(GetRootComponent, WSceneComponent*);
 
+	BEGIN_WFUNCTION(SpawnActor)
+	{
+		FActorSpawnParameter SpawnParam;
+		std::string Class = "AActor";
+		for (const auto& Param : Params)
+		{
+			if (Param->Name == "Class")
+			{
+				Class = Param->Get<std::string>();
+			}
+			else if (Param->Name == "Location")
+			{
+				SpawnParam.Transform.Translation = Param->Get<XMFLOAT3>();
+			}
+			else if (Param->Name == "Rotation")
+			{
+				SpawnParam.Transform.Rotation = Param->Get<XMFLOAT3>();
+			}
+			else if (Param->Name == "Scale")
+			{
+				SpawnParam.Transform.Scale = Param->Get<XMFLOAT3>();
+			}
+			else if (Param->Name == "Transform")
+			{
+				SpawnParam.Transform = Param->Get<FTransform>();
+			}
+			else
+			{
+				assert(false && "Invalid parameter name");
+			}
+		}
+		return GetWorld()->SpawnActorByFactory<AActor>(Params[0]->Get<std::string>(), SpawnParam).lock();
+	}
+	END_WFUNCTION;
+
+	REGISTER_GETTER_WFUNCTION(GetActorLocation, XMFLOAT3);
+	REGISTER_GETTER_WFUNCTION(GetActorRotation, XMFLOAT3);
+	REGISTER_GETTER_WFUNCTION(GetActorScale, XMFLOAT3);
+	REGISTER_GETTER_WFUNCTION(GetActorTransform, FTransform);
+
 	mBeginPlayEvent = RegisterEvent("BeginPlay");
 }
 
