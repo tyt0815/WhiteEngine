@@ -146,7 +146,7 @@ private:
 	int mTickId = -1;
 
 public:
-	__forceinline const WEvent* RegisterEvent(const std::string& Name)
+	__forceinline const WEvent* RegisterWEvent(const std::string& Name)
 	{
 		return &mWEvents[Name];
 	}

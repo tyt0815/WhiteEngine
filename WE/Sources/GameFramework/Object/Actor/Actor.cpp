@@ -46,6 +46,8 @@ AActor::AActor()
 	}
 	END_WFUNCTION;
 
+	REGISTER_WFUNC_0(Destroy);
+
 	REGISTER_WFUNC_RET_0(GetRootComponent, WSceneComponent*);
 
 	REGISTER_WFUNC_RET_0(GetActorLocation, XMFLOAT3);
@@ -53,7 +55,7 @@ AActor::AActor()
 	REGISTER_WFUNC_RET_0(GetActorScale, XMFLOAT3);
 	REGISTER_WFUNC_RET_0(GetActorTransform, FTransform);
 
-	mBeginPlayEvent = RegisterEvent("BeginPlay");
+	mBeginPlayEvent = RegisterWEvent("BeginPlay");
 }
 
 void AActor::BeginPlay()

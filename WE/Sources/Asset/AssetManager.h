@@ -26,6 +26,8 @@ private:
 
 	void LoadObjectAnimations();
 
+	void LoadSplines();
+
 	std::unordered_map<std::string, TUniquePtr<FAsset>> mAssets;
 };
 

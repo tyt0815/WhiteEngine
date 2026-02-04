@@ -9,7 +9,7 @@
                 <BeginComponent>
 
                     <Call Func = "SetStaticMesh" Target = "StaticMeshComponent">
-                        <string Name = "StaticMesh" Value = "SM_MetalRing"/>
+                        <string Name = "StaticMesh" Value = "SM_LaminateFlooringBrownBox"/>
                     </Call>
 
                 </BeginComponent>
@@ -21,6 +21,7 @@
                 <bool Name = "Homing" Value = "true"/>
                 <float Name = "HomingTurnLimit" Value = "90"/>
                 <float Name = "Speed" Value = "10"/>
+                <float Name = "LifeSpan" Value = "20"/>
             </Properties>
         </WProjectileMovementComponent>
 
@@ -54,7 +55,15 @@
                 <bool Name = "SmartHoming" Value = "true"/>
                 <float Name = "Range" Value = "5"/>
             </Call>
+
+            <Call Func = "MakeLineCollision" Target = "this">
+                <Call Func = "Get" Target = "StaticMeshComponent" Name = "SceneComp"/>
+            </Call>
         </BeginPlay>
+
+        <OnHit>
+            <Call Func = "Destroy" Target = "this"/>
+        </OnHit>
     </Events>
 
 

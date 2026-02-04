@@ -39,16 +39,7 @@ FAssetManager::~FAssetManager()
 
 void FAssetManager::LoadAssets()
 {
-	std::wstring SolutionDir(SOLUTION_DIR_W);
-	LoadAsset<FSplineDataAsset>(SolutionDir + L"Resources/JSON/SplineData.json", "SDA_ProjectilePath");
-	LoadAsset<FSplineDataAsset>(SolutionDir + L"Resources/JSON/ForwardSpline.json", "SDA_Forward");
-	LoadAsset<FSplineDataAsset>(SolutionDir + L"Resources/JSON/RightSpline.json", "SDA_Right");
-	LoadAsset<FSplineDataAsset>(SolutionDir + L"Resources/JSON/UpSpline.json", "SDA_Up");
-
-	std::wstring JsonDir = SolutionDir + L"Resources/JSON";
-	LoadAsset<FSplineDataAsset>(JsonDir + L"/SpiralSpline.json", "SDA_Spiral");
-	LoadAsset<FSplineDataAsset>(JsonDir + L"/WaveSpline.json", "SDA_Wave");
-	LoadAsset<FSplineDataAsset>(JsonDir + L"/RingPathSpline.json", "SDA_RingPath");
+	LoadSplines();
 
 	LoadBlueprints();
 
@@ -107,5 +98,19 @@ void FAssetManager::LoadObjectAnimations()
 	for (const auto& FileName : ObjAnimFileName)
 	{
 		LoadAsset<FObjectAnimDataAsset>(FolderPath + L"\\" + FileName + Extension, WStringToString(FileName));
+	}
+}
+
+void FAssetManager::LoadSplines()
+{
+	const std::wstring FolderPath = SOLUTION_DIR_W + std::wstring(L"Resources\\Splines");
+	const std::wstring Extension = L".json";
+	TArray<std::wstring> SplineFileName;
+
+	GetFileNameByExtension(FolderPath, Extension, SplineFileName);
+
+	for (const auto& FileName : SplineFileName)
+	{
+		LoadAsset<FSplineDataAsset>(FolderPath + L"\\" + FileName + Extension, WStringToString(FileName));
 	}
 }

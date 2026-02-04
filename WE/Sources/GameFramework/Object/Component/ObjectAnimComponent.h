@@ -91,7 +91,7 @@ public:
 public:
 	bool LoadAnimation(const std::string& AssetName, const std::string& AnimName);
 
-	void Play(bool bLoop, uint16_t Flags);
+	void Play(float PlayRate, bool bLoop, uint16_t Flags);
 
 	void Stop();
 
@@ -108,7 +108,12 @@ private:
 	float mCurrentTime = 0.0f;
 	bool  mIsPlaying = false;
 	bool  mLoop = false;
+	float mPlayRate = 1.0f;
 	uint16_t mRootMotionFlags;
+
+	const WEvent* mOnStartPlay;
+
+	const WEvent* mOnStop;
 
 public:
 	__forceinline float GetFrameEnd() const

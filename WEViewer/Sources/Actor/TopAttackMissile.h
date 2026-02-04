@@ -30,6 +30,8 @@ public:
 private:
 	void OnHit(const FHitResult& Hit);
 
+	void Launch();
+
 	TWeakPtr<WProjectileMovementComponent> mProjectileMovementComponent;
 
 	TWeakPtr<WStaticMeshComponent> mStaticMesh;
@@ -56,7 +58,17 @@ private:
 
 	float mMaxRotationZStep = 0;
 
+	float mColdLaunchDelay = 2.0f;
+
+	float mColdLaunchElapsedTime = 0.0f;
+
+	float mSpeed = 0.0f;
+
 	XMFLOAT3 mLastTickLocation;
+
+	const WEvent* mOnBeginColdLaunch;
+
+	const WEvent* mOnBeginLaunch;
 
 	friend class AMissileGridManager;
 };

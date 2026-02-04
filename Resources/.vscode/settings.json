@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.bp": "xml",
+        "*.oa": "xml"
+    }
+}

@@ -173,51 +173,25 @@ WObjectAnimComponent::WObjectAnimComponent()
 {
 	SetTickGroup(ETickGroup::ETG_PrePhysics, ETickPriority::ETP_Low);
 
-	RegisterWFunction("LoadAnimation", [this](const WFunctionParams& Params)
-		{
-			std::string AssetName;
-			std::string AnimName;
-			for (const auto Param : Params)
-			{
-				if (Param->Name == "AssetName")
-				{
-					AssetName = Param->Get<std::string>();
-				}
-				else if (Param->Name == "AnimName")
-				{
-					AnimName = Param->Get<std::string>();
-				}
-			}
-			LoadAnimation(AssetName, AnimName);
-			return nullptr;
-		}
-	);
-
-	BEGIN_WFUNCTION(SetTargetComponent)
-	{
-		WSceneComponent* Component = nullptr;
-		for (const auto& Param : Params)
-		{
-			if (Param->Name == "Component")
-			{
-				Component = Param->Get<WSceneComponent*>();
-			}
-		}
-		SetTargetComponent(Component);
-		return nullptr;
-	}
-	END_WFUNCTION
-
+	// Register WFunction
+	REGISTER_WFUNC_0(Stop);
+	REGISTER_WFUNC_1(SetTargetComponent, TargetComponent, WSceneComponent*);
+	REGISTER_WFUNC_2(LoadAnimation, AssetName, std::string, AnimName, std::string);
 	RegisterWFunction("Play", [this](const WFunctionParams& Params)
 		{
 			bool bLoop = false;
 			uint16_t Flags = 0;
+			float PlayRate = 1.0f;
 
 			for (const auto& Param : Params)
 			{
 				if (Param->Name == "Loop")
 				{
 					bLoop = Param->Get<bool>();
+				}
+				else if (Param->Name == "PlayRate")
+				{
+					PlayRate = Param->Get<float>();
 				}
 				else if (Param->Name == "Loc")
 				{
@@ -269,10 +243,14 @@ WObjectAnimComponent::WObjectAnimComponent()
 				}
 			}
 
-			Play(bLoop, Flags == 0 ? ERootMotion::All : Flags);
+			Play(PlayRate, bLoop, Flags == 0 ? ERootMotion::All : Flags);
 			return nullptr;
 		}
 	);
+
+	// Register WEvent
+	mOnStartPlay = RegisterWEvent("OnStartPlay");
+	mOnStop = RegisterWEvent("OnStop");
 }
 
 void WObjectAnimComponent::BeginComponent()
@@ -291,7 +269,7 @@ void WObjectAnimComponent::Tick(float DeltaTime)
 
 	// 1. 시간 업데이트 (이전 프레임 기록)
 	float prevTime = mCurrentTime;
-	mCurrentTime += DeltaTime;
+	mCurrentTime += DeltaTime * mPlayRate;
 	float duration = GetDuration();
 
 	XMVECTOR vDeltaLoc;
@@ -324,8 +302,7 @@ void WObjectAnimComponent::Tick(float DeltaTime)
 		else
 		{
 			// 종료 처리 (기존 로직 유지)
-			mCurrentTime = duration;
-			mIsPlaying = false;
+			Stop();
 
 			FTransform prevT = mSampler->SampleTransform(SecondToFrame(prevTime));
 			FTransform endT = mSampler->SampleTransform(SecondToFrame(duration));
@@ -426,17 +403,20 @@ bool WObjectAnimComponent::LoadAnimation(const std::string& AssetName, const std
 	return false;
 }
 
-void WObjectAnimComponent::Play(bool bLoop, uint16_t Flags)
+void WObjectAnimComponent::Play(float PlayRate, bool bLoop, uint16_t Flags)
 {
 	mIsPlaying = true;
 	mLoop = bLoop;
 	mRootMotionFlags = Flags;
+	mPlayRate = max(0.001f, PlayRate);
+	mOnStartPlay->Dispatch();
 }
 
 void WObjectAnimComponent::Stop()
 {
 	mIsPlaying = false;
 	mCurrentTime = 0.0f;
+	mOnStop->Dispatch();
 }
 
 void WObjectAnimComponent::SetTargetComponent(WSceneComponent* Comp)

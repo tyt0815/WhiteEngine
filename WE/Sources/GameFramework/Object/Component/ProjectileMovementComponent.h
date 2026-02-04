@@ -50,6 +50,11 @@ public:
 		mHomingTurnLimit = Value;
 	}
 
+	__forceinline float GetSpeed() const
+	{
+		return mSpeed;
+	}
+
 	inline WSceneComponent* GetHomingTarget() const
 	{
 		TSharedPtr<WSceneComponent> Target = mHomingTarget.lock();

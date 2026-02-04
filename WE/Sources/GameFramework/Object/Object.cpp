@@ -9,7 +9,7 @@ WObject::WObject()
 
 	REGISTER_GET_SELF(WObject);
 
-	mTickEvent = RegisterEvent("Tick");
+	mTickEvent = RegisterWEvent("Tick");
 }
 
 void WObject::Tick(float DeltaSecond)
@@ -19,8 +19,10 @@ void WObject::Tick(float DeltaSecond)
 
 void WObject::SetTickGroup(ETickGroup TickGroup, ETickPriority TickPriority)
 {
+	GetWorld()->DequeueTick(this);
 	mTickGroup = TickGroup;
 	mTickPriority = TickPriority;
+	GetWorld()->EnqueueTick(this);
 }
 
 void WObject::OnDestroy()
@@ -139,7 +141,13 @@ void WObject::WEvent::LoadEvent(WObject* Context, const BlueprintAsset::FEventNo
 
 WObject::WFunctionReturn WObject::WEvent::CallFunction(WObject* Context, const BlueprintAsset::FFunctionNode* FuncNode)
 {
-	WFunction& Function = Context->GetWPropertyPtr<WObject>(FuncNode->Target)->mWFunctions[FuncNode->Call];
+	WObject* TargetObject = Context->GetWPropertyPtr<WObject>(FuncNode->Target);
+	if (!TargetObject)
+	{
+		TargetObject = Context->GetWPropertyPtr<WObject>(FuncNode->Target);
+	}
+	assert(TargetObject && "Invalid target");
+	WFunction& Function = TargetObject->mWFunctions[FuncNode->Call];
 	WFunctionParams Params;
 	for (const auto& StaticParam : FuncNode->StaticParameters)
 	{

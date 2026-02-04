@@ -7,6 +7,7 @@ ATopAttackMissile::ATopAttackMissile()
 {
 	SetTickGroup(ETickGroup::ETG_PostPhysics, ETickPriority::ETP_High);
 
+	// Property
 	mStaticMesh = CreateComponent<WStaticMeshComponent>();
 	if (auto StaticMeshComp = mStaticMesh.lock())
 	{
@@ -31,11 +32,34 @@ ATopAttackMissile::ATopAttackMissile()
 	RegisterWProperty("MaxArrivalThresholdSq", &mMaxArrivalThresholdSq);
 	RegisterWProperty("MinRotationZStep", &mMinRotationZStep);
 	RegisterWProperty("MaxRotationZStep", &mMaxRotationZStep);
+	RegisterWProperty("ColdLaunchDelay", &mColdLaunchDelay);
+
+
+	// WFunctions
+	REGISTER_WFUNC_0(Launch);
+
+	// WEvents
+	mOnBeginColdLaunch = RegisterWEvent("OnBeginColdLaunch");
+	mOnBeginLaunch = RegisterWEvent("OnBeginLaunch");
 }
 
 void ATopAttackMissile::Tick(float DeltaSecond)
 {
 	Super::Tick(DeltaSecond);
+
+	if (mColdLaunchElapsedTime < mColdLaunchDelay)
+	{
+		mColdLaunchElapsedTime += DeltaSecond;
+
+		if (mColdLaunchElapsedTime > mColdLaunchDelay)
+		{
+			Launch();
+		}
+		else
+		{
+			return;
+		}
+	}
 
 	// 액터 자체에 회전 변화
 	{
@@ -79,8 +103,9 @@ void ATopAttackMissile::Tick(float DeltaSecond)
 	{
 		XMFLOAT3 CurrLocation = StaticMesh->GetWorldLocation();
 		TArray<AActor*> ActorsToIgnore;
+		ActorsToIgnore.push_back(this);
 		FHitResult Hit;
-		GetWorld()->LineTrace(mLastTickLocation, CurrLocation, ActorsToIgnore, Hit, true, .1f);
+		GetWorld()->LineTrace(mLastTickLocation, CurrLocation, ActorsToIgnore, Hit, false, .1f);
 
 		if (!Hit.HitComponent.expired())
 		{
@@ -96,6 +121,14 @@ void ATopAttackMissile::BeginPlay()
 	Super::BeginPlay();
 
 	mLastTickLocation = GetActorLocation();
+
+	if (auto ProjComp = mProjectileMovementComponent.lock())
+	{
+		mSpeed = ProjComp->GetSpeed();
+		ProjComp->SetSpeed(0.0f);
+	}
+
+	mOnBeginColdLaunch->Dispatch();
 }
 
 void ATopAttackMissile::OnDestroy()
@@ -251,5 +284,14 @@ void ATopAttackMissile::OnHit(const FHitResult& Hit)
 		mMissileGridManager->RemoveMissile(this);
 	}
 
+	Super::OnHit();
+
 	Destroy();
+}
+
+void ATopAttackMissile::Launch()
+{
+	mColdLaunchElapsedTime = mColdLaunchDelay + 1;
+	mProjectileMovementComponent.lock()->SetSpeed(mSpeed);
+	mOnBeginLaunch->Dispatch();
 }

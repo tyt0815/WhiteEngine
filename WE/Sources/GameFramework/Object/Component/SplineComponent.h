@@ -25,6 +25,8 @@ class WSplineComponent : public WSceneComponent
 		float Property2;
 	};
 public:
+	WSplineComponent();
+
 	virtual void Tick(float Delta) override;
 
 public:
@@ -94,3 +96,5 @@ public:
 		return mSplineLUT.size() > 0 ? mSplineLUT.back().Distance : 0;
 	}
 };
+
+REGISTER_COMPONENT(WSplineComponent);

@@ -25,17 +25,10 @@ void WTestWorld::Tick(float DeltaSecond)
 
 	if (a > 1)
 	{
-		if (auto Proj = SpawnActorByFactory<AProjectileBase>("BP_Projectile").lock())
-		{
-			XMFLOAT3 Loc = XMFLOAT3(0, -1, 10);
-			Proj->SetActorLocation(Loc);
-			if (auto Target = SpawnActor<AActor>().lock())
-			{
-				Loc.y += 10;
-				Loc.z -= 10;
-				Target->SetActorLocation(Loc);
-			}
-		}
+		FActorSpawnParameter Param;
+		Param.Transform.Translation = XMFLOAT3(0, -1, 10);
+		SpawnActorByFactory<AProjectileBase>("BP_Projectile", Param);
+
 		a = 0;
 	}
 }

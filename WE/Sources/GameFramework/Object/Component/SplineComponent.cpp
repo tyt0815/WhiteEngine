@@ -5,6 +5,11 @@
 #include "../World/World.h"
 #include <algorithm>
 
+WSplineComponent::WSplineComponent()
+{
+	SetTickGroup(ETickGroup::ETG_PostPhysics, ETickPriority::ETP_Low);
+}
+
 void WSplineComponent::Tick(float Delta)
 {
 	Super::Tick(Delta);

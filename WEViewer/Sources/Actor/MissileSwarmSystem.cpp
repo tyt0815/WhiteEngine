@@ -178,7 +178,7 @@ void AMissileSwarmSystem::SetTargetMarkersLocation(XMFLOAT3 Origin, XMFLOAT3 Rig
 				TraceEnd.y -= 5;
 				TArray<AActor*> ActorsToIgnore;
 				FHitResult Hit;
-				World->LineTrace(TraceStart, TraceEnd, ActorsToIgnore, Hit, true, 0);
+				World->LineTrace(TraceStart, TraceEnd, ActorsToIgnore, Hit, false, 0);
 				if(Hit.Actor.expired())
 				{
 					Transform.Translation = TraceEnd;
@@ -258,7 +258,7 @@ void AMissileSwarmSystem::CreateHomingPaths(TWeakPtr<AActor> Target, TArray<TWea
 			FHitResult HitResult;
 
 			TArray<AActor*> ActorsToIgnore;
-			GetWorld()->LineTrace(TraceStart, TraceEnd, ActorsToIgnore, HitResult, true, 1.0f);
+			GetWorld()->LineTrace(TraceStart, TraceEnd, ActorsToIgnore, HitResult, false, 1.0f);
 
 			if (HitResult.HitComponent.expired())
 			{

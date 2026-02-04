@@ -1,16 +1,19 @@
 <ATopAttackMissile>
     <Properties>
-        <float Name = "MinArrivalThresholdSq" Value = "64"/>
+        <float Name = "MinArrivalThresholdSq" Value = "100"/>
         <float Name = "MaxArrivalThresholdSq" Value = "100"/>
         <float Name = "MinRotationZStep" Value = "-45"/>
         <float Name = "MaxRotationZStep" Value = "45"/>
+        <float Name = "ColdLaunchDelay" Value = "10"/>
     </Properties>
 
     <Variables>
-        <string Name = "SM" Value = "SM_MetalRing"/>
-
-        <array_string Name = "Test">
-            <string Value = "a"/>
+        <array_string Name = "AnimSet">
+            <string Value = "Proj3"/>
+            <string Value = "Proj4"/>
+            <string Value = "Proj5"/>
+            <string Value = "Proj2"/>
+            <string Value = "Proj6"/>
         </array_string>
     </Variables>
 
@@ -19,7 +22,7 @@
             <Events>
                 <BeginComponent>
                     <Call Func = "SetStaticMesh" Target = "StaticMeshComp">
-                        <string Name = "StaticMesh" Target = "this" Value = "SM"/>
+                        <string Name = "StaticMesh" Value = "SM_MetalRing"/>
                     </Call>
                 </BeginComponent>
             </Events>
@@ -30,17 +33,58 @@
                 <float Name = "Speed" Value = "30"/>
             </Properties>
         </WProjectileMovementComponent>
+
+        <WObjectAnimComponent Name = "ObjAnimComp">
+            <Events>
+                <OnStop>
+                    <Call Func = "Launch" Target = "this"/>
+                </OnStop>
+            </Events>
+        </WObjectAnimComponent>
     </Components>
 
     <Events>
         <BeginPlay>
-            <Call Func = "SpawnActor" Target = "this">
-                <string Name = "Class" Value = "BP_Projectile"/>
-                <!-- <float3 Name = "Location" Value = "(1, 1, 1)"/> -->
-                <!-- <Call Func = "GetActorLocation" Name = "Location" Target = "this"/> -->
-                <Call Func = "GetActorTransform" Name = "Transform" Target = "this"/>
+            <Call Func = "SetTrailParticle" Target = "this">
+                <Call Func = "Get" Target = "StaticMeshComp" Name = "SceneComp"/>
             </Call>
         </BeginPlay>
+
+        <OnHit>
+            <Call Func = "PlayParticle" Target = "this">
+                <string Name = "ParticleName" Value = "Explosion"/>
+            </Call>
+        </OnHit>
+
+        <OnBeginColdLaunch>
+            <Call Func = "LoadAnimation" Target = "ObjAnimComp">
+                <string Name = "AssetName" Value = "OA_ColdLaunch"/>
+                <string Name = "AnimName" Value = "Projectile"/>
+            </Call>
+
+            <Call Func = "Play" Target = "ObjAnimComp">
+                <bool Name = "Loop" Value = "false"/>
+            </Call>
+        </OnBeginColdLaunch>
+
+        <OnBeginLaunch>
+            <Call Func = "LoadAnimation" Target = "ObjAnimComp">
+                <string Name = "AssetName" Value = "OA_MissileTrack"/>
+                <Call Func = "SelectRandomString" Target = "this" Name = "AnimName">
+                    <array_string Name = "Strings" Value = "AnimSet" Target = "this"/>
+                </Call>
+            </Call>
+
+            <Call Func = "SetTargetComponent" Target = "ObjAnimComp">
+                <Call Func = "Get" Target = "StaticMeshComp" Name = "TargetComponent"/>
+            </Call>
+
+            <Call Func = "Play" Target = "ObjAnimComp">
+                <bool Name = "Loop" Value = "true"/>
+                <float Name = "PlayRate" Value = "2"/>
+                <string Name = "Loc" Value = "XY"/>
+            </Call>
+        </OnBeginLaunch>
     </Events>
 
 </ATopAttackMissile>

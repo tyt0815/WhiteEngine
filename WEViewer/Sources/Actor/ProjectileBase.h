@@ -4,10 +4,32 @@
 #include "Component/ProjectileMovementComponent.h"
 #include "Component/StaticMeshComponent.h"
 #include "Component/ObjectAnimComponent.h"
+#include "Component/SplineComponent.h"
 
 class AProjectileBase : public AActor
 {
 	typedef AActor Super;
+	struct FTrackedSceneCompInfo
+	{
+		WSceneComponent* Target;
+		XMFLOAT3 LastTickLocation;
+	};
+
+	struct FMakeCollisionInfo
+	{
+		enum class EType
+		{
+			ET_Line,
+			ET_Box,
+		};
+
+		FTrackedSceneCompInfo* TargetInfo;
+		EType	 Type;
+		union
+		{
+			XMFLOAT3 Extent;
+		};
+	};
 public:
 	AProjectileBase();
 
@@ -18,10 +40,32 @@ public:
 protected:
 	void SetSmartHoming(bool bSmartHoming, float Range);
 
+	void OnHit();
+
+	void PlayParticle(const std::string& Name);
+
+	FTrackedSceneCompInfo* AddTrackedComp(WSceneComponent* Comp);
+
+	void SetTrailParticle(WSceneComponent* Comp);
+
+	void MakeLineCollision(WSceneComponent* Comp);
+	
+	std::string SelectRandomString(const TArray<std::string>& Strings);
+
 private:
 	TWeakPtr<WProjectileMovementComponent> mProjMoveComp;
-	bool mbSmartHoming;
-	float mSmartHomingRange;
+
+	bool mbSmartHoming = false;
+
+	float mSmartHomingRange = 0.0f;
+
+	TArray<TUniquePtr<FTrackedSceneCompInfo>> mTrackedComp;
+
+	TArray<FTrackedSceneCompInfo*> mTrailComp;
+
+	TArray<FMakeCollisionInfo> mCollisionInfo;
+
+	const WEvent* mOnHit;
 };
 
 REGISTER_ACTOR(AProjectileBase);

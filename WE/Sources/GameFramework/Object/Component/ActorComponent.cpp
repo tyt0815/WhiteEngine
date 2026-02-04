@@ -5,7 +5,7 @@
 WActorComponent::WActorComponent()
 {
 	RegisterWProperty("Owner", mOwner);
-	mBeginComponentEvent = RegisterEvent("BeginComponent");
+	mBeginComponentEvent = RegisterWEvent("BeginComponent");
 }
 
 void WActorComponent::Destroy()
