@@ -19,7 +19,7 @@
             <Events>
                 <BeginComponent>
                     <Call Func = "SetStaticMesh" Target = "StaticMeshComp">
-                        <string Name = "StaticMesh" Target = "this" Value = "SM" Property = "true"/>
+                        <string Name = "StaticMesh" Target = "this" Value = "SM"/>
                     </Call>
                 </BeginComponent>
             </Events>

@@ -174,15 +174,35 @@ WObject::WFunctionReturn WObject::WEvent::CallFunction(WObject* Context, const B
 	for (const auto& PropParam : FuncNode->PropertyParameters)
 	{
 		TSharedPtr<WFunctionParameter> Param = MakeShared<WFunctionParameter>();
-		Param->Name = PropParam.Name;
-		std::visit([&](auto&& arg)
-			{
-				using T = std::decay_t<decltype(arg)>;
 
-				Param->Value = MakeShared<T>(GetWProperty<T>(PropParam));
-			}, PropParam.Value
-		);
-		Param->Value = GetWProperty(PropParam.Property);
+		Param->Name = PropParam.Name;
+		WObject* Target = Context->GetWPropertyPtr<WObject>(PropParam.Target);
+		assert(Target != nullptr && "Invalide Target");
+		if (PropParam.Type == BlueprintAsset::EPropertyType::EPT_Boolean)
+		{
+			Param->Value = MakeShared<bool>(Target->GetWProperty<bool>(PropParam.Value));
+		}
+		else if (PropParam.Type == BlueprintAsset::EPropertyType::EPT_Float)
+		{
+			Param->Value = MakeShared<float>(Target->GetWProperty<float>(PropParam.Value));
+		}
+		else if (PropParam.Type == BlueprintAsset::EPropertyType::EPT_Float3)
+		{
+			Param->Value = MakeShared<XMFLOAT3>(Target->GetWProperty<XMFLOAT3>(PropParam.Value));
+		}
+		else if (PropParam.Type == BlueprintAsset::EPropertyType::EPT_String)
+		{
+			Param->Value = MakeShared<std::string>(Target->GetWProperty<std::string>(PropParam.Value));
+		}
+		else if (PropParam.Type == BlueprintAsset::EPropertyType::EPT_StringArray)
+		{
+			Param->Value = MakeShared<TArray<std::string>>(Target->GetWProperty<TArray<std::string>>(PropParam.Value));
+		}
+		else
+		{
+			assert(false && "Undefined property");
+		}
+
 		Params.push_back(Param);
 	}
 

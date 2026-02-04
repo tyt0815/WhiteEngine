@@ -47,6 +47,14 @@ namespace BlueprintAsset
 		EFPT_ConstValue
 	};
 
+	struct FPropertyParameter
+	{
+		std::string Name;
+		std::string Target;
+		std::string Value;
+		EPropertyType Type;
+	};
+
 	struct FFunctionNode
 	{
 		// 호출되는 함수 이름
@@ -60,7 +68,7 @@ namespace BlueprintAsset
 
 		TArray<FProperty> StaticParameters;
 
-		TArray<FProperty> PropertyParameters;
+		TArray<FPropertyParameter> PropertyParameters;
 
 		TArray<TSharedPtr<FFunctionNode>> FunctionParameters;
 	};

@@ -227,14 +227,15 @@ void FBlueprintAsset::SerializeFunction(FXMLElement* FuncElement, FBinaryWriter&
         }
         else
         {
-            if (ParamElement->Attribute("Property"))
+            const char* Target = ParamElement->Attribute("Target");
+            if (Target)
             {
                 Writer << (int)EFunctionParameterType::EFPT_Property;
-                std::string Type = ParamElement->Name();
+                int Type = (int)StringToType(ParamElement->Name());
                 std::string Name = ParamElement->Attribute("Name");
-                std::string Target = ParamElement->Attribute("Target");
+                std::string TargetS = Target;
                 std::string Value = ParamElement->Attribute("Value");
-                Writer << Type << Name << Target << Value;
+                Writer << Type << Name << TargetS << Value;
             }
             // 정적인 값
             else
@@ -302,8 +303,13 @@ void FBlueprintAsset::DeserializeFunction(FBinaryReader& Reader, BlueprintAsset:
         }
         else if (ParameterType == (int)EFunctionParameterType::EFPT_Property)
         {
-            FuncNode->PropertyParameters.push_back(FProperty());
-            DeserializeProperty(FuncNode->PropertyParameters.back(), Reader);
+            FPropertyParameter Param;
+            int Type;
+            std::string Value;
+            Reader >> Type >> Param.Name >> Param.Target >> Value;
+            Param.Type = (EPropertyType)Type;
+            Param.Value = Value;
+            FuncNode->PropertyParameters.push_back(Param);
         }
         else
         {
