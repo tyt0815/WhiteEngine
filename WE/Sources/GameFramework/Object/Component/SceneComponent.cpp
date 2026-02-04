@@ -17,14 +17,14 @@ WSceneComponent::WSceneComponent()
 			return nullptr;
 		});
 
-	REGISTER_GETTER_WFUNCTION(GetLocalTransform, FTransform);
-	REGISTER_GETTER_WFUNCTION(GetLocalLocation, XMFLOAT3);
-	REGISTER_GETTER_WFUNCTION(GetLocalRotation, XMFLOAT3);
-	REGISTER_GETTER_WFUNCTION(GetLocalScale, XMFLOAT3);
-	REGISTER_GETTER_WFUNCTION(GetWorldTransform, FTransform)
-	REGISTER_GETTER_WFUNCTION(GetWorldLocation, XMFLOAT3);
-	REGISTER_GETTER_WFUNCTION(GetWorldRotation, XMFLOAT3);
-	REGISTER_GETTER_WFUNCTION(GetWorldScale, XMFLOAT3);
+	REGISTER_WFUNC_RET_0(GetLocalTransform, FTransform);
+	REGISTER_WFUNC_RET_0(GetLocalLocation, XMFLOAT3);
+	REGISTER_WFUNC_RET_0(GetLocalRotation, XMFLOAT3);
+	REGISTER_WFUNC_RET_0(GetLocalScale, XMFLOAT3);
+	REGISTER_WFUNC_RET_0(GetWorldTransform, FTransform);
+	REGISTER_WFUNC_RET_0(GetWorldLocation, XMFLOAT3);
+	REGISTER_WFUNC_RET_0(GetWorldRotation, XMFLOAT3);
+	REGISTER_WFUNC_RET_0(GetWorldScale, XMFLOAT3);
 }
 
 void WSceneComponent::UpdateWorldMatrix()

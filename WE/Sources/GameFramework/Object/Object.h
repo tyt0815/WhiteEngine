@@ -81,6 +81,19 @@ protected:
 	using WFunctionReturn = TSharedPtr<void>;
 	using WFunction = std::function<WFunctionReturn(WFunctionParams)>;
 
+	// 매크로에서 사용되는 헬퍼 함수.
+	template<typename T>
+	inline T GetWParam(const WFunctionParams& Params, const std::string& Name) {
+		auto it = std::find_if(Params.begin(), Params.end(), [&](const TSharedPtr<WFunctionParameter>& P) {
+			return P && P->Name == Name;
+			});
+
+		if (it != Params.end()) {
+			return (*it)->Get<T>();
+		}
+		return T();
+	}
+
 	class WEvent
 	{
 	public:
@@ -202,4 +215,87 @@ inline void WObject::RegisterWPropertySafe(const std::string& Name, T* ValuePtr)
 #define BEGIN_WFUNCTION(Name) RegisterWFunction(#Name, [this](const WFunctionParams& Params)
 #define END_WFUNCTION );
 
-#define REGISTER_GETTER_WFUNCTION(Name, Type) BEGIN_WFUNCTION(Name) { return MakeShared<Type>(Name()); } END_WFUNCTION
+#define _GET_WP(Type, Name) Type Name = GetWParam<Type>(Params, #Name)
+
+// 0개
+#define REGISTER_WFUNC_0(FuncName) \
+    RegisterWFunction(#FuncName, [this](const WFunctionParams& Params) { \
+        this->FuncName(); return nullptr; \
+    })
+
+// 1개
+#define REGISTER_WFUNC_1(FuncName, P1N, P1T) \
+    RegisterWFunction(#FuncName, [this](const WFunctionParams& Params) { \
+        _GET_WP(P1T, P1N); \
+        this->FuncName(P1N); return nullptr; \
+    })
+
+// 2개
+#define REGISTER_WFUNC_2(FuncName, P1N, P1T, P2N, P2T) \
+    RegisterWFunction(#FuncName, [this](const WFunctionParams& Params) { \
+        _GET_WP(P1T, P1N); _GET_WP(P2T, P2N); \
+        this->FuncName(P1N, P2N); return nullptr; \
+    })
+
+// 3개
+#define REGISTER_WFUNC_3(FuncName, P1N, P1T, P2N, P2T, P3N, P3T) \
+    RegisterWFunction(#FuncName, [this](const WFunctionParams& Params) { \
+        _GET_WP(P1T, P1N); _GET_WP(P2T, P2N); _GET_WP(P3T, P3N); \
+        this->FuncName(P1N, P2N, P3N); return nullptr; \
+    })
+
+// 4개
+#define REGISTER_WFUNC_4(FuncName, P1N, P1T, P2N, P2T, P3N, P3T, P4N, P4T) \
+    RegisterWFunction(#FuncName, [this](const WFunctionParams& Params) { \
+        _GET_WP(P1T, P1N); _GET_WP(P2T, P2N); _GET_WP(P3T, P3N); _GET_WP(P4T, P4N); \
+        this->FuncName(P1N, P2N, P3N, P4N); return nullptr; \
+    })
+
+// 5개
+#define REGISTER_WFUNC_5(FuncName, P1N, P1T, P2N, P2T, P3N, P3T, P4N, P4T, P5N, P5T) \
+    RegisterWFunction(#FuncName, [this](const WFunctionParams& Params) { \
+        _GET_WP(P1T, P1N); _GET_WP(P2T, P2N); _GET_WP(P3T, P3N); _GET_WP(P4T, P4N); _GET_WP(P5T, P5N); \
+        this->FuncName(P1N, P2N, P3N, P4N, P5N); return nullptr; \
+    })
+
+
+// 0개 + Ret
+#define REGISTER_WFUNC_RET_0(FuncName, RT) \
+    RegisterWFunction(#FuncName, [this](const WFunctionParams& Params) { \
+        return MakeShared<RT>(this->FuncName()); \
+    })
+
+// 1개 + Ret
+#define REGISTER_WFUNC_RET_1(FuncName, P1N, P1T, RT) \
+    RegisterWFunction(#FuncName, [this](const WFunctionParams& Params) { \
+        _GET_WP(P1T, P1N); \
+        return MakeShared<RT>(this->FuncName(P1N)); \
+    })
+
+// 2개 + Ret
+#define REGISTER_WFUNC_RET_2(FuncName, P1N, P1T, P2N, P2T, RT) \
+    RegisterWFunction(#FuncName, [this](const WFunctionParams& Params) { \
+        _GET_WP(P1T, P1N); _GET_WP(P2T, P2N); \
+        return MakeShared<RT>(this->FuncName(P1N, P2N)); \
+    })
+
+// 3개 + Ret
+#define REGISTER_WFUNC_RET_3(FuncName, P1N, P1T, P2N, P2T, P3N, P3T, RT) \
+    RegisterWFunction(#FuncName, [this](const WFunctionParams& Params) { \
+        _GET_WP(P1T, P1N); _GET_WP(P2T, P2N); _GET_WP(P3T, P3N); \
+        return MakeShared<RT>(this->FuncName(P1N, P2N, P3N)); \
+    })
+
+// 4개 + Ret
+#define REGISTER_WFUNC_RET_4(FuncName, P1N, P1T, P2N, P2T, P3N, P3T, P4N, P4T, RT) \
+    RegisterWFunction(#FuncName, [this](const WFunctionParams& Params) { \
+        _GET_WP(P1T, P1N); _GET_WP(P2T, P2N); _GET_WP(P3T, P3N); _GET_WP(P4T, P4N); \
+        return MakeShared<RT>(this->FuncName(P1N, P2N, P3N, P4N)); \
+    })
+
+// 5개 + Ret
+#define REGISTER_WFUNC_RET_5(FuncName, P1N, P1T, P2N, P2T, P3N, P3T, P4N, P4T, P5N, P5T, RT) \
+    RegisterWFunction(#FuncName, [this](const WFunctionParams& Params) { \
+        _GET_WP(P1T, P1N); _GET_WP(P2T, P2N); _GET_WP(P3T, P3N); _GET_WP(P4T, P4N); _GET_WP(P5T, P5N); \
+        return MakeShared<RT>(this->FuncName(P1N, P2N, P3N, P4N, P5N)); \
+    })

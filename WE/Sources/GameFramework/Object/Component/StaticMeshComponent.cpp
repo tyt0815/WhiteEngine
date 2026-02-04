@@ -11,19 +11,7 @@ using namespace BlueprintAsset;
 
 WStaticMeshComponent::WStaticMeshComponent()
 {
-	RegisterWFunction("SetStaticMesh", [this](const WFunctionParams& Params)
-		{
-			for (const auto& Param : Params)
-			{
-				if (Param->Name == "StaticMesh")
-				{
-					this->SetStaticMesh(Param->Get<std::string>());
-					break;
-				}
-			}
-			return nullptr;
-		}
-	);
+	REGISTER_WFUNC_1(SetStaticMesh, StaticMesh, std::string);
 }
 
 void WStaticMeshComponent::UpdateConstantBufferIndex()

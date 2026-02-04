@@ -11,8 +11,6 @@ AActor::AActor()
 	TWeakPtr<WSceneComponent> DummyRoot = CreateComponent<WSceneComponent>();
 	SetRootComponent(DummyRoot);
 
-	REGISTER_GETTER_WFUNCTION(GetRootComponent, WSceneComponent*);
-
 	BEGIN_WFUNCTION(SpawnActor)
 	{
 		FActorSpawnParameter SpawnParam;
@@ -48,10 +46,12 @@ AActor::AActor()
 	}
 	END_WFUNCTION;
 
-	REGISTER_GETTER_WFUNCTION(GetActorLocation, XMFLOAT3);
-	REGISTER_GETTER_WFUNCTION(GetActorRotation, XMFLOAT3);
-	REGISTER_GETTER_WFUNCTION(GetActorScale, XMFLOAT3);
-	REGISTER_GETTER_WFUNCTION(GetActorTransform, FTransform);
+	REGISTER_WFUNC_RET_0(GetRootComponent, WSceneComponent*);
+
+	REGISTER_WFUNC_RET_0(GetActorLocation, XMFLOAT3);
+	REGISTER_WFUNC_RET_0(GetActorRotation, XMFLOAT3);
+	REGISTER_WFUNC_RET_0(GetActorScale, XMFLOAT3);
+	REGISTER_WFUNC_RET_0(GetActorTransform, FTransform);
 
 	mBeginPlayEvent = RegisterEvent("BeginPlay");
 }
