@@ -1,16 +1,13 @@
 #pragma once
 
-#include "Actor/Actor.h"
-#include "Component/ProjectileMovementComponent.h"
-#include "Component/StaticMeshComponent.h"
-#include "Component/BoxComponent.h"
+#include "Actor/ProjectileBase.h"
 #include "Physics/HitResult.h"
 
 class AMissileGridManager;
 
-class ATopAttackMissile : public AActor
+class ATopAttackMissile : public AProjectileBase
 {
-	typedef AActor Super;
+	typedef AProjectileBase Super;
 public:
 	ATopAttackMissile();
 

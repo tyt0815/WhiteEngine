@@ -49,6 +49,12 @@ public:
 	{
 		mHomingTurnLimit = Value;
 	}
+
+	inline WSceneComponent* GetHomingTarget() const
+	{
+		TSharedPtr<WSceneComponent> Target = mHomingTarget.lock();
+		return Target ? Target.get() : nullptr;
+	}
 };
 
 REGISTER_COMPONENT(WProjectileMovementComponent);

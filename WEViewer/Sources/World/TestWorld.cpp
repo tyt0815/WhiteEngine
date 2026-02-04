@@ -11,6 +11,9 @@ void WTestWorld::BeginPlay()
 	Super::BeginPlay();
 
 	
+	FActorSpawnParameter Param;
+	Param.Transform.Translation = XMFLOAT3(1, 1, 50);
+	GetWorld()->SpawnActor<AHitReactor>(Param);
 }
 
 void WTestWorld::Tick(float DeltaSecond)

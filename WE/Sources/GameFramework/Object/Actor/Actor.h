@@ -38,6 +38,9 @@ public:
 	template<typename T>
 	TWeakPtr<T> CreateComponentByFactory(const std::string Name);
 
+	template<typename T>
+	T* GetComponent();
+
 	void SetRootComponent(TWeakPtr<WSceneComponent> Component);
 
 	void SetActorTransform(FTransform Transform);
@@ -171,6 +174,19 @@ inline TWeakPtr<T> AActor::CreateComponentByFactory(const std::string Name)
 	OnCreateComponent(CompT.get());
 
 	return TWeakPtr<T>(CompT);
+}
+
+template<typename T>
+inline T* AActor::GetComponent()
+{
+	for (const TSharedPtr<WActorComponent>& Comp : mAllComponents)
+	{
+		if (T* TComp = dynamic_cast<T*>(Comp.get()))
+		{
+			return TComp;
+		}
+	}
+	return nullptr;
 }
 
 REGISTER_ACTOR(AActor);

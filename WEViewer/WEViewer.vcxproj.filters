@@ -53,6 +53,9 @@
     <ClCompile Include="Sources\Actor\TargetMarker.cpp">
       <Filter>Sources\Actor</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Actor\ProjectileBase.cpp">
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\World\TestWorld.h">
@@ -83,6 +86,9 @@
       <Filter>Sources\Pawn</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Actor\TargetMarker.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\ProjectileBase.h">
       <Filter>Sources\Actor</Filter>
     </ClInclude>
   </ItemGroup>

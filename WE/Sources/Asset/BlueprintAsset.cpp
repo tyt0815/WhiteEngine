@@ -484,7 +484,9 @@ void FActorBlueprintAsset::SerializeAttachedComponents(FXMLElement* AttachedComp
     while (CompElement)
     {
         // 2. 컴포넌트 기본 정보 쓰기
-        const std::string ComponentName = CompElement->Attribute("Name");
+        const char* NameCstr = CompElement->Attribute("Name");
+        assert(NameCstr && "Component name is not found");
+        const std::string ComponentName = NameCstr;
         Writer << ComponentName;
 
         SerializeComponent(CompElement, Writer);

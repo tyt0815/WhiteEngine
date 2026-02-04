@@ -1,5 +1,6 @@
 <AProjectileBase>
     <Properties>
+
     </Properties>
 
     <Components>
@@ -15,19 +16,16 @@
             </Events>
         </WStaticMeshComponent>
 
-        <WStaticMeshComponent Name = "StaticMeshComponent2">
-            <Events>
-                <BeginComponent>
+        <WProjectileMovementComponent Name = "ProjMoveComp">
+            <Properties>
+                <bool Name = "Homing" Value = "true"/>
+                <float Name = "HomingTurnLimit" Value = "90"/>
+                <float Name = "Speed" Value = "10"/>
+            </Properties>
+        </WProjectileMovementComponent>
 
-                    <Call Func = "SetStaticMesh" Target = "StaticMeshComponent2">
-                        <string Name = "StaticMesh" Value = "SM_LaminateFlooringBrownBox"/>
-                    </Call>
 
-                </BeginComponent>
-            </Events>
-        </WStaticMeshComponent>
-
-        <WObjectAnimComponent Name = "ObjectAnimComp">
+        <!-- <WObjectAnimComponent Name = "ObjectAnimComp">
             <Events>
                 <BeginComponent>
                     <Call Func = "LoadAnimation" Target = "ObjectAnimComp">
@@ -46,9 +44,18 @@
 
                 </BeginComponent>
             </Events>
-        </WObjectAnimComponent>
+        </WObjectAnimComponent> -->
 
     </Components>
+
+    <Events>
+        <BeginPlay>
+            <Call Func = "SetSmartHoming" Target = "this">
+                <bool Name = "SmartHoming" Value = "true"/>
+                <float Name = "Range" Value = "5"/>
+            </Call>
+        </BeginPlay>
+    </Events>
 
 
 </AProjectileBase>

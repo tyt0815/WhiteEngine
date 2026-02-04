@@ -25,6 +25,8 @@ class WObject : public std::enable_shared_from_this<WObject>
 public:
 	WObject();
 
+public:
+
 	virtual void Tick(float DeltaSecond);
 
 	void SetTickGroup(ETickGroup TickGroup, ETickPriority TickPriority);
@@ -123,6 +125,8 @@ protected:
 	void RegisterWProperty(const std::string& Name, T* ValuePtr);
 
 	void RegisterWFunction(const std::string& Name, WFunction Func);
+
+	void RegisterWFunctionSafe(const std::string& Name, WFunction Func);
 
 private:
 	ETickGroup mTickGroup = ETickGroup::ETG_None;
@@ -299,3 +303,5 @@ inline void WObject::RegisterWPropertySafe(const std::string& Name, T* ValuePtr)
         _GET_WP(P1T, P1N); _GET_WP(P2T, P2N); _GET_WP(P3T, P3N); _GET_WP(P4T, P4N); _GET_WP(P5T, P5N); \
         return MakeShared<RT>(this->FuncName(P1N, P2N, P3N, P4N, P5N)); \
     })
+
+#define REGISTER_GET_SELF(Type) RegisterWFunctionSafe("Get", [this](const WFunctionParams& Params) { return MakeShared<Type*>(this); } );

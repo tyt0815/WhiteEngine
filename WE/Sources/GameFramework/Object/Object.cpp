@@ -7,11 +7,7 @@ WObject::WObject()
 {
 	RegisterWProperty("this", this);
 
-	BEGIN_WFUNCTION(Get)
-	{
-		return MakeShared<WObject*>(this);
-	}
-	END_WFUNCTION
+	REGISTER_GET_SELF(WObject);
 
 	mTickEvent = RegisterEvent("Tick");
 }
@@ -113,6 +109,11 @@ void WObject::LoadWVariables(const TArray<FProperty>& Variables)
 void WObject::RegisterWFunction(const std::string& Name, WFunction Func)
 {
 	assert(mWFunctions.count(Name) == 0 && "Already registered function name");
+	RegisterWFunctionSafe(Name, Func);
+}
+
+void WObject::RegisterWFunctionSafe(const std::string& Name, WFunction Func)
+{
 	mWFunctions[Name] = Func;
 }
 
