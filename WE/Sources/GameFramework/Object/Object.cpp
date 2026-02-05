@@ -69,7 +69,7 @@ void WObject::LoadWVariables(const TArray<FProperty>& Variables)
 		mWVariables.push_back(Value);
 		RegisterWProperty(v.Name, Value.get());
 	}
-
+	
 	LoadWProperties(Variables);
 }
 

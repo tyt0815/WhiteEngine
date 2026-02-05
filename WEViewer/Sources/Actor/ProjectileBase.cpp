@@ -1,6 +1,7 @@
 #include "ProjectileBase.h"
 #include "World/World.h"
 #include "Interface/HitInterface.h"
+#include "Component/BoxComponent.h"
 
 AProjectileBase::AProjectileBase()
 {
@@ -13,6 +14,8 @@ AProjectileBase::AProjectileBase()
 	REGISTER_WFUNC_1(MakeLineCollision, SceneComp, WSceneComponent*);
 
 	REGISTER_WFUNC_2(CreateCollisionBySplineComponent, SplineComp, WSplineComponent*, Segment, int);
+
+	REGISTER_WFUNC_2(CreateBoxColliderBySplineComponent, SplineComp, WSplineComponent*, Segment, int);
 
 	REGISTER_WFUNC_RET_1(SelectRandomString, Strings, TArray<std::string>, std::string);
 
@@ -73,12 +76,22 @@ void AProjectileBase::Tick(float DeltaSecond)
 
 	for (const auto& Info : mBoxCollisionInfo)
 	{
-		XMFLOAT3 CurrLoc = Info.PosComp->Target->GetWorldLocation();
-		const XMFLOAT3& LastLoc = Info.PosComp->LastTickLocation;
+		FTransform CurrTransform = Info->Target->GetWorldTransform();
+		const XMFLOAT3& LastLoc = Info->LastTickLocation;
 		TArray<AActor*> ActorsToIgnore;
 		ActorsToIgnore.push_back(this);
 		FHitResult Hit;
-		GetWorld()->LineTrace(LastLoc, CurrLoc, ActorsToIgnore, Hit, true, 0.5f);
+
+		GetWorld()->BoxTrace(
+			LastLoc,
+			CurrTransform.Translation,
+			CurrTransform.Scale,
+			CurrTransform.Rotation,
+			ActorsToIgnore,
+			Hit,
+			true,
+			0
+		);
 		if (TSharedPtr<AActor> Actor = Hit.Actor.lock())
 		{
 			OnHit();
@@ -240,7 +253,6 @@ void AProjectileBase::CreateCollisionBySplineComponent(WSplineComponent* SplineC
 		return;
 	}
 
-
 	Segment = max(Segment, 1);
 	float Step = 1.0f / Segment;
 
@@ -254,24 +266,91 @@ void AProjectileBase::CreateCollisionBySplineComponent(WSplineComponent* SplineC
 
 	for (float i = Step; i <= LastInputKey; i += Step)
 	{
-		XMFLOAT3 Left = SplineComponent->GetLocalLocationAtSplineInputKey(i - Step);
-		XMFLOAT3 Right = SplineComponent->GetLocalLocationAtSplineInputKey(i);
-		XMVECTOR LeftV = XMLoadFloat3(&Left);
-		XMVECTOR RightV = XMLoadFloat3(&Right);
-		XMFLOAT3 Middle;
-		XMStoreFloat3(&Middle, (LeftV + RightV) / 2.0f);
-		
-		FBoxCollisionInfo Info;
-		Info.HalfExtent.x = XMVectorGetX(XMVector3Length(XMVectorSubtract(LeftV, RightV)));
-		Info.HalfExtent.y = SplineComponent->GetCustomProperty1AtDistanceAlongSpline(i - (Step / 2.0f));
-		Info.HalfExtent.z = SplineComponent->GetCustomProperty2AtDistanceAlongSpline(i - (Step / 2.0f));
+		XMFLOAT3 Point0 = SplineComponent->GetLocalLocationAtSplineInputKey(i - Step);
+		XMFLOAT3 Point1 = SplineComponent->GetLocalLocationAtSplineInputKey(i);
+		XMVECTOR P0 = XMLoadFloat3(&Point0);
+		XMVECTOR P1 = XMLoadFloat3(&Point1);
+		XMVECTOR ToP1 = XMVectorSubtract(P1, P0);
+		XMFLOAT3 PM;
+		XMStoreFloat3(&PM, (P0 + P1) / 2.0f);
 
 		TSharedPtr<WSceneComponent> PosComp = CreateComponent<WSceneComponent>().lock();
 		assert(PosComp);
 		PosComp->SetupAttachment(Parent);
-		PosComp->SetLocalLocation(Middle);
-		Info.PosComp = AddTrackedComp(PosComp.get());
+		PosComp->SetLocalLocation(PM);
 
-		mBoxCollisionInfo.push_back(Info);
+		XMVECTOR RightV = XMVector3Normalize(ToP1);
+		XMVECTOR UpV = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+		XMVECTOR ForwardV = XMVector3Cross(RightV, UpV);
+		UpV = XMVector3Cross(ForwardV, RightV);
+
+		XMFLOAT3 Rot = FDXMath::GetEulerRotationFromVectors(ForwardV, RightV, UpV);
+		PosComp->SetLocalRotation(Rot);
+
+		XMFLOAT3 Scale;
+
+		Scale.x = XMVectorGetX(XMVector3Length(ToP1) / 2.0f);
+		Scale.y = SplineComponent->GetCustomProperty1AtDistanceAlongSpline(i - (Step / 2.0f));
+		Scale.z = SplineComponent->GetCustomProperty2AtDistanceAlongSpline(i - (Step / 2.0f));
+		PosComp->SetLocalScale(Scale);
+
+		mBoxCollisionInfo.push_back(AddTrackedComp(PosComp.get()));
+	}
+}
+
+void AProjectileBase::CreateBoxColliderBySplineComponent(WSplineComponent* SplineComponent, int Segment)
+{
+	if (SplineComponent == nullptr)
+	{
+		return;
+	}
+
+	WSceneComponent* Parent = SplineComponent->GetParent();
+	if (Parent == nullptr)
+	{
+		Parent = SplineComponent;
+	}
+
+	Segment = max(Segment, 1);
+	int SplineLUTNum = SplineComponent->GetSplineLUTNum();
+	int Step = max(1, SplineLUTNum / Segment);
+
+	int i = 0;
+	int j = Step;
+	while(true)
+	{
+		const WSplineComponent::FSplineLUT* Point0 = SplineComponent->GetSplineLUTAt(i);
+		const WSplineComponent::FSplineLUT* Point1 = SplineComponent->GetSplineLUTAt(j);
+		const auto Mid = SplineComponent->GetSplineLUTAtDistanceAlongSpline((Point0->Distance + Point1->Distance) / 2.0f);
+		XMVECTOR P0 = XMLoadFloat3(&Point0->Location);
+		XMVECTOR P1 = XMLoadFloat3(&Point1->Location);
+		XMVECTOR ToP1 = XMVectorSubtract(P1, P0);
+
+		FTransform Transform;
+		XMStoreFloat3(&Transform.Translation, (P0 + P1) / 2.0f);
+		
+		Transform.SetRotationByQuat(Mid.Quat);
+
+		Transform.Scale.x = max(0.1f, Mid.Property1);
+		Transform.Scale.y = max(0.1f, Mid.Property2);
+		Transform.Scale.z = max(0.1f, XMVectorGetX(XMVector3Length(ToP1)));
+		
+
+		TSharedPtr<WBoxComponent> BoxComp = CreateComponent<WBoxComponent>().lock();
+		assert(BoxComp);
+		BoxComp->SetupAttachment(Parent);
+		BoxComp->ActivatePhysicBody();
+		BoxComp->SetExtent(XMFLOAT3(0.5f, 0.5f, 0.5f));
+		BoxComp->SetMotionType(EMotionType::Kinematic);
+		BoxComp->SetObjectChannel(EObjectChannel::EOC_Projectile);
+		BoxComp->SetLocalTransform(Transform);
+		BoxComp->BeginComponent();
+		
+		if (j >= SplineLUTNum - 1)
+		{
+			break;
+		}
+		i = j;
+		j = min(j + Step, SplineLUTNum - 1);
 	}
 }

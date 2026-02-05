@@ -21,7 +21,7 @@
             <Events>
                 <BeginComponent>
                     <Call Func = "LoadSplineFromAsset" Target = "SplineComp">
-                        <string Name = "AssetName" Value = "SP_RingSpline"/>
+                        <string Name = "AssetName" Value = "SP_Ring"/>
                     </Call>
                 </BeginComponent>
             </Events>
@@ -31,8 +31,8 @@
             <Properties>
                 <bool Name = "Homing" Value = "true"/>
                 <float Name = "HomingTurnLimit" Value = "360"/>
-                <float Name = "Speed" Value = "10"/>
-                <float Name = "LifeSpan" Value = "10"/>
+                <float Name = "Speed" Value = "0"/>
+                <float Name = "LifeSpan" Value = "1"/>
             </Properties>
         </WProjectileMovementComponent>
 
@@ -45,10 +45,10 @@
                 <float Name = "Range" Value = "5"/>
             </Call>
 
-            <!-- <Call Func = "CreateCollisionBySplineComponent" Target = "this">
+            <Call Func = "CreateBoxColliderBySplineComponent" Target = "this">
                 <Call Func = "Get" Target = "SplineComp" Name = "SplineComp"/>
-                <int Name = "Segment" Value = "1"/>
-            </Call> -->
+                <int Name = "Segment" Value = "8"/>
+            </Call>
         </BeginPlay>
 
         <OnHit>

@@ -59,7 +59,7 @@ void WSplineComponent::AddSplineNode(const FSplineNode& Node)
 		FSampleParam Param;
 		Param.t0 = 0.0f;
 		Param.t1 = 1.0f;
-		Param.Tolerance = 0.005f;
+		Param.Tolerance = 0.0025f;
 		Param.Pt0 = Pt0;
 		Param.Pt1 = Pt1;
 		Param.P0 = P0;
@@ -181,6 +181,12 @@ XMFLOAT3 WSplineComponent::GetLocalRotationAtDistanceAlongSpline(float Distance)
 	return GetLocalTransformAtDistanceAlongSpline(Distance).Rotation;
 }
 
+XMFLOAT4 WSplineComponent::GetLocalQuaternionAtDistanceAlongSpline(float Distance)
+{
+	FSplineLUT LUT = GetSplineLUTAtDistanceAlongSpline(Distance);
+	return LUT.Quat;
+}
+
 FTransform WSplineComponent::GetLocalTransformAtDistanceAlongSpline(float Distance)
 {
 	FTransform Transform;
@@ -214,31 +220,6 @@ float WSplineComponent::GetCustomProperty1AtDistanceAlongSpline(float Distance)
 float WSplineComponent::GetCustomProperty2AtDistanceAlongSpline(float Distance)
 {
 	return GetSplineLUTAtDistanceAlongSpline(Distance).Property2;
-}
-
-void WSplineComponent::SelectSplineNodesByInputKey(float InputKey, FSplineNode& LeftNode, FSplineNode& RightNode, float& t)
-{
-	if (mSplineNodes.size() < 2)
-	{
-		return;
-	}
-
-	int NodeIndex = FDXMath::Clamp<int>(static_cast<int>(InputKey), 0, static_cast<int>(mSplineNodes.size() - 2));
-	t = FDXMath::Clamp<float>(InputKey - NodeIndex, 0, 1);
-
-	LeftNode = mSplineNodes[NodeIndex];
-	RightNode = mSplineNodes[NodeIndex + 1];
-}
-
-void WSplineComponent::SelectBezierPointsByInputKey(float InputKey, XMVECTOR* P0, XMVECTOR* P1, XMVECTOR* P2, XMVECTOR* P3, float& t)
-{
-	FSplineNode LeftNode;
-	FSplineNode RightNode;
-	SelectSplineNodesByInputKey(InputKey, LeftNode, RightNode, t);
-	*P0 = XMLoadFloat3(&LeftNode.ControlPoint);
-	*P1 = XMLoadFloat3(&LeftNode.RightHandle);
-	*P2 = XMLoadFloat3(&RightNode.LeftHandle);
-	*P3 = XMLoadFloat3(&RightNode.ControlPoint);
 }
 
 WSplineComponent::FSplineLUT WSplineComponent::GetSplineLUTAtDistanceAlongSpline(float Distance)
@@ -277,7 +258,7 @@ WSplineComponent::FSplineLUT WSplineComponent::GetSplineLUTAtDistanceAlongSpline
 	XMVECTOR P0 = XMLoadFloat3(&PrevIter->Location);
 	XMVECTOR P1 = XMLoadFloat3(&Iter->Location);
 	XMVECTOR L = XMVectorLerp(P0, P1, Alpha);
-	XMStoreFloat3(&LUT.Location , L);
+	XMStoreFloat3(&LUT.Location, L);
 
 
 	XMVECTOR Q0 = XMLoadFloat4(&PrevIter->Quat);
@@ -290,6 +271,31 @@ WSplineComponent::FSplineLUT WSplineComponent::GetSplineLUTAtDistanceAlongSpline
 	LUT.Property2 = FDXMath::Lerp(PrevIter->Property2, Iter->Property2, Alpha);
 
 	return LUT;
+}
+
+void WSplineComponent::SelectSplineNodesByInputKey(float InputKey, FSplineNode& LeftNode, FSplineNode& RightNode, float& t)
+{
+	if (mSplineNodes.size() < 2)
+	{
+		return;
+	}
+
+	int NodeIndex = FDXMath::Clamp<int>(static_cast<int>(InputKey), 0, static_cast<int>(mSplineNodes.size() - 2));
+	t = FDXMath::Clamp<float>(InputKey - NodeIndex, 0, 1);
+
+	LeftNode = mSplineNodes[NodeIndex];
+	RightNode = mSplineNodes[NodeIndex + 1];
+}
+
+void WSplineComponent::SelectBezierPointsByInputKey(float InputKey, XMVECTOR* P0, XMVECTOR* P1, XMVECTOR* P2, XMVECTOR* P3, float& t)
+{
+	FSplineNode LeftNode;
+	FSplineNode RightNode;
+	SelectSplineNodesByInputKey(InputKey, LeftNode, RightNode, t);
+	*P0 = XMLoadFloat3(&LeftNode.ControlPoint);
+	*P1 = XMLoadFloat3(&LeftNode.RightHandle);
+	*P2 = XMLoadFloat3(&RightNode.LeftHandle);
+	*P3 = XMLoadFloat3(&RightNode.ControlPoint);
 }
 
 void WSplineComponent::AdaptiveSampleRecursive(const FSampleParam& Param, UINT Depth)
@@ -323,29 +329,49 @@ void WSplineComponent::AdaptiveSampleRecursive(const FSampleParam& Param, UINT D
 	{
 		FSplineLUT LUT;
 		XMStoreFloat3(&LUT.Location, Param.Pt1);
-		LUT.Distance = mSplineLUT.back().Distance +  XMVector3Length(XMVectorSubtract(Param.Pt1, Param.Pt0)).m128_f32[0];
+		LUT.Distance = mSplineLUT.back().Distance + XMVectorGetX(XMVector3Length(XMVectorSubtract(Param.Pt1, Param.Pt0)));
 
-		XMVECTOR Tangent = XMVector3Normalize(Param.Pt1 - Param.Pt0); // 진행 방향
-		XMVECTOR Up = XMVectorSet(0, 1, 0, 0);
-		XMVECTOR Right;
-		if (XMVector3Dot(Tangent, Up).m128_f32[0] > 0.9f)
+		// 2. 방향(Tangent) 계산
+		XMVECTOR CurTangent = XMVector3Normalize(Param.Pt1 - Param.Pt0);
+
+		XMVECTOR FinalQuat;
+		if (mSplineLUT.size() == 1)
 		{
-			Right = XMVector3Normalize(XMVector3Cross(Tangent, XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f)));
+			XMVECTOR WorldUp = (fabsf(XMVectorGetY(CurTangent)) > 0.99f) ? XMVectorSet(0, 0, 1, 0) : XMVectorSet(0, 1, 0, 0);
+			XMVECTOR Right = XMVector3Normalize(XMVector3Cross(WorldUp, CurTangent));
+			XMVECTOR Up = XMVector3Cross(CurTangent, Right);
+
+			XMMATRIX InitRot;
+			InitRot.r[0] = Right;
+			InitRot.r[1] = Up;
+			InitRot.r[2] = CurTangent;
+			InitRot.r[3] = XMVectorSet(0, 0, 0, 1);
+			FinalQuat = XMQuaternionRotationMatrix(InitRot);
 		}
 		else
 		{
-			Right = XMVector3Normalize(XMVector3Cross(Up, Tangent));
+			XMVECTOR PrevQuat = XMLoadFloat4(&mSplineLUT.back().Quat);
+
+			XMMATRIX PrevRotMat = XMMatrixRotationQuaternion(PrevQuat);
+			XMVECTOR PrevTangent = PrevRotMat.r[2];
+
+			XMVECTOR RotationAxis = XMVector3Cross(PrevTangent, CurTangent);
+			float Dot = XMVectorGetX(XMVector3Dot(PrevTangent, CurTangent));
+			Dot = std::clamp(Dot, -1.0f, 1.0f);
+			float Angle = acosf(Dot);
+
+			if (XMVector3LengthSq(RotationAxis).m128_f32[0] < 0.000001f)
+			{
+				FinalQuat = PrevQuat;
+			}
+			else
+			{
+				XMVECTOR DeltaQuat = XMQuaternionRotationAxis(XMVector3Normalize(RotationAxis), Angle);
+				FinalQuat = XMQuaternionMultiply(PrevQuat, DeltaQuat);
+			}
 		}
-		 
-		Up = XMVector3Cross(Tangent, Right); // 실제 수직 벡터 재계산
 
-		XMMATRIX RotMat;
-		RotMat.r[0] = Right;
-		RotMat.r[1] = Up;
-		RotMat.r[2] = Tangent;
-		RotMat.r[3] = XMVectorSet(0, 0, 0, 1);
-
-		XMStoreFloat4(&LUT.Quat, XMQuaternionRotationMatrix(RotMat));
+		XMStoreFloat4(&LUT.Quat, XMQuaternionNormalize(FinalQuat));
 
 		LUT.Property1 = Param.Property1_1;
 		LUT.Property2 = Param.Property2_1;

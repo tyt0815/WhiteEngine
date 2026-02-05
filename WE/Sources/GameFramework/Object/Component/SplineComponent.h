@@ -15,7 +15,7 @@ class WSplineComponent : public WSceneComponent
 		float Property1;		// Blender의 weight;
 		float Property2;		// Blender의 Radius;
 	};
-
+public:
 	struct FSplineLUT
 	{
 		XMFLOAT3 Location;
@@ -47,6 +47,8 @@ public:
 
 	XMFLOAT3 GetLocalRotationAtDistanceAlongSpline(float Distance);
 
+	XMFLOAT4 GetLocalQuaternionAtDistanceAlongSpline(float Distance);
+
 	FTransform GetLocalTransformAtDistanceAlongSpline(float Distance);
 
 	FTransform GetWorldTransformAtDistanceAlongSpline(float Distance);
@@ -54,6 +56,8 @@ public:
 	float GetCustomProperty1AtDistanceAlongSpline(float Distance);
 
 	float GetCustomProperty2AtDistanceAlongSpline(float Distance);
+
+	FSplineLUT GetSplineLUTAtDistanceAlongSpline(float Distance);
 	
 private:
 	std::vector<FSplineNode> mSplineNodes;
@@ -61,8 +65,6 @@ private:
 	void SelectSplineNodesByInputKey(float InputKey, FSplineNode& LeftNode, FSplineNode& RightNode, float& t);
 
 	void SelectBezierPointsByInputKey(float InputKey, XMVECTOR* P0, XMVECTOR* P1, XMVECTOR* P2, XMVECTOR* P3, float& t);
-
-	FSplineLUT GetSplineLUTAtDistanceAlongSpline(float Distance);
 
 	struct FSampleParam
 	{
@@ -94,6 +96,16 @@ public:
 	__forceinline float GetSplineLength() const
 	{
 		return mSplineLUT.size() > 0 ? mSplineLUT.back().Distance : 0;
+	}
+
+	__forceinline int GetSplineLUTNum() const
+	{
+		return (int)mSplineLUT.size();
+	}
+
+	__forceinline const FSplineLUT* GetSplineLUTAt(int i) const
+	{
+		return &mSplineLUT[i];
 	}
 };
 

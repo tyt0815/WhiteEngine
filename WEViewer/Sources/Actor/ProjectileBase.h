@@ -31,11 +31,6 @@ class AProjectileBase : public AActor
 		};
 	};
 
-	struct FBoxCollisionInfo
-	{
-		FTrackedSceneCompInfo* PosComp;
-		XMFLOAT3 HalfExtent;
-	};
 public:
 	AProjectileBase();
 
@@ -60,6 +55,8 @@ protected:
 
 	void CreateCollisionBySplineComponent(WSplineComponent* SplineComponent, int Segment);
 
+	void CreateBoxColliderBySplineComponent(WSplineComponent* SplineComponent, int Segment);
+
 private:
 	TWeakPtr<WProjectileMovementComponent> mProjMoveComp;
 
@@ -73,7 +70,7 @@ private:
 
 	TArray<FMakeCollisionInfo> mCollisionInfo;
 
-	TArray<FBoxCollisionInfo> mBoxCollisionInfo;
+	TArray<FTrackedSceneCompInfo*> mBoxCollisionInfo;
 
 	const WEvent* mOnHit;
 };
