@@ -29,7 +29,7 @@ void WTestWorld::Tick(float DeltaSecond)
 		Param.Transform.Translation = XMFLOAT3(0, -1, 10);
 		SpawnActorByFactory<AProjectileBase>("BP_Projectile", Param);
 
-		Param.Transform.Translation = XMFLOAT3(5, -1, 10);
+		Param.Transform.Translation = XMFLOAT3(5, 5, 10);
 		SpawnActorByFactory<AProjectileBase>("BP_RingProjectile", Param);
 
 		a = 0;

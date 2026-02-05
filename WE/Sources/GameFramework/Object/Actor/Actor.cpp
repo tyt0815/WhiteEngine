@@ -6,7 +6,10 @@
 #include "Asset/AssetManager.h"
 #include "Asset/BlueprintAsset.h"
 
-AActor::AActor()
+unsigned int g_ActorCounter = 0;
+
+AActor::AActor():
+	mActorCounter(++g_ActorCounter)
 {
 	TWeakPtr<WSceneComponent> DummyRoot = CreateComponent<WSceneComponent>();
 	SetRootComponent(DummyRoot);

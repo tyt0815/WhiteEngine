@@ -39,9 +39,9 @@ public:
 	virtual void BeginPlay() override;
 
 protected:
-	void SetSmartHoming(bool bSmartHoming, float Range);
+	virtual void OnHit(TWeakPtr<WPhysicsComponent> Comp, XMFLOAT3 ImpactPoint);
 
-	void OnHit();
+	void SetSmartHoming(bool bSmartHoming, float Range);
 
 	void PlayParticle(const std::string& Name);
 
@@ -53,7 +53,7 @@ protected:
 	
 	std::string SelectRandomString(const TArray<std::string>& Strings);
 
-	void CreateCollisionBySplineComponent(WSplineComponent* SplineComponent, int Segment);
+	void CreateBoxTraceHitBySplineComponent(WSplineComponent* SplineComponent, int Segment);
 
 	void CreateBoxColliderBySplineComponent(WSplineComponent* SplineComponent, int Segment);
 

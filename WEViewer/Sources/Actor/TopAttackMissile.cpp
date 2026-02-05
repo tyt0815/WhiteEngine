@@ -284,7 +284,7 @@ void ATopAttackMissile::OnHit(const FHitResult& Hit)
 		mMissileGridManager->RemoveMissile(this);
 	}
 
-	Super::OnHit();
+	Super::OnHit(Hit.HitComponent, Hit.ImpactPoint);
 
 	Destroy();
 }

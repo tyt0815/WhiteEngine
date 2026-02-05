@@ -11,6 +11,7 @@
 #include <Jolt/Core/Factory.h>
 #include <Jolt/Core/TempAllocator.h>
 #include <Jolt/Core/JobSystemThreadPool.h>
+#include <Jolt/Physics/Collision/GroupFilterTable.h>
 #include "PhysicsDebugRenderer.h"
 #include "BodyActivationListener.h"
 #include "ContactListener.h"
@@ -44,6 +45,8 @@ namespace Physics
 	TUniquePtr<MyBodyActivationListener> g_BodyActivationListener;
 
 	TUniquePtr<MyContactListener> g_ContactListener;
+
+	JPH::GroupFilter* g_GroupFilter;
 
 	UINT64 g_UpdateCount = 0;
 
@@ -188,6 +191,8 @@ void Physics::Startup()
 	g_PhysicsSystem->OptimizeBroadPhase();
 
 	g_DebugRenderer = std::make_unique<FPhysicsDebugRenderer>();
+
+	g_GroupFilter = new GroupFilterTable();
 }
 
 void Physics::Cleanup()

@@ -26,6 +26,8 @@ class AActor : public WObject
 {
 	typedef WObject Super;
 public:
+	const unsigned int mActorCounter;
+
 	AActor();
 
 	virtual ~AActor() {};

@@ -1,5 +1,7 @@
 #include "PhysicsComponent.h"
 #include "World/World.h"
+#include "Actor/Actor.h"
+
 
 WPhysicsComponent::WPhysicsComponent() :
 	mBody(std::make_unique<FPhysicsBody>(this))
@@ -10,10 +12,7 @@ void WPhysicsComponent::BeginComponent()
 {
 	Super::BeginComponent();
 
-	if (!mBody->IsValid())
-	{
-		CreatePhysicsBody();
-	}
+	CreatePhysicsBody();
 
 	if (mbPhysicSimulate)
 	{
@@ -125,10 +124,19 @@ void WPhysicsComponent::SetObjectChannel(EObjectChannel::EObjectChannel ObjectCh
 	mObjectChannel = ObjectChannel;
 }
 
+namespace Physics
+{
+	extern class JPH::GroupFilter* g_GroupFilter;
+}
+
 void WPhysicsComponent::CreatePhysicsBody()
 {
+
 	JPH::ShapeRefC Shape = CreatePhysicsShape();
 	JPH::BodyCreationSettings Settings = JPH::BodyCreationSettings(Shape, JPH::RVec3(), JPH::Quat::sIdentity(), mMotionType, mObjectChannel);
 	Settings.mIsSensor = mbGenerateOverlapEvent;
+	UINT GroupID = GetOwner().lock()->mActorCounter;
+	Settings.mCollisionGroup.SetGroupID(GroupID);
+	Settings.mCollisionGroup.SetGroupFilter(Physics::g_GroupFilter);
 	mBody->CreateBody(Settings);
 }
