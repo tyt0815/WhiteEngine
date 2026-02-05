@@ -131,7 +131,6 @@ namespace Physics
 
 void WPhysicsComponent::CreatePhysicsBody()
 {
-
 	JPH::ShapeRefC Shape = CreatePhysicsShape();
 	JPH::BodyCreationSettings Settings = JPH::BodyCreationSettings(Shape, JPH::RVec3(), JPH::Quat::sIdentity(), mMotionType, mObjectChannel);
 	Settings.mIsSensor = mbGenerateOverlapEvent;

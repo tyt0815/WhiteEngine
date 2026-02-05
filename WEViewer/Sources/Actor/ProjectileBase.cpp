@@ -2,6 +2,7 @@
 #include "World/World.h"
 #include "Interface/HitInterface.h"
 #include "Component/BoxComponent.h"
+#include "Component/SphereComponent.h"
 
 AProjectileBase::AProjectileBase()
 {
@@ -81,11 +82,12 @@ void AProjectileBase::Tick(float DeltaSecond)
 		TArray<AActor*> ActorsToIgnore;
 		ActorsToIgnore.push_back(this);
 		FHitResult Hit;
-
+		
+		XMFLOAT3 Extent = { CurrTransform.Scale.z, CurrTransform.Scale.y, CurrTransform.Scale.x };
 		GetWorld()->BoxTrace(
 			LastLoc,
 			CurrTransform.Translation,
-			CurrTransform.Scale,
+			Extent,
 			CurrTransform.Rotation,
 			ActorsToIgnore,
 			Hit,
@@ -270,6 +272,7 @@ void AProjectileBase::CreateBoxTraceHitBySplineComponent(WSplineComponent* Splin
 		const WSplineComponent::FSplineLUT* Point0 = SplineComponent->GetSplineLUTAt(i);
 		const WSplineComponent::FSplineLUT* Point1 = SplineComponent->GetSplineLUTAt(j);
 		const auto Mid = SplineComponent->GetSplineLUTAtDistanceAlongSpline((Point0->Distance + Point1->Distance) / 2.0f);
+		
 		XMVECTOR P0 = XMLoadFloat3(&Point0->Location);
 		XMVECTOR P1 = XMLoadFloat3(&Point1->Location);
 		XMVECTOR ToP1 = XMVectorSubtract(P1, P0);
@@ -283,16 +286,10 @@ void AProjectileBase::CreateBoxTraceHitBySplineComponent(WSplineComponent* Splin
 		Transform.Scale.y = max(0.1f, Mid.Property2);
 		Transform.Scale.z = max(0.1f, XMVectorGetX(XMVector3Length(ToP1)));
 
-
-		TSharedPtr<WBoxComponent> BoxComp = CreateComponent<WBoxComponent>().lock();
-		assert(BoxComp);
-		BoxComp->SetupAttachment(Parent);
-		BoxComp->ActivatePhysicBody();
-		BoxComp->SetExtent(XMFLOAT3(0.5f, 0.5f, 0.5f));
-		BoxComp->SetMotionType(EMotionType::Kinematic);
-		BoxComp->SetObjectChannel(EObjectChannel::EOC_Projectile);
-		BoxComp->SetLocalTransform(Transform);
-		BoxComp->BeginComponent();
+		TSharedPtr<WSceneComponent> Comp = CreateComponent<WSceneComponent>().lock();
+		Comp->SetupAttachment(Parent);
+		Comp->SetLocalTransform(Transform);
+		mBoxCollisionInfo.push_back(AddTrackedComp(Comp.get()));
 
 		if (j >= SplineLUTNum - 1)
 		{
@@ -345,7 +342,7 @@ void AProjectileBase::CreateBoxColliderBySplineComponent(WSplineComponent* Splin
 		assert(BoxComp);
 		BoxComp->SetupAttachment(Parent);
 		BoxComp->ActivatePhysicBody();
-		BoxComp->SetExtent(XMFLOAT3(0.5f, 0.5f, 0.5f));
+		BoxComp->SetExtent(XMFLOAT3(0.5f, 0.5f, 0.7f));
 		BoxComp->SetMotionType(EMotionType::Kinematic);
 		BoxComp->SetObjectChannel(EObjectChannel::EOC_Projectile);
 		BoxComp->SetLocalTransform(Transform);

@@ -81,7 +81,7 @@
 
             <Call Func = "Play" Target = "ObjAnimComp">
                 <bool Name = "Loop" Value = "true"/>
-                <float Name = "PlayRate" Value = "2"/>
+                <float Name = "PlayRate" Value = "3"/>
                 <string Name = "Loc" Value = "XY"/>
             </Call>
         </OnBeginLaunch>
