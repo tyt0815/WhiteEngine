@@ -9,27 +9,71 @@
 
 using namespace BlueprintAsset;
 
-EPropertyType StringToType(const std::string& s)
+template<> struct PropertyTraits<bool>
 {
-    // 정적 맵을 사용하여 매번 맵을 생성하지 않도록 최적화
-    static const std::unordered_map<std::string, EPropertyType> TypeMap = {
-        { "float",        EPropertyType::EPT_Float },
-        { "float3",       EPropertyType::EPT_Float3 },
-        { "bool",         EPropertyType::EPT_Boolean },
-        { "string",       EPropertyType::EPT_String },
-        { "array_string", EPropertyType::EPT_StringArray }
-    };
+    static constexpr const char* Tag = "bool";
+    static constexpr EPropertyType Type = EPropertyType::EPT_Boolean;
 
-    auto it = TypeMap.find(s);
-    if (it != TypeMap.end())
-    {
-        return it->second;
+    static bool Parse(FXMLElement* Element) { return Element->BoolAttribute("Value"); }
+};
+
+template<> struct PropertyTraits<int>
+{
+    static constexpr const char* Tag = "int";
+    static constexpr EPropertyType Type = EPropertyType::EPT_Int;
+
+    static int Parse(FXMLElement* Element) { return Element->IntAttribute("Value"); }
+};
+
+template<> struct PropertyTraits<float> 
+{
+    static constexpr const char* Tag = "float";
+    static constexpr EPropertyType Type = EPropertyType::EPT_Float;
+
+    static float Parse(FXMLElement* Element) { return Element->FloatAttribute("Value"); }
+};
+
+template<> struct PropertyTraits<XMFLOAT3> 
+{
+    static constexpr const char* Tag = "float3";
+    static constexpr EPropertyType Type = EPropertyType::EPT_Float3;
+
+    static XMFLOAT3 Parse(FXMLElement* Element) 
+    { 
+        std::string Float3 = Element->Attribute("Value");
+        XMFLOAT3 Value;
+        sscanf_s(Float3.c_str(), "(%f, %f, %f)", &Value.x, &Value.y, &Value.z);
+
+        return Value;
     }
+};
 
-    // 정의되지 않은 타입이 들어왔을 때
-    assert(false && "Undefined Property Type String");
-    return EPropertyType::EPT_Float; // EPT_None이 없다면 적절한 기본값 사용
-}
+template<> struct PropertyTraits<std::string>
+{
+    static constexpr const char* Tag = "string";
+    static constexpr EPropertyType Type = EPropertyType::EPT_String;
+
+    static std::string Parse(FXMLElement* Element) { return Element->Attribute("Value"); }
+};
+
+template<> struct PropertyTraits<std::vector<std::string>>
+{
+    static constexpr const char* Tag = "array_string";
+    static constexpr EPropertyType Type = EPropertyType::EPT_StringArray;
+
+    static std::vector<std::string> Parse(FXMLElement* Element) 
+    {
+        std::vector<std::string> Values;
+        FXMLElement* ValueElement = Element->FirstChildElement();
+        while (ValueElement)
+        {
+            Values.push_back(ValueElement->Attribute("Value"));
+            ValueElement = ValueElement->NextSiblingElement();
+        }
+
+        return Values;
+    }
+};
 
 int CountChildElement(FXMLElement* Parent, const std::string& Name)
 {
@@ -93,55 +137,34 @@ void FBlueprintAsset::SerializeProperties(FXMLElement* PropertiesElement, FBinar
     }
 }
 
+template<typename... Args>
+EPropertyType GetPropertyTypeFromTag(const std::string& Tag, std::variant<Args...>)
+{
+    EPropertyType result = EPropertyType::EPT_TypeNum;
+    ((Tag == PropertyTraits<Args>::Tag ? (result = PropertyTraits<Args>::Type, true) : false) || ...);
+    return result;
+}
+
+template<typename... Args>
+void SerializePropertyHelper(FXMLElement* PropertyElement, FBinaryWriter& Writer, std::variant<Args...>)
+{
+    std::string Name = PropertyElement->Attribute("Name");
+    Writer << Name;
+
+    const std::string Tag = PropertyElement->Name();
+
+    // 폴드 표현식
+    bool bSuccess = ((Tag == PropertyTraits<Args>::Tag ? 
+        (Writer << (int)PropertyTraits<Args>::Type, Writer << PropertyTraits<Args>::Parse(PropertyElement), true) : false) ||
+    ...);
+
+
+    assert(bSuccess && "Invalid property type");
+}
+
 void FBlueprintAsset::SerializeProperty(FXMLElement* PropertyElement, FBinaryWriter& Writer)
 {
-    const std::string PropertyType = PropertyElement->Name();
-
-    Writer << PropertyElement->Attribute("Name");
-    
-    if (PropertyType == "float")
-    {
-        Writer << (int)EPropertyType::EPT_Float;
-        const float Value = PropertyElement->FloatAttribute("Value");
-        Writer << Value;
-    }
-    else if (PropertyType == "float3")
-    {
-        Writer << (int)EPropertyType::EPT_Float3;
-        std::string Float3 = PropertyElement->Attribute("Value");
-        XMFLOAT3 Value;
-        sscanf_s(Float3.c_str(), "(%f, %f, %f)", &Value.x, &Value.y, &Value.z);
-        Writer << Value;
-    }
-    else if (PropertyType == "bool")
-    {
-        Writer << (int)EPropertyType::EPT_Boolean;
-        const bool Value = PropertyElement->BoolAttribute("Value");;
-        Writer << Value;
-    }
-    else if (PropertyType == "string")
-    {
-        Writer << (int)EPropertyType::EPT_String;
-        const std::string Value = PropertyElement->Attribute("Value");
-        Writer << Value;
-    }
-    else if (PropertyType == "array_string")
-    {
-        Writer << (int)EPropertyType::EPT_StringArray;
-        std::vector<std::string> Values;
-        FXMLElement* ValueElement = PropertyElement->FirstChildElement();
-        while (ValueElement)
-        {
-            Values.push_back(ValueElement->Attribute("Value"));
-            ValueElement = ValueElement->NextSiblingElement();
-        }
-        
-        Writer << Values;
-    }
-    else
-    {
-        assert(false && "Undefined Property");
-    }
+    SerializePropertyHelper(PropertyElement, Writer, FProperty::FPropertyValue{});
 }
 
 void FBlueprintAsset::DeserializeComponent(FBinaryReader& Reader, BlueprintAsset::FComponentNode* CompNode)
@@ -231,7 +254,7 @@ void FBlueprintAsset::SerializeFunction(FXMLElement* FuncElement, FBinaryWriter&
             if (Target)
             {
                 Writer << (int)EFunctionParameterType::EFPT_Property;
-                int Type = (int)StringToType(ParamElement->Name());
+                int Type = (int)GetPropertyTypeFromTag(ParamElement->Name(), FProperty::FPropertyValue{});
                 std::string Name = ParamElement->Attribute("Name");
                 std::string TargetS = Target;
                 std::string Value = ParamElement->Attribute("Value");
@@ -381,46 +404,29 @@ void FBlueprintAsset::DeserializeProperties(TArray<FProperty>& Properties, FBina
     }
 }
 
+template<typename... Args>
+void DeserializePropertyHelper(EPropertyType TargetType, FBinaryReader& Reader, std::variant<Args...>& OutValue)
+{
+    bool bSuccess = (
+        (PropertyTraits<Args>::Type == TargetType ?
+            ([&]() {
+                Args temp;
+                Reader >> temp;
+                OutValue = std::move(temp); // 성능을 위해 move 권장
+                return true;
+                }()) : false)
+        || ...);
+
+    assert(bSuccess && "Invalid Property");
+}
+
 void FBlueprintAsset::DeserializeProperty(BlueprintAsset::FProperty& Property, FBinaryReader& Reader)
 {
     Reader >> Property.Name;
     int Type;
     Reader >> Type;
     Property.Type = (EPropertyType)Type;
-    if (Type == (int)EPropertyType::EPT_Float)
-    {
-        float Value;
-        Reader >> Value;
-        Property.Value = Value;
-    }
-    else if (Type == (int)EPropertyType::EPT_Float3)
-    {
-        XMFLOAT3 Value;
-        Reader >> Value;
-        Property.Value = Value;
-    }
-    else if (Type == (int)EPropertyType::EPT_Boolean)
-    {
-        bool Value;
-        Reader >> Value;
-        Property.Value = Value;
-    }
-    else if (Type == (int)EPropertyType::EPT_String)
-    {
-        std::string Value;
-        Reader >> Value;
-        Property.Value = Value;
-    }
-    else if (Type == (int)EPropertyType::EPT_StringArray)
-    {
-        std::vector<std::string> Values;
-        Reader >> Values;
-        Property.Value = Values;
-    }
-    else
-    {
-        assert(false && "Undefined Property");
-    }
+    DeserializePropertyHelper(Property.Type, Reader, Property.Value);
 }
 
 void FBlueprintAsset::SerializeComponent(FXMLElement* ComponentElement, FBinaryWriter& Writer)

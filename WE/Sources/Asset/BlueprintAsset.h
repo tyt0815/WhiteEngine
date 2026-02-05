@@ -17,20 +17,24 @@ namespace BlueprintAsset
 {
 	enum class EPropertyType : int
 	{
-		EPT_Float = 0,
 		EPT_Boolean,
-		EPT_String,
+		EPT_Int,
+		EPT_Float,
 		EPT_Float3,
+		EPT_String,
 		EPT_StringArray,
 		EPT_TypeNum
 	};
 
+	template<typename T> struct PropertyTraits;
+
 	struct FProperty
 	{
 		using FPropertyValue = std::variant<
+			bool,
+			int,
 			float,
 			XMFLOAT3,
-			bool,
 			std::string,
 			std::vector<std::string>
 		>;

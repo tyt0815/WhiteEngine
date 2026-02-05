@@ -39,6 +39,8 @@ public:
 
 	FTransform GetWorldTransform();
 
+	
+
 	void UpdateRecursive();
 
 	void SetupAttachment(WSceneComponent* Parent);
@@ -95,5 +97,10 @@ public:
 	inline bool IsDirty() const
 	{
 		return mbWorldFloat4x4Dirty;
+	}
+
+	__forceinline WSceneComponent* GetParent() const
+	{
+		return mParent.lock().get();
 	}
 };

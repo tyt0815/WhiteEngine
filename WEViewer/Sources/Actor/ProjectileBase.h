@@ -30,6 +30,12 @@ class AProjectileBase : public AActor
 			XMFLOAT3 Extent;
 		};
 	};
+
+	struct FBoxCollisionInfo
+	{
+		FTrackedSceneCompInfo* PosComp;
+		XMFLOAT3 HalfExtent;
+	};
 public:
 	AProjectileBase();
 
@@ -52,6 +58,8 @@ protected:
 	
 	std::string SelectRandomString(const TArray<std::string>& Strings);
 
+	void CreateCollisionBySplineComponent(WSplineComponent* SplineComponent, int Segment);
+
 private:
 	TWeakPtr<WProjectileMovementComponent> mProjMoveComp;
 
@@ -64,6 +72,8 @@ private:
 	TArray<FTrackedSceneCompInfo*> mTrailComp;
 
 	TArray<FMakeCollisionInfo> mCollisionInfo;
+
+	TArray<FBoxCollisionInfo> mBoxCollisionInfo;
 
 	const WEvent* mOnHit;
 };

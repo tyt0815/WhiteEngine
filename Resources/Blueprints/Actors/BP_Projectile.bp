@@ -7,11 +7,9 @@
         <WStaticMeshComponent Name = "StaticMeshComponent">
             <Events>
                 <BeginComponent>
-
                     <Call Func = "SetStaticMesh" Target = "StaticMeshComponent">
                         <string Name = "StaticMesh" Value = "SM_LaminateFlooringBrownBox"/>
                     </Call>
-
                 </BeginComponent>
             </Events>
         </WStaticMeshComponent>

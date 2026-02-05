@@ -1,0 +1,60 @@
+<AProjectileBase>
+    <Properties>
+
+    </Properties>
+
+    <Components>
+
+        <!-- <WStaticMeshComponent Name = "StaticMeshComponent">
+            <Events>
+                <BeginComponent>
+
+                    <Call Func = "SetStaticMesh" Target = "StaticMeshComponent">
+                        <string Name = "StaticMesh" Value = "SM_MetalRing"/>
+                    </Call>
+
+                </BeginComponent>
+            </Events>
+        </WStaticMeshComponent> -->
+
+        <WSplineComponent Name = "SplineComp">
+            <Events>
+                <BeginComponent>
+                    <Call Func = "LoadSplineFromAsset" Target = "SplineComp">
+                        <string Name = "AssetName" Value = "SP_RingSpline"/>
+                    </Call>
+                </BeginComponent>
+            </Events>
+        </WSplineComponent>
+
+        <WProjectileMovementComponent Name = "ProjMoveComp">
+            <Properties>
+                <bool Name = "Homing" Value = "true"/>
+                <float Name = "HomingTurnLimit" Value = "360"/>
+                <float Name = "Speed" Value = "10"/>
+                <float Name = "LifeSpan" Value = "10"/>
+            </Properties>
+        </WProjectileMovementComponent>
+
+    </Components>
+
+    <Events>
+        <BeginPlay>
+            <Call Func = "SetSmartHoming" Target = "this">
+                <bool Name = "SmartHoming" Value = "true"/>
+                <float Name = "Range" Value = "5"/>
+            </Call>
+
+            <!-- <Call Func = "CreateCollisionBySplineComponent" Target = "this">
+                <Call Func = "Get" Target = "SplineComp" Name = "SplineComp"/>
+                <int Name = "Segment" Value = "1"/>
+            </Call> -->
+        </BeginPlay>
+
+        <OnHit>
+            <Call Func = "Destroy" Target = "this"/>
+        </OnHit>
+    </Events>
+
+
+</AProjectileBase>

@@ -4,12 +4,6 @@
 
 AProjectileBase::AProjectileBase()
 {
-	if (auto Spline = CreateComponent<WSplineComponent>().lock())
-	{
-		Spline->SetupAttachment(GetRootComponent());
-		Spline->LoadSplineFromAsset("RingSpline");
-	}
-
 	REGISTER_WFUNC_2(SetSmartHoming, SmartHoming, bool, Range, float);
 
 	REGISTER_WFUNC_1(PlayParticle, ParticleName, std::string);
@@ -17,6 +11,8 @@ AProjectileBase::AProjectileBase()
 	REGISTER_WFUNC_1(SetTrailParticle, SceneComp, WSceneComponent*);
 
 	REGISTER_WFUNC_1(MakeLineCollision, SceneComp, WSceneComponent*);
+
+	REGISTER_WFUNC_2(CreateCollisionBySplineComponent, SplineComp, WSplineComponent*, Segment, int);
 
 	REGISTER_WFUNC_RET_1(SelectRandomString, Strings, TArray<std::string>, std::string);
 
@@ -75,7 +71,19 @@ void AProjectileBase::Tick(float DeltaSecond)
 		}
 	}
 
-
+	for (const auto& Info : mBoxCollisionInfo)
+	{
+		XMFLOAT3 CurrLoc = Info.PosComp->Target->GetWorldLocation();
+		const XMFLOAT3& LastLoc = Info.PosComp->LastTickLocation;
+		TArray<AActor*> ActorsToIgnore;
+		ActorsToIgnore.push_back(this);
+		FHitResult Hit;
+		GetWorld()->LineTrace(LastLoc, CurrLoc, ActorsToIgnore, Hit, true, 0.5f);
+		if (TSharedPtr<AActor> Actor = Hit.Actor.lock())
+		{
+			OnHit();
+		}
+	}
 
 
 	// 마지막에 실행
@@ -223,4 +231,47 @@ void AProjectileBase::MakeLineCollision(WSceneComponent* Comp)
 std::string AProjectileBase::SelectRandomString(const TArray<std::string>& Strings)
 {
 	return Strings[FDXMath::Rand(0, (int)Strings.size() - 1)];
+}
+
+void AProjectileBase::CreateCollisionBySplineComponent(WSplineComponent* SplineComponent, int Segment)
+{
+	if (SplineComponent == nullptr)
+	{
+		return;
+	}
+
+
+	Segment = max(Segment, 1);
+	float Step = 1.0f / Segment;
+
+	WSceneComponent* Parent = SplineComponent->GetParent();
+	if (Parent == nullptr)
+	{
+		Parent = SplineComponent;
+	}
+
+	float LastInputKey = SplineComponent->GetControllPointNum() - 1.0f;
+
+	for (float i = Step; i <= LastInputKey; i += Step)
+	{
+		XMFLOAT3 Left = SplineComponent->GetLocalLocationAtSplineInputKey(i - Step);
+		XMFLOAT3 Right = SplineComponent->GetLocalLocationAtSplineInputKey(i);
+		XMVECTOR LeftV = XMLoadFloat3(&Left);
+		XMVECTOR RightV = XMLoadFloat3(&Right);
+		XMFLOAT3 Middle;
+		XMStoreFloat3(&Middle, (LeftV + RightV) / 2.0f);
+		
+		FBoxCollisionInfo Info;
+		Info.HalfExtent.x = XMVectorGetX(XMVector3Length(XMVectorSubtract(LeftV, RightV)));
+		Info.HalfExtent.y = SplineComponent->GetCustomProperty1AtDistanceAlongSpline(i - (Step / 2.0f));
+		Info.HalfExtent.z = SplineComponent->GetCustomProperty2AtDistanceAlongSpline(i - (Step / 2.0f));
+
+		TSharedPtr<WSceneComponent> PosComp = CreateComponent<WSceneComponent>().lock();
+		assert(PosComp);
+		PosComp->SetupAttachment(Parent);
+		PosComp->SetLocalLocation(Middle);
+		Info.PosComp = AddTrackedComp(PosComp.get());
+
+		mBoxCollisionInfo.push_back(Info);
+	}
 }
