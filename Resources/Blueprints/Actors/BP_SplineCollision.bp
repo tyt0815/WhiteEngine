@@ -1,0 +1,22 @@
+<BP_RingProjectile>
+
+    <Components>
+        <WProjectileMovementComponent Name = "ProjMoveComp">
+            <Properties>
+                <float Name = "Speed" Value = "10"/>
+                <float Name = "LifeSpan" Value = "10"/>
+            </Properties>
+        </WProjectileMovementComponent>
+    </Components>
+
+    <Events>
+        <BeginPlay>
+
+            <Call Func = "GenerateCapsuleCollision" Target = "SplineComp">
+                <int Name = "Segment" Value = "8"/>
+                <bool Name = "UseBoundingBox" Value = "true"/>
+            </Call>
+
+        </BeginPlay>
+    </Events>
+</BP_RingProjectile>

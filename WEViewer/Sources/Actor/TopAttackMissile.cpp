@@ -22,7 +22,7 @@ ATopAttackMissile::ATopAttackMissile()
 	if (auto ProjMoveComp = mProjectileMovementComponent.lock())
 	{
 		RegisterWProperty("ProjMovementComp", ProjMoveComp.get());
-		ProjMoveComp->SetSpeed(20.0f);
+		// ProjMoveComp->SetSpeed(20.0f);
 		ProjMoveComp->SetLifeSpan(10.0f);
 		ProjMoveComp->SetHoming(true);
 		ProjMoveComp->SetHomingTurnLimit(720);
@@ -121,12 +121,6 @@ void ATopAttackMissile::BeginPlay()
 	Super::BeginPlay();
 
 	mLastTickLocation = GetActorLocation();
-
-	if (auto ProjComp = mProjectileMovementComponent.lock())
-	{
-		mSpeed = ProjComp->GetSpeed();
-		ProjComp->SetSpeed(0.0f);
-	}
 
 	mOnBeginColdLaunch->Dispatch();
 }
@@ -292,6 +286,5 @@ void ATopAttackMissile::OnHit(const FHitResult& Hit)
 void ATopAttackMissile::Launch()
 {
 	mColdLaunchElapsedTime = mColdLaunchDelay + 1;
-	mProjectileMovementComponent.lock()->SetSpeed(mSpeed);
 	mOnBeginLaunch->Dispatch();
 }

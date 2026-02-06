@@ -55,6 +55,12 @@ public:
 
 	void SetWorldTransform(FTransform Transform);
 
+	void SetWorldLocation(XMFLOAT3 Location);
+
+	void SetWorldRotation(XMFLOAT3 Rotation);
+
+	void SetWorldScale(XMFLOAT3 Scale);
+
 protected:
 	virtual void Update();
 

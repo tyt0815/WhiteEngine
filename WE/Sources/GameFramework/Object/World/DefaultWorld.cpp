@@ -19,7 +19,7 @@ void WDefaultWorld::BeginPlay()
 	LightActor->SetActorRotation(XMFLOAT3(0.0f, -45, -45));
 	LightActor->GetDirLightComp().lock()->SetColor({ 10.0f, 10.0f, 10.0f });
 
-	auto Floor = SpawnActor<AFloor>().lock();
-	Floor->SetActorLocation(XMFLOAT3(0.0f, -2.0f, 0.0f));
-	Floor->SetActorScale(XMFLOAT3(5, 1, 5));
+	FActorSpawnParameter Param;
+	Param.Transform.Translation = XMFLOAT3(0.0f, -2.0f, 0.0f);
+	auto Floor = SpawnActor<AFloor>(Param).lock();
 }

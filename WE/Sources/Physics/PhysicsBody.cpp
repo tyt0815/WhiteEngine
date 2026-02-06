@@ -24,6 +24,8 @@ void FPhysicsBody::CreateBody(JPH::BodyCreationSettings Settings)
 	UINT64 UserDataID = Physics::FUserDataManager::CreateUserData(mOwner->GetWeakPtr<WPhysicsComponent>());
 	mUserData = Physics::FUserDataManager::GetUserData(UserDataID);
 	Settings.mUserData = reinterpret_cast<JPH::uint64>(&mUserData->Comp);
+	Settings.mPosition = ToJPHPosition(mOwner->GetWorldLocation());
+	Settings.mRotation = TOJPHQuatRotation(FDXMath::EulerToQuaternion(mOwner->GetWorldRotation()));
 	mBody = Physics::GetBodyInterface().CreateBody(Settings);
 	Physics::GetBodyInterface().AddBody(mBody->GetID(), EActivation::Activate);
 }

@@ -6,22 +6,23 @@
 
 AFloor::AFloor()
 {
-	mBoxComp = CreateComponent<WBoxComponent>();
-	SetRootComponent(mBoxComp);
-	if (auto BoxComp = mBoxComp.lock())
-	{
-		BoxComp->ActivatePhysicBody();
-		BoxComp->SetExtent(XMFLOAT3(50, 0.05f, 50));
-		BoxComp->SetMotionType(EMotionType::Kinematic);
-		BoxComp->SetObjectChannel(EObjectChannel::EOC_WorldStatic);
-	}
-
+	constexpr float Height = 0.1f;
 	mStaticMeshComp = CreateComponent<WStaticMeshComponent>();
+	SetRootComponent(mStaticMeshComp);
 	if (auto StaticMeshComp = mStaticMeshComp.lock())
 	{
-		StaticMeshComp->SetupAttachment(GetRootComponent());
 		StaticMeshComp->SetStaticMesh(FStaticMeshManager::GetStaticMesh("SM_DefaultFloor"));
-		StaticMeshComp->SetLocalLocation(XMFLOAT3(0, 0.05f, 0));
+	}
+
+	mBoxComp = CreateComponent<WBoxComponent>();
+	if (auto BoxComp = mBoxComp.lock())
+	{
+		BoxComp->SetupAttachment(GetRootComponent());
+		BoxComp->ActivatePhysicBody();
+		BoxComp->SetExtent(XMFLOAT3(100, Height, 100));
+		BoxComp->SetMotionType(EMotionType::Static);
+		BoxComp->SetObjectChannel(EObjectChannel::EOC_WorldStatic);
+		BoxComp->SetLocalLocation(XMFLOAT3(0, -Height, 0));
 	}
 }
 

@@ -59,12 +59,12 @@ public:
 
 	FSplineLUT GetSplineLUTAtDistanceAlongSpline(float Distance);
 	
-private:
-	std::vector<FSplineNode> mSplineNodes;
-
 	void SelectSplineNodesByInputKey(float InputKey, FSplineNode& LeftNode, FSplineNode& RightNode, float& t);
 
 	void SelectBezierPointsByInputKey(float InputKey, XMVECTOR* P0, XMVECTOR* P1, XMVECTOR* P2, XMVECTOR* P3, float& t);
+
+private:
+	std::vector<FSplineNode> mSplineNodes;
 
 	struct FSampleParam
 	{

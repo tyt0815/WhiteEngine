@@ -24,16 +24,21 @@ FMeshGeometryManager::~FMeshGeometryManager()
 void FMeshGeometryManager::BuildMeshGeometries(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
 {
 	FGeometryGenerator GeoGen;
+
 	BuildMeshGeometryFromMeshData("Box", GeoGen.CreateBox(1.0f, 1.0f, 1.0f, 0), Device, CommandList);
+
 	BuildMeshGeometryFromMeshData("Grid", GeoGen.CreateGrid(500.0f, 500.0f, 60, 40), Device, CommandList);
+
 	BuildMeshGeometryFromMeshData("Sphere", GeoGen.CreateSphere(0.5f, 20, 20), Device, CommandList);
+
 	BuildMeshGeometryFromMeshData("Cylinder", GeoGen.CreateCylinder(.5f, 0.5f, 1.0f, 20, 20), Device, CommandList);
-	BuildMeshGeometryFromMeshData("Floor", GeoGen.CreateGrid(500.0f, 500.0f, 60, 40, 10), Device, CommandList);
+
+	BuildMeshGeometryFromMeshData("Floor", GeoGen.CreateGrid(100, 100.0f, 60, 40, 10), Device, CommandList);
 
 	BuildBillboardPoints(Device, CommandList);
 	BuildRectangle(Device, CommandList);
 
-	LoadFbxs(Device, CommandList);;
+	LoadFbxs(Device, CommandList);
 
 	FSkeletalMesh* SkeletalMesh = FSkeletalMeshManager::GetInstance()->mSkeletalMesh.get();
 

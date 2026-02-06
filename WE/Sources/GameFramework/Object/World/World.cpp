@@ -398,6 +398,58 @@ void WWorld::BoxTraceByObjectChannel(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT3 Exte
 	AfterBoxTrace(Start, End, Extend, Quaternion, HitResult, bDrawDebug, DebugDuration);
 }
 
+// 1. AActor 리스트 무시 버전 (오일러 각 전달)
+void WWorld::CapsuleTrace(XMFLOAT3 Start, XMFLOAT3 End, float Radius, float HalfHeight, XMFLOAT3 Rotation,
+	const std::vector<AActor*>& ActorsToIgnore, FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
+{
+	TArray<JPH::BodyID> BodiesToIgnore;
+	ExtractActorsPhysicsBodyID(ActorsToIgnore, BodiesToIgnore);
+
+	CapsuleTrace_Internal(Start, End, Radius, HalfHeight, Rotation, BodiesToIgnore, HitResult, bDrawDebug, DebugDuration);
+}
+
+// 2. 실제 물리 호출부 (내부 로직)
+void WWorld::CapsuleTrace_Internal(XMFLOAT3 Start, XMFLOAT3 End, float Radius, float HalfHeight, XMFLOAT3 Rotation,
+	const std::vector<JPH::BodyID>& BodiesToIgnore, FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
+{
+	// 오일러 -> 쿼터니언 변환
+	XMVECTOR QuatVec = XMQuaternionRotationRollPitchYaw(
+		XMConvertToRadians(Rotation.x),
+		XMConvertToRadians(Rotation.y),
+		XMConvertToRadians(Rotation.z)
+	);
+	XMFLOAT4 Quaternion;
+	XMStoreFloat4(&Quaternion, QuatVec);
+
+	// Physics 엔진의 CapsuleTrace 호출
+	Physics::CapsuleTrace(Start, End, Radius, HalfHeight, Quaternion, HitResult, BodiesToIgnore);
+
+	// 디버그 드로우 (Capsule용 AfterCapsuleTrace가 구현되어 있어야 합니다)
+	AfterCapsuleTrace(Start, End, Radius, HalfHeight, Quaternion, HitResult, bDrawDebug, DebugDuration);
+}
+
+// 3. ObjectChannel 버전
+void WWorld::CapsuleTraceByObjectChannel(XMFLOAT3 Start, XMFLOAT3 End, float Radius, float HalfHeight, XMFLOAT3 Rotation,
+	const std::vector<AActor*>& ActorsToIgnore, const std::vector<JPH::ObjectLayer>& ObjectChannels,
+	FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
+{
+	TArray<JPH::BodyID> BodiesToIgnore;
+	ExtractActorsPhysicsBodyID(ActorsToIgnore, BodiesToIgnore);
+
+	XMVECTOR QuatVec = XMQuaternionRotationRollPitchYaw(
+		XMConvertToRadians(Rotation.x),
+		XMConvertToRadians(Rotation.y),
+		XMConvertToRadians(Rotation.z)
+	);
+	XMFLOAT4 Quaternion;
+	XMStoreFloat4(&Quaternion, QuatVec);
+
+	// 채널 필터를 사용하는 Physics 호출
+	Physics::CapsuleTrace(Start, End, Radius, HalfHeight, Quaternion, HitResult, ObjectChannels, BodiesToIgnore);
+
+	AfterCapsuleTrace(Start, End, Radius, HalfHeight, Quaternion, HitResult, bDrawDebug, DebugDuration);
+}
+
 void WWorld::SphereOverlap(XMFLOAT3 Location, float Radius, const std::vector<AActor*>& ActorsToIgnore, TArray<FHitResult>& HitResults, bool bDrawDebug, float DebugDuration)
 {
 	TArray<JPH::BodyID> BodiesToIgnore;
@@ -489,6 +541,79 @@ void WWorld::AfterBoxTrace(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT3 Extend, XMFLOA
 	}
 
 	// 4. 중심선
+	DrawDebugLine(Start, FinalCenter, Color, DebugDuration);
+}
+
+void WWorld::AfterCapsuleTrace(XMFLOAT3 Start, XMFLOAT3 End, float Radius, float HalfHeight, XMFLOAT4 Quaternion, const FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
+{
+	if (!bDrawDebug) return;
+
+	XMVECTOR StartV = XMLoadFloat3(&Start);
+	XMVECTOR EndV = XMLoadFloat3(&End);
+	XMVECTOR QuatV = XMLoadFloat4(&Quaternion);
+
+	// 1. 실제 충돌이 일어난 중심 위치 계산 (Fraction 반영)
+	XMVECTOR ActualCenterV;
+	bool bHit = !HitResult.HitComponent.expired();
+
+	if (!bHit) {
+		ActualCenterV = EndV;
+	}
+	else {
+		// Start에서 End 방향으로 Distance(0~1)만큼 이동
+		ActualCenterV = StartV + (EndV - StartV) * HitResult.Distance;
+	}
+
+	XMFLOAT3 FinalCenter;
+	XMStoreFloat3(&FinalCenter, ActualCenterV);
+	XMFLOAT4 Color = bHit ? XMFLOAT4(0, 1, 0, 1) : XMFLOAT4(1, 0, 0, 1); // 충돌 시 초록, 아니면 빨강
+
+	// 2. 시작 지점과 최종 지점의 캡슐 그리기
+	// TODO: DrawDebugCapsule 만들어야함
+	/*DrawDebugCapsule(Start, Radius, HalfHeight, Quaternion, Color, DebugDuration);
+	DrawDebugCapsule(FinalCenter, Radius, HalfHeight, Quaternion, Color, DebugDuration);*/
+	DrawDebugBox(Start, XMFLOAT3(Radius, Radius + HalfHeight, Radius), Quaternion, Color, DebugDuration);
+	DrawDebugBox(FinalCenter, XMFLOAT3(Radius, Radius + HalfHeight, Radius), Quaternion, Color, DebugDuration);
+
+	// 3. 캡슐의 진행 궤적 그리기 (4개 측면 선 + 중심선)
+	// 캡슐의 로컬 위쪽 방향(0, 1, 0)을 기준으로 90도 간격의 사이드 포인트 계산
+	XMVECTOR LocalUp = XMVectorSet(0, 1, 0, 0) * (HalfHeight + Radius); // 중심에서 위쪽 구체 중심까지
+	XMVECTOR TopV = XMVector3Rotate(LocalUp, QuatV);
+	XMVECTOR BottomV = XMVector3Rotate(-LocalUp, QuatV);
+
+	// 캡슐 측면의 궤적을 보여주기 위한 4개 방향 벡터 (Right, Forward 등)
+	XMVECTOR SideOffsets[4] = {
+		XMVector3Rotate(XMVectorSet(Radius, 0, 0, 0), QuatV),
+		XMVector3Rotate(XMVectorSet(-Radius, 0, 0, 0), QuatV),
+		XMVector3Rotate(XMVectorSet(0, 0,  Radius, 0), QuatV),
+		XMVector3Rotate(XMVectorSet(0, 0, -Radius, 0), QuatV)
+	};
+
+	for (int i = 0; i < 4; ++i)
+	{
+		// 상단 구체 외곽선의 궤적
+		XMFLOAT3 SideStart, SideEnd;
+		XMStoreFloat3(&SideStart, StartV + TopV + SideOffsets[i]);
+		XMStoreFloat3(&SideEnd, ActualCenterV + TopV + SideOffsets[i]);
+		DrawDebugLine(SideStart, SideEnd, Color, DebugDuration);
+
+		// 하단 구체 외곽선의 궤적
+		XMStoreFloat3(&SideStart, StartV + BottomV + SideOffsets[i]);
+		XMStoreFloat3(&SideEnd, ActualCenterV + BottomV + SideOffsets[i]);
+		DrawDebugLine(SideStart, SideEnd, Color, DebugDuration);
+	}
+
+	// 4. 중심축 궤적 (Top-to-Top, Bottom-to-Bottom)
+	XMFLOAT3 CenterStart, CenterEnd;
+	XMStoreFloat3(&CenterStart, StartV + TopV);
+	XMStoreFloat3(&CenterEnd, ActualCenterV + TopV);
+	// DrawDebugLine(CenterStart, CenterEnd, Color, DebugDuration);
+
+	XMStoreFloat3(&CenterStart, StartV + BottomV);
+	XMStoreFloat3(&CenterEnd, ActualCenterV + BottomV);
+	// DrawDebugLine(CenterStart, CenterEnd, Color, DebugDuration);
+
+	// 5. 전체 진행 방향 중심선
 	DrawDebugLine(Start, FinalCenter, Color, DebugDuration);
 }
 

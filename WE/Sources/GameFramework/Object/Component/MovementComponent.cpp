@@ -8,19 +8,19 @@ WMovementComponent::WMovementComponent()
 
 void WMovementComponent::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
+    Super::Tick(DeltaTime);
 
-	// 프레임마다 Owner를 이동시킴
-	if (AActor* Owner = GetOwner().lock().get())
-	{
-		XMFLOAT4 Quat = Owner->GetActorTransform().GetQuaternionRotationFloat4();
+    if (AActor* Owner = GetOwner().lock().get())
+    {
+        XMVECTOR WorldVelocityV = XMLoadFloat3(&mVelocity);
 
-		XMVECTOR V = XMVector3Rotate(XMLoadFloat3(&mVelocity), XMLoadFloat4(&Quat));
+        XMVECTOR DeltaPosV = XMVectorScale(WorldVelocityV, DeltaTime);
 
-		XMFLOAT3 ScaledVelocity;
-		XMStoreFloat3(&ScaledVelocity, XMVectorScale(V, DeltaTime));
-		MoveOwner(ScaledVelocity);
-	}
+        XMFLOAT3 ScaledVelocity;
+        XMStoreFloat3(&ScaledVelocity, DeltaPosV);
+
+        MoveOwner(ScaledVelocity);
+    }
 }
 
 

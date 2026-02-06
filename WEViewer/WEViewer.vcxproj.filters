@@ -21,6 +21,9 @@
     <Filter Include="Sources\Pawn">
       <UniqueIdentifier>{2fa35f5e-e51e-4c9d-986f-8f36bc750324}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Component">
+      <UniqueIdentifier>{c80e04e3-ed2f-45b3-acce-ce8a8dcd799a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Main.cpp">
@@ -56,6 +59,9 @@
     <ClCompile Include="Sources\Actor\ProjectileBase.cpp">
       <Filter>Sources\Actor</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Component\SplineCollisionComponent.cpp">
+      <Filter>Sources\Component</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\World\TestWorld.h">
@@ -90,6 +96,9 @@
     </ClInclude>
     <ClInclude Include="Sources\Actor\ProjectileBase.h">
       <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Component\SplineCollisionComponent.h">
+      <Filter>Sources\Component</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

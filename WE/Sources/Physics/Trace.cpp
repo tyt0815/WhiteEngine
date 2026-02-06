@@ -6,6 +6,7 @@
 #include <Jolt/Physics/Collision/ShapeCast.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
+#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 #include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
 #include "PhysicsDebugRenderer.h"
 #include "JPHUtility.h"
@@ -213,6 +214,7 @@ namespace Physics
 		);
 
 		ShapeCastSettings Settings;
+		Settings.mCollisionTolerance = 1e-4f;
 		ClosestHitCollisionCollector<CastShapeCollector> Collector;
 
 		const NarrowPhaseQuery& Query = GetNarrowPhaseQuery();
@@ -238,6 +240,7 @@ namespace Physics
 				HitResult.Distance = Collector.mHit.mFraction;
 			}
 		}
+
 	}
 
 	void BoxTrace(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT3 Extend, XMFLOAT4 Quaternion, FHitResult& HitResult, const JPH::BroadPhaseLayerFilter& inBroadPhaseLayerFilter, const JPH::ObjectLayerFilter& inObjectLayerFilter, const JPH::BodyFilter& inBodyFilter)
@@ -283,6 +286,62 @@ namespace Physics
 		FTraceObjectLayerFilter OLFilter(InObjectLayers);
 		FTraceBodyFilter BFilter(BodiesToIgnore);
 		BoxTrace(Start, End, Extend, Quaternion, HitResult, {}, OLFilter, BFilter);
+	}
+
+	void CapsuleTrace(
+		XMFLOAT3 Start,
+		XMFLOAT3 End,
+		float Radius,
+		float HalfHeight,
+		XMFLOAT4 Quaternion,
+		FHitResult& HitResult,
+		const JPH::BroadPhaseLayerFilter& inBroadPhaseLayerFilter,
+		const JPH::ObjectLayerFilter& inObjectLayerFilter,
+		const JPH::BodyFilter& inBodyFilter
+	)
+	{
+		// 1. 캡슐 쉐이프 생성 
+		// Jolt의 CapsuleShape은 (절반 높이, 반지름)을 인자로 받습니다.
+		// 여기서 HalfHeight는 양 끝의 반구(Sphere)를 제외한 중앙 원통 부분의 절반 길이입니다.
+		CapsuleShapeSettings Settings(HalfHeight, Radius);
+		ShapeRefC Capsule = Settings.Create().Get();
+
+		// 2. 쿼터니언 변환
+		Quat Rot = TOJPHQuatRotation(Quaternion);
+
+		// 3. 시작 지점 행렬 구성
+		RVec3 JPHStart = ToJPHPosition(Start);
+		RVec3 JPHEnd = ToJPHPosition(End);
+		RMat44 StartMat = RMat44::sRotationTranslation(Rot, JPHStart);
+
+		// 4. 이동 방향 벡터 계산
+		RVec3 SweepVector = JPHEnd - JPHStart;
+
+		// 5. 공용 ShapeTrace 호출
+		ShapeTrace(
+			Capsule,
+			StartMat,
+			SweepVector,
+			HitResult,
+			inBroadPhaseLayerFilter,
+			inObjectLayerFilter,
+			inBodyFilter
+		);
+	}
+
+	// 오버로드: 특정 바디 무시 버전
+	void CapsuleTrace(XMFLOAT3 Start, XMFLOAT3 End, float Radius, float HalfHeight, XMFLOAT4 Quaternion, FHitResult& HitResult, const TArray<JPH::BodyID>& BodiesToIgnore)
+	{
+		FTraceBodyFilter BFilter(BodiesToIgnore);
+		CapsuleTrace(Start, End, Radius, HalfHeight, Quaternion, HitResult, {}, {}, BFilter);
+	}
+
+	// 오버로드: 레이어 필터 + 무시 버전
+	void CapsuleTrace(XMFLOAT3 Start, XMFLOAT3 End, float Radius, float HalfHeight, XMFLOAT4 Quaternion, FHitResult& HitResult, const TArray<JPH::ObjectLayer>& InObjectLayers, const TArray<JPH::BodyID>& BodiesToIgnore)
+	{
+		FTraceObjectLayerFilter OLFilter(InObjectLayers);
+		FTraceBodyFilter BFilter(BodiesToIgnore);
+		CapsuleTrace(Start, End, Radius, HalfHeight, Quaternion, HitResult, {}, OLFilter, BFilter);
 	}
 
 	void ShapeOverlap(JPH::ShapeRefC InShape, JPH::RMat44 InMat, TArray<FHitResult>& HitResults, const JPH::BroadPhaseLayerFilter& inBPFilter, const JPH::ObjectLayerFilter& inObjFilter, const JPH::BodyFilter& inBodyFilter)

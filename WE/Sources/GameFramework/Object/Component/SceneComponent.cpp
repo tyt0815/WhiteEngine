@@ -228,6 +228,27 @@ void WSceneComponent::SetWorldTransform(FTransform Transform)
 	}
 }
 
+void WSceneComponent::SetWorldLocation(XMFLOAT3 Location)
+{
+	FTransform Transform = GetWorldTransform();
+	Transform.Translation = Location;
+	SetWorldTransform(Transform);
+}
+
+void WSceneComponent::SetWorldRotation(XMFLOAT3 Rotation)
+{
+	FTransform Transform = GetWorldTransform();
+	Transform.Rotation = Rotation;
+	SetWorldTransform(Transform);
+}
+
+void WSceneComponent::SetWorldScale(XMFLOAT3 Scale)
+{
+	FTransform Transform = GetWorldTransform();
+	Transform.Scale = Scale;
+	SetWorldTransform(Transform);
+}
+
 void WSceneComponent::Update()
 {
 	
