@@ -15,6 +15,8 @@ public:
 public:
 	void SetHomingTarget(WSceneComponent* Target);
 
+	void AddForce(const XMFLOAT3& Force);
+
 protected:
 	XMFLOAT3 mInitialVelocity = { 0, 0, 0 };
 
@@ -33,6 +35,8 @@ protected:
 
 private:
 	TWeakPtr<WSceneComponent> mHomingTarget;
+
+	XMFLOAT3 mExternalAcceleration = { 0,0,0 };
 
 	float mLifeTimeElapsed = 0.0f;
 

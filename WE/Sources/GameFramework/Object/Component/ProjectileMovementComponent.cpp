@@ -31,6 +31,10 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
     XMVECTOR RotationQuatV = XMQuaternionIdentity();
     bool bCalcRotQuatV = true;
 
+    // 1-1. 외부 가속도 적용 (AddForce로 누적된 값)
+    XMVECTOR ExternalAccelV = XMLoadFloat3(&mExternalAcceleration);
+    CurrentVelocityV = XMVectorAdd(CurrentVelocityV, XMVectorScale(ExternalAccelV, DeltaTime));
+
     // 2. 호밍 로직 (속도 벡터의 방향을 꺾음)
     if (mbHomingProjectile)
     {
@@ -126,6 +130,8 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
         Owner->SetActorRotation(FinalRotation);
     }
 
+    mExternalAcceleration = { 0.f, 0.f, 0.f };
+
     Super::Tick(DeltaTime);
 }
 
@@ -199,4 +205,11 @@ void WProjectileMovementComponent::SetHomingTarget(WSceneComponent* Target)
     {
         mHomingTarget.reset();
     }
+}
+
+void WProjectileMovementComponent::AddForce(const XMFLOAT3& Force)
+{
+    XMVECTOR CurrentAccel = XMLoadFloat3(&mExternalAcceleration);
+    XMVECTOR NewForce = XMLoadFloat3(&Force);
+    XMStoreFloat3(&mExternalAcceleration, XMVectorAdd(CurrentAccel, NewForce));
 }
