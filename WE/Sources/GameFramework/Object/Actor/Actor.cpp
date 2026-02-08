@@ -51,6 +51,19 @@ AActor::AActor():
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
+	// WAction
+	////////////////////////////////////////////////////////////////////////////////////////////////
+
+	RegisterWActionFactory("Event", [this](const WAttributesMap& Attributes) {
+		std::string Name = Attributes.at("Name");
+		return [this, Name]() { this->mWEventsMap[Name]->Dispatch(); };
+		});
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// WAction End
+	////////////////////////////////////////////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	// WEvent
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -82,10 +95,23 @@ void AActor::LoadBlueprint(const FBlueprintAsset* Blueprint)
 
 	for (const auto& EventInfo : Blueprint->mEvents)
 	{
-		if (mWEventsMap.count(EventInfo->Name) == 0)
+		if (EventInfo->Name.substr(0, 2) == "On")
 		{
-			ShowMessageBox("Invalid event name:\n" + EventInfo->Name);
-			assert(false);
+			if (mWEventsMap.count(EventInfo->Name) == 0)
+			{
+				ShowMessageBox("Invalid event name:\n" + EventInfo->Name);
+				assert(false);
+			}
+		}
+		else
+		{
+			if (mWEventsMap.count(EventInfo->Name) > 0)
+			{
+				ShowMessageBox("Already registered custom event:\n" + EventInfo->Name);
+				assert(false);
+			}
+
+			RegisterWEvent(EventInfo->Name);
 		}
 		auto& Event = mWEventsMap[EventInfo->Name];
 

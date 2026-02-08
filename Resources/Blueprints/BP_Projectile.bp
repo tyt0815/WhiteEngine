@@ -8,8 +8,12 @@
 
     <Events>
         <OnSpawn>
-            <Particle Asset = "P_Explosion"/>
+            <Event Name = "CustomEvent"/>
         </OnSpawn>
+
+        <CustomEvent>
+            <Particle Asset = "P_Explosion"/>
+        </CustomEvent>
     </Events>
 
 </AProjectileBase>
