@@ -1,6 +1,7 @@
 #include "ProjectileBase.h"
 #include "World/World.h"
 #include "Interface/HitInterface.h"
+#include "Asset/BlueprintAsset.h"
 #include "Component/BoxComponent.h"
 #include "Component/SphereComponent.h"
 
@@ -9,22 +10,126 @@ AProjectileBase::AProjectileBase()
 	SetTickGroup(ETickGroup::ETG_PrePhysics, ETickPriority::ETP_High);
 
 	mProjMoveComp = CreateComponent<WProjectileMovementComponent>()->GetWeakPtr<WProjectileMovementComponent>();
+	auto ProjComp = mProjMoveComp.lock();
+	mObjAnimComp = CreateComponent<WObjectAnimComponent>()->GetWeakPtr<WObjectAnimComponent>();
+	auto AnimComp = mObjAnimComp.lock();
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// WAction
 	////////////////////////////////////////////////////////////////////////////////////////////////
+
 	RegisterWActionFactory("Particle", [this](const WAttributesMap& Attributes) {
 		std::string Name = Attributes.at("Asset");
 		return [this, Name]() { this->PlayParticle(Name); };
 		});
+
+	RegisterWActionFactory("Animation", [this, AnimComp](const WAttributesMap& Attributes) {
+		WObjectAnimComponent* Anim = nullptr;
+		if (Attributes.count("Target"))
+		{
+			assert(mWObjAnimComp.count(Attributes.at("Target")) > 0 && "Set Component Anim = true");
+			Anim = mWObjAnimComp.at(Attributes.at("Target"));
+		}
+		else
+		{
+			Anim = AnimComp.get();
+		}
+
+		float PlayRate = 1;
+		ExtractAttribute(Attributes, "PlayRate", PlayRate);
+		bool bLoop = false;
+		ExtractAttribute(Attributes, "Loop", bLoop);
+
+		uint16_t Flags = 0;
+		std::string LocFlag;
+		ExtractAttribute(Attributes, "Loc", LocFlag);
+		if (LocFlag.find('X') != std::string::npos)
+		{
+			Flags |= ERootMotion::LocX;
+		}
+		if (LocFlag.find('Y') != std::string::npos)
+		{
+			Flags |= ERootMotion::LocY;
+		}
+		if (LocFlag.find('Z') != std::string::npos)
+		{
+			Flags |= ERootMotion::LocZ;
+		}
+		std::string RotFlag;
+		ExtractAttribute(Attributes, "Rot", RotFlag);
+		if (RotFlag.find('X') != std::string::npos)
+		{
+			Flags |= ERootMotion::RotX;
+		}
+		if (RotFlag.find('Y') != std::string::npos)
+		{
+			Flags |= ERootMotion::RotY;
+		}
+		if (RotFlag.find('Z') != std::string::npos)
+		{
+			Flags |= ERootMotion::RotZ;
+		}
+		std::string ScaleFlag;
+		ExtractAttribute(Attributes, "Scale", ScaleFlag);
+		if (ScaleFlag.find('X') != std::string::npos)
+		{
+			Flags |= ERootMotion::ScaleX;
+		}
+		if (ScaleFlag.find('Y') != std::string::npos)
+		{
+			Flags |= ERootMotion::ScaleY;
+		}
+		if (ScaleFlag.find('Z') != std::string::npos)
+		{
+			Flags |= ERootMotion::ScaleZ;
+		}
+
+		if (Flags == 0)
+		{
+			Flags = ERootMotion::All;
+		}
+
+		WAction Action;
+		if (Attributes.count("Asset") > 0)
+		{
+			std::string AssetName = Attributes.at("Asset");
+			std::string AnimName = Attributes.at("Anim");
+			Action = [=]() { Anim->LoadAndPlay(AssetName, AnimName, PlayRate, bLoop, Flags); };
+		}
+		else
+		{
+			Action = [=]() { Anim->Play(PlayRate, bLoop, Flags); };
+		}
+
+		return Action;
+		});
+
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// WAction End
+	////////////////////////////////////////////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// WProperty
+	////////////////////////////////////////////////////////////////////////////////////////////////
+
+	RegisterWProperty("MaxSpeed", &ProjComp->mMaxSpeed);
+	RegisterWProperty("Acceleration", &ProjComp->mAcceleration);
+	RegisterWProperty("GravityScale", &ProjComp->mGravityScale);
+	RegisterWProperty("LifeSpan", &ProjComp->mLifeSpan);
+	RegisterWProperty("HomingTurnLimit", &ProjComp->mHomingTurnLimit);
+
+	float mHomingTurnLimit = 0;
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// WProperty End
 	////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
 void AProjectileBase::Tick(float DeltaSecond)
 {
 	Super::Tick(DeltaSecond);
+
+	
 
 	if (mbSmartHoming)
 	{
@@ -69,7 +174,7 @@ void AProjectileBase::LoadWAttributes(const WAttributesMap& Attributes)
 	TSharedPtr<WProjectileMovementComponent> ProjMoveComp = mProjMoveComp.lock();
 
 	// 1. 초기 속도 (Initial Velocity) - XMFLOAT3
-	ApplyAttribute(Attributes, "Speed", ParseFloat3, [&](const XMFLOAT3& v) {
+	ApplyAttribute(Attributes, "InitSpeed", ParseFloat3, [&](const XMFLOAT3& v) {
 		ProjMoveComp->SetInitialVelocity(v);
 		});
 
@@ -102,6 +207,18 @@ void AProjectileBase::LoadWAttributes(const WAttributesMap& Attributes)
 	ApplyAttribute(Attributes, "HomingTurnLimit", ParseFloat, [&](float v) {
 		ProjMoveComp->SetHomingTurnLimit(v);
 		});
+}
+
+void AProjectileBase::OnLoadWComponent(FBlueprintComponentNode* CompNode, WSceneComponent* Comp)
+{
+	Super::OnLoadWComponent(CompNode, Comp);
+
+	if (CompNode->Attributes.count("Anim") && ParseBool(CompNode->Attributes["Anim"]))
+	{
+		WObjectAnimComponent* AnimComp = CreateComponent<WObjectAnimComponent>();
+		AnimComp->SetTargetComponent(Comp);
+		mWObjAnimComp[CompNode->Attributes["Name"]] = AnimComp;
+	}
 }
 
 void AProjectileBase::SetSmartHoming(bool bSmartHoming, float Range)

@@ -324,6 +324,12 @@ bool WObjectAnimComponent::LoadAnimation(const std::string& AssetName, const std
 	return false;
 }
 
+void WObjectAnimComponent::LoadAndPlay(const std::string& AssetName, const std::string& AnimName, float PlayRate, bool bLoop, uint16_t Flags)
+{
+	LoadAnimation(AssetName, AnimName);
+	Play(PlayRate, bLoop, Flags);
+}
+
 void WObjectAnimComponent::Play(float PlayRate, bool bLoop, uint16_t Flags)
 {
 	mIsPlaying = true;

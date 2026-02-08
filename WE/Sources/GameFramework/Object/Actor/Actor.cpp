@@ -1,10 +1,29 @@
 #include "Actor.h"
 #include "Component/SceneComponent.h"
 #include "Component/StaticMeshComponent.h"
+#include "Component/SplineComponent.h"
+#include "Component/ObjectAnimComponent.h"
 #include "World/World.h"
 #include "Asset/BlueprintAsset.h"
 
 unsigned int g_ActorCounter = 0;
+
+void ApplySceneComponentDefaultAttributes(WSceneComponent* Comp, const WAttributesMap& Attributes)
+{
+	ApplyAttribute(Attributes, "Loc", ParseFloat3, [&](const XMFLOAT3& v) {
+		Comp->SetLocalLocation(v);
+		});
+
+	ApplyAttribute(Attributes, "Rot", ParseFloat3, [&](const XMFLOAT3& v) {
+		// 실수 방지: Rotation 전용 세터 호출
+		Comp->SetLocalRotation(v);
+		});
+
+	ApplyAttribute(Attributes, "Scale", ParseFloat3, [&](const XMFLOAT3& v) {
+		// 실수 방지: Scale 전용 세터 호출
+		Comp->SetLocalScale(v);
+		});
+}
 
 AActor::AActor():
 	mActorCounter(++g_ActorCounter)
@@ -16,31 +35,30 @@ AActor::AActor():
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// WComponent
 	////////////////////////////////////////////////////////////////////////////////////////////////
+	
 
 	RegisterWComponentFactory("Mesh", [this](const WAttributesMap& Attributes)
 		{
 			WStaticMeshComponent* Comp = this->CreateComponent<WStaticMeshComponent>();
 
-			// 0. Static Mesh 에셋
+			ApplySceneComponentDefaultAttributes(Comp, Attributes);
+
+			// Static Mesh 에셋
 			ApplyAttribute(Attributes, "Asset", [&](const std::string& v) {
 				Comp->SetStaticMesh(v);
 				});
 
-			// 1. 위치 (Location)
-			ApplyAttribute(Attributes, "Loc", ParseFloat3, [&](const XMFLOAT3& v) {
-				Comp->SetLocalLocation(v);
-				});
+			return Comp;
+		});
 
-			// 2. 회전 (Rotation)
-			ApplyAttribute(Attributes, "Rot", ParseFloat3, [&](const XMFLOAT3& v) {
-				// 실수 방지: Rotation 전용 세터 호출
-				Comp->SetLocalRotation(v);
-				});
+	RegisterWComponentFactory("Spline", [this](const WAttributesMap& Attributes)
+		{
+			WSplineComponent* Comp = this->CreateComponent<WSplineComponent>();
 
-			// 3. 크기 (Scale)
-			ApplyAttribute(Attributes, "Scale", ParseFloat3, [&](const XMFLOAT3& v) {
-				// 실수 방지: Scale 전용 세터 호출
-				Comp->SetLocalScale(v);
+			ApplySceneComponentDefaultAttributes(Comp, Attributes);
+
+			ApplyAttribute(Attributes, "Asset", [&](const std::string& v) {
+				Comp->LoadSplineFromAsset(v);
 				});
 
 			return Comp;
@@ -57,6 +75,38 @@ AActor::AActor():
 	RegisterWActionFactory("Event", [this](const WAttributesMap& Attributes) {
 		std::string Name = Attributes.at("Name");
 		return [this, Name]() { this->mWEventsMap[Name]->Dispatch(); };
+		});
+
+	// 1. 실제 "값"을 담는 Variant (포인터 아님)
+	
+
+	RegisterWActionFactory("Set", [this](const WAttributesMap& Attributes) {
+
+		std::string Name = Attributes.at("Name");
+		std::string RawValue = Attributes.at("Value");
+
+		auto it = mWPropertiesMap.find(Name);
+		WVariantValue ParsedValue;
+
+		std::visit([&](auto&& Arg) {
+			using T = std::remove_pointer_t<std::decay_t<decltype(Arg)>>;
+
+			ParsedValue = WPropertyTrait<T>::Parse(RawValue);
+			}, it->second);
+
+		return [this, Name, ParsedValue]() {
+			auto Property = mWPropertiesMap[Name];
+
+			// 실행 시점에는 단순 값 대입만 발생 (파싱 X, 매우 빠름)
+			std::visit([](auto&& TargetPtr, auto&& SourceValue) {
+				using TargetType = std::remove_pointer_t<std::decay_t<decltype(TargetPtr)>>;
+				using SourceType = std::decay_t<decltype(SourceValue)>;
+
+				if constexpr (std::is_same_v<TargetType, SourceType>) {
+					if (TargetPtr) *TargetPtr = SourceValue;
+				}
+				}, Property, ParsedValue);
+		};
 		});
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -291,6 +341,8 @@ void AActor::LoadWComponent_Internal(FBlueprintComponentNode* CompNode, WSceneCo
 	assert(Comp);
 	Comp->SetupAttachment(Parent);
 	if (CompNode->Attributes.count("Name") > 0) RegisterWComponent(CompNode->Attributes["Name"], Comp);
+
+	OnLoadWComponent(CompNode, Comp);
 	
 	for (const auto ChildCompNode : CompNode->AttachedComponents)
 	{

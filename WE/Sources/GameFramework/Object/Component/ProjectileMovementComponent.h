@@ -72,6 +72,8 @@ public:
 		TSharedPtr<WSceneComponent> Target = mHomingTarget.lock();
 		return Target ? Target.get() : nullptr;
 	}
+
+	friend class AProjectileBase;
 };
 
 REGISTER_COMPONENT(WProjectileMovementComponent);

@@ -20,10 +20,11 @@ void WTestWorld::Tick(float DeltaSecond)
 {
 	Super::Tick(DeltaSecond);
 
-	static float a = 32;
+	constexpr float SpawnDelay = 10;
+	static float a = SpawnDelay;
 	a += DeltaSecond;
 
-	if (a > 1)
+	if (a > SpawnDelay)
 	{
 		FActorSpawnParameter Param;
 		Param.Transform.Translation = XMFLOAT3(0, -1, 10);

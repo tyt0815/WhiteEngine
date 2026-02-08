@@ -40,16 +40,25 @@ public:
 protected:
 	virtual void LoadWAttributes(const WAttributesMap& Attributes) override;
 
+	virtual void OnLoadWComponent(struct FBlueprintComponentNode* CompNode, WSceneComponent* Comp) override;
+
+protected:
+
 	void SetSmartHoming(bool bSmartHoming, float Range);
 
 	void PlayParticle(const std::string& Name);
 
 private:
 	TWeakPtr<WProjectileMovementComponent> mProjMoveComp;
+	TWeakPtr<WObjectAnimComponent> mObjAnimComp;
 
-	bool mbSmartHoming = false;
+	std::unordered_map<std::string, class WObjectAnimComponent*> mWObjAnimComp;
+
+	float mMaxSpeed = 1;
 
 	float mSmartHomingRange = 0.0f;
+
+	bool mbSmartHoming = false;
 };
 
 REGISTER_ACTOR(AProjectileBase);

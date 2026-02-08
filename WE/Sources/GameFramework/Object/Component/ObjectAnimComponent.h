@@ -91,6 +91,8 @@ public:
 public:
 	bool LoadAnimation(const std::string& AssetName, const std::string& AnimName);
 
+	void LoadAndPlay(const std::string& AssetName, const std::string& AnimName, float PlayRate, bool bLoop, uint16_t Flags);
+
 	void Play(float PlayRate, bool bLoop, uint16_t Flags);
 
 	void Stop();

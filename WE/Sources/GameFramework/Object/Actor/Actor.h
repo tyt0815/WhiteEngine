@@ -9,6 +9,7 @@
 #include "ActorFactory.h"
 #include <d3d12.h>
 #include <memory>
+#include <variant>
 
 extern const int gFrameResourcesNum;
 
@@ -16,6 +17,73 @@ class FMeshGeometry;
 class FMaterial;
 class WCameraComponent;
 class FBlueprintAsset;
+
+void ShowMessageBox(const std::string& Content);
+
+void ReportParseError(const std::string& Type, const std::string& WrongValue);
+
+template<typename T> struct WPropertyTrait;
+template<> struct WPropertyTrait<bool>
+{
+	static bool Parse(const std::string& String)
+	{
+		std::string LowerStr = String;
+		std::transform(LowerStr.begin(), LowerStr.end(), LowerStr.begin(), ::tolower);
+
+		if (LowerStr == "true" || LowerStr == "1") return true;
+		if (LowerStr == "false" || LowerStr == "0") return false;
+		ReportParseError("Bool (true/false/1/0)", String);
+		return false;
+	}
+};
+template<> struct WPropertyTrait<int>
+{
+	static int Parse(const std::string& String)
+	{
+		try {
+			return std::stoi(String);
+		}
+		catch (...) {
+			ReportParseError("Int", String);
+			return 0;
+		}
+	}
+};
+template<> struct WPropertyTrait<float>
+{
+	static float Parse(const std::string& String)
+	{
+		try {
+			return std::stof(String);
+		}
+		catch (...) {
+			ReportParseError("Float", String);
+			return 0.0f;
+		}
+	}
+};
+template<> struct WPropertyTrait<XMFLOAT3>
+{
+	static XMFLOAT3 Parse(const std::string& String)
+	{
+		XMFLOAT3 Float3 = { 0.f, 0.f, 0.f };
+
+		int Result = sscanf_s(String.c_str(), "(%f, %f, %f)", &Float3.x, &Float3.y, &Float3.z);
+
+		if (Result < 3)
+		{
+			ReportParseError("Float3 (x, y, z)", String);
+		}
+		return Float3;
+	}
+};
+template<> struct WPropertyTrait<std::string>
+{
+	static std::string Parse(const std::string& String)
+	{
+		return String;
+	}
+};
 
 class AActor : public WObject
 {
@@ -44,8 +112,6 @@ protected:
 
 public:
 	virtual void BeginPlay();
-
-	void LoadBlueprint(const FBlueprintAsset* Blueprint);
 
 	template<typename T>
 	T* CreateComponent();
@@ -89,6 +155,9 @@ private:
 	// Blueprint Section
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////
+public:
+	void LoadBlueprint(const FBlueprintAsset* Blueprint);
+
 protected:
 	using WAttributesMap = std::unordered_map<std::string, std::string>;
 
@@ -96,6 +165,10 @@ protected:
 
 	using WAction = std::function<void()>;
 	using WActionFactoryFunc = std::function<WAction(const WAttributesMap&)>;
+
+	using WProperty = std::variant<bool*, int*, float*, XMFLOAT3*, std::string*>;
+	using WVariantValue = std::variant<bool, int, float, XMFLOAT3, std::string>;
+	using WPropertiesMap = std::unordered_map<std::string, WProperty>;
 
 	class WEvent
 	{
@@ -117,11 +190,25 @@ protected:
 
 	virtual void LoadWAttributes(const WAttributesMap& Attributes) {}
 
+	virtual void OnLoadWComponent(struct FBlueprintComponentNode* CompNode, WSceneComponent* Comp) {}
+
 	void RegisterWComponentFactory(const std::string& Type, WComponentFactory Lambda);
 
 	void RegisterWActionFactory(const std::string Name, WActionFactoryFunc Lambda);
 
 	const WEvent* RegisterWEvent(const std::string& Name);
+
+	template<typename T>
+	void RegisterWProperty(const std::string& Name, T* Property)
+	{
+		if (mWPropertiesMap.count(Name) > 0)
+		{
+			ShowMessageBox("Already registered property:\n" + Name);
+			assert(false);
+		}
+
+		mWPropertiesMap[Name] = Property;
+	}
 
 private:
 	void LoadWComponent_Internal(struct FBlueprintComponentNode* Comp, WSceneComponent* Parent);
@@ -136,7 +223,15 @@ private:
 
 	WEventsMap mWEventsMap;
 
+	WPropertiesMap mWPropertiesMap;
+
 	const WEvent* mOnSpawnEvent;
+
+public:
+	WSceneComponent* GetWComponent(const std::string& Name) const
+	{
+		return mWComponentsMap.at(Name);
+	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////
@@ -247,8 +342,6 @@ inline T* AActor::GetComponent()
 
 REGISTER_ACTOR(AActor);
 
-void ShowMessageBox(const std::string& Content);
-
 bool ParseBool(const std::string& String);
 int ParseInt(const std::string& String);
 float ParseFloat(const std::string& String);
@@ -261,6 +354,16 @@ void ApplyAttribute(const std::unordered_map<std::string, std::string>& Attrs, c
 	if (it != Attrs.end())
 	{
 		Setter(it->second);
+	}
+}
+
+template <typename T>
+void ExtractAttribute(const std::unordered_map<std::string, std::string>& Attrs, const std::string& Key, T& Target)
+{
+	auto it = Attrs.find(Key);
+	if (it != Attrs.end())
+	{
+		Target = WPropertyTrait<T>::Parse(it->second);
 	}
 }
 
