@@ -8,39 +8,23 @@ ATopAttackMissile::ATopAttackMissile()
 	SetTickGroup(ETickGroup::ETG_PostPhysics, ETickPriority::ETP_High);
 
 	// Property
-	mStaticMesh = CreateComponent<WStaticMeshComponent>();
+	mStaticMesh = CreateComponent<WStaticMeshComponent>()->GetWeakPtr<WStaticMeshComponent>();
 	if (auto StaticMeshComp = mStaticMesh.lock())
 	{
-		RegisterWProperty("StaticMeshComp", StaticMeshComp.get());
 		StaticMeshComp->SetupAttachment(GetRootComponent());
 		StaticMeshComp->SetStaticMesh(FStaticMeshManager::GetStaticMesh("SM_MetalCylinder"));
 		StaticMeshComp->SetLocalScale(XMFLOAT3(.1f, .2f, .1f));
 		StaticMeshComp->SetLocalRotation(XMFLOAT3(90, 0, 0));
 	}
 
-	mProjectileMovementComponent = CreateComponent<WProjectileMovementComponent>();
+	mProjectileMovementComponent = CreateComponent<WProjectileMovementComponent>()->GetWeakPtr<WProjectileMovementComponent>();
 	if (auto ProjMoveComp = mProjectileMovementComponent.lock())
 	{
-		RegisterWProperty("ProjMovementComp", ProjMoveComp.get());
 		// ProjMoveComp->SetSpeed(20.0f);
 		ProjMoveComp->SetLifeSpan(10.0f);
 		ProjMoveComp->SetHoming(true);
 		ProjMoveComp->SetHomingTurnLimit(720);
 	}
-
-	RegisterWProperty("MinArrivalThresholdSq", &mMinArrivalThresholdSq);
-	RegisterWProperty("MaxArrivalThresholdSq", &mMaxArrivalThresholdSq);
-	RegisterWProperty("MinRotationZStep", &mMinRotationZStep);
-	RegisterWProperty("MaxRotationZStep", &mMaxRotationZStep);
-	RegisterWProperty("ColdLaunchDelay", &mColdLaunchDelay);
-
-
-	// WFunctions
-	REGISTER_WFUNC_0(Launch);
-
-	// WEvents
-	mOnBeginColdLaunch = RegisterWEvent("OnBeginColdLaunch");
-	mOnBeginLaunch = RegisterWEvent("OnBeginLaunch");
 }
 
 void ATopAttackMissile::Tick(float DeltaSecond)
@@ -121,8 +105,6 @@ void ATopAttackMissile::BeginPlay()
 	Super::BeginPlay();
 
 	mLastTickLocation = GetActorLocation();
-
-	mOnBeginColdLaunch->Dispatch();
 }
 
 void ATopAttackMissile::OnDestroy()
@@ -278,7 +260,7 @@ void ATopAttackMissile::OnHit(const FHitResult& Hit)
 		mMissileGridManager->RemoveMissile(this);
 	}
 
-	Super::OnHit(Hit.HitComponent, Hit.ImpactPoint);
+	// Super::OnHit(Hit.HitComponent, Hit.ImpactPoint);
 
 	Destroy();
 }
@@ -286,5 +268,4 @@ void ATopAttackMissile::OnHit(const FHitResult& Hit)
 void ATopAttackMissile::Launch()
 {
 	mColdLaunchElapsedTime = mColdLaunchDelay + 1;
-	mOnBeginLaunch->Dispatch();
 }

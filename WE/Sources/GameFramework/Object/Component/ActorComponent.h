@@ -30,11 +30,7 @@ public:
 public:
 	virtual void BeginComponent();
 
-	void LoadBlueprint(WObject* Context, const BlueprintAsset::FComponentNode* RootNode);
-
 	AActor* mOwner;
-
-	const WEvent* mBeginComponentEvent;
 
 public:
 

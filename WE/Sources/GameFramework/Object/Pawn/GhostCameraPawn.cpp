@@ -4,7 +4,7 @@
 
 AGhostCameraPawn::AGhostCameraPawn()
 {
-	mCameraComponent = CreateComponent<WCameraComponent>();
+	mCameraComponent = CreateComponent<WCameraComponent>()->GetWeakPtr<WCameraComponent>();
 	SetRootComponent(mCameraComponent);
 }
 

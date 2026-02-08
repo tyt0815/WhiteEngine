@@ -1,0 +1,11 @@
+<AProjectileBase Speed = "(0, 0, 25)" Life = "10">
+    
+    <Components>
+        <Mesh Name = "Body" Asset = "SM_MetalRing">
+            <Mesh Name = "SubMesh" Asset = "SM_ScuffedGoldBox" Loc = "(0, 10, 0)"/>
+        </Mesh>
+    </Components>
+
+    
+
+</AProjectileBase>

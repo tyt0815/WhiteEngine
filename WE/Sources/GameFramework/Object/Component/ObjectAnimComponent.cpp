@@ -172,85 +172,6 @@ XMFLOAT3 FObjectAnimSampler::SampleLocation(float TargetFrame)
 WObjectAnimComponent::WObjectAnimComponent()
 {
 	SetTickGroup(ETickGroup::ETG_PrePhysics, ETickPriority::ETP_Low);
-
-	// Register WFunction
-	REGISTER_WFUNC_0(Stop);
-	REGISTER_WFUNC_1(SetTargetComponent, TargetComponent, WSceneComponent*);
-	REGISTER_WFUNC_2(LoadAnimation, AssetName, std::string, AnimName, std::string);
-	RegisterWFunction("Play", [this](const WFunctionParams& Params)
-		{
-			bool bLoop = false;
-			uint16_t Flags = 0;
-			float PlayRate = 1.0f;
-
-			for (const auto& Param : Params)
-			{
-				if (Param->Name == "Loop")
-				{
-					bLoop = Param->Get<bool>();
-				}
-				else if (Param->Name == "PlayRate")
-				{
-					PlayRate = Param->Get<float>();
-				}
-				else if (Param->Name == "Loc")
-				{
-					std::string LocFlag = Param->Get<std::string>();
-					if (LocFlag.find('X') != std::string::npos)
-					{
-						Flags |= ERootMotion::LocX;
-					}
-					if (LocFlag.find('Y') != std::string::npos)
-					{
-						Flags |= ERootMotion::LocY;
-					}
-					if (LocFlag.find('Z') != std::string::npos)
-					{
-						Flags |= ERootMotion::LocZ;
-					}
-				}
-				else if (Param->Name == "Rot")
-				{
-					std::string RotFlag = Param->Get<std::string>();
-					if (RotFlag.find('X') != std::string::npos)
-					{
-						Flags |= ERootMotion::RotX;
-					}
-					if (RotFlag.find('Y') != std::string::npos)
-					{
-						Flags |= ERootMotion::RotY;
-					}
-					if (RotFlag.find('Z') != std::string::npos)
-					{
-						Flags |= ERootMotion::RotZ;
-					}
-				}
-				else if (Param->Name == "Scale")
-				{
-					std::string ScaleFlag = Param->Get<std::string>();
-					if (ScaleFlag.find('X') != std::string::npos)
-					{
-						Flags |= ERootMotion::ScaleX;
-					}
-					if (ScaleFlag.find('Y') != std::string::npos)
-					{
-						Flags |= ERootMotion::ScaleY;
-					}
-					if (ScaleFlag.find('Z') != std::string::npos)
-					{
-						Flags |= ERootMotion::ScaleZ;
-					}
-				}
-			}
-
-			Play(PlayRate, bLoop, Flags == 0 ? ERootMotion::All : Flags);
-			return nullptr;
-		}
-	);
-
-	// Register WEvent
-	mOnStartPlay = RegisterWEvent("OnStartPlay");
-	mOnStop = RegisterWEvent("OnStop");
 }
 
 void WObjectAnimComponent::BeginComponent()
@@ -409,14 +330,12 @@ void WObjectAnimComponent::Play(float PlayRate, bool bLoop, uint16_t Flags)
 	mLoop = bLoop;
 	mRootMotionFlags = Flags;
 	mPlayRate = max(0.001f, PlayRate);
-	mOnStartPlay->Dispatch();
 }
 
 void WObjectAnimComponent::Stop()
 {
 	mIsPlaying = false;
 	mCurrentTime = 0.0f;
-	mOnStop->Dispatch();
 }
 
 void WObjectAnimComponent::SetTargetComponent(WSceneComponent* Comp)

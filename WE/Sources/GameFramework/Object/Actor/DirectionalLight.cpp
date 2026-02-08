@@ -3,6 +3,6 @@
 
 ADirectionalLight::ADirectionalLight()
 {
-	mDirectionalLightComponent = CreateComponent<WDirectionalLightComponent>();
+	mDirectionalLightComponent = CreateComponent<WDirectionalLightComponent>()->GetWeakPtr<WDirectionalLightComponent>();
 	SetRootComponent(mDirectionalLightComponent);
 }

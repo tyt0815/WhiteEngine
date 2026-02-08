@@ -1,4 +1,6 @@
 #pragma once
 #include <string>
 
-void ShowMessageBox(std::wstring Content);
+void ShowMessageBox(const std::string& Content);
+
+void ShowMessageBox(const std::wstring& Content);

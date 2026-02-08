@@ -66,10 +66,6 @@ private:
 
 	XMFLOAT3 mLastTickLocation;
 
-	const WEvent* mOnBeginColdLaunch;
-
-	const WEvent* mOnBeginLaunch;
-
 	friend class AMissileGridManager;
 };
 

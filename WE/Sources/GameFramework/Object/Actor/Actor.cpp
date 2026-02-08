@@ -1,9 +1,6 @@
 #include "Actor.h"
 #include "GameFramework/Object/Component/SceneComponent.h"
 #include "GameFramework/Object/World/World.h"
-#include "Component/PrimitiveComponent.h"
-#include "Component/StaticMeshComponent.h"
-#include "Asset/AssetManager.h"
 #include "Asset/BlueprintAsset.h"
 
 unsigned int g_ActorCounter = 0;
@@ -11,62 +8,26 @@ unsigned int g_ActorCounter = 0;
 AActor::AActor():
 	mActorCounter(++g_ActorCounter)
 {
-	TWeakPtr<WSceneComponent> DummyRoot = CreateComponent<WSceneComponent>();
+	TWeakPtr<WSceneComponent> DummyRoot = CreateComponent<WSceneComponent>()->GetWeakPtr<WSceneComponent>();
 	SetRootComponent(DummyRoot);
-
-	BEGIN_WFUNCTION(SpawnActor)
-	{
-		FActorSpawnParameter SpawnParam;
-		std::string Class = "AActor";
-		for (const auto& Param : Params)
-		{
-			if (Param->Name == "Class")
-			{
-				Class = Param->Get<std::string>();
-			}
-			else if (Param->Name == "Location")
-			{
-				SpawnParam.Transform.Translation = Param->Get<XMFLOAT3>();
-			}
-			else if (Param->Name == "Rotation")
-			{
-				SpawnParam.Transform.Rotation = Param->Get<XMFLOAT3>();
-			}
-			else if (Param->Name == "Scale")
-			{
-				SpawnParam.Transform.Scale = Param->Get<XMFLOAT3>();
-			}
-			else if (Param->Name == "Transform")
-			{
-				SpawnParam.Transform = Param->Get<FTransform>();
-			}
-			else
-			{
-				assert(false && "Invalid parameter name");
-			}
-		}
-		return GetWorld()->SpawnActorByFactory<AActor>(Params[0]->Get<std::string>(), SpawnParam).lock();
-	}
-	END_WFUNCTION;
-
-	REGISTER_WFUNC_0(Destroy);
-
-	REGISTER_WFUNC_RET_0(GetRootComponent, WSceneComponent*);
-
-	REGISTER_WFUNC_RET_0(GetActorLocation, XMFLOAT3);
-	REGISTER_WFUNC_RET_0(GetActorRotation, XMFLOAT3);
-	REGISTER_WFUNC_RET_0(GetActorScale, XMFLOAT3);
-	REGISTER_WFUNC_RET_0(GetActorTransform, FTransform);
-
-	mBeginPlayEvent = RegisterWEvent("BeginPlay");
 }
 
 void AActor::BeginPlay()
 {
 	Activate();
 	BeginComponents();
+}
 
-	mBeginPlayEvent->Dispatch();
+void AActor::LoadBlueprint(const FBlueprintAsset* Blueprint)
+{
+	LoadBlueprintAttribute(Blueprint->mAttributes);
+
+	WSceneComponent* RootComp = GetRootComponent();
+	assert(RootComp);
+	for (const auto& BlueprintComp : Blueprint->mAttachedComponents)
+	{
+		LoadBlueprintComponent_Internal(BlueprintComp.get(), RootComp);		
+	}
 }
 
 void AActor::SetRootComponent(TWeakPtr<WSceneComponent> Component)
@@ -86,8 +47,6 @@ void AActor::SetRootComponent(TWeakPtr<WSceneComponent> Component)
 	}
 
 	mRootComponent = Component;
-
-	RegisterWPropertySafe("RootComponent", mRootComponent.lock().get());
 }
 
 void AActor::SetActorTransform(FTransform Transform)
@@ -173,28 +132,6 @@ void AActor::OnDeactivate()
 	Super::OnDeactivate();
 }
 
-void AActor::LoadBlueprint(BlueprintAsset::FActorNode* RootNode)
-{
-	LoadWProperties(RootNode->Properties);
-	LoadWVariables(RootNode->Variables);
-	LoadEvents(this, RootNode->Events);
-
-	for (const auto& CompNode : RootNode->AttachedComponents)
-	{
-		WActorComponent* Comp = GetWPropertyPtrSafe<WActorComponent>(CompNode->Name);
-		if (!Comp)
-		{
-			Comp = CreateComponentByFactory<WActorComponent>(CompNode->ComponentNode.ParentClass).lock().get();
-			if (WSceneComponent* SceneComp = dynamic_cast<WSceneComponent*>(Comp))
-			{
-				SceneComp->SetupAttachment(GetRootComponent());
-			}
-			RegisterWProperty(CompNode->Name, Comp);
-		}
-		Comp->LoadBlueprint(this ,&CompNode->ComponentNode);
-	}
-}
-
 void AActor::OnCreateComponent(WActorComponent* Comp)
 {
 	Comp->mOwner = this;
@@ -212,6 +149,13 @@ void AActor::OnCreateComponent(WActorComponent* Comp)
 	}
 }
 
+void AActor::RegisterToComponentFactory(const std::string& Type, std::function<WSceneComponent* (const FBlueprintAttributesMap&)> Lambda)
+{
+	assert(mComponentFactory.count(Type) == 0 && "Already registered component type");
+
+	mComponentFactory[Type] = Lambda;
+}
+
 void AActor::UpdateRecursive()
 {
 	if (auto Root = mRootComponent.lock())
@@ -226,4 +170,26 @@ void AActor::BeginComponents()
 	{
 		mAllComponents[i]->BeginComponent();
 	}
+}
+
+void AActor::LoadBlueprintComponent_Internal(FComponentNode* CompNode, WSceneComponent* Parent)
+{
+	assert(mComponentFactory.count(CompNode->Type) > 0 && "Unregistered component class");
+
+	WSceneComponent* Comp = mComponentFactory[CompNode->Type](CompNode->Attributes);
+	assert(Comp);
+	Comp->SetupAttachment(Parent);
+	if (CompNode->Attributes.count("Name") > 0) RegisterComponentByName(CompNode->Attributes["Name"], Comp);
+	
+	for (const auto ChildCompNode : CompNode->AttachedComponents)
+	{
+		LoadBlueprintComponent_Internal(ChildCompNode.get(), Comp);
+	}
+}
+
+void AActor::RegisterComponentByName(const std::string& Name, WSceneComponent* Comp)
+{
+	assert(mBlueprintComponents.count(Name) == 0 && L"중복된 컴포넌트 이름 입니다.");
+
+	mBlueprintComponents[Name] = Comp;
 }

@@ -27,17 +27,7 @@ void WTestWorld::Tick(float DeltaSecond)
 	{
 		FActorSpawnParameter Param;
 		Param.Transform.Translation = XMFLOAT3(0, -1, 10);
-		SpawnActorByFactory<AProjectileBase>("BP_Test", Param);
-
-		// Spline Collision Test Actors
-		//Param.Transform.Translation = XMFLOAT3(5, 0, 10);
-		//SpawnActorByFactory<AProjectileBase>("BP_SplineCollision", Param);
-
-		//Param.Transform.Translation = XMFLOAT3(10, -1, 10);
-		//SpawnActorByFactory<AProjectileBase>("BP_SplineCollision", Param);
-
-		//Param.Transform.Translation = XMFLOAT3(15, -2, 10);
-		//SpawnActorByFactory<AProjectileBase>("BP_SplineCollision", Param);
+		SpawnActorByFactory<AProjectileBase>("BP_Projectile", Param);
 
 		a = 0;
 

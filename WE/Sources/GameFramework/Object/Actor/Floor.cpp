@@ -7,14 +7,14 @@
 AFloor::AFloor()
 {
 	constexpr float Height = 0.1f;
-	mStaticMeshComp = CreateComponent<WStaticMeshComponent>();
+	mStaticMeshComp = CreateComponent<WStaticMeshComponent>()->GetWeakPtr<WStaticMeshComponent>();
 	SetRootComponent(mStaticMeshComp);
 	if (auto StaticMeshComp = mStaticMeshComp.lock())
 	{
 		StaticMeshComp->SetStaticMesh(FStaticMeshManager::GetStaticMesh("SM_DefaultFloor"));
 	}
 
-	mBoxComp = CreateComponent<WBoxComponent>();
+	mBoxComp = CreateComponent<WBoxComponent>()->GetWeakPtr<WBoxComponent>();
 	if (auto BoxComp = mBoxComp.lock())
 	{
 		BoxComp->SetupAttachment(GetRootComponent());

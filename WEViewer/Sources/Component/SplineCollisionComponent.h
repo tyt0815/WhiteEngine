@@ -1,5 +1,6 @@
 #pragma once
 #include "Component/SplineComponent.h"
+#include "Utility/Container.h"
 
 class WSplineCollisionComponent : public WSplineComponent
 {

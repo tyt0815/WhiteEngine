@@ -7,11 +7,8 @@ extern const int gFrameResourcesNum;
 
 using namespace JPH;
 
-using namespace BlueprintAsset;
-
 WStaticMeshComponent::WStaticMeshComponent()
 {
-	REGISTER_WFUNC_1(SetStaticMesh, StaticMesh, std::string);
 }
 
 void WStaticMeshComponent::UpdateConstantBufferIndex()

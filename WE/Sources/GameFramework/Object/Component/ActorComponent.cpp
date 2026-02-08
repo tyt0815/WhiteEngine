@@ -4,8 +4,6 @@
 
 WActorComponent::WActorComponent()
 {
-	RegisterWProperty("Owner", mOwner);
-	mBeginComponentEvent = RegisterWEvent("BeginComponent");
 }
 
 void WActorComponent::Destroy()
@@ -31,12 +29,4 @@ TWeakPtr<AActor> WActorComponent::GetOwner() const
 void WActorComponent::BeginComponent()
 {
 	OnActivate();
-	mBeginComponentEvent->Dispatch();
-}
-
-void WActorComponent::LoadBlueprint(WObject* Context, const BlueprintAsset::FComponentNode* RootNode)
-{
-	LoadWProperties(RootNode->Properties);
-	LoadWVariables(RootNode->Variables);
-	LoadEvents(Context, RootNode->Events);
 }

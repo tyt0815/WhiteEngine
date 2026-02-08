@@ -1,7 +1,12 @@
 #include "Debug.h"
 #include <Windows.h>
 
-void ShowMessageBox(std::wstring Content)
+void ShowMessageBox(const std::string& Content)
 {
-	MessageBox(0, Content.c_str(), 0, 0);
+	MessageBoxA(0, Content.c_str(), 0, 0);
+}
+
+void ShowMessageBox(const std::wstring& Content)
+{
+	MessageBoxW(0, Content.c_str(), 0, 0);
 }

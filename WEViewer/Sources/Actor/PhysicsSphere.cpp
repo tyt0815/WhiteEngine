@@ -4,7 +4,7 @@
 
 APhysicsSphere::APhysicsSphere()
 {
-	mSphereComp = CreateComponent<WSphereComponent>();
+	mSphereComp = CreateComponent<WSphereComponent>()->GetWeakPtr<WSphereComponent>();
 	SetRootComponent(mSphereComp);
 	if (auto Comp = mSphereComp.lock())
 	{
@@ -13,7 +13,7 @@ APhysicsSphere::APhysicsSphere()
 		Comp->SetRadius(0.5f);
 	}
 
-	auto Component = CreateComponent<WStaticMeshComponent>().lock();
+	auto Component = CreateComponent<WStaticMeshComponent>();
 	Component->SetupAttachment(GetRootComponent());
 	Component->SetStaticMesh(FStaticMeshManager::GetStaticMesh("SM_RustedIron2Sphere"));
 }

@@ -111,10 +111,6 @@ private:
 	float mPlayRate = 1.0f;
 	uint16_t mRootMotionFlags;
 
-	const WEvent* mOnStartPlay;
-
-	const WEvent* mOnStop;
-
 public:
 	__forceinline float GetFrameEnd() const
 	{

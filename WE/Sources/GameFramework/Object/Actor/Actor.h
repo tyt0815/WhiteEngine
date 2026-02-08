@@ -7,7 +7,6 @@
 #include "Utility/Container.h"
 #include "Physics/PhysicsCore.h"
 #include "ActorFactory.h"
-
 #include <d3d12.h>
 #include <memory>
 
@@ -16,11 +15,7 @@ extern const int gFrameResourcesNum;
 class FMeshGeometry;
 class FMaterial;
 class WCameraComponent;
-
-namespace BlueprintAsset
-{
-	struct FActorNode;
-}
+class FBlueprintAsset;
 
 class AActor : public WObject
 {
@@ -32,13 +27,31 @@ public:
 
 	virtual ~AActor() {};
 
+	virtual void Destroy() override;
+
+	virtual void Activate() override;
+
+	virtual void Deactivate() override;
+
+protected:
+	virtual void OnDestroy() override;
+
+	virtual void OnActivate() override;
+
+	virtual void OnDeactivate() override;
+
+	virtual void OnCreateComponent(WActorComponent* Comp);
+
+public:
 	virtual void BeginPlay();
 
-	template<typename T>
-	TWeakPtr<T> CreateComponent();
+	void LoadBlueprint(const FBlueprintAsset* Blueprint);
 
 	template<typename T>
-	TWeakPtr<T> CreateComponentByFactory(const std::string Name);
+	T* CreateComponent();
+
+	template<typename T>
+	T* CreateComponentByFactory(const std::string Name);
 
 	template<typename T>
 	T* GetComponent();
@@ -55,27 +68,21 @@ public:
 
 	XMFLOAT4 GetActorQuaternion();
 
-	void Destroy() override;
-
-	void Activate() override;
-
-	void Deactivate() override;
-
 protected:
-	virtual void OnDestroy() override;
+	using FBlueprintAttributesMap = std::unordered_map<std::string, std::string>;
 
-	virtual void OnActivate() override;
+	virtual void LoadBlueprintAttribute(const FBlueprintAttributesMap& Attributes) {}
 
-	virtual void OnDeactivate() override;
-
-	virtual void LoadBlueprint(BlueprintAsset::FActorNode* RootNode);
-
-	virtual void OnCreateComponent(WActorComponent* Comp);
+	void RegisterToComponentFactory(const std::string& Type, std::function<WSceneComponent* (const FBlueprintAttributesMap&)> Lambda);
 
 private:
 	void UpdateRecursive();
 
 	void BeginComponents();
+
+	void LoadBlueprintComponent_Internal(struct FComponentNode* Comp, WSceneComponent* Parent);
+
+	void RegisterComponentByName(const std::string& Name, WSceneComponent* Comp);
 
 	TArray<TSharedPtr<WActorComponent>> mAllComponents;
 
@@ -87,7 +94,9 @@ private:
 
 	TWeakPtr<WSceneComponent> mRootComponent;
 
-	const WEvent* mBeginPlayEvent;
+	std::unordered_map<std::string, std::function<WSceneComponent* (const FBlueprintAttributesMap&)>> mComponentFactory;
+
+	std::unordered_map<std::string, WSceneComponent*> mBlueprintComponents;
 
 	int mActorId = -1;
 
@@ -149,11 +158,10 @@ public:
 
 	friend class WWorld;
 	friend class FActorFactory;
-	friend class FActorBlueprintAsset;
 };
 
 template<typename T>
-__forceinline TWeakPtr<T> AActor::CreateComponent()
+__forceinline T* AActor::CreateComponent()
 {
 	static_assert(IsDerivedFrom<WActorComponent, T>());
 
@@ -162,11 +170,11 @@ __forceinline TWeakPtr<T> AActor::CreateComponent()
 
 	OnCreateComponent(CompT.get());	
 	
-	return TWeakPtr<T>(CompT);
+	return CompT.get();
 }
 
 template<typename T>
-inline TWeakPtr<T> AActor::CreateComponentByFactory(const std::string Name)
+inline T* AActor::CreateComponentByFactory(const std::string Name)
 {
 	static_assert(IsDerivedFrom<WActorComponent, T>());
 
@@ -175,7 +183,7 @@ inline TWeakPtr<T> AActor::CreateComponentByFactory(const std::string Name)
 
 	OnCreateComponent(CompT.get());
 
-	return TWeakPtr<T>(CompT);
+	return CompT.get();
 }
 
 template<typename T>

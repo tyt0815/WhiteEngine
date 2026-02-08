@@ -3,13 +3,6 @@
 
 WProjectileMovementComponent::WProjectileMovementComponent()
 {
-    RegisterWProperty("InitVelocity", &mInitialVelocity);
-    RegisterWProperty("MaxSpeed", &mMaxSpeed);
-    RegisterWProperty("Acceleration", &mAcceleration);
-    RegisterWProperty("GravityScale", &mGravityScale);
-    RegisterWProperty("LifeSpan", &mLifeSpan);
-    RegisterWProperty("HomingTurnLimit", &mHomingTurnLimit);
-    RegisterWProperty("Homing", &mbHomingProjectile);
 }
 
 void WProjectileMovementComponent::Tick(float DeltaTime)

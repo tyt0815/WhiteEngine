@@ -5,8 +5,6 @@
 WSplineCollisionComponent::WSplineCollisionComponent()
 {
 	SetTickGroup(ETickGroup::ETG_PostPhysics, ETickPriority::ETP_High);
-
-	REGISTER_WFUNC_2(GenerateCapsuleCollision, Segment, int, UseBoundingBox, bool);
 }
 
 constexpr float FIXED_DELTA = 1.0f / 60.0f;
@@ -114,12 +112,12 @@ void WSplineCollisionComponent::GenerateCapsuleCollision(int Segment, bool bUseB
 		XMVECTOR ToP1 = XMVectorSubtract(P1, P0);
 		float Length = XMVectorGetX(XMVector3Length(ToP1));
 
-		TSharedPtr<WSceneComponent> Comp = Owner->CreateComponent<WSceneComponent>().lock();
+		WSceneComponent* Comp = Owner->CreateComponent<WSceneComponent>();
 		Comp->SetupAttachment(this);
 		Comp->SetLocalTransform(Transform);
 
 		FCapsuleCollider CapsuleCollider;
-		CapsuleCollider.Comp = Comp.get();
+		CapsuleCollider.Comp = Comp;
 		CapsuleCollider.Radius = Mid.Property1;
 		CapsuleCollider.HalfHeight = Length / 2.0f - CapsuleCollider.Radius + Mid.Property2;
 		CapsuleCollider.PrevLocation = Comp->GetWorldLocation();
@@ -144,9 +142,9 @@ void WSplineCollisionComponent::GenerateCapsuleCollision(int Segment, bool bUseB
 
 		if (mBoundingBox.CenterComp == nullptr)
 		{
-			TSharedPtr<WSceneComponent> Comp = Owner->CreateComponent<WSceneComponent>().lock();
+			WSceneComponent* Comp = Owner->CreateComponent<WSceneComponent>();
 			Comp->SetupAttachment(this);
-			mBoundingBox.CenterComp = Comp.get();
+			mBoundingBox.CenterComp = Comp;
 		}
 
 		XMVECTOR MinBound = XMVectorReplicate(FLT_MAX);

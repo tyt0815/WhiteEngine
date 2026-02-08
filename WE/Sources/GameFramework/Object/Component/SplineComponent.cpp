@@ -8,8 +8,6 @@
 WSplineComponent::WSplineComponent()
 {
 	SetTickGroup(ETickGroup::ETG_PostPhysics, ETickPriority::ETP_Low);
-
-	REGISTER_WFUNC_1(LoadSplineFromAsset, AssetName, std::string);
 }
 
 void WSplineComponent::Tick(float Delta)

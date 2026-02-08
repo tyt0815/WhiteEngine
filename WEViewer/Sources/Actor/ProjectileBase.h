@@ -9,27 +9,27 @@
 class AProjectileBase : public AActor
 {
 	typedef AActor Super;
-	struct FTrackedSceneCompInfo
-	{
-		WSceneComponent* Target;
-		XMFLOAT3 LastTickLocation;
-	};
+	//struct FTrackedSceneCompInfo
+	//{
+	//	WSceneComponent* Target;
+	//	XMFLOAT3 LastTickLocation;
+	//};
 
-	struct FMakeCollisionInfo
-	{
-		enum class EType
-		{
-			ET_Line,
-			ET_Box,
-		};
+	//struct FMakeCollisionInfo
+	//{
+	//	enum class EType
+	//	{
+	//		ET_Line,
+	//		ET_Box,
+	//	};
 
-		FTrackedSceneCompInfo* TargetInfo;
-		EType	 Type;
-		union
-		{
-			XMFLOAT3 Extent;
-		};
-	};
+	//	FTrackedSceneCompInfo* TargetInfo;
+	//	EType	 Type;
+	//	union
+	//	{
+	//		XMFLOAT3 Extent;
+	//	};
+	//};
 
 public:
 	AProjectileBase();
@@ -39,23 +39,11 @@ public:
 	virtual void BeginPlay() override;
 
 protected:
-	virtual void OnHit(TWeakPtr<WPhysicsComponent> Comp, XMFLOAT3 ImpactPoint);
+	virtual void LoadBlueprintAttribute(const FBlueprintAttributesMap& Attributes) override;
 
 	void SetSmartHoming(bool bSmartHoming, float Range);
 
 	void PlayParticle(const std::string& Name);
-
-	FTrackedSceneCompInfo* AddTrackedComp(WSceneComponent* Comp);
-
-	void SetTrailParticle(WSceneComponent* Comp);
-
-	void MakeLineCollision(WSceneComponent* Comp);
-	
-	std::string SelectRandomString(const TArray<std::string>& Strings);
-
-	void CreateBoxTraceHitBySplineComponent(WSplineComponent* SplineComponent, int Segment);
-
-	void CreateBoxColliderBySplineComponent(WSplineComponent* SplineComponent, int Segment);
 
 private:
 	TWeakPtr<WProjectileMovementComponent> mProjMoveComp;
@@ -63,16 +51,6 @@ private:
 	bool mbSmartHoming = false;
 
 	float mSmartHomingRange = 0.0f;
-
-	TArray<TUniquePtr<FTrackedSceneCompInfo>> mTrackedComp;
-
-	TArray<FTrackedSceneCompInfo*> mTrailComp;
-
-	TArray<FMakeCollisionInfo> mCollisionInfo;
-
-	TArray<FTrackedSceneCompInfo*> mBoxCollisionInfo;
-
-	const WEvent* mOnHit;
 };
 
 REGISTER_ACTOR(AProjectileBase);

@@ -20,7 +20,7 @@ public:
 protected:
 	XMFLOAT3 mInitialVelocity = { 0, 0, 0 };
 
-	float mMaxSpeed = 0.0f;
+	float mMaxSpeed = 0.0f;		// 0일 경우 제한x
 
 	float mAcceleration = 0.0f; // 전방 추진 가속도 (스칼라)
 
@@ -41,20 +41,31 @@ private:
 	float mLifeTimeElapsed = 0.0f;
 
 public:
-	void SetLifeSpan(float LifeSpan)
-	{
-		mLifeSpan = LifeSpan;
-	}
+	__forceinline const XMFLOAT3& GetInitialVelocity() const { return mInitialVelocity; }
+	__forceinline void SetInitialVelocity(const XMFLOAT3& Value) { mInitialVelocity = Value; }
 
-	void SetHoming(bool bHoming)
-	{
-		mbHomingProjectile = bHoming;
-	}
+	// --- Max Speed ---
+	__forceinline float GetMaxSpeed() const { return mMaxSpeed; }
+	__forceinline void SetMaxSpeed(float Value) { mMaxSpeed = Value; }
 
-	void SetHomingTurnLimit(float Value)
-	{
-		mHomingTurnLimit = Value;
-	}
+	// --- Acceleration ---
+	__forceinline float GetAcceleration() const { return mAcceleration; }
+	__forceinline void SetAcceleration(float Value) { mAcceleration = Value; }
+
+	// --- Gravity Scale ---
+	__forceinline float GetGravityScale() const { return mGravityScale; }
+	__forceinline void SetGravityScale(float Value) { mGravityScale = Value; }
+
+	// --- Life Span ---
+	__forceinline float GetLifeSpan() const { return mLifeSpan; }
+	__forceinline void SetLifeSpan(float Value) { mLifeSpan = Value; }
+
+	// --- Homing Properties ---
+	__forceinline bool IsHoming() const { return mbHomingProjectile; }
+	__forceinline void SetHoming(bool bEnabled) { mbHomingProjectile = bEnabled; }
+
+	__forceinline float GetHomingTurnLimit() const { return mHomingTurnLimit; }
+	__forceinline void SetHomingTurnLimit(float Value) { mHomingTurnLimit = Value; }
 
 	inline WSceneComponent* GetHomingTarget() const
 	{
