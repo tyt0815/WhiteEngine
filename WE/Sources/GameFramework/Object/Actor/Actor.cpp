@@ -8,7 +8,7 @@
 
 unsigned int g_ActorCounter = 0;
 
-void ApplySceneComponentDefaultAttributes(WSceneComponent* Comp, const WAttributesMap& Attributes)
+void ApplySceneComponentDefaultAttributes(WSceneComponent* Comp, const std::unordered_map<std::string, std::string>& Attributes)
 {
 	ApplyAttribute(Attributes, "Loc", ParseFloat3, [&](const XMFLOAT3& v) {
 		Comp->SetLocalLocation(v);
@@ -75,10 +75,7 @@ AActor::AActor():
 	RegisterWActionFactory("Event", [this](const WAttributesMap& Attributes) {
 		std::string Name = Attributes.at("Name");
 		return [this, Name]() { this->mWEventsMap[Name]->Dispatch(); };
-		});
-
-	// 1. 실제 "값"을 담는 Variant (포인터 아님)
-	
+		});	
 
 	RegisterWActionFactory("Set", [this](const WAttributesMap& Attributes) {
 
@@ -107,6 +104,10 @@ AActor::AActor():
 				}
 				}, Property, ParsedValue);
 		};
+		});
+
+	RegisterWActionFactory("Destroy", [this](const WAttributesMap& Attributes) {
+		return [this]() { this->Destroy(); };
 		});
 
 	////////////////////////////////////////////////////////////////////////////////////////////////

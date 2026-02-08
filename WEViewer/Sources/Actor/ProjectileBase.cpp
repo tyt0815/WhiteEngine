@@ -4,6 +4,7 @@
 #include "Asset/BlueprintAsset.h"
 #include "Component/BoxComponent.h"
 #include "Component/SphereComponent.h"
+#include "Component/SplineCollisionComponent.h"
 
 AProjectileBase::AProjectileBase()
 {
@@ -13,6 +14,41 @@ AProjectileBase::AProjectileBase()
 	auto ProjComp = mProjMoveComp.lock();
 	mObjAnimComp = CreateComponent<WObjectAnimComponent>()->GetWeakPtr<WObjectAnimComponent>();
 	auto AnimComp = mObjAnimComp.lock();
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// WComponent
+	////////////////////////////////////////////////////////////////////////////////////////////////
+
+	RegisterWComponentFactory("SplineCollision", [this](const WAttributesMap& Attributes)
+		{
+			WSplineCollisionComponent* Comp = this->CreateComponent<WSplineCollisionComponent>();
+
+			ApplySceneComponentDefaultAttributes(Comp, Attributes);
+
+			ApplyAttribute(Attributes, "Asset", [&](const std::string& v) {
+				Comp->LoadSplineFromAsset(v);
+				});
+
+			bool bActivate = false;
+			ExtractAttribute(Attributes, "Activate", bActivate);
+			if (bActivate)
+			{
+				int Segment = 1;
+				ExtractAttribute(Attributes, "Segment", Segment);
+				bool bUseBoundingBox = true;
+				ExtractAttribute(Attributes, "BoundingBox", bUseBoundingBox);
+				Comp->GenerateCapsuleCollision(Segment, bUseBoundingBox);
+			}
+			
+
+			Comp->OnCollision.Add(this, &AProjectileBase::OnCollision);
+
+			return Comp;
+		});
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// WComponent End
+	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// WAction
@@ -122,6 +158,16 @@ AProjectileBase::AProjectileBase()
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// WProperty End
+	////////////////////////////////////////////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// WEvent
+	////////////////////////////////////////////////////////////////////////////////////////////////
+
+	mOnHitEvent = RegisterWEvent("OnHit");
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// WEvent End
 	////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
@@ -284,6 +330,11 @@ void AProjectileBase::PlayParticle(const std::string& Name)
 	{
 		ShowMessageBox("Invalid particle name:\n" + Name);
 	}
+}
+
+void AProjectileBase::OnCollision(const FHitResult& Hit)
+{
+	mOnHitEvent->Dispatch();
 }
 
 //AProjectileBase::FTrackedSceneCompInfo* AProjectileBase::AddTrackedComp(WSceneComponent* Comp)

@@ -49,7 +49,6 @@ void WSplineCollisionComponent::Tick(float DeltaSecond)
 
 	if (bNeedCollisionCheck)
 	{
-		GetOwner().lock()->Destroy();
 		for (FCapsuleCollider& Capsule : mCapsuleCollider)
 		{
 			XMFLOAT3 CurrLocation = Capsule.Comp->GetWorldLocation();
@@ -65,10 +64,29 @@ void WSplineCollisionComponent::Tick(float DeltaSecond)
 				true,
 				FIXED_DELTA
 			);
+
+			if (auto HittedActor = Hit.Actor.lock())
+			{
+				ActorsToIgnore.push_back(HittedActor.get());
+
+				OnCollision.Broadcast(Hit);
+			}
 		}
 	}
 
 	// Update PrevLocation
+	for (FCapsuleCollider& Capsule : mCapsuleCollider)
+	{
+		Capsule.PrevLocation = Capsule.Comp->GetWorldLocation();
+	}
+}
+
+void WSplineCollisionComponent::BeginComponent()
+{
+	Super::BeginComponent();
+
+	mBoundingBox.PrevLocation = mBoundingBox.CenterComp->GetWorldLocation();
+
 	for (FCapsuleCollider& Capsule : mCapsuleCollider)
 	{
 		Capsule.PrevLocation = Capsule.Comp->GetWorldLocation();
@@ -91,7 +109,7 @@ void WSplineCollisionComponent::GenerateCapsuleCollision(int Segment, bool bUseB
 	int Step = FDXMath::Max(1, SplineLUTNum / Segment);
 
 	int i = 0;
-	int j = Step;
+	int j = min(Step, SplineLUTNum - 1);
 	while (true)
 	{
 		FTransform Transform;

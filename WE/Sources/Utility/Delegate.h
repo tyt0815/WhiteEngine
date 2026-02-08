@@ -31,18 +31,60 @@ private:
 };
 
 
-// 0개 파라미터
 #define DECLARE_DELEGATE(DelegateName) \
     using DelegateName = TBaseDelegate<>;
 
-// 1개 파라미터
 #define DECLARE_DELEGATE_OneParam(DelegateName, Param1) \
     using DelegateName = TBaseDelegate<Param1>;
 
-// 2개 파라미터
 #define DECLARE_DELEGATE_TwoParams(DelegateName, Param1, Param2) \
     using DelegateName = TBaseDelegate<Param1, Param2>;
 
-// 향후 N개로 확장하고 싶다면 아래와 같은 패턴으로 계속 추가 가능합니다.
 #define DECLARE_DELEGATE_ThreeParams(DelegateName, Param1, Param2, Param3) \
     using DelegateName = TBaseDelegate<Param1, Param2, Param3>;
+
+template<typename... Args>
+class TMulticastDelegate
+{
+public:
+    // 함수 등록 (언리얼의 AddUObject와 유사한 역할)
+    template<typename T>
+    void Add(T* ObjectPtr, void(T::* ActionFunction)(Args...))
+    {
+        mBoundFunctions.emplace_back([=](Args... args) {
+            (ObjectPtr->*ActionFunction)(args...);
+            });
+    }
+
+    // 등록된 모든 함수 실행 (언리얼의 Broadcast와 동일)
+    void Broadcast(Args... args)
+    {
+        for (auto& func : mBoundFunctions)
+        {
+            if (func)
+            {
+                func(args...);
+            }
+        }
+    }
+
+    // 모든 바인딩 제거
+    void Clear() { mBoundFunctions.clear(); }
+
+    // 바인딩 여부 확인
+    bool IsBound() const { return !mBoundFunctions.empty(); }
+
+private:
+    std::vector<std::function<void(Args...)>> mBoundFunctions;
+};
+
+// --- 매크로 정의 ---
+
+#define DECLARE_MULTICAST_DELEGATE(DelegateName) \
+    using DelegateName = TMulticastDelegate<>;
+
+#define DECLARE_MULTICAST_DELEGATE_OneParam(DelegateName, Param1) \
+    using DelegateName = TMulticastDelegate<Param1>;
+
+#define DECLARE_MULTICAST_DELEGATE_TwoParams(DelegateName, Param1, Param2) \
+    using DelegateName = TMulticastDelegate<Param1, Param2>;

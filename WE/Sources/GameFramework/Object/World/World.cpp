@@ -695,7 +695,7 @@ void WWorld::FlushDestroyQueue()
 void WWorld::OnSpawnActor(AActor* Actor, const FActorSpawnParameter& Param)
 {
 	Actor->SetActorTransform(Param.Transform);
-
+	Actor->GetRootComponent()->PropagateWorldFloat4Dirty(true);
 	Actor->BeginPlay();
 }
 

@@ -227,15 +227,10 @@ void WSceneComponent::SetWorldScale(XMFLOAT3 Scale)
 	SetWorldTransform(Transform);
 }
 
-void WSceneComponent::Update()
-{
-	
-}
-
-void WSceneComponent::OnSetTransform()
+void WSceneComponent::PropagateWorldFloat4Dirty(bool bForce)
 {
 	// 최적화: 내가 이미 Dirty라면 내 자식들도 이미 Dirty일 것이므로 중복 전파 중단
-	if (mbWorldFloat4x4Dirty)
+	if (mbWorldFloat4x4Dirty && !bForce)
 	{
 		return;
 	}
@@ -246,7 +241,17 @@ void WSceneComponent::OnSetTransform()
 		// 핵심: 나(this)가 아니라 Child의 함수를 호출해야 함
 		if (auto Child = ChildWeak.lock())
 		{
-			Child->OnSetTransform();
+			Child->PropagateWorldFloat4Dirty(bForce);
 		}
 	}
+}
+
+void WSceneComponent::Update()
+{
+	
+}
+
+void WSceneComponent::OnSetTransform()
+{
+	PropagateWorldFloat4Dirty();
 }

@@ -22,6 +22,8 @@ void ShowMessageBox(const std::string& Content);
 
 void ReportParseError(const std::string& Type, const std::string& WrongValue);
 
+void ApplySceneComponentDefaultAttributes(WSceneComponent* Comp, const std::unordered_map<std::string, std::string>& Attributes);
+
 template<typename T> struct WPropertyTrait;
 template<> struct WPropertyTrait<bool>
 {
@@ -358,13 +360,15 @@ void ApplyAttribute(const std::unordered_map<std::string, std::string>& Attrs, c
 }
 
 template <typename T>
-void ExtractAttribute(const std::unordered_map<std::string, std::string>& Attrs, const std::string& Key, T& Target)
+bool ExtractAttribute(const std::unordered_map<std::string, std::string>& Attrs, const std::string& Key, T& Target)
 {
 	auto it = Attrs.find(Key);
 	if (it != Attrs.end())
 	{
 		Target = WPropertyTrait<T>::Parse(it->second);
+		return true;
 	}
+	return false;
 }
 
 template <typename TParserFunc, typename TSetterFunc>

@@ -1,6 +1,10 @@
 #pragma once
 #include "Component/SplineComponent.h"
+#include "Physics/HitResult.h"
 #include "Utility/Container.h"
+#include "Utility/Delegate.h"
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnCollision, const FHitResult&);
 
 class WSplineCollisionComponent : public WSplineComponent
 {
@@ -25,10 +29,14 @@ public:
 
 	virtual void Tick(float DeltaSecond) override;
 
+	virtual void BeginComponent() override;
+
 public:
 	void GenerateCapsuleCollision(int Segment, bool bUseBoundingBox);
 
 	TArray<FCapsuleCollider> mCapsuleCollider;
+
+	FOnCollision OnCollision;
 
 private:
 	FBoundingBox mBoundingBox;

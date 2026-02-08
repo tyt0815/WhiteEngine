@@ -39,8 +39,6 @@ public:
 
 	FTransform GetWorldTransform();
 
-	
-
 	void UpdateRecursive();
 
 	void SetupAttachment(WSceneComponent* Parent);
@@ -60,6 +58,8 @@ public:
 	void SetWorldRotation(XMFLOAT3 Rotation);
 
 	void SetWorldScale(XMFLOAT3 Scale);
+
+	void PropagateWorldFloat4Dirty(bool bForce = false);
 
 protected:
 	virtual void Update();

@@ -1,5 +1,6 @@
 #pragma once
 #include "Actor/Actor.h"
+#include "Physics/HitResult.h"
 #include "Component/BoxComponent.h"
 #include "Component/ProjectileMovementComponent.h"
 #include "Component/ObjectAnimComponent.h"
@@ -49,10 +50,14 @@ protected:
 	void PlayParticle(const std::string& Name);
 
 private:
+	void OnCollision(const FHitResult& Hit);
+
 	TWeakPtr<WProjectileMovementComponent> mProjMoveComp;
 	TWeakPtr<WObjectAnimComponent> mObjAnimComp;
 
 	std::unordered_map<std::string, class WObjectAnimComponent*> mWObjAnimComp;
+
+	const WEvent* mOnHitEvent;
 
 	float mMaxSpeed = 1;
 
