@@ -105,6 +105,7 @@
     <ClInclude Include="Sources\Asset\AssetManager.h" />
     <ClInclude Include="Sources\Asset\AssetLoader.h" />
     <ClInclude Include="Sources\Asset\BlueprintAsset.h" />
+    <ClInclude Include="Sources\Asset\BlueprintTypeTrait.h" />
     <ClInclude Include="Sources\Asset\ObjectAnimDataAsset.h" />
     <ClInclude Include="Sources\Asset\SplineDataAsset.h" />
     <ClInclude Include="Sources\Asset\XMLDataAsset.h" />

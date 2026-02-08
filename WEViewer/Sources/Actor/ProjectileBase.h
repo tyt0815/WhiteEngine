@@ -2,7 +2,6 @@
 #include "Actor/Actor.h"
 #include "Component/BoxComponent.h"
 #include "Component/ProjectileMovementComponent.h"
-#include "Component/StaticMeshComponent.h"
 #include "Component/ObjectAnimComponent.h"
 #include "Component/SplineComponent.h"
 
@@ -39,7 +38,7 @@ public:
 	virtual void BeginPlay() override;
 
 protected:
-	virtual void LoadBlueprintAttribute(const FBlueprintAttributesMap& Attributes) override;
+	virtual void LoadWAttributes(const WAttributesMap& Attributes) override;
 
 	void SetSmartHoming(bool bSmartHoming, float Range);
 

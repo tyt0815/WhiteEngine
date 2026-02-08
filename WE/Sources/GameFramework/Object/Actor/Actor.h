@@ -68,21 +68,10 @@ public:
 
 	XMFLOAT4 GetActorQuaternion();
 
-protected:
-	using FBlueprintAttributesMap = std::unordered_map<std::string, std::string>;
-
-	virtual void LoadBlueprintAttribute(const FBlueprintAttributesMap& Attributes) {}
-
-	void RegisterToComponentFactory(const std::string& Type, std::function<WSceneComponent* (const FBlueprintAttributesMap&)> Lambda);
-
 private:
 	void UpdateRecursive();
 
 	void BeginComponents();
-
-	void LoadBlueprintComponent_Internal(struct FComponentNode* Comp, WSceneComponent* Parent);
-
-	void RegisterComponentByName(const std::string& Name, WSceneComponent* Comp);
 
 	TArray<TSharedPtr<WActorComponent>> mAllComponents;
 
@@ -94,9 +83,66 @@ private:
 
 	TWeakPtr<WSceneComponent> mRootComponent;
 
-	std::unordered_map<std::string, std::function<WSceneComponent* (const FBlueprintAttributesMap&)>> mComponentFactory;
 
-	std::unordered_map<std::string, WSceneComponent*> mBlueprintComponents;
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	// Blueprint Section
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////
+protected:
+	using WAttributesMap = std::unordered_map<std::string, std::string>;
+
+	using WComponentFactory = std::function<WSceneComponent* (const WAttributesMap&)>;
+
+	using WAction = std::function<void()>;
+	using WActionFactoryFunc = std::function<WAction(const WAttributesMap&)>;
+
+	class WEvent
+	{
+	public:
+		void Dispatch() const
+		{
+			for (const WAction& Action : mActions) Action();
+		}
+
+		void AddAction(WAction Action)
+		{
+			mActions.push_back(std::move(Action));
+		}
+
+	private:
+		TArray<WAction> mActions;
+	};
+	using WEventsMap = std::unordered_map<std::string, TSharedPtr<WEvent>>;
+
+	virtual void LoadWAttributes(const WAttributesMap& Attributes) {}
+
+	void RegisterWComponentFactory(const std::string& Type, WComponentFactory Lambda);
+
+	void RegisterWActionFactory(const std::string Name, WActionFactoryFunc Lambda);
+
+	const WEvent* RegisterWEvent(const std::string& Name);
+
+private:
+	void LoadWComponent_Internal(struct FBlueprintComponentNode* Comp, WSceneComponent* Parent);
+
+	void RegisterWComponent(const std::string& Name, WSceneComponent* Comp);
+
+	std::unordered_map<std::string, WComponentFactory> mWComponentFactoryMap;
+
+	std::unordered_map<std::string, WSceneComponent*> mWComponentsMap;
+
+	std::unordered_map<std::string, WActionFactoryFunc> mWActionFactoryMap;
+
+	WEventsMap mWEventsMap;
+
+	const WEvent* mOnSpawnEvent;
+
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	// Blueprint Section End
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////
 
 	int mActorId = -1;
 
@@ -200,3 +246,30 @@ inline T* AActor::GetComponent()
 }
 
 REGISTER_ACTOR(AActor);
+
+void ShowMessageBox(const std::string& Content);
+
+bool ParseBool(const std::string& String);
+int ParseInt(const std::string& String);
+float ParseFloat(const std::string& String);
+XMFLOAT3 ParseFloat3(const std::string& String);
+
+template <typename TSetterFunc>
+void ApplyAttribute(const std::unordered_map<std::string, std::string>& Attrs, const std::string& Key, TSetterFunc Setter)
+{
+	auto it = Attrs.find(Key);
+	if (it != Attrs.end())
+	{
+		Setter(it->second);
+	}
+}
+
+template <typename TParserFunc, typename TSetterFunc>
+void ApplyAttribute(const std::unordered_map<std::string, std::string>& Attrs, const std::string& Key, TParserFunc Parser, TSetterFunc Setter)
+{
+	auto it = Attrs.find(Key);
+	if (it != Attrs.end())
+	{
+		Setter(Parser(it->second));
+	}
+}

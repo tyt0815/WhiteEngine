@@ -1,4 +1,4 @@
-<AProjectileBase Speed = "(0, 0, 25)" Life = "10">
+<AProjectileBase Speed = "(0, 0, 25)" Life = "10" Homing = "100" HomingTurnLimit = "360" GravityScale = "0">
     
     <Components>
         <Mesh Name = "Body" Asset = "SM_MetalRing">
@@ -6,6 +6,10 @@
         </Mesh>
     </Components>
 
-    
+    <Events>
+        <OnSpawn>
+            <Particle Asset = "P_Explosion"/>
+        </OnSpawn>
+    </Events>
 
 </AProjectileBase>

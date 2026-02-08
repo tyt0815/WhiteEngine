@@ -120,6 +120,8 @@ void FBlueprintAsset::Serialize(FBinaryWriter& Writer, FXMLElement* RootElement)
     SerializeAttributes(Writer, RootElement);
 
     SerializeComponents(Writer, RootElement->FirstChildElement("Components"));
+
+    SerializeEvents(Writer , RootElement->FirstChildElement("Events"));
 }
 
 void FBlueprintAsset::Deserialize(FBinaryReader& Reader)
@@ -129,6 +131,8 @@ void FBlueprintAsset::Deserialize(FBinaryReader& Reader)
     DeserializeAttributes(Reader, mAttributes);
 
     DeserializeComponents(Reader, mAttachedComponents);
+
+    DeserializeEvents(Reader, mEvents);
 }
 
 void FBlueprintAsset::SerializeAttributes(FBinaryWriter& Writer, FXMLElement* Element)
@@ -147,7 +151,7 @@ void FBlueprintAsset::SerializeAttributes(FBinaryWriter& Writer, FXMLElement* El
     }
 }
 
-void FBlueprintAsset::DeserializeAttributes(FBinaryReader& Reader, FBlueprintAttributesMap& AttributesMap)
+void FBlueprintAsset::DeserializeAttributes(FBinaryReader& Reader, WAttributesMap& AttributesMap)
 {
     int NumAttributes;
     Reader >> NumAttributes;
@@ -166,6 +170,7 @@ void FBlueprintAsset::SerializeComponents(FBinaryWriter& Writer, FXMLElement* Co
     if (ComponentsElement == nullptr)
     {
         Writer << int(0);
+        return;
     }
 
     int NumComponents = ComponentsElement->ChildElementCount();
@@ -180,16 +185,16 @@ void FBlueprintAsset::SerializeComponents(FBinaryWriter& Writer, FXMLElement* Co
     }
 }
 
-void FBlueprintAsset::DeserializeComponents(FBinaryReader& Reader, TArray<TSharedPtr<FComponentNode>>& AttachedComponents)
+void FBlueprintAsset::DeserializeComponents(FBinaryReader& Reader, TArray<TSharedPtr<FBlueprintComponentNode>>& AttachedComponents)
 {
     int ComponentsNum;
     Reader >> ComponentsNum;
 
     AttachedComponents.resize(ComponentsNum);
 
-    for (TSharedPtr<FComponentNode>& Comp : AttachedComponents)
+    for (TSharedPtr<FBlueprintComponentNode>& Comp : AttachedComponents)
     {
-        Comp = MakeShared<FComponentNode>();
+        Comp = MakeShared<FBlueprintComponentNode>();
         DeserializeComponent(Reader, Comp);
     }
 }
@@ -206,13 +211,90 @@ void FBlueprintAsset::SerializeComponent(FBinaryWriter& Writer, FXMLElement* Com
     SerializeComponents(Writer, ComponentElement);
 }
 
-void FBlueprintAsset::DeserializeComponent(FBinaryReader& Reader, TSharedPtr<FComponentNode>& Component)
+void FBlueprintAsset::DeserializeComponent(FBinaryReader& Reader, TSharedPtr<FBlueprintComponentNode>& Component)
 {
     Reader >> Component->Type;
 
     DeserializeAttributes(Reader, Component->Attributes);
 
     DeserializeComponents(Reader, Component->AttachedComponents);
+}
+
+void FBlueprintAsset::SerializeEvents(FBinaryWriter& Writer, FXMLElement* EventsElement)
+{
+    if (EventsElement == nullptr)
+    {
+        Writer << int(0);
+        return;
+    }
+
+    int NumEvents = EventsElement->ChildElementCount();
+    Writer << NumEvents;
+
+    FXMLElement* EventElement = EventsElement->FirstChildElement();
+    while (EventElement)
+    {
+        SerializeEvent(Writer, EventElement);
+        EventElement = EventElement->NextSiblingElement();
+    }
+}
+
+void FBlueprintAsset::DeserializeEvents(FBinaryReader& Reader, TArray<TSharedPtr<FBlueprintEventNode>>& Events)
+{
+    int NumEvents;
+    Reader >> NumEvents;
+
+    Events.resize(NumEvents);
+    for (int i = 0; i < NumEvents; ++i)
+    {
+        Events[i] = MakeShared<FBlueprintEventNode>();
+        DeserializeEvent(Reader, Events[i]);
+    }
+}
+
+void FBlueprintAsset::SerializeEvent(FBinaryWriter& Writer, FXMLElement* EventElement)
+{
+    // 1. 이벤트 이름 (예: "OnSpawn", "OnHit")
+    std::string EventName = EventElement->Name();
+    Writer << EventName;
+
+    // 2. 이 이벤트에 달린 액션 개수
+    int NumActions = EventElement->ChildElementCount();
+    Writer << NumActions;
+
+    FXMLElement* ActionElement = EventElement->FirstChildElement();
+    while (ActionElement)
+    {
+        // 3. 액션 정보 (Name과 Attributes)
+        std::string ActionName = ActionElement->Name();
+        Writer << ActionName;
+
+        SerializeAttributes(Writer, ActionElement);
+
+        ActionElement = ActionElement->NextSiblingElement();
+    }
+}
+
+void FBlueprintAsset::DeserializeEvent(FBinaryReader& Reader, TSharedPtr<FBlueprintEventNode>& EventNode)
+{
+    // 1. 이벤트 이름 읽기
+    Reader >> EventNode->Name;
+
+    // 2. 액션 개수 읽기
+    int NumActions;
+    Reader >> NumActions;
+
+    EventNode->Actions.resize(NumActions);
+    for (int i = 0; i < NumActions; ++i)
+    {
+        EventNode->Actions[i] = MakeShared<FBlueprintActionNode>();
+
+        // 3. 액션 이름 읽기
+        Reader >> EventNode->Actions[i]->Name;
+
+        // 4. 액션의 속성 맵 복구
+        DeserializeAttributes(Reader, EventNode->Actions[i]->Attributes);
+    }
 }
 
 //void FBlueprintAsset::SerializeProperties(FXMLElement* PropertiesElement, FBinaryWriter& Writer)

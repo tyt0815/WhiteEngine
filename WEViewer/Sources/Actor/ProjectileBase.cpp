@@ -4,21 +4,6 @@
 #include "Component/BoxComponent.h"
 #include "Component/SphereComponent.h"
 
-void ShowMessageBox(const std::string& Content);
-
-XMFLOAT3 ParseFloat3(const std::string& String)
-{
-	XMFLOAT3 Float3;
-	int Result = sscanf_s(String.c_str(), "(%f, %f, %f", &Float3.x, &Float3.y, &Float3.z);
-	if (Result < 3)
-	{
-		ShowMessageBox("Invalid float3 format\n" + String);
-		assert(Result == 3 && "Invalid float3 format");
-	}
-	
-	return Float3;
-}
-
 AProjectileBase::AProjectileBase()
 {
 	SetTickGroup(ETickGroup::ETG_PrePhysics, ETickPriority::ETP_High);
@@ -26,28 +11,9 @@ AProjectileBase::AProjectileBase()
 	mProjMoveComp = CreateComponent<WProjectileMovementComponent>()->GetWeakPtr<WProjectileMovementComponent>();
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
-	RegisterToComponentFactory("Mesh", [this](const FBlueprintAttributesMap& Attributes)
-		{
-			WStaticMeshComponent* Comp = this->CreateComponent<WStaticMeshComponent>();
-
-			if (Attributes.count("Asset") > 0) Comp->SetStaticMesh(Attributes.at("Asset"));
-			if (Attributes.count("Loc") > 0)
-			{
-				XMFLOAT3 Loc = ParseFloat3(Attributes.at("Loc"));
-				Comp->SetLocalLocation(Loc);
-			}
-			if (Attributes.count("Rot") > 0)
-			{
-				XMFLOAT3 Rot = ParseFloat3(Attributes.at("Rot"));
-				Comp->SetLocalLocation(Rot);
-			}
-			if (Attributes.count("Scale") > 0)
-			{
-				XMFLOAT3 Scale = ParseFloat3(Attributes.at("Scale"));
-				Comp->SetLocalLocation(Scale);
-			}
-
-			return Comp;
+	RegisterWActionFactory("Particle", [this](const WAttributesMap& Attributes) {
+		std::string Name = Attributes.at("Asset");
+		return [this, Name]() { this->PlayParticle(Name); };
 		});
 	////////////////////////////////////////////////////////////////////////////////////////////////
 }
@@ -92,59 +58,46 @@ void AProjectileBase::BeginPlay()
 	}
 }
 
-void AProjectileBase::LoadBlueprintAttribute(const FBlueprintAttributesMap& Attributes)
+void AProjectileBase::LoadWAttributes(const WAttributesMap& Attributes)
 {
-	Super::LoadBlueprintAttribute(Attributes);
+	Super::LoadWAttributes(Attributes);
 
 	TSharedPtr<WProjectileMovementComponent> ProjMoveComp = mProjMoveComp.lock();
-	// 1. 초기 속도 (Initial Velocity)
-	if (Attributes.count("InitialVelocity"))
-	{
-		ProjMoveComp->SetInitialVelocity(ParseFloat3(Attributes.at("InitialVelocity")));
-	}
 
-	// 아티스트가 "Speed"라고만 적어도 초기 속도로 인식하게 배려 (선택 사항)
-	else if (Attributes.count("Speed"))
-	{
-		ProjMoveComp->SetInitialVelocity(ParseFloat3(Attributes.at("Speed")));
-	}
+	// 1. 초기 속도 (Initial Velocity) - XMFLOAT3
+	ApplyAttribute(Attributes, "Speed", ParseFloat3, [&](const XMFLOAT3& v) {
+		ProjMoveComp->SetInitialVelocity(v);
+		});
 
-	// 2. 최대 속도 (Max Speed)
-	if (Attributes.count("MaxSpeed"))
-	{
-		ProjMoveComp->SetMaxSpeed(std::stof(Attributes.at("MaxSpeed")));
-	}
+	// 2. 최대 속도 (Max Speed) - float
+	ApplyAttribute(Attributes, "MaxSpeed", ParseFloat, [&](float v) {
+		ProjMoveComp->SetMaxSpeed(v);
+		});
 
-	// 3. 가속도 (Acceleration)
-	if (Attributes.count("Acceleration"))
-	{
-		ProjMoveComp->SetAcceleration(std::stof(Attributes.at("Acceleration")));
-	}
+	// 3. 가속도 (Acceleration) - float
+	ApplyAttribute(Attributes, "Acceleration", ParseFloat, [&](float v) {
+		ProjMoveComp->SetAcceleration(v);
+		});
 
-	// 4. 중력 배율 (Gravity Scale)
-	if (Attributes.count("GravityScale"))
-	{
-		ProjMoveComp->SetGravityScale(std::stof(Attributes.at("GravityScale")));
-	}
+	// 4. 중력 배율 (Gravity Scale) - float
+	ApplyAttribute(Attributes, "GravityScale", ParseFloat, [&](float v) {
+		ProjMoveComp->SetGravityScale(v);
+		});
 
-	// 5. 수명 (LifeSpan)
-	if (Attributes.count("LifeSpan"))
-	{
-		ProjMoveComp->SetLifeSpan(std::stof(Attributes.at("LifeSpan")));
-	}
+	// 5. 수명 (LifeSpan / Life) - float
+	ApplyAttribute(Attributes, "Life", ParseFloat, [&](float v) {
+		ProjMoveComp->SetLifeSpan(v);
+		});
 
-	// 6. 유도 기능 (Homing)
-	if (Attributes.count("Homing"))
-	{
-		// "true"/"false" 문자열을 bool로 변환
-		bool bIsHoming = (Attributes.at("Homing") == "true");
-		ProjMoveComp->SetHoming(bIsHoming);
-	}
+	// 6. 유도 기능 (Homing) - float
+	ApplyAttribute(Attributes, "Homing", ParseFloat, [&](float v) {
+		SetSmartHoming(true, v);
+		});
 
-	if (Attributes.count("HomingTurnLimit"))
-	{
-		ProjMoveComp->SetHomingTurnLimit(std::stof(Attributes.at("HomingTurnLimit")));
-	}
+	// 7. 유도 회전 제한 (HomingTurnLimit) - float
+	ApplyAttribute(Attributes, "HomingTurnLimit", ParseFloat, [&](float v) {
+		ProjMoveComp->SetHomingTurnLimit(v);
+		});
 }
 
 void AProjectileBase::SetSmartHoming(bool bSmartHoming, float Range)
@@ -170,12 +123,12 @@ void AProjectileBase::SetSmartHoming(bool bSmartHoming, float Range)
 
 void AProjectileBase::PlayParticle(const std::string& Name)
 {
-	if (Name == "Explosion")
+	if (Name == "P_Explosion")
 	{
 		XMFLOAT3 Location = GetActorLocation();
 		float Radius = 5;
 		XMFLOAT4 Color = { 1, 1, 0, 1 };
-		float Life = 3;
+		float Life = 0.5f;
 
 		auto DrawLine = [&](float dx, float dy, float dz) {
 			GetWorld()->DrawDebugLine(
@@ -206,8 +159,10 @@ void AProjectileBase::PlayParticle(const std::string& Name)
 		DrawLine(D3, -D3, D3);
 		DrawLine(D3, -D3, -D3);
 	}
-
-
+	else
+	{
+		ShowMessageBox("Invalid particle name:\n" + Name);
+	}
 }
 
 //AProjectileBase::FTrackedSceneCompInfo* AProjectileBase::AddTrackedComp(WSceneComponent* Comp)

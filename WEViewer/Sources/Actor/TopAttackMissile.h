@@ -2,6 +2,7 @@
 
 #include "Actor/ProjectileBase.h"
 #include "Physics/HitResult.h"
+#include "Component/StaticMeshComponent.h"
 
 class AMissileGridManager;
 
