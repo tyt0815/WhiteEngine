@@ -81,7 +81,7 @@ AActor::AActor():
 
 	RegisterWActionFactory("Event", [this](const WAttributesMap& Attributes) {
 		std::string Name = Attributes.at("Name");
-		return [this, Name]() { this->mWEventsMap[Name]->Dispatch(); };
+		return [this, Name]() { this->mCustomEventsMap[Name]->Dispatch(); };
 		});	
 
 	RegisterWActionFactory("Set", [this](const WAttributesMap& Attributes) {
@@ -144,16 +144,18 @@ AActor::AActor():
 	// WEvent
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
-	mOnSpawnEvent = RegisterWEvent("OnSpawn");
+	RegisterSystemEvent("OnSpawn", &mOnSpawnEvent);
 
-	mOnDestroyEvent = RegisterWEvent("OnDestroy");
 
-	RegisterWEvent("OnTime", [=](const WEvent* Event, const WAttributesMap& Attributes) {
+	RegisterSystemEvent("OnDestroy", &mOnDestroyEvent);
+
+	RegisterSystemEvent("OnTime", [this](auto&& Attributes) {
 		TSharedPtr<FOnTimeEvent> OnTimeEvent = MakeShared<FOnTimeEvent>();
-		OnTimeEvent->Event = Event;
 		ExtractAttribute(Attributes, "Time", OnTimeEvent->Time);
 
 		mOnTimeEvents.push_back(std::move(OnTimeEvent));
+		
+		return &mOnTimeEvents.back()->Event;
 		});
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -170,7 +172,7 @@ void AActor::Tick(float DeltaSecond)
 	int NumOnTimeEvent = (int)mOnTimeEvents.size();
 	while (mOnTimeEventIndex < NumOnTimeEvent && mOnTimeEvents[mOnTimeEventIndex]->Time <= mElapsedTime)
 	{
-		mOnTimeEvents[mOnTimeEventIndex++]->Event->Dispatch();
+		mOnTimeEvents[mOnTimeEventIndex++]->Event.Dispatch();
 	}
 
 }
@@ -180,7 +182,7 @@ void AActor::Destroy()
 	if (!IsPendingKill())
 	{
 		GetWorld()->DestroyActor(GetWeakPtr<AActor>().lock());
-		mOnDestroyEvent->Dispatch();
+		mOnDestroyEvent.Dispatch();
 	}
 }
 
@@ -229,7 +231,7 @@ void AActor::BeginPlay()
 
 	std::sort(mOnTimeEvents.begin(), mOnTimeEvents.end(), [](const TSharedPtr<FOnTimeEvent>& A, const TSharedPtr<FOnTimeEvent>& B) { return A->Time < B->Time; });
 
-	mOnSpawnEvent->Dispatch();
+	mOnSpawnEvent.Dispatch();
 
 }
 
@@ -336,19 +338,17 @@ void AActor::LoadBlueprint(const FBlueprintAsset* Blueprint)
 		LoadWComponent_Internal(BlueprintComp.get(), RootComp);
 	}
 
-	LoadWEvents(Blueprint->mEvents);
+	LoadWEvents(Blueprint->mEvents, Blueprint->mCustomEvents);
 }
 
-void AActor::LoadWEvent(AActor::WEvent* Event, FBlueprintEventNode* EventNode)
+void AActor::LoadWEvent(AActor::WEvent* Event, const TArray<TSharedPtr<FBlueprintActionNode>>& Actions)
 {
-	Event->Initializer(Event, EventNode->Attributes);
-
-	for (const auto& ActionInfo : EventNode->Actions)
+	for (const auto& ActionInfo : Actions)
 	{
 		auto ActionFactory = mWActionFactoryMap.find(ActionInfo->Name);
 		if (ActionFactory == mWActionFactoryMap.end())
 		{
-			ShowMessageBox(std::string("Invalid Action name:\n") + Event->Name + "::" + ActionInfo->Name);
+			ShowMessageBox(std::string("Invalid Action name:\n") + ActionInfo->Name);
 			assert(false);
 		}
 
@@ -368,18 +368,14 @@ void AActor::RegisterWActionFactory(const std::string Name, WActionFactoryFunc L
 	mWActionFactoryMap[Name] = Lambda;
 }
 
-const AActor::WEvent* AActor::RegisterWEvent(const std::string& Name)
+void AActor::RegisterSystemEvent(const std::string& Name, WEvent* Event)
 {
-	WEvent* Event = RegisterWEvent_Internal(Name);
-	Event->Initializer = [](auto&&, auto&&) {};
-	return Event;
+	RegisterSystemEvent(Name, [=](const WAttributesMap&) { return Event; });
 }
 
-void AActor::RegisterWEvent(const std::string& Name, std::function<void(const WEvent* Event, const WAttributesMap&)> InitializerFunc)
+void AActor::RegisterSystemEvent(const std::string& Name, WEventLoader Loader)
 {
-	WEvent* Event = RegisterWEvent_Internal(Name);
-
-	Event->Initializer = InitializerFunc;
+	mSystemEventLoaders[Name] = Loader;
 }
 
 void AActor::SetWProperty(const std::string& Name, WVariantValue Value)
@@ -414,35 +410,37 @@ void AActor::LoadWComponent_Internal(FBlueprintComponentNode* CompNode, WSceneCo
 	}
 }
 
-void AActor::LoadWEvents(const TArray<TSharedPtr<FBlueprintEventNode>>& Events)
+void AActor::LoadWEvents(
+	const TArray<TSharedPtr<FBlueprintEventNode>>& SystemEvents,
+	const TArray<TSharedPtr<FBlueprintEventNode>>& CustomEvents
+)
 {
-	for (const auto& EventInfo : Events)
+	// 1. 시스템 이벤트 처리 (중복 허용, 로더가 바인딩 전략 결정)
+	for (const auto& EventNode : SystemEvents)
 	{
-		WEvent* Event = nullptr;
-		if (EventInfo->Name.substr(0, 2) == "On")
+		auto loaderIt = mSystemEventLoaders.find(EventNode->Name);
+		if (loaderIt != mSystemEventLoaders.end())
 		{
-			if (mWEventsMap.count(EventInfo->Name) == 0)
-			{
-				ShowMessageBox("Invalid event name:\n" + EventInfo->Name);
-				assert(false);
-			}
+			// 각 노드마다 독립적인 WEvent 인스턴스가 생성되도록 로더 내부에 설계
+			WEvent* Event = loaderIt->second(EventNode->Attributes);
+			LoadWEvent(Event, EventNode->Actions);
 		}
 		else
 		{
-			if (mWEventsMap.count(EventInfo->Name) > 0)
-			{
-				ShowMessageBox("Already registered custom event:\n" + EventInfo->Name);
-				assert(false);
-			}
-
-			RegisterWEvent(EventInfo->Name);
+			ShowMessageBox("Unknown System Event: " + EventNode->Name);
 		}
-		if (Event == nullptr)
-		{
-			Event = mWEventsMap[EventInfo->Name].get();
-		}
+	}
 
-		LoadWEvent(Event, EventInfo.get());
+	// 2. 커스텀 이벤트 처리 (이름 기반 호출을 위해 맵에 등록)
+	for (const auto& EventNode : CustomEvents)
+	{
+		auto NewCustomEvent = std::make_shared<WEvent>();
+
+		// 액션들 로드
+		LoadWEvent(NewCustomEvent.get(), EventNode->Actions);
+
+		// 맵에 저장 (커스텀 이벤트는 이름이 고유해야 함)
+		mCustomEventsMap[EventNode->Name] = NewCustomEvent;
 	}
 }
 
@@ -451,20 +449,6 @@ void AActor::RegisterWComponent(const std::string& Name, WSceneComponent* Comp)
 	assert(mWComponentsMap.count(Name) == 0 && L"중복된 컴포넌트 이름 입니다.");
 
 	mWComponentsMap[Name] = Comp;
-}
-
-AActor::WEvent* AActor::RegisterWEvent_Internal(const std::string& Name)
-{
-	if (mWEventsMap.count(Name) > 0)
-	{
-		ShowMessageBox("Already registered event:\n" + Name);
-		assert(false);
-	}
-
-	TSharedPtr<WEvent> Event = MakeShared<WEvent>();
-	Event->Name = Name;
-	mWEventsMap[Name] = Event;
-	return Event.get();
 }
 
 // 1. Float3 파서

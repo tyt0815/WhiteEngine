@@ -254,7 +254,31 @@ AProjectileBase::AProjectileBase()
 	// WEvent
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
-	mOnHitEvent = RegisterWEvent("OnHit");
+	RegisterSystemEvent("OnHit", [this](const WAttributesMap& Attributes) -> WEvent* {
+		auto Iter = Attributes.find("Target");
+
+		WEvent* Event = &mCommonOnHitEvent;
+		if (Iter != Attributes.end())
+		{
+			const std::string& Target = Iter->second;
+			mOnHitEvents.push_back({});
+			Event = &mOnHitEvents.back();
+
+			if (FCollisionGeneratorBase* CollisionGenerator = dynamic_cast<FCollisionGeneratorBase*>(GetWComponent(Target)))
+			{
+				CollisionGenerator->mOnCollision.AddLambda([Event](auto&&...)
+					{
+						Event->Dispatch();
+					});
+			}
+			else
+			{
+				ShowMessageBox("OnHit: Invalid target\n" + Target);
+			}
+		}
+
+		return Event;
+		});
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// WEvent End
@@ -485,5 +509,5 @@ void AProjectileBase::PlayParticle(const std::string& Name)
 
 void AProjectileBase::OnCollision(AActor* Actor, WPhysicsComponent* Comp, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance)
 {
-	mOnHitEvent->Dispatch();
+	mCommonOnHitEvent.Dispatch();
 }

@@ -176,32 +176,27 @@ public:
 	using WVariantValue = std::variant<bool, int, float, XMFLOAT3, std::string>;
 	using WPropertiesMap = std::unordered_map<std::string, WProperty>;
 
-	class WEvent
+	class WEvent 
 	{
 	public:
-		std::string Name;
-
-		std::function<void(const WEvent* Event, const WAttributesMap&)> Initializer;
-
-		void Dispatch() const
+		void Dispatch() const 
 		{
-			for (const WAction& Action : mActions) Action();
+			for (const auto& Action : mActions) Action();
 		}
-
-		void AddAction(WAction Action)
-		{
-			mActions.push_back(std::move(Action));
+		void AddAction(const WAction& Action) 
+		{ 
+			mActions.push_back(Action);
 		}
 
 	private:
-		TArray<WAction> mActions;
+		std::vector<WAction> mActions;
 	};
-	using WEventsMap = std::unordered_map<std::string, TSharedPtr<WEvent>>;
+	using WEventLoader = std::function<WEvent*(const WAttributesMap&)>;
 
 protected:
 	virtual void LoadWConfigs(const std::unordered_map<std::string, WAttributesMap>& Configs) {}
 
-	void LoadWEvent(AActor::WEvent* Event, FBlueprintEventNode* EventNode);
+	void LoadWEvent(AActor::WEvent* Event, const TArray<TSharedPtr<FBlueprintActionNode>>& Actions);
 
 	virtual void OnLoadWComponent(struct FBlueprintComponentNode* CompNode, WSceneComponent* Comp) {}
 
@@ -209,9 +204,9 @@ protected:
 
 	void RegisterWActionFactory(const std::string Name, WActionFactoryFunc Lambda);
 
-	const WEvent* RegisterWEvent(const std::string& Name);
+	void RegisterSystemEvent(const std::string& Name, WEvent* Event);
 
-	void RegisterWEvent(const std::string& Name, std::function<void(const WEvent* Event, const WAttributesMap&)> InitializerFunc);
+	void RegisterSystemEvent(const std::string& Name, WEventLoader Loader);
 
 	template<typename T>
 	void RegisterWProperty(const std::string& Name, T* Property)
@@ -230,11 +225,9 @@ protected:
 private:
 	void LoadWComponent_Internal(struct FBlueprintComponentNode* Comp, WSceneComponent* Parent);
 
-	void LoadWEvents(const TArray<TSharedPtr<FBlueprintEventNode>>& Events);
+	void LoadWEvents(const TArray<TSharedPtr<FBlueprintEventNode>>& SystemEvents, const TArray<TSharedPtr<FBlueprintEventNode>>& CustomEvents);
 
 	void RegisterWComponent(const std::string& Name, WSceneComponent* Comp);
-
-	WEvent* RegisterWEvent_Internal(const std::string& Name);
 
 	std::unordered_map<std::string, WComponentFactory> mWComponentFactoryMap;
 
@@ -242,22 +235,24 @@ private:
 
 	std::unordered_map<std::string, WActionFactoryFunc> mWActionFactoryMap;
 
-	WEventsMap mWEventsMap;
+	std::unordered_map<std::string, WEventLoader> mSystemEventLoaders;
+
+	std::unordered_map<std::string, TSharedPtr<WEvent>> mCustomEventsMap;
 
 	WPropertiesMap mWPropertiesMap;
 
 	struct FOnTimeEvent
 	{
-		const WEvent* Event;
+		WEvent Event;
 		float Time;
 	};
 
 	TArray<TSharedPtr<FOnTimeEvent>> mOnTimeEvents;
 	int mOnTimeEventIndex = 0;
 
-	const WEvent* mOnSpawnEvent;
+	WEvent mOnSpawnEvent;
 
-	const WEvent* mOnDestroyEvent;
+	WEvent mOnDestroyEvent;
 
 public:
 	__forceinline WSceneComponent* GetWComponent(const std::string& Name) const

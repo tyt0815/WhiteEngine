@@ -36,7 +36,9 @@ private:
 
 	std::unordered_map<std::string, class WObjectAnimComponent*> mWObjAnimComp;
 
-	const WEvent* mOnHitEvent;
+	TArray<WEvent> mOnHitEvents;
+
+	WEvent mCommonOnHitEvent;
 
 	float mMaxSpeed = 1;
 

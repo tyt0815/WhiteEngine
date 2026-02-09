@@ -93,9 +93,9 @@ private:
 
 	void SerializeEvents(FBinaryWriter& Writer, FXMLElement* EventsElement);
 
-	void DeserializeEvents(FBinaryReader& Reader, TArray<TSharedPtr<FBlueprintEventNode>>& Events);
+	void DeserializeEvents(FBinaryReader& Reader);
 
 	void SerializeEvent(FBinaryWriter& Writer, FXMLElement* EventElement);
 
-	void DeserializeEvent(FBinaryReader& Reader, TSharedPtr<FBlueprintEventNode>& EventNode);
+	void DeserializeEvent(FBinaryReader& Reader);
 };

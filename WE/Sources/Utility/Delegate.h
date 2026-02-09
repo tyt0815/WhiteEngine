@@ -47,7 +47,7 @@ template<typename... Args>
 class TMulticastDelegate
 {
 public:
-    // 함수 등록 (언리얼의 AddUObject와 유사한 역할)
+    // 1. 기존 클래스 멤버 함수 바인딩 (유지)
     template<typename T>
     void Add(T* ObjectPtr, void(T::* ActionFunction)(Args...))
     {
@@ -56,22 +56,31 @@ public:
             });
     }
 
-    // 등록된 모든 함수 실행 (언리얼의 Broadcast와 동일)
+    // 2. 람다 및 일반 함수 바인딩을 위한 추가 (새로 추가)
+    // std::function<void(Args...)>와 호환되는 모든 함수 객체를 받습니다.
+    void AddLambda(std::function<void(Args...)> InFunction)
+    {
+        if (InFunction)
+        {
+            mBoundFunctions.emplace_back(std::move(InFunction));
+        }
+    }
+
+    // 더 범용적인 방식: 모든 호출 가능한 객체(Callable) 수용
+    void AddRaw(void(*Function)(Args...))
+    {
+        mBoundFunctions.emplace_back(Function);
+    }
+
     void Broadcast(Args... args)
     {
         for (auto& func : mBoundFunctions)
         {
-            if (func)
-            {
-                func(args...);
-            }
+            if (func) func(args...);
         }
     }
 
-    // 모든 바인딩 제거
     void Clear() { mBoundFunctions.clear(); }
-
-    // 바인딩 여부 확인
     bool IsBound() const { return !mBoundFunctions.empty(); }
 
 private:

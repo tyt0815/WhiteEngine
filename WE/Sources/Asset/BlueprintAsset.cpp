@@ -132,7 +132,7 @@ void FBlueprintAsset::Deserialize(FBinaryReader& Reader)
 
     DeserializeComponents(Reader, mAttachedComponents);
 
-    DeserializeEvents(Reader, mEvents);
+    DeserializeEvents(Reader);
 }
 
 void FBlueprintAsset::SerializeAttributes(FBinaryWriter& Writer, FXMLElement* Element)
@@ -279,16 +279,14 @@ void FBlueprintAsset::SerializeEvents(FBinaryWriter& Writer, FXMLElement* Events
     }
 }
 
-void FBlueprintAsset::DeserializeEvents(FBinaryReader& Reader, TArray<TSharedPtr<FBlueprintEventNode>>& Events)
+void FBlueprintAsset::DeserializeEvents(FBinaryReader& Reader)
 {
     int NumEvents;
     Reader >> NumEvents;
 
-    Events.resize(NumEvents);
     for (int i = 0; i < NumEvents; ++i)
     {
-        Events[i] = MakeShared<FBlueprintEventNode>();
-        DeserializeEvent(Reader, Events[i]);
+        DeserializeEvent(Reader);
     }
 }
 
@@ -317,9 +315,10 @@ void FBlueprintAsset::SerializeEvent(FBinaryWriter& Writer, FXMLElement* EventEl
     }
 }
 
-void FBlueprintAsset::DeserializeEvent(FBinaryReader& Reader, TSharedPtr<FBlueprintEventNode>& EventNode)
+void FBlueprintAsset::DeserializeEvent(FBinaryReader& Reader)
 {
     // 1. 이벤트 이름 읽기
+    TSharedPtr<FBlueprintEventNode> EventNode = MakeShared<FBlueprintEventNode>();
     Reader >> EventNode->Name;
 
     DeserializeAttributes(Reader, EventNode->Attributes);
@@ -338,6 +337,15 @@ void FBlueprintAsset::DeserializeEvent(FBinaryReader& Reader, TSharedPtr<FBluepr
 
         // 4. 액션의 속성 맵 복구
         DeserializeAttributes(Reader, EventNode->Actions[i]->Attributes);
+    }
+
+    if (EventNode->Name.substr(0, 2) == "On")
+    {
+        mEvents.push_back(std::move(EventNode));
+    }
+    else
+    {
+        mCustomEvents.push_back(std::move(EventNode));
     }
 }
 
