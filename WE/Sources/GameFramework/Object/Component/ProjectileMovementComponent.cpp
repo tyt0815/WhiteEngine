@@ -16,6 +16,9 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
         return;
     }
 
+    XMFLOAT3 OwnerForward = Owner->GetForwardVector();
+    XMVECTOR OwnerForwardV = XMLoadFloat3(&OwnerForward);
+
     // 1. 중력 적용
     constexpr float GravityConstant = 9.8f;
     XMVECTOR CurrentVelocityV = XMLoadFloat3(&mVelocity);
@@ -72,13 +75,11 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
     if (bCalcRotQuatV)
     {
         XMVECTOR DirV = XMVector3Normalize(CurrentVelocityV);
-        XMFLOAT3 Forward = Owner->GetForwardVector();
-        XMVECTOR ForwardV = XMLoadFloat3(&Forward);
 
-        float Radian = XMVectorGetX(XMVector3AngleBetweenNormals(ForwardV, DirV));
+        float Radian = XMVectorGetX(XMVector3AngleBetweenNormals(OwnerForwardV, DirV));
         if (Radian > 0.0001f)
         {
-            XMVECTOR AxisV = XMVector3Normalize(XMVector3Cross(ForwardV, DirV));
+            XMVECTOR AxisV = XMVector3Normalize(XMVector3Cross(OwnerForwardV, DirV));
             if (XMVector3Equal(AxisV, XMVectorZero()))
             {
                 XMFLOAT3 Up = Owner->GetUpVector();
@@ -90,6 +91,10 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
     }
 
     XMVECTOR ForwardV = XMVector3Normalize(CurrentVelocityV);
+    if (XMVector3Equal(ForwardV, XMVectorZero()))
+    {
+        ForwardV = OwnerForwardV;
+    }
     // 3. 전방 추진 가속도 적용 (스칼라)
     if (mAcceleration != 0.0f)
     {

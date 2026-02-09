@@ -145,7 +145,7 @@ AProjectileBase::AProjectileBase()
 			std::string TargetName = Attributes.at("Target");
 			float* Prop = std::get<float*>(GetWProperty(TargetName));
 
-			WObjectAnimComponent* AnimComp = mWObjAnimComp[Attributes.at("Comp")];
+			WObjectAnimComponent* AnimComp = Attributes.count("Comp") > 0 ? mWObjAnimComp[Attributes.at("Comp")] : mObjAnimComp.lock().get();
 
 			std::string CurveName = Attributes.at("Curve");
 
