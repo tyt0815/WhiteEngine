@@ -50,7 +50,7 @@ protected:
 	void PlayParticle(const std::string& Name);
 
 private:
-	void OnCollision(const FHitResult& Hit);
+	void OnCollision(AActor* Actor, WPhysicsComponent* Comp, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance);
 
 	TWeakPtr<WProjectileMovementComponent> mProjMoveComp;
 	TWeakPtr<WObjectAnimComponent> mObjAnimComp;

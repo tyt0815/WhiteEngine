@@ -24,7 +24,7 @@ protected:
 
 	float mAcceleration = 0.0f; // 전방 추진 가속도 (스칼라)
 
-	float mGravityScale = 1.0f; // 중력 배율 (기본 9.8m/s^2에 곱해질 값)
+	float mGravityScale = 0; // 중력 배율 (기본 9.8m/s^2에 곱해질 값)
 
 	// 투사체 수명. 0일시 영구 지속
 	float mLifeSpan = 5.0f;

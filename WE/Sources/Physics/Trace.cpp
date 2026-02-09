@@ -215,6 +215,7 @@ namespace Physics
 
 		ShapeCastSettings Settings;
 		Settings.mCollisionTolerance = 1e-4f;
+		Settings.SetBackFaceMode(EBackFaceMode::CollideWithBackFaces);
 		ClosestHitCollisionCollector<CastShapeCollector> Collector;
 
 		const NarrowPhaseQuery& Query = GetNarrowPhaseQuery();
@@ -301,8 +302,6 @@ namespace Physics
 	)
 	{
 		// 1. 캡슐 쉐이프 생성 
-		// Jolt의 CapsuleShape은 (절반 높이, 반지름)을 인자로 받습니다.
-		// 여기서 HalfHeight는 양 끝의 반구(Sphere)를 제외한 중앙 원통 부분의 절반 길이입니다.
 		CapsuleShapeSettings Settings(HalfHeight, Radius);
 		ShapeRefC Capsule = Settings.Create().Get();
 
@@ -342,6 +341,57 @@ namespace Physics
 		FTraceObjectLayerFilter OLFilter(InObjectLayers);
 		FTraceBodyFilter BFilter(BodiesToIgnore);
 		CapsuleTrace(Start, End, Radius, HalfHeight, Quaternion, HitResult, {}, OLFilter, BFilter);
+	}
+
+	void SphereTrace(
+		XMFLOAT3 Start,
+		XMFLOAT3 End,
+		float Radius,
+		FHitResult& HitResult,
+		const JPH::BroadPhaseLayerFilter& inBroadPhaseLayerFilter,
+		const JPH::ObjectLayerFilter& inObjectLayerFilter,
+		const JPH::BodyFilter& inBodyFilter
+	)
+	{
+		// 1. 구체 쉐이프 생성
+		SphereShapeSettings Settings(Radius);
+		ShapeRefC Sphere = Settings.Create().Get();
+
+		// 2. 위치 변환
+		RVec3 JPHStart = ToJPHPosition(Start);
+		RVec3 JPHEnd = ToJPHPosition(End);
+
+		// 3. 시작 지점 행렬 구성 (회전은 Identity로 고정)
+		RMat44 StartMat = RMat44::sRotationTranslation(Quat::sIdentity(), JPHStart);
+
+		// 4. 이동 방향 벡터 계산
+		RVec3 SweepVector = JPHEnd - JPHStart;
+
+		// 5. 공용 ShapeTrace 호출
+		ShapeTrace(
+			Sphere,
+			StartMat,
+			SweepVector,
+			HitResult,
+			inBroadPhaseLayerFilter,
+			inObjectLayerFilter,
+			inBodyFilter
+		);
+	}
+
+	// 특정 바디 무시 버전
+	void SphereTrace(XMFLOAT3 Start, XMFLOAT3 End, float Radius, FHitResult& HitResult, const TArray<JPH::BodyID>& BodiesToIgnore)
+	{
+		FTraceBodyFilter BFilter(BodiesToIgnore);
+		SphereTrace(Start, End, Radius, HitResult, {}, {}, BFilter);
+	}
+
+	// 레이어 필터 + 무시 버전
+	void SphereTrace(XMFLOAT3 Start, XMFLOAT3 End, float Radius, FHitResult& HitResult, const TArray<JPH::ObjectLayer>& InObjectLayers, const TArray<JPH::BodyID>& BodiesToIgnore)
+	{
+		FTraceObjectLayerFilter OLFilter(InObjectLayers);
+		FTraceBodyFilter BFilter(BodiesToIgnore);
+		SphereTrace(Start, End, Radius, HitResult, {}, OLFilter, BFilter);
 	}
 
 	void ShapeOverlap(JPH::ShapeRefC InShape, JPH::RMat44 InMat, TArray<FHitResult>& HitResults, const JPH::BroadPhaseLayerFilter& inBPFilter, const JPH::ObjectLayerFilter& inObjFilter, const JPH::BodyFilter& inBodyFilter)

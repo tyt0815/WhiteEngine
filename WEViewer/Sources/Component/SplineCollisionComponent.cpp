@@ -69,7 +69,7 @@ void WSplineCollisionComponent::Tick(float DeltaSecond)
 			{
 				ActorsToIgnore.push_back(HittedActor.get());
 
-				OnCollision.Broadcast(Hit);
+				mOnCollision.Broadcast(HittedActor.get(), Hit.HitComponent.lock().get(), Hit.ImpactPoint, Hit.Normal, Hit.Distance);
 			}
 		}
 	}
@@ -93,7 +93,7 @@ void WSplineCollisionComponent::BeginComponent()
 	}
 }
 
-void WSplineCollisionComponent::GenerateCapsuleCollision(int Segment, bool bUseBoundingBox)
+void WSplineCollisionComponent::GenerateCollision()
 {
 	int SplineLUTNum = GetSplineLUTNum();
 	if (SplineLUTNum < 2)
@@ -105,8 +105,7 @@ void WSplineCollisionComponent::GenerateCapsuleCollision(int Segment, bool bUseB
 	TSharedPtr<AActor> Owner = GetOwner().lock();
 	assert(Owner);
 
-	Segment = FDXMath::Max(Segment, 1);
-	int Step = FDXMath::Max(1, SplineLUTNum / Segment);
+	int Step = FDXMath::Max(1, SplineLUTNum / mSegment);
 
 	int i = 0;
 	int j = min(Step, SplineLUTNum - 1);
@@ -150,7 +149,6 @@ void WSplineCollisionComponent::GenerateCapsuleCollision(int Segment, bool bUseB
 		j = min(j + Step, SplineLUTNum - 1);
 	}
 
-	mbUseBoundingBox = bUseBoundingBox;
 	if (mbUseBoundingBox)
 	{
 		if (mCapsuleCollider.empty())

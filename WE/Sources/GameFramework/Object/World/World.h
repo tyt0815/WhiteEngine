@@ -125,6 +125,16 @@ public:
 		const std::vector<AActor*>& ActorsToIgnore, const std::vector<JPH::ObjectLayer>& ObjectChannels,
 		FHitResult& HitResult, bool bDrawDebug, float DebugDuration);
 
+	void SphereTrace(XMFLOAT3 Start, XMFLOAT3 End, float Radius,
+		const std::vector<AActor*>& ActorsToIgnore, FHitResult& HitResult, bool bDrawDebug, float DebugDuration);
+
+	void SphereTrace_Internal(XMFLOAT3 Start, XMFLOAT3 End, float Radius,
+		const std::vector<JPH::BodyID>& BodiesToIgnore, FHitResult& HitResult, bool bDrawDebug, float DebugDuration);
+
+	void SphereTraceByObjectChannel(XMFLOAT3 Start, XMFLOAT3 End, float Radius,
+		const std::vector<AActor*>& ActorsToIgnore, const std::vector<JPH::ObjectLayer>& ObjectChannels,
+		FHitResult& HitResult, bool bDrawDebug, float DebugDuration);
+
 	void SphereOverlap(
 		XMFLOAT3 Location,
 		float Radius,
@@ -142,6 +152,8 @@ private:
 	void AfterBoxTrace(XMFLOAT3 Start, XMFLOAT3 End, XMFLOAT3 Extend, XMFLOAT4 Quaternion, const FHitResult& HitResult, bool bDrawDebug, float DebugDuration);
 
 	void AfterCapsuleTrace(XMFLOAT3 Start, XMFLOAT3 End, float Radius, float HalfHeight, XMFLOAT4 Quaternion, const FHitResult& HitResult, bool bDrawDebug, float DebugDuration);
+
+	void AfterSphereTrace(XMFLOAT3 Start, XMFLOAT3 End, float Radius, const FHitResult& HitResult, bool bDrawDebug, float DebugDuration);
 
 	void AfterSphereOverlap(XMFLOAT3 Location, float Radius, const TArray<FHitResult>& HitResults, bool bDrawDebug, float DebugDuration);
 

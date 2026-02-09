@@ -450,6 +450,39 @@ void WWorld::CapsuleTraceByObjectChannel(XMFLOAT3 Start, XMFLOAT3 End, float Rad
 	AfterCapsuleTrace(Start, End, Radius, HalfHeight, Quaternion, HitResult, bDrawDebug, DebugDuration);
 }
 
+// 1. 기본 버전 (ActorsToIgnore 사용)
+void WWorld::SphereTrace(XMFLOAT3 Start, XMFLOAT3 End, float Radius,
+	const std::vector<AActor*>& ActorsToIgnore, FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
+{
+	TArray<JPH::BodyID> BodiesToIgnore;
+	ExtractActorsPhysicsBodyID(ActorsToIgnore, BodiesToIgnore);
+
+	SphereTrace_Internal(Start, End, Radius, BodiesToIgnore, HitResult, bDrawDebug, DebugDuration);
+}
+
+// 2. 실제 물리 호출 및 디버그 드로우
+void WWorld::SphereTrace_Internal(XMFLOAT3 Start, XMFLOAT3 End, float Radius,
+	const std::vector<JPH::BodyID>& BodiesToIgnore, FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
+{
+	// 물리 엔진 호출 (회전 인자 없음)
+	Physics::SphereTrace(Start, End, Radius, HitResult, BodiesToIgnore);
+
+	// 디버그 드로우 호출
+	AfterSphereTrace(Start, End, Radius, HitResult, bDrawDebug, DebugDuration);
+}
+
+// 3. ObjectChannel 필터 버전
+void WWorld::SphereTraceByObjectChannel(XMFLOAT3 Start, XMFLOAT3 End, float Radius,
+	const std::vector<AActor*>& ActorsToIgnore, const std::vector<JPH::ObjectLayer>& ObjectChannels,
+	FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
+{
+	TArray<JPH::BodyID> BodiesToIgnore;
+	ExtractActorsPhysicsBodyID(ActorsToIgnore, BodiesToIgnore);
+
+	Physics::SphereTrace(Start, End, Radius, HitResult, ObjectChannels, BodiesToIgnore);
+	AfterSphereTrace(Start, End, Radius, HitResult, bDrawDebug, DebugDuration);
+}
+
 void WWorld::SphereOverlap(XMFLOAT3 Location, float Radius, const std::vector<AActor*>& ActorsToIgnore, TArray<FHitResult>& HitResults, bool bDrawDebug, float DebugDuration)
 {
 	TArray<JPH::BodyID> BodiesToIgnore;
@@ -552,68 +585,154 @@ void WWorld::AfterCapsuleTrace(XMFLOAT3 Start, XMFLOAT3 End, float Radius, float
 	XMVECTOR EndV = XMLoadFloat3(&End);
 	XMVECTOR QuatV = XMLoadFloat4(&Quaternion);
 
-	// 1. 실제 충돌이 일어난 중심 위치 계산 (Fraction 반영)
-	XMVECTOR ActualCenterV;
 	bool bHit = !HitResult.HitComponent.expired();
-
-	if (!bHit) {
-		ActualCenterV = EndV;
-	}
-	else {
-		// Start에서 End 방향으로 Distance(0~1)만큼 이동
-		ActualCenterV = StartV + (EndV - StartV) * HitResult.Distance;
-	}
+	XMVECTOR ActualCenterV = bHit ? StartV + (EndV - StartV) * HitResult.Distance : EndV;
 
 	XMFLOAT3 FinalCenter;
 	XMStoreFloat3(&FinalCenter, ActualCenterV);
-	XMFLOAT4 Color = bHit ? XMFLOAT4(0, 1, 0, 1) : XMFLOAT4(1, 0, 0, 1); // 충돌 시 초록, 아니면 빨강
+	XMFLOAT4 Color = bHit ? XMFLOAT4(0, 1, 0, 1) : XMFLOAT4(1, 0, 0, 1);
 
-	// 2. 시작 지점과 최종 지점의 캡슐 그리기
-	// TODO: DrawDebugCapsule 만들어야함
-	/*DrawDebugCapsule(Start, Radius, HalfHeight, Quaternion, Color, DebugDuration);
-	DrawDebugCapsule(FinalCenter, Radius, HalfHeight, Quaternion, Color, DebugDuration);*/
-	DrawDebugBox(Start, XMFLOAT3(Radius, Radius + HalfHeight, Radius), Quaternion, Color, DebugDuration);
-	DrawDebugBox(FinalCenter, XMFLOAT3(Radius, Radius + HalfHeight, Radius), Quaternion, Color, DebugDuration);
+	// 캡슐의 로컬 위쪽 방향 벡터 (실제 캡슐의 원통형 부분 높이인 HalfHeight 기준)
+	XMVECTOR LocalUp = XMVectorSet(0, 1, 0, 0) * HalfHeight;
+	XMVECTOR WorldTopV = XMVector3Rotate(LocalUp, QuatV);
+	XMVECTOR WorldBottomV = XMVector3Rotate(-LocalUp, QuatV);
 
-	// 3. 캡슐의 진행 궤적 그리기 (4개 측면 선 + 중심선)
-	// 캡슐의 로컬 위쪽 방향(0, 1, 0)을 기준으로 90도 간격의 사이드 포인트 계산
-	XMVECTOR LocalUp = XMVectorSet(0, 1, 0, 0) * (HalfHeight + Radius); // 중심에서 위쪽 구체 중심까지
-	XMVECTOR TopV = XMVector3Rotate(LocalUp, QuatV);
-	XMVECTOR BottomV = XMVector3Rotate(-LocalUp, QuatV);
+	auto DrawCapsuleWireframe = [&](XMVECTOR CenterV) {
+		XMVECTOR TopCenter = CenterV + WorldTopV;
+		XMVECTOR BottomCenter = CenterV + WorldBottomV;
 
-	// 캡슐 측면의 궤적을 보여주기 위한 4개 방향 벡터 (Right, Forward 등)
+		// 1. 원통형 부분 (사이드 라인 4개)
+		XMVECTOR Directions[4] = {
+			XMVector3Rotate(XMVectorSet(Radius, 0, 0, 0), QuatV),
+			XMVector3Rotate(XMVectorSet(-Radius, 0, 0, 0), QuatV),
+			XMVector3Rotate(XMVectorSet(0, 0, Radius, 0), QuatV),
+			XMVector3Rotate(XMVectorSet(0, 0, -Radius, 0), QuatV)
+		};
+
+		for (int i = 0; i < 4; ++i) {
+			XMFLOAT3 p1, p2;
+			XMStoreFloat3(&p1, TopCenter + Directions[i]);
+			XMStoreFloat3(&p2, BottomCenter + Directions[i]);
+			DrawDebugLine(p1, p2, Color, DebugDuration);
+
+			// 2. 반구 표현 (각 사이드에서 위/아래 꼭짓점으로 잇는 선)
+			XMVECTOR HemisphereTop = TopCenter + XMVector3Rotate(XMVectorSet(0, Radius, 0, 0), QuatV);
+			XMVECTOR HemisphereBottom = BottomCenter + XMVector3Rotate(XMVectorSet(0, -Radius, 0, 0), QuatV);
+
+			XMFLOAT3 hTop, hBottom;
+			XMStoreFloat3(&hTop, HemisphereTop);
+			XMStoreFloat3(&hBottom, HemisphereBottom);
+
+			DrawDebugLine(p1, hTop, Color, DebugDuration);    // 상단 반구 가이드
+			DrawDebugLine(p2, hBottom, Color, DebugDuration); // 하단 반구 가이드
+		}
+
+		// 3. 상/중/하단 수평 원 (X-Z 평면 십자선으로 대체하여 가볍게 표현)
+		for (int i = 0; i < 2; ++i) { // X, Z축 방향
+			XMVECTOR Axis = (i == 0) ? Directions[0] : Directions[2]; // Right or Forward
+			XMFLOAT3 s, e;
+			// 상단 원 가이드
+			XMStoreFloat3(&s, TopCenter - Axis); XMStoreFloat3(&e, TopCenter + Axis);
+			DrawDebugLine(s, e, Color, DebugDuration);
+			// 하단 원 가이드
+			XMStoreFloat3(&s, BottomCenter - Axis); XMStoreFloat3(&e, BottomCenter + Axis);
+			DrawDebugLine(s, e, Color, DebugDuration);
+		}
+	};
+
+	// 시작점과 끝점(혹은 충돌점)에 캡슐 와이어프레임 그리기
+	DrawCapsuleWireframe(StartV);
+	DrawCapsuleWireframe(ActualCenterV);
+
+	// 4. 진행 궤적 (사이드 4면 연결)
 	XMVECTOR SideOffsets[4] = {
 		XMVector3Rotate(XMVectorSet(Radius, 0, 0, 0), QuatV),
 		XMVector3Rotate(XMVectorSet(-Radius, 0, 0, 0), QuatV),
-		XMVector3Rotate(XMVectorSet(0, 0,  Radius, 0), QuatV),
+		XMVector3Rotate(XMVectorSet(0, 0, Radius, 0), QuatV),
 		XMVector3Rotate(XMVectorSet(0, 0, -Radius, 0), QuatV)
 	};
 
-	for (int i = 0; i < 4; ++i)
-	{
-		// 상단 구체 외곽선의 궤적
-		XMFLOAT3 SideStart, SideEnd;
-		XMStoreFloat3(&SideStart, StartV + TopV + SideOffsets[i]);
-		XMStoreFloat3(&SideEnd, ActualCenterV + TopV + SideOffsets[i]);
-		DrawDebugLine(SideStart, SideEnd, Color, DebugDuration);
+	for (int i = 0; i < 4; ++i) {
+		XMFLOAT3 s, e;
+		// 상단 궤적
+		XMStoreFloat3(&s, StartV + WorldTopV + SideOffsets[i]);
+		XMStoreFloat3(&e, ActualCenterV + WorldTopV + SideOffsets[i]);
+		DrawDebugLine(s, e, Color, DebugDuration);
+		// 하단 궤적
+		XMStoreFloat3(&s, StartV + WorldBottomV + SideOffsets[i]);
+		XMStoreFloat3(&e, ActualCenterV + WorldBottomV + SideOffsets[i]);
+		DrawDebugLine(s, e, Color, DebugDuration);
+	}
+}
 
-		// 하단 구체 외곽선의 궤적
-		XMStoreFloat3(&SideStart, StartV + BottomV + SideOffsets[i]);
-		XMStoreFloat3(&SideEnd, ActualCenterV + BottomV + SideOffsets[i]);
-		DrawDebugLine(SideStart, SideEnd, Color, DebugDuration);
+void WWorld::AfterSphereTrace(XMFLOAT3 Start, XMFLOAT3 End, float Radius, const FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
+{
+	if (!bDrawDebug) return;
+
+	XMVECTOR StartV = XMLoadFloat3(&Start);
+	XMVECTOR EndV = XMLoadFloat3(&End);
+
+	bool bHit = !HitResult.HitComponent.expired();
+	// 충돌 시 실제 멈춘 위치, 아니면 끝점
+	XMVECTOR ActualCenterV = bHit ? StartV + (EndV - StartV) * HitResult.Distance : EndV;
+
+	XMFLOAT3 FinalCenter;
+	XMStoreFloat3(&FinalCenter, ActualCenterV);
+	XMFLOAT4 Color = bHit ? XMFLOAT4(0, 1, 0, 1) : XMFLOAT4(1, 0, 0, 1);
+
+	auto DrawSphereWireframe = [&](XMVECTOR CenterV) {
+		// 1. 기본 3축 방향 벡터 (회전이 없으므로 월드 축 기준)
+		XMVECTOR Right = XMVectorSet(Radius, 0, 0, 0);
+		XMVECTOR Up = XMVectorSet(0, Radius, 0, 0);
+		XMVECTOR Forward = XMVectorSet(0, 0, Radius, 0);
+
+		// 2. 수평/수직 원 가이드 (십자선)
+		XMVECTOR Directions[4] = { Right, -Right, Forward, -Forward };
+
+		for (int i = 0; i < 4; ++i) {
+			XMFLOAT3 pSide, pTop, pBottom;
+			XMStoreFloat3(&pSide, CenterV + Directions[i]);
+			XMStoreFloat3(&pTop, CenterV + Up);
+			XMStoreFloat3(&pBottom, CenterV - Up);
+
+			// 위아래 극점으로 모이는 라인 (캡슐 반구 표현과 동일한 느낌)
+			DrawDebugLine(pSide, pTop, Color, DebugDuration);
+			DrawDebugLine(pSide, pBottom, Color, DebugDuration);
+		}
+
+		// 3. 적도 및 자오선 표현 (수평/수직 십자선)
+		XMFLOAT3 s, e;
+		// 적도 (X축)
+		XMStoreFloat3(&s, CenterV - Right); XMStoreFloat3(&e, CenterV + Right);
+		DrawDebugLine(s, e, Color, DebugDuration);
+		// 적도 (Z축)
+		XMStoreFloat3(&s, CenterV - Forward); XMStoreFloat3(&e, CenterV + Forward);
+		DrawDebugLine(s, e, Color, DebugDuration);
+		// 수직 (Y축)
+		XMStoreFloat3(&s, CenterV - Up); XMStoreFloat3(&e, CenterV + Up);
+		DrawDebugLine(s, e, Color, DebugDuration);
+	};
+
+	// 시작점과 최종 지점에 구체 와이어프레임 그리기
+	DrawSphereWireframe(StartV);
+	DrawSphereWireframe(ActualCenterV);
+
+	// 4. 진행 궤적 (사이드 4면 연결)
+	XMVECTOR SideOffsets[4] = {
+		XMVectorSet(Radius, 0, 0, 0),
+		XMVectorSet(-Radius, 0, 0, 0),
+		XMVectorSet(0, 0,  Radius, 0),
+		XMVectorSet(0, 0, -Radius, 0)
+	};
+
+	for (int i = 0; i < 4; ++i) {
+		XMFLOAT3 s, e;
+		XMStoreFloat3(&s, StartV + SideOffsets[i]);
+		XMStoreFloat3(&e, ActualCenterV + SideOffsets[i]);
+		DrawDebugLine(s, e, Color, DebugDuration);
 	}
 
-	// 4. 중심축 궤적 (Top-to-Top, Bottom-to-Bottom)
-	XMFLOAT3 CenterStart, CenterEnd;
-	XMStoreFloat3(&CenterStart, StartV + TopV);
-	XMStoreFloat3(&CenterEnd, ActualCenterV + TopV);
-	// DrawDebugLine(CenterStart, CenterEnd, Color, DebugDuration);
-
-	XMStoreFloat3(&CenterStart, StartV + BottomV);
-	XMStoreFloat3(&CenterEnd, ActualCenterV + BottomV);
-	// DrawDebugLine(CenterStart, CenterEnd, Color, DebugDuration);
-
-	// 5. 전체 진행 방향 중심선
+	// 5. 중심 진행 선
 	DrawDebugLine(Start, FinalCenter, Color, DebugDuration);
 }
 

@@ -88,3 +88,6 @@ private:
 
 #define DECLARE_MULTICAST_DELEGATE_TwoParams(DelegateName, Param1, Param2) \
     using DelegateName = TMulticastDelegate<Param1, Param2>;
+
+#define DECLARE_MULTICAST_DELEGATE_FiveParams(DelegateName, Param1, Param2, Param3, Param4, Param5) \
+    using DelegateName = TMulticastDelegate<Param1, Param2, Param3, Param4, Param5>;

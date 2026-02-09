@@ -5,6 +5,9 @@
 #include "Component/BoxComponent.h"
 #include "Component/SphereComponent.h"
 #include "Component/SplineCollisionComponent.h"
+#include "Component/BoxCollisionComponent.h"
+#include "Component/CapsuleCollisionComponent.h"
+#include "Component/SphereCollisionComponent.h"
 
 AProjectileBase::AProjectileBase()
 {
@@ -18,6 +21,92 @@ AProjectileBase::AProjectileBase()
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// WComponent
 	////////////////////////////////////////////////////////////////////////////////////////////////
+
+	RegisterWComponentFactory("Collision", [this](const WAttributesMap& Attributes)
+		{
+			WSceneComponent* Component = nullptr;
+			std::string Type = Attributes.at("Type");
+			if (Type == "Spline")
+			{
+				WSplineCollisionComponent* Comp = this->CreateComponent<WSplineCollisionComponent>();
+
+				ApplyAttribute(Attributes, "Asset", [&](const std::string& v) {
+					Comp->LoadSplineFromAsset(v);
+					});
+
+				int Segment = 1;
+				ExtractAttribute(Attributes, "Segment", Segment);
+				Comp->SetSegment(Segment);
+
+				bool bUseBoundingBox = true;
+				ExtractAttribute(Attributes, "BoundingBox", bUseBoundingBox);
+				Comp->SetBoundingBox(bUseBoundingBox);
+
+				Component = Comp;
+			}
+			else if (Type == "Box")
+			{
+				WBoxCollisionComponent* Comp = this->CreateComponent<WBoxCollisionComponent>();
+				
+				ApplyAttribute(Attributes, "Extent", ParseFloat3, [&](const XMFLOAT3& v) {
+					Comp->SetExtent(v);
+					});
+
+				Component = Comp;
+			}
+			else if (Type == "Capsule")
+			{
+				WCapsuleCollisionComponent* Comp = this->CreateComponent<WCapsuleCollisionComponent>();
+
+				// 반지름(Radius) 설정
+				ApplyAttribute(Attributes, "Radius", ParseFloat, [&](float v) {
+					float HalfHeight = 0.0f; // 기존 값을 유지하기 위해 임시 저장소 필요 시 로직 조정
+					Comp->SetCapsuleSize(v, 1.0f); // 기본 HalfHeight 예시
+					});
+
+				// 반높이(HalfHeight) 설정
+				ApplyAttribute(Attributes, "HalfHeight", ParseFloat, [&](float v) {
+					Comp->SetCapsuleSize(1.0f, v);
+					});
+
+				Component = Comp;
+			}
+			else if (Type == "Sphere")
+			{
+				WSphereCollisionComponent* Comp = this->CreateComponent<WSphereCollisionComponent>();
+
+				// 반지름(Radius) 설정
+				ApplyAttribute(Attributes, "Radius", ParseFloat, [&](float v) {
+					Comp->SetRadius(v);
+					});
+
+				Component = Comp;
+			}
+			else
+			{
+				ShowMessageBox("Invalid collision type:\n" + Type);
+				assert(false);
+			}
+
+			ApplySceneComponentDefaultAttributes(Component, Attributes);
+
+			if (FCollisionGeneratorBase* CollisionGenerator = dynamic_cast<FCollisionGeneratorBase*>(Component))
+			{
+				assert(CollisionGenerator);
+
+				bool bActivate = false;
+				ExtractAttribute(Attributes, "Activate", bActivate);
+				if (bActivate)
+				{
+					CollisionGenerator->GenerateCollision();
+				}
+
+				CollisionGenerator->mOnCollision.Add(this, &AProjectileBase::OnCollision);
+			}
+
+
+			return Component;
+		});
 
 	RegisterWComponentFactory("SplineCollision", [this](const WAttributesMap& Attributes)
 		{
@@ -37,11 +126,13 @@ AProjectileBase::AProjectileBase()
 				ExtractAttribute(Attributes, "Segment", Segment);
 				bool bUseBoundingBox = true;
 				ExtractAttribute(Attributes, "BoundingBox", bUseBoundingBox);
-				Comp->GenerateCapsuleCollision(Segment, bUseBoundingBox);
+				Comp->SetSegment(Segment);
+				Comp->SetBoundingBox(bUseBoundingBox);
+				Comp->GenerateCollision();
 			}
 			
 
-			Comp->OnCollision.Add(this, &AProjectileBase::OnCollision);
+			Comp->mOnCollision.Add(this, &AProjectileBase::OnCollision);
 
 			return Comp;
 		});
@@ -386,7 +477,7 @@ void AProjectileBase::PlayParticle(const std::string& Name)
 	}
 }
 
-void AProjectileBase::OnCollision(const FHitResult& Hit)
+void AProjectileBase::OnCollision(AActor* Actor, WPhysicsComponent* Comp, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance)
 {
 	mOnHitEvent->Dispatch();
 }

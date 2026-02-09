@@ -6,7 +6,7 @@
 
 AFloor::AFloor()
 {
-	constexpr float Height = 0.1f;
+	constexpr float Height = 0.10f;
 	mStaticMeshComp = CreateComponent<WStaticMeshComponent>()->GetWeakPtr<WStaticMeshComponent>();
 	SetRootComponent(mStaticMeshComp);
 	if (auto StaticMeshComp = mStaticMeshComp.lock())

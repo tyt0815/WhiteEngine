@@ -84,6 +84,20 @@ namespace Physics
 
 	void CapsuleTrace(XMFLOAT3 Start, XMFLOAT3 End, float Radius, float HalfHeight, XMFLOAT4 Quaternion, FHitResult& HitResult, const TArray<JPH::ObjectLayer>& InObjectLayers, const TArray<JPH::BodyID>& BodiesToIgnore);
 
+	void SphereTrace(
+		XMFLOAT3 Start,
+		XMFLOAT3 End,
+		float Radius,
+		FHitResult& HitResult,
+		const JPH::BroadPhaseLayerFilter& inBroadPhaseLayerFilter,
+		const JPH::ObjectLayerFilter& inObjectLayerFilter,
+		const JPH::BodyFilter& inBodyFilter
+	);
+
+	void SphereTrace(XMFLOAT3 Start, XMFLOAT3 End, float Radius, FHitResult& HitResult, const TArray<JPH::BodyID>& BodiesToIgnore);
+
+	void SphereTrace(XMFLOAT3 Start, XMFLOAT3 End, float Radius, FHitResult& HitResult, const TArray<JPH::ObjectLayer>& InObjectLayers, const TArray<JPH::BodyID>& BodiesToIgnore);
+
 	void ShapeOverlap(
 		JPH::ShapeRefC InShape,
 		JPH::RMat44 InMat, // 현재 제자리의 위치/회전 행렬

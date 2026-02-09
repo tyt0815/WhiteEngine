@@ -1,12 +1,11 @@
 #pragma once
 #include "Component/SplineComponent.h"
+#include "Interface/CollisionGenerator.h"
 #include "Physics/HitResult.h"
 #include "Utility/Container.h"
-#include "Utility/Delegate.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnCollision, const FHitResult&);
 
-class WSplineCollisionComponent : public WSplineComponent
+class WSplineCollisionComponent : public WSplineComponent, public FCollisionGeneratorBase
 {
 	typedef WSplineComponent Super;
 	struct FCapsuleCollider
@@ -31,18 +30,30 @@ public:
 
 	virtual void BeginComponent() override;
 
+	virtual void GenerateCollision() override;
+
 public:
-	void GenerateCapsuleCollision(int Segment, bool bUseBoundingBox);
-
 	TArray<FCapsuleCollider> mCapsuleCollider;
-
-	FOnCollision OnCollision;
 
 private:
 	FBoundingBox mBoundingBox;
+
 	bool mbUseBoundingBox = false;
 
 	float mElapsedTime = 0;
+
+	int mSegment = 1;
+
+public:
+	__forceinline void SetSegment(int Value)
+	{
+		mSegment = max(Value, 1);
+	}
+
+	__forceinline void SetBoundingBox(bool bUse)
+	{
+		mbUseBoundingBox = bUse;
+	}
 };
 
 REGISTER_COMPONENT(WSplineCollisionComponent);

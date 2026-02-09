@@ -1,0 +1,15 @@
+<AProjectileBase InitSpeed = "(0, 0, 10)" Life = "5" GravityScale = "0.5" MaxSpeed = "1000">
+
+    <Components>
+        <Mesh Name = "Body" Asset = "SM_MetalRing">
+            <Collision Name = "SplineCollision" Type = "Sphere" Radius = "1" HalfHeight = "1" Extent = "(1, 1, 1)" Asset = "SP_Ring" Activate = "true" Segment = "4" BoundingBox = "true"/>
+        </Mesh>
+    </Components>
+
+    <Events>
+        <OnHit>
+            <!-- <Destroy/> -->
+        </OnHit>
+    </Events>
+
+</AProjectileBase>
