@@ -1,4 +1,8 @@
-<AProjectileBase InitSpeed = "(0, 0, 10)" Life = "5" GravityScale = "0.5" MaxSpeed = "1000">
+<AProjectileBase>
+    <Configs>
+        <Movement InitSpeed = "(0, 0, 30)" GravityScale = "0.5" MaxSpeed = "1000"/>
+        <LifeCycle LifeSpan = "5" />
+    </Configs>
 
     <Components>
         <Mesh Name = "Body" Asset = "SM_ScuffedGoldBox"/>

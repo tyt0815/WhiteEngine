@@ -85,8 +85,6 @@ void WSplineCollisionComponent::BeginComponent()
 {
 	Super::BeginComponent();
 
-	mBoundingBox.PrevLocation = mBoundingBox.CenterComp->GetWorldLocation();
-
 	for (FCapsuleCollider& Capsule : mCapsuleCollider)
 	{
 		Capsule.PrevLocation = Capsule.Comp->GetWorldLocation();

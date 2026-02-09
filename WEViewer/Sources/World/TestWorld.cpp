@@ -11,13 +11,9 @@ void WTestWorld::BeginPlay()
 
 	Super::BeginPlay();
 
-	
 	FActorSpawnParameter Param;
 	Param.Transform.Translation = XMFLOAT3(0, 5, 50);
 	GetWorld()->SpawnActor<AHitReactor>(Param);
-
-	Param.Transform.Translation.z -= 30;
-	GetWorld()->SpawnActor<APhysicsSphere>(Param);
 }
 
 void WTestWorld::Tick(float DeltaSecond)
@@ -43,44 +39,4 @@ void WTestWorld::Tick(float DeltaSecond)
 		a = 0;
 
 	}
-
-
-	static float YOffset = 3;
-	static float ZOffset = 3;
-	 YOffset -= DeltaSecond;
-	FHitResult Hit;
-	GetWorld()->CapsuleTrace(
-		XMFLOAT3(-5,	YOffset, ZOffset),
-		XMFLOAT3(5,		YOffset - 1, ZOffset),
-		1,
-		1,
-		XMFLOAT3(0, 0, 0),
-		{},
-		Hit,
-		true,
-		0
-	);
-
-	Hit = {};
-	GetWorld()->BoxTrace(
-		XMFLOAT3(-5,	YOffset,		ZOffset + 2),
-		XMFLOAT3(5,		YOffset - 1,	ZOffset + 2),
-		XMFLOAT3(1, 1, 1),
-		XMFLOAT3(0, 0, 0),
-		{},
-		Hit,
-		true,
-		0
-	);
-
-	Hit = {};
-	GetWorld()->SphereTrace(
-		XMFLOAT3(-5, YOffset, ZOffset + 4),
-		XMFLOAT3(5, YOffset - 1, ZOffset + 4),
-		1,
-		{},
-		Hit,
-		true,
-		0
-	);
 }

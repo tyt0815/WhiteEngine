@@ -184,7 +184,7 @@ void AActor::AddActions(AActor::WEvent* Event, TArray<TSharedPtr<FBlueprintActio
 
 void AActor::LoadBlueprint(const FBlueprintAsset* Blueprint)
 {
-	LoadWAttributes(Blueprint->mAttributes);
+	// LoadWAttributes(Blueprint->mAttributes);
 
 	WSceneComponent* RootComp = GetRootComponent();
 	assert(RootComp);

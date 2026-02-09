@@ -13,7 +13,19 @@ using FXMLAttribute = tinyxml2::XMLAttribute;
 class FBinaryWriter;
 class FBinaryReader;
 
+struct FAttribute
+{
+	std::string Name;
+	std::unordered_map<std::string, std::string> Attributes;
+};
+
 using WAttributesMap = std::unordered_map<std::string, std::string>;
+
+struct FBlueprintConfigNode
+{
+	std::string Name;
+	WAttributesMap Attributes;
+};
 
 struct FBlueprintComponentNode
 {
@@ -43,7 +55,7 @@ class FBlueprintAsset : public FAsset
 public:
 	std::string mParentClass;
 
-	WAttributesMap mAttributes;
+	TArray<TSharedPtr<FBlueprintConfigNode>> mConfigs;
 
 	TArray<TSharedPtr<FBlueprintComponentNode>> mAttachedComponents;
 
@@ -70,6 +82,14 @@ private:
 	void SerializeAttributes(FBinaryWriter& Writer, FXMLElement* Element);
 
 	void DeserializeAttributes(FBinaryReader& Reader, WAttributesMap& AttributesMap);
+
+	void SerializeConfigs(FBinaryWriter& Writer, FXMLElement* ConfigsElement);
+
+	void DeserializeConfigs(FBinaryReader& Reader, TArray<TSharedPtr<FBlueprintConfigNode>>& ConfigNode);
+
+	void SerializeConfig(FBinaryWriter& Writer, FXMLElement* ConfigElement);
+
+	void DeserializeConfig(FBinaryReader& Reader, TSharedPtr<FBlueprintConfigNode>& ConfigNode);
 
 	void SerializeComponents(FBinaryWriter& Writer, FXMLElement* ComponentsElement);
 

@@ -63,6 +63,8 @@ private:
 
 	float mSmartHomingRange = 0.0f;
 
+	float mDamage = 1.0f;
+
 	bool mbSmartHoming = false;
 };
 

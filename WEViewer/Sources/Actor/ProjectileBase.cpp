@@ -19,7 +19,9 @@ AProjectileBase::AProjectileBase()
 	auto AnimComp = mObjAnimComp.lock();
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
+	// 
 	// WComponent
+	// 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	RegisterWComponentFactory("Collision", [this](const WAttributesMap& Attributes)
@@ -108,41 +110,16 @@ AProjectileBase::AProjectileBase()
 			return Component;
 		});
 
-	RegisterWComponentFactory("SplineCollision", [this](const WAttributesMap& Attributes)
-		{
-			WSplineCollisionComponent* Comp = this->CreateComponent<WSplineCollisionComponent>();
-
-			ApplySceneComponentDefaultAttributes(Comp, Attributes);
-
-			ApplyAttribute(Attributes, "Asset", [&](const std::string& v) {
-				Comp->LoadSplineFromAsset(v);
-				});
-
-			bool bActivate = false;
-			ExtractAttribute(Attributes, "Activate", bActivate);
-			if (bActivate)
-			{
-				int Segment = 1;
-				ExtractAttribute(Attributes, "Segment", Segment);
-				bool bUseBoundingBox = true;
-				ExtractAttribute(Attributes, "BoundingBox", bUseBoundingBox);
-				Comp->SetSegment(Segment);
-				Comp->SetBoundingBox(bUseBoundingBox);
-				Comp->GenerateCollision();
-			}
-			
-
-			Comp->mOnCollision.Add(this, &AProjectileBase::OnCollision);
-
-			return Comp;
-		});
-
 	////////////////////////////////////////////////////////////////////////////////////////////////
+	// 
 	// WComponent End
+	// 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
+	// 
 	// WAction
+	// 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	RegisterWActionFactory("Particle", [this](const WAttributesMap& Attributes) {
@@ -250,11 +227,15 @@ AProjectileBase::AProjectileBase()
 		});
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
+	// 
 	// WAction End
+	// 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
+	// 
 	// WProperty
+	// 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	RegisterWProperty("MaxSpeed", &ProjComp->mMaxSpeed);
@@ -359,6 +340,10 @@ void AProjectileBase::LoadWAttributes(const WAttributesMap& Attributes)
 	// 7. 유도 회전 제한 (HomingTurnLimit) - float
 	ApplyAttribute(Attributes, "HomingTurnLimit", ParseFloat, [&](float v) {
 		ProjMoveComp->SetHomingTurnLimit(v);
+		});
+
+	ApplyAttribute(Attributes, "Damage", ParseFloat, [&](float v) {
+		mDamage = v;
 		});
 }
 

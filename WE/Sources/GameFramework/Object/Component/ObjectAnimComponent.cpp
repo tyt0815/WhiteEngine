@@ -404,11 +404,11 @@ void WObjectAnimComponent::RemoveBoundCurveAt(int i)
 
 int WObjectAnimComponent::GetBoundCurveIndex(float* TargetPtr)
 {
-	return std::find_if(mBoundCurves.begin(), mBoundCurves.end(), [=](const FCurveBind& BoundCurve)
+	return (int)(std::find_if(mBoundCurves.begin(), mBoundCurves.end(), [=](const FCurveBind& BoundCurve)
 		{
 			return BoundCurve.TargetPtr == TargetPtr;
 		}
-	) - mBoundCurves.begin();
+	) - mBoundCurves.begin());
 }
 
 WObjectAnimComponent::FCurveBind* WObjectAnimComponent::GetBoundCurve(float* TargetPtr)

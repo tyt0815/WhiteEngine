@@ -117,7 +117,7 @@ void FBlueprintAsset::Serialize(FBinaryWriter& Writer, FXMLElement* RootElement)
     const std::string Parent = RootElement->Name();
     Writer << Parent;
 
-    SerializeAttributes(Writer, RootElement);
+    SerializeConfigs(Writer, RootElement->FirstChildElement("Configs"));
 
     SerializeComponents(Writer, RootElement->FirstChildElement("Components"));
 
@@ -128,7 +128,7 @@ void FBlueprintAsset::Deserialize(FBinaryReader& Reader)
 {
     Reader >> mParentClass;
 
-    DeserializeAttributes(Reader, mAttributes);
+    DeserializeConfigs(Reader, mConfigs);
 
     DeserializeComponents(Reader, mAttachedComponents);
 
@@ -163,6 +163,53 @@ void FBlueprintAsset::DeserializeAttributes(FBinaryReader& Reader, WAttributesMa
         Reader >> Name >> Value;
         AttributesMap[Name] = std::move(Value);
     }
+}
+
+void FBlueprintAsset::SerializeConfigs(FBinaryWriter& Writer, FXMLElement* ConfigsElement)
+{
+    if (ConfigsElement == nullptr)
+    {
+        Writer << (int)0;
+        return;
+    }
+
+    int NumConfigs = ConfigsElement->ChildElementCount();
+    Writer << NumConfigs;
+
+    FXMLElement* ConfigElement = ConfigsElement->FirstChildElement();
+    while (ConfigElement)
+    {
+        SerializeConfig(Writer, ConfigElement);
+        ConfigElement = ConfigElement->NextSiblingElement();
+    }
+}
+
+void FBlueprintAsset::DeserializeConfigs(FBinaryReader& Reader, TArray<TSharedPtr<FBlueprintConfigNode>>& Configs)
+{
+    int NumConfigs;
+    Reader >> NumConfigs;
+
+    Configs.resize(NumConfigs);
+    for (int i = 0; i < NumConfigs; ++i)
+    {
+        Configs[i] = MakeShared<FBlueprintConfigNode>();
+        DeserializeConfig(Reader, Configs[i]);
+    }
+}
+
+void FBlueprintAsset::SerializeConfig(FBinaryWriter& Writer, FXMLElement* ConfigElement)
+{
+    std::string Name = ConfigElement->Name();
+    Writer << Name;
+
+    SerializeAttributes(Writer, ConfigElement);
+}
+
+void FBlueprintAsset::DeserializeConfig(FBinaryReader& Reader, TSharedPtr<FBlueprintConfigNode>& ConfigNode)
+{
+    Reader >> ConfigNode->Name;
+
+    DeserializeAttributes(Reader, ConfigNode->Attributes);
 }
 
 void FBlueprintAsset::SerializeComponents(FBinaryWriter& Writer, FXMLElement* ComponentsElement)
