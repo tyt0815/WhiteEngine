@@ -8,6 +8,13 @@
 
 unsigned int g_ActorCounter = 0;
 
+void ReportParseError(const std::string& Type, const std::string& WrongValue)
+{
+	std::string ErrorMsg = "Invalid " + Type + " format: " + WrongValue;
+	ShowMessageBox(ErrorMsg);
+	assert(false && "Check the XML attribute format!");
+}
+
 void ApplySceneComponentDefaultAttributes(WSceneComponent* Comp, const std::unordered_map<std::string, std::string>& Attributes)
 {
 	ApplyAttribute(Attributes, "Loc", ParseFloat3, [&](const XMFLOAT3& v) {
@@ -138,7 +145,16 @@ AActor::AActor():
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	mOnSpawnEvent = RegisterWEvent("OnSpawn");
+
 	mOnDestroyEvent = RegisterWEvent("OnDestroy");
+
+	RegisterWEvent("OnTime", [=](const WEvent* Event, const WAttributesMap& Attributes) {
+		TSharedPtr<FOnTimeEvent> OnTimeEvent = MakeShared<FOnTimeEvent>();
+		OnTimeEvent->Event = Event;
+		ExtractAttribute(Attributes, "Time", OnTimeEvent->Time);
+
+		mOnTimeEvents.push_back(std::move(OnTimeEvent));
+		});
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// WEvent End
@@ -152,144 +168,11 @@ void AActor::Tick(float DeltaSecond)
 	mElapsedTime += DeltaSecond;
 
 	int NumOnTimeEvent = (int)mOnTimeEvents.size();
-	while (mOnTimeEventIndex < NumOnTimeEvent && mOnTimeEvents[mOnTimeEventIndex]->mTime <= mElapsedTime)
+	while (mOnTimeEventIndex < NumOnTimeEvent && mOnTimeEvents[mOnTimeEventIndex]->Time <= mElapsedTime)
 	{
-		mOnTimeEvents[mOnTimeEventIndex++]->Dispatch();
+		mOnTimeEvents[mOnTimeEventIndex++]->Event->Dispatch();
 	}
 
-}
-
-void AActor::BeginPlay()
-{
-	Activate();
-	BeginComponents();
-
-	mOnSpawnEvent->Dispatch();
-}
-
-void AActor::AddActions(AActor::WEvent* Event, TArray<TSharedPtr<FBlueprintActionNode>>& Actions)
-{
-	for (const auto& ActionInfo : Actions)
-	{
-		auto ActionFactory = mWActionFactoryMap.find(ActionInfo->Name);
-		if (ActionFactory == mWActionFactoryMap.end())
-		{
-			ShowMessageBox(std::string("Invalid Action name:\n") + Event->Name + "::" + ActionInfo->Name);
-			assert(false);
-		}
-
-		Event->AddAction(ActionFactory->second(ActionInfo->Attributes));
-	}
-}
-
-void AActor::LoadBlueprint(const FBlueprintAsset* Blueprint)
-{
-	// LoadWAttributes(Blueprint->mAttributes);
-
-	WSceneComponent* RootComp = GetRootComponent();
-	assert(RootComp);
-	for (const auto& BlueprintComp : Blueprint->mAttachedComponents)
-	{
-		LoadWComponent_Internal(BlueprintComp.get(), RootComp);		
-	}
-
-	for (const auto& EventInfo : Blueprint->mEvents)
-	{
-		WEvent* Event = nullptr;
-		if (EventInfo->Name.substr(0, 2) == "On")
-		{
-			if (EventInfo->Name == "OnTime")
-			{
-				TSharedPtr<WOnTimeEvent> OnTimeEvent = MakeShared<WOnTimeEvent>();
-				Event = OnTimeEvent.get();
-				OnTimeEvent->Name = "OnTime";
-				OnTimeEvent->mTime = ParseFloat(EventInfo->Attributes["Time"]);
-				mOnTimeEvents.push_back(std::move(OnTimeEvent));
-			}
-			else if (mWEventsMap.count(EventInfo->Name) == 0)
-			{
-				ShowMessageBox("Invalid event name:\n" + EventInfo->Name);
-				assert(false);
-			}
-		}
-		else
-		{
-			if (mWEventsMap.count(EventInfo->Name) > 0)
-			{
-				ShowMessageBox("Already registered custom event:\n" + EventInfo->Name);
-				assert(false);
-			}
-
-			RegisterWEvent(EventInfo->Name);
-		}
-		if (Event == nullptr)
-		{
-			Event = mWEventsMap[EventInfo->Name].get();
-		}
-
-		AddActions(Event, EventInfo->Actions);
-	}
-
-	std::sort(mOnTimeEvents.begin(), mOnTimeEvents.end(), [](const TSharedPtr<WOnTimeEvent>& A, const TSharedPtr<WOnTimeEvent>& B) { return A->mTime < B->mTime; });
-}
-
-void AActor::SetRootComponent(TWeakPtr<WSceneComponent> Component)
-{
-	if (!mRootComponent.expired() && !Component.expired())
-	{
-		TSharedPtr<WSceneComponent> OldRoot = mRootComponent.lock();
-		TSharedPtr<WSceneComponent> NewRoot = Component.lock();
-		if (OldRoot.get() == NewRoot.get())
-		{
-			return;
-		}
-		else
-		{
-			OldRoot->SetupAttachment(NewRoot.get());
-		}
-	}
-
-	mRootComponent = Component;
-}
-
-void AActor::SetActorTransform(FTransform Transform)
-{
-	if (auto Root = mRootComponent.lock())
-	{
-		Root->SetLocalTransform(Transform);
-	}
-}
-
-XMFLOAT3 AActor::GetForwardVector() const
-{
-	XMMATRIX RotationMatrix = GetActorTransform().GetRotationMatrix();
-	XMVECTOR L = XMVector3Transform({ 0.0f, 0.0f, 1.0f }, RotationMatrix);
-	XMFLOAT3 Foward;
-	XMStoreFloat3(&Foward, XMVector3Normalize(L));
-	return Foward;
-}
-
-XMFLOAT3 AActor::GetRightVector() const
-{
-	XMMATRIX RotationMatrix = GetActorTransform().GetRotationMatrix();
-	XMVECTOR R = XMVector3Transform({ 1.0f, 0.0f, 0.0f }, RotationMatrix);
-	XMFLOAT3 Right;
-	XMStoreFloat3(&Right, R);
-	return Right;
-}
-
-XMFLOAT3 AActor::GetUpVector() const
-{
-	XMMATRIX RotationMatrix = GetActorTransform().GetRotationMatrix();
-	XMVECTOR U = XMVector3Transform({ 0.0f, 1.0f, 0.0f }, RotationMatrix);
-	XMFLOAT3 Up;
-	XMStoreFloat3(&Up, U);
-	return Up;
-}
-
-XMFLOAT4 AActor::GetActorQuaternion()
-{
-	return mRootComponent.lock()->GetWorldQuatRotation();
 }
 
 void AActor::Destroy()
@@ -339,6 +222,76 @@ void AActor::OnDeactivate()
 	Super::OnDeactivate();
 }
 
+void AActor::BeginPlay()
+{
+	Activate();
+	BeginComponents();
+
+	std::sort(mOnTimeEvents.begin(), mOnTimeEvents.end(), [](const TSharedPtr<FOnTimeEvent>& A, const TSharedPtr<FOnTimeEvent>& B) { return A->Time < B->Time; });
+
+	mOnSpawnEvent->Dispatch();
+
+}
+
+XMFLOAT3 AActor::GetForwardVector() const
+{
+	XMMATRIX RotationMatrix = GetActorTransform().GetRotationMatrix();
+	XMVECTOR L = XMVector3Transform({ 0.0f, 0.0f, 1.0f }, RotationMatrix);
+	XMFLOAT3 Foward;
+	XMStoreFloat3(&Foward, XMVector3Normalize(L));
+	return Foward;
+}
+
+XMFLOAT3 AActor::GetRightVector() const
+{
+	XMMATRIX RotationMatrix = GetActorTransform().GetRotationMatrix();
+	XMVECTOR R = XMVector3Transform({ 1.0f, 0.0f, 0.0f }, RotationMatrix);
+	XMFLOAT3 Right;
+	XMStoreFloat3(&Right, R);
+	return Right;
+}
+
+XMFLOAT3 AActor::GetUpVector() const
+{
+	XMMATRIX RotationMatrix = GetActorTransform().GetRotationMatrix();
+	XMVECTOR U = XMVector3Transform({ 0.0f, 1.0f, 0.0f }, RotationMatrix);
+	XMFLOAT3 Up;
+	XMStoreFloat3(&Up, U);
+	return Up;
+}
+
+XMFLOAT4 AActor::GetActorQuaternion()
+{
+	return mRootComponent.lock()->GetWorldQuatRotation();
+}
+
+void AActor::SetRootComponent(TWeakPtr<WSceneComponent> Component)
+{
+	if (!mRootComponent.expired() && !Component.expired())
+	{
+		TSharedPtr<WSceneComponent> OldRoot = mRootComponent.lock();
+		TSharedPtr<WSceneComponent> NewRoot = Component.lock();
+		if (OldRoot.get() == NewRoot.get())
+		{
+			return;
+		}
+		else
+		{
+			OldRoot->SetupAttachment(NewRoot.get());
+		}
+	}
+
+	mRootComponent = Component;
+}
+
+void AActor::SetActorTransform(FTransform Transform)
+{
+	if (auto Root = mRootComponent.lock())
+	{
+		Root->SetLocalTransform(Transform);
+	}
+}
+
 void AActor::OnCreateComponent(WActorComponent* Comp)
 {
 	Comp->mOwner = this;
@@ -354,13 +307,6 @@ void AActor::OnCreateComponent(WActorComponent* Comp)
 	{
 		mAllNoneSceneComponent.emplace_back(Comp->GetWeakPtr<WActorComponent>());
 	}
-}
-
-void AActor::RegisterWComponentFactory(const std::string& Type, WComponentFactory Lambda)
-{
-	assert(mWComponentFactoryMap.count(Type) == 0 && "Already registered component type");
-
-	mWComponentFactoryMap[Type] = Lambda;
 }
 
 void AActor::UpdateRecursive()
@@ -379,18 +325,61 @@ void AActor::BeginComponents()
 	}
 }
 
-const AActor::WEvent* AActor::RegisterWEvent(const std::string& Name)
+void AActor::LoadBlueprint(const FBlueprintAsset* Blueprint)
 {
-	if (mWEventsMap.count(Name) > 0)
+	LoadWConfigs(Blueprint->mConfigs);
+
+	WSceneComponent* RootComp = GetRootComponent();
+	assert(RootComp);
+	for (const auto& BlueprintComp : Blueprint->mAttachedComponents)
 	{
-		ShowMessageBox("Already registered event:\n" + Name);
-		assert(false);
+		LoadWComponent_Internal(BlueprintComp.get(), RootComp);
 	}
 
-	TSharedPtr<WEvent> Event = MakeShared<WEvent>();
-	Event->Name = Name;
-	mWEventsMap[Name] = Event;
-	return Event.get();
+	LoadWEvents(Blueprint->mEvents);
+}
+
+void AActor::LoadWEvent(AActor::WEvent* Event, FBlueprintEventNode* EventNode)
+{
+	Event->Initializer(Event, EventNode->Attributes);
+
+	for (const auto& ActionInfo : EventNode->Actions)
+	{
+		auto ActionFactory = mWActionFactoryMap.find(ActionInfo->Name);
+		if (ActionFactory == mWActionFactoryMap.end())
+		{
+			ShowMessageBox(std::string("Invalid Action name:\n") + Event->Name + "::" + ActionInfo->Name);
+			assert(false);
+		}
+
+		Event->AddAction(ActionFactory->second(ActionInfo->Attributes));
+	}
+}
+
+void AActor::RegisterWComponentFactory(const std::string& Type, WComponentFactory Lambda)
+{
+	assert(mWComponentFactoryMap.count(Type) == 0 && "Already registered component type");
+
+	mWComponentFactoryMap[Type] = Lambda;
+}
+
+void AActor::RegisterWActionFactory(const std::string Name, WActionFactoryFunc Lambda)
+{
+	mWActionFactoryMap[Name] = Lambda;
+}
+
+const AActor::WEvent* AActor::RegisterWEvent(const std::string& Name)
+{
+	WEvent* Event = RegisterWEvent_Internal(Name);
+	Event->Initializer = [](auto&&, auto&&) {};
+	return Event;
+}
+
+void AActor::RegisterWEvent(const std::string& Name, std::function<void(const WEvent* Event, const WAttributesMap&)> InitializerFunc)
+{
+	WEvent* Event = RegisterWEvent_Internal(Name);
+
+	Event->Initializer = InitializerFunc;
 }
 
 void AActor::SetWProperty(const std::string& Name, WVariantValue Value)
@@ -425,9 +414,36 @@ void AActor::LoadWComponent_Internal(FBlueprintComponentNode* CompNode, WSceneCo
 	}
 }
 
-void AActor::RegisterWActionFactory(const std::string Name, WActionFactoryFunc Lambda)
+void AActor::LoadWEvents(const TArray<TSharedPtr<FBlueprintEventNode>>& Events)
 {
-	mWActionFactoryMap[Name] = Lambda;
+	for (const auto& EventInfo : Events)
+	{
+		WEvent* Event = nullptr;
+		if (EventInfo->Name.substr(0, 2) == "On")
+		{
+			if (mWEventsMap.count(EventInfo->Name) == 0)
+			{
+				ShowMessageBox("Invalid event name:\n" + EventInfo->Name);
+				assert(false);
+			}
+		}
+		else
+		{
+			if (mWEventsMap.count(EventInfo->Name) > 0)
+			{
+				ShowMessageBox("Already registered custom event:\n" + EventInfo->Name);
+				assert(false);
+			}
+
+			RegisterWEvent(EventInfo->Name);
+		}
+		if (Event == nullptr)
+		{
+			Event = mWEventsMap[EventInfo->Name].get();
+		}
+
+		LoadWEvent(Event, EventInfo.get());
+	}
 }
 
 void AActor::RegisterWComponent(const std::string& Name, WSceneComponent* Comp)
@@ -437,11 +453,18 @@ void AActor::RegisterWComponent(const std::string& Name, WSceneComponent* Comp)
 	mWComponentsMap[Name] = Comp;
 }
 
-void ReportParseError(const std::string& Type, const std::string& WrongValue)
+AActor::WEvent* AActor::RegisterWEvent_Internal(const std::string& Name)
 {
-	std::string ErrorMsg = "Invalid " + Type + " format: " + WrongValue;
-	ShowMessageBox(ErrorMsg);
-	assert(false && "Check the XML attribute format!");
+	if (mWEventsMap.count(Name) > 0)
+	{
+		ShowMessageBox("Already registered event:\n" + Name);
+		assert(false);
+	}
+
+	TSharedPtr<WEvent> Event = MakeShared<WEvent>();
+	Event->Name = Name;
+	mWEventsMap[Name] = Event;
+	return Event.get();
 }
 
 // 1. Float3 파서
@@ -494,4 +517,3 @@ bool ParseBool(const std::string& String)
 	ReportParseError("Bool (true/false/1/0)", String);
 	return false;
 }
-

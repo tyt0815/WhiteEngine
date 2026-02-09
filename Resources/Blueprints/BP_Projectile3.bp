@@ -1,4 +1,9 @@
-<AProjectileBase InitSpeed = "(0, 0, 10)" Life = "5" GravityScale = "0.2" MaxSpeed = "1000">
+<AProjectileBase>
+
+    <Configs>
+        <Movement InitSpeed = "(0, 10, 20)" GravityScale = "1" MaxSpeed = "1000"/>
+        <LifeCycle Life = "5" />
+    </Configs>
 
     <Components>
         <Mesh Name = "Body" Asset = "SM_MetalRing">
@@ -11,6 +16,10 @@
             <Particle Asset = "P_Explosion_Red_Small"/>
             <Destroy/>
         </OnHit>
+
+        <OnTime Time = "1">
+            <Particle Asset = "P_Explosion_Red_Small"/>
+        </OnTime>
     </Events>
 
 </AProjectileBase>

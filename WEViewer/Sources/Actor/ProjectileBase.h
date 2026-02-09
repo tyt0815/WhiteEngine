@@ -9,27 +9,6 @@
 class AProjectileBase : public AActor
 {
 	typedef AActor Super;
-	//struct FTrackedSceneCompInfo
-	//{
-	//	WSceneComponent* Target;
-	//	XMFLOAT3 LastTickLocation;
-	//};
-
-	//struct FMakeCollisionInfo
-	//{
-	//	enum class EType
-	//	{
-	//		ET_Line,
-	//		ET_Box,
-	//	};
-
-	//	FTrackedSceneCompInfo* TargetInfo;
-	//	EType	 Type;
-	//	union
-	//	{
-	//		XMFLOAT3 Extent;
-	//	};
-	//};
 
 public:
 	AProjectileBase();
@@ -39,7 +18,7 @@ public:
 	virtual void BeginPlay() override;
 
 protected:
-	virtual void LoadWAttributes(const WAttributesMap& Attributes) override;
+	virtual void LoadWConfigs(const std::unordered_map<std::string, WAttributesMap>& Configs) override;
 
 	virtual void OnLoadWComponent(struct FBlueprintComponentNode* CompNode, WSceneComponent* Comp) override;
 

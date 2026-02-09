@@ -21,12 +21,6 @@ struct FAttribute
 
 using WAttributesMap = std::unordered_map<std::string, std::string>;
 
-struct FBlueprintConfigNode
-{
-	std::string Name;
-	WAttributesMap Attributes;
-};
-
 struct FBlueprintComponentNode
 {
 	std::string Type;
@@ -55,7 +49,7 @@ class FBlueprintAsset : public FAsset
 public:
 	std::string mParentClass;
 
-	TArray<TSharedPtr<FBlueprintConfigNode>> mConfigs;
+	std::unordered_map<std::string, WAttributesMap> mConfigs;
 
 	TArray<TSharedPtr<FBlueprintComponentNode>> mAttachedComponents;
 
@@ -85,11 +79,9 @@ private:
 
 	void SerializeConfigs(FBinaryWriter& Writer, FXMLElement* ConfigsElement);
 
-	void DeserializeConfigs(FBinaryReader& Reader, TArray<TSharedPtr<FBlueprintConfigNode>>& ConfigNode);
+	void DeserializeConfigs(FBinaryReader& Reader, std::unordered_map<std::string, WAttributesMap>& ConfigNode);
 
 	void SerializeConfig(FBinaryWriter& Writer, FXMLElement* ConfigElement);
-
-	void DeserializeConfig(FBinaryReader& Reader, TSharedPtr<FBlueprintConfigNode>& ConfigNode);
 
 	void SerializeComponents(FBinaryWriter& Writer, FXMLElement* ComponentsElement);
 

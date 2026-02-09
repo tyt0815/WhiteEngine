@@ -301,50 +301,71 @@ void AProjectileBase::BeginPlay()
 	}
 }
 
-void AProjectileBase::LoadWAttributes(const WAttributesMap& Attributes)
+void AProjectileBase::LoadWConfigs(const std::unordered_map<std::string, WAttributesMap>& Configs)
 {
-	Super::LoadWAttributes(Attributes);
+	Super::LoadWConfigs(Configs);
 
 	TSharedPtr<WProjectileMovementComponent> ProjMoveComp = mProjMoveComp.lock();
 
-	// 1. 초기 속도 (Initial Velocity) - XMFLOAT3
-	ApplyAttribute(Attributes, "InitSpeed", ParseFloat3, [&](const XMFLOAT3& v) {
-		ProjMoveComp->SetInitialVelocity(v);
-		});
+	if (Configs.count("Movement"))
+	{
+		const WAttributesMap& Attributes = Configs.at("Movement");
 
-	// 2. 최대 속도 (Max Speed) - float
-	ApplyAttribute(Attributes, "MaxSpeed", ParseFloat, [&](float v) {
-		ProjMoveComp->SetMaxSpeed(v);
-		});
+		// 1. 초기 속도 (Initial Velocity) - XMFLOAT3
+		ApplyAttribute(Attributes, "InitSpeed", ParseFloat3, [&](const XMFLOAT3& v) {
+			ProjMoveComp->SetInitialVelocity(v);
+			});
 
-	// 3. 가속도 (Acceleration) - float
-	ApplyAttribute(Attributes, "Acceleration", ParseFloat, [&](float v) {
-		ProjMoveComp->SetAcceleration(v);
-		});
+		// 2. 최대 속도 (Max Speed) - float
+		ApplyAttribute(Attributes, "MaxSpeed", ParseFloat, [&](float v) {
+			ProjMoveComp->SetMaxSpeed(v);
+			});
 
-	// 4. 중력 배율 (Gravity Scale) - float
-	ApplyAttribute(Attributes, "GravityScale", ParseFloat, [&](float v) {
-		ProjMoveComp->SetGravityScale(v);
-		});
+		// 3. 가속도 (Acceleration) - float
+		ApplyAttribute(Attributes, "Acceleration", ParseFloat, [&](float v) {
+			ProjMoveComp->SetAcceleration(v);
+			});
 
-	// 5. 수명 (LifeSpan / Life) - float
-	ApplyAttribute(Attributes, "Life", ParseFloat, [&](float v) {
-		ProjMoveComp->SetLifeSpan(v);
-		});
+		// 4. 중력 배율 (Gravity Scale) - float
+		ApplyAttribute(Attributes, "GravityScale", ParseFloat, [&](float v) {
+			ProjMoveComp->SetGravityScale(v);
+			});
+	}
 
-	// 6. 유도 기능 (Homing) - float
-	ApplyAttribute(Attributes, "Homing", ParseFloat, [&](float v) {
-		SetSmartHoming(true, v);
-		});
+	if (Configs.count("LifeCycle"))
+	{
+		const WAttributesMap& Attributes = Configs.at("LifeCycle");
 
-	// 7. 유도 회전 제한 (HomingTurnLimit) - float
-	ApplyAttribute(Attributes, "HomingTurnLimit", ParseFloat, [&](float v) {
-		ProjMoveComp->SetHomingTurnLimit(v);
-		});
+		// 5. 수명 (LifeSpan / Life) - float
+		ApplyAttribute(Attributes, "Life", ParseFloat, [&](float v) {
+			ProjMoveComp->SetLifeSpan(v);
+			});
+	}
 
-	ApplyAttribute(Attributes, "Damage", ParseFloat, [&](float v) {
-		mDamage = v;
-		});
+	if (Configs.count("Homing"))
+	{
+		const WAttributesMap& Attributes = Configs.at("Homing");
+
+		// 6. 유도 기능 (Homing) - float
+		ApplyAttribute(Attributes, "Homing", ParseFloat, [&](float v) {
+			SetSmartHoming(true, v);
+			});
+
+
+		// 7. 유도 회전 제한 (HomingTurnLimit) - float
+		ApplyAttribute(Attributes, "HomingTurnLimit", ParseFloat, [&](float v) {
+			ProjMoveComp->SetHomingTurnLimit(v);
+			});
+	}
+
+	if (Configs.count("Combat"))
+	{
+		const WAttributesMap& Attributes = Configs.at("Combat");
+
+		ApplyAttribute(Attributes, "Damage", ParseFloat, [&](float v) {
+			mDamage = v;
+			});
+	}
 }
 
 void AProjectileBase::OnLoadWComponent(FBlueprintComponentNode* CompNode, WSceneComponent* Comp)
@@ -466,176 +487,3 @@ void AProjectileBase::OnCollision(AActor* Actor, WPhysicsComponent* Comp, XMFLOA
 {
 	mOnHitEvent->Dispatch();
 }
-
-//AProjectileBase::FTrackedSceneCompInfo* AProjectileBase::AddTrackedComp(WSceneComponent* Comp)
-//{
-//	// 1. 기존 요소 탐색
-//	auto Iter = std::find_if(mTrackedComp.begin(), mTrackedComp.end(),
-//		[Comp](const TUniquePtr<FTrackedSceneCompInfo>& Info)
-//		{
-//			return Info->Target == Comp;
-//		}
-//	);
-//
-//	// 2. 이미 존재하면 즉시 리턴
-//	if (Iter != mTrackedComp.end())
-//	{
-//		return Iter->get();
-//	}
-//
-//	// 3. 없으면 새로 생성 및 추가
-//	auto Info = MakeUnique<FTrackedSceneCompInfo>();
-//	Info->Target = Comp;
-//	Info->LastTickLocation = Comp->GetWorldLocation();
-//
-//	// 포인터를 꺼내놓고 push_back 합니다. (std::move 이후에는 Info를 쓸 수 없으므로)
-//	FTrackedSceneCompInfo* RawPtr = Info.get();
-//	mTrackedComp.push_back(std::move(Info));
-//
-//	return RawPtr;
-//}
-//
-//void AProjectileBase::SetTrailParticle(WSceneComponent* Comp)
-//{
-//	FTrackedSceneCompInfo* Info = AddTrackedComp(Comp);
-//
-//	if (std::count(mTrailComp.begin(), mTrailComp.end(), Info) == 0)
-//	{
-//		mTrailComp.push_back(Info);
-//	}
-//}
-//
-//void AProjectileBase::MakeLineCollision(WSceneComponent* Comp)
-//{
-//	FTrackedSceneCompInfo* Info = AddTrackedComp(Comp);
-//	const auto Iter = std::find_if(
-//		mCollisionInfo.begin(), mCollisionInfo.end(),
-//		[Info](const FMakeCollisionInfo& A) 
-//		{ 
-//			return A.TargetInfo == Info; 
-//		}
-//	);
-//	if (Iter == mCollisionInfo.end())
-//	{
-//		FMakeCollisionInfo CollInfo;
-//		CollInfo.TargetInfo = Info;
-//		CollInfo.Type = FMakeCollisionInfo::EType::ET_Line;
-//		mCollisionInfo.push_back(std::move(CollInfo));
-//	}
-//}
-//
-//std::string AProjectileBase::SelectRandomString(const TArray<std::string>& Strings)
-//{
-//	return Strings[FDXMath::Rand(0, (int)Strings.size() - 1)];
-//}
-//
-//void AProjectileBase::CreateBoxTraceHitBySplineComponent(WSplineComponent* SplineComponent, int Segment)
-//{
-//	if (SplineComponent == nullptr)
-//	{
-//		return;
-//	}
-//
-//	WSceneComponent* Parent = SplineComponent->GetParent();
-//	if (Parent == nullptr)
-//	{
-//		Parent = SplineComponent;
-//	}
-//
-//	Segment = max(Segment, 1);
-//	int SplineLUTNum = SplineComponent->GetSplineLUTNum();
-//	int Step = max(1, SplineLUTNum / Segment);
-//
-//	int i = 0;
-//	int j = Step;
-//	while (true)
-//	{
-//		const WSplineComponent::FSplineLUT* Point0 = SplineComponent->GetSplineLUTAt(i);
-//		const WSplineComponent::FSplineLUT* Point1 = SplineComponent->GetSplineLUTAt(j);
-//		const auto Mid = SplineComponent->GetSplineLUTAtDistanceAlongSpline((Point0->Distance + Point1->Distance) / 2.0f);
-//		
-//		XMVECTOR P0 = XMLoadFloat3(&Point0->Location);
-//		XMVECTOR P1 = XMLoadFloat3(&Point1->Location);
-//		XMVECTOR ToP1 = XMVectorSubtract(P1, P0);
-//
-//		FTransform Transform;
-//		XMStoreFloat3(&Transform.Translation, (P0 + P1) / 2.0f);
-//
-//		Transform.SetRotationByQuat(Mid.Quat);
-//
-//		Transform.Scale.x = max(0.1f, Mid.Property1);
-//		Transform.Scale.y = max(0.1f, Mid.Property2);
-//		Transform.Scale.z = max(0.1f, XMVectorGetX(XMVector3Length(ToP1)));
-//
-//		TSharedPtr<WSceneComponent> Comp = CreateComponent<WSceneComponent>().lock();
-//		Comp->SetupAttachment(Parent);
-//		Comp->SetLocalTransform(Transform);
-//		mBoxCollisionInfo.push_back(AddTrackedComp(Comp.get()));
-//
-//		if (j >= SplineLUTNum - 1)
-//		{
-//			break;
-//		}
-//		i = j;
-//		j = min(j + Step, SplineLUTNum - 1);
-//	}
-//}
-//
-//void AProjectileBase::CreateBoxColliderBySplineComponent(WSplineComponent* SplineComponent, int Segment)
-//{
-//	if (SplineComponent == nullptr)
-//	{
-//		return;
-//	}
-//
-//	WSceneComponent* Parent = SplineComponent->GetParent();
-//	if (Parent == nullptr)
-//	{
-//		Parent = SplineComponent;
-//	}
-//
-//	Segment = max(Segment, 1);
-//	int SplineLUTNum = SplineComponent->GetSplineLUTNum();
-//	int Step = max(1, SplineLUTNum / Segment);
-//
-//	int i = 0;
-//	int j = Step;
-//	while(true)
-//	{
-//		const WSplineComponent::FSplineLUT* Point0 = SplineComponent->GetSplineLUTAt(i);
-//		const WSplineComponent::FSplineLUT* Point1 = SplineComponent->GetSplineLUTAt(j);
-//		const auto Mid = SplineComponent->GetSplineLUTAtDistanceAlongSpline((Point0->Distance + Point1->Distance) / 2.0f);
-//		XMVECTOR P0 = XMLoadFloat3(&Point0->Location);
-//		XMVECTOR P1 = XMLoadFloat3(&Point1->Location);
-//		XMVECTOR ToP1 = XMVectorSubtract(P1, P0);
-//
-//		FTransform Transform;
-//		XMStoreFloat3(&Transform.Translation, (P0 + P1) / 2.0f);
-//		
-//		Transform.SetRotationByQuat(Mid.Quat);
-//
-//		Transform.Scale.x = max(0.1f, Mid.Property1);
-//		Transform.Scale.y = max(0.1f, Mid.Property2);
-//		Transform.Scale.z = max(0.1f, XMVectorGetX(XMVector3Length(ToP1)));
-//		
-//
-//		TSharedPtr<WBoxComponent> BoxComp = CreateComponent<WBoxComponent>().lock();
-//		assert(BoxComp);
-//		BoxComp->SetupAttachment(Parent);
-//		BoxComp->ActivatePhysicBody();
-//		BoxComp->SetExtent(XMFLOAT3(0.5f, 0.5f, 0.7f));
-//		BoxComp->SetMotionType(EMotionType::Kinematic);
-//		BoxComp->SetObjectChannel(EObjectChannel::EOC_Projectile);
-//		BoxComp->SetLocalTransform(Transform);
-//		BoxComp->GenerateOverlapEvent();
-//		BoxComp->BeginComponent();
-//		BoxComp->mOnBeginOverlapDelegate.Bind(this, &AProjectileBase::OnHit);
-//		
-//		if (j >= SplineLUTNum - 1)
-//		{
-//			break;
-//		}
-//		i = j;
-//		j = min(j + Step, SplineLUTNum - 1);
-//	}
-//}

@@ -184,16 +184,16 @@ void FBlueprintAsset::SerializeConfigs(FBinaryWriter& Writer, FXMLElement* Confi
     }
 }
 
-void FBlueprintAsset::DeserializeConfigs(FBinaryReader& Reader, TArray<TSharedPtr<FBlueprintConfigNode>>& Configs)
+void FBlueprintAsset::DeserializeConfigs(FBinaryReader& Reader, std::unordered_map<std::string, WAttributesMap>& ConfigNode)
 {
     int NumConfigs;
     Reader >> NumConfigs;
 
-    Configs.resize(NumConfigs);
     for (int i = 0; i < NumConfigs; ++i)
     {
-        Configs[i] = MakeShared<FBlueprintConfigNode>();
-        DeserializeConfig(Reader, Configs[i]);
+        std::string Name;
+        Reader >> Name;
+        DeserializeAttributes(Reader, ConfigNode[Name]);
     }
 }
 
@@ -203,13 +203,6 @@ void FBlueprintAsset::SerializeConfig(FBinaryWriter& Writer, FXMLElement* Config
     Writer << Name;
 
     SerializeAttributes(Writer, ConfigElement);
-}
-
-void FBlueprintAsset::DeserializeConfig(FBinaryReader& Reader, TSharedPtr<FBlueprintConfigNode>& ConfigNode)
-{
-    Reader >> ConfigNode->Name;
-
-    DeserializeAttributes(Reader, ConfigNode->Attributes);
 }
 
 void FBlueprintAsset::SerializeComponents(FBinaryWriter& Writer, FXMLElement* ComponentsElement)
