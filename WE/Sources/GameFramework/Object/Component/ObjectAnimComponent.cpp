@@ -191,125 +191,154 @@ void WObjectAnimComponent::Tick(float DeltaTime)
 	// 1. 시간 업데이트 (이전 프레임 기록)
 	float prevTime = mCurrentTime;
 	mCurrentTime += DeltaTime * mPlayRate;
+	float FinalTime = mCurrentTime;
 	float duration = GetDuration();
-
-	XMVECTOR vDeltaLoc;
-	XMVECTOR vDeltaRot;
-	XMVECTOR vDeltaScale;
 
 	if (mCurrentTime >= duration)
 	{
-		// 루프 시점 델타 보정
 		if (mLoop)
 		{
-			// A 구간: 이전 시간부터 끝까지의 움직임
-			FTransform prevT = mSampler->SampleTransform(SecondToFrame(prevTime));
-			FTransform endT = mSampler->SampleTransform(SecondToFrame(duration));
-
-			// B 구간: 처음부터 현재 리셋된 시간까지의 움직임
-			mCurrentTime = std::fmod(mCurrentTime, duration);
-			FTransform startT = mSampler->SampleTransform(0.0f);
-			FTransform currT = mSampler->SampleTransform(SecondToFrame(mCurrentTime));
-
-			vDeltaLoc = (XMLoadFloat3(&endT.Translation) - XMLoadFloat3(&prevT.Translation)) +
-				(XMLoadFloat3(&currT.Translation) - XMLoadFloat3(&startT.Translation));
-
-			vDeltaRot = (XMLoadFloat3(&endT.Rotation) - XMLoadFloat3(&prevT.Rotation)) +
-				(XMLoadFloat3(&currT.Rotation) - XMLoadFloat3(&startT.Rotation));
-
-			vDeltaScale = (XMLoadFloat3(&endT.Scale) - XMLoadFloat3(&prevT.Scale)) +
-				(XMLoadFloat3(&currT.Scale) - XMLoadFloat3(&startT.Scale));
+			FinalTime = std::fmod(mCurrentTime, duration);
 		}
 		else
 		{
-			// 종료 처리 (기존 로직 유지)
 			Stop();
+		}
+	}	
 
+	if (mRootMotionFlags > 0)
+	{
+		XMVECTOR vDeltaLoc;
+		XMVECTOR vDeltaRot;
+		XMVECTOR vDeltaScale;
+
+		if (mCurrentTime >= duration)
+		{
+			// 루프 시점 델타 보정
+			if (mLoop)
+			{
+				// A 구간: 이전 시간부터 끝까지의 움직임
+				FTransform prevT = mSampler->SampleTransform(SecondToFrame(prevTime));
+				FTransform endT = mSampler->SampleTransform(SecondToFrame(duration));
+
+				// B 구간: 처음부터 현재 리셋된 시간까지의 움직임
+				FTransform startT = mSampler->SampleTransform(0.0f);
+				FTransform currT = mSampler->SampleTransform(SecondToFrame(FinalTime));
+
+				vDeltaLoc = (XMLoadFloat3(&endT.Translation) - XMLoadFloat3(&prevT.Translation)) +
+					(XMLoadFloat3(&currT.Translation) - XMLoadFloat3(&startT.Translation));
+
+				vDeltaRot = (XMLoadFloat3(&endT.Rotation) - XMLoadFloat3(&prevT.Rotation)) +
+					(XMLoadFloat3(&currT.Rotation) - XMLoadFloat3(&startT.Rotation));
+
+				vDeltaScale = (XMLoadFloat3(&endT.Scale) - XMLoadFloat3(&prevT.Scale)) +
+					(XMLoadFloat3(&currT.Scale) - XMLoadFloat3(&startT.Scale));
+			}
+			else
+			{
+				FTransform prevT = mSampler->SampleTransform(SecondToFrame(prevTime));
+				FTransform endT = mSampler->SampleTransform(SecondToFrame(duration));
+				vDeltaLoc = XMLoadFloat3(&endT.Translation) - XMLoadFloat3(&prevT.Translation);
+				vDeltaRot = XMLoadFloat3(&endT.Rotation) - XMLoadFloat3(&prevT.Rotation);
+				vDeltaScale = XMLoadFloat3(&endT.Scale) - XMLoadFloat3(&prevT.Scale);
+			}
+		}
+		else
+		{
+			// 일반 프레임 델타 계산 (기존 로직)
 			FTransform prevT = mSampler->SampleTransform(SecondToFrame(prevTime));
-			FTransform endT = mSampler->SampleTransform(SecondToFrame(duration));
-			vDeltaLoc = XMLoadFloat3(&endT.Translation) - XMLoadFloat3(&prevT.Translation);
-			vDeltaRot = XMLoadFloat3(&endT.Rotation) - XMLoadFloat3(&prevT.Rotation);
-			vDeltaScale = XMLoadFloat3(&endT.Scale) - XMLoadFloat3(&prevT.Scale);
+			FTransform currT = mSampler->SampleTransform(SecondToFrame(FinalTime));
+
+			vDeltaLoc = XMLoadFloat3(&currT.Translation) - XMLoadFloat3(&prevT.Translation);
+			vDeltaRot = XMLoadFloat3(&currT.Rotation) - XMLoadFloat3(&prevT.Rotation);
+			vDeltaScale = XMLoadFloat3(&currT.Scale) - XMLoadFloat3(&prevT.Scale);
+		}
+
+		// 비트 플래그에 따른 마스킹
+		XMFLOAT3 dLoc, dRot, dScale;
+		XMStoreFloat3(&dLoc, vDeltaLoc);
+		XMStoreFloat3(&dRot, vDeltaRot);
+		XMStoreFloat3(&dScale, vDeltaScale);
+
+		if (!(mRootMotionFlags & ERootMotion::LocX)) dLoc.x = 0.f;
+		if (!(mRootMotionFlags & ERootMotion::LocY)) dLoc.y = 0.f;
+		if (!(mRootMotionFlags & ERootMotion::LocZ)) dLoc.z = 0.f;
+
+		if (!(mRootMotionFlags & ERootMotion::RotX)) dRot.x = 0.f;
+		if (!(mRootMotionFlags & ERootMotion::RotY)) dRot.y = 0.f;
+		if (!(mRootMotionFlags & ERootMotion::RotZ)) dRot.z = 0.f;
+
+		if (!(mRootMotionFlags & ERootMotion::ScaleX)) dScale.x = 0.f;
+		if (!(mRootMotionFlags & ERootMotion::ScaleY)) dScale.y = 0.f;
+		if (!(mRootMotionFlags & ERootMotion::ScaleZ)) dScale.z = 0.f;
+
+		// 4. 최종 적용 대상 결정 (캐싱된 타겟이 없으면 액터)
+		if (auto Target = mTarget.lock()) // 특정 씬 컴포넌트를 조종할 때
+		{
+			// 컴포넌트는 상대(Local) 좌표계이므로 델타를 그냥 더해줌
+			FTransform T = Target->GetLocalTransform();
+
+			XMVECTOR NewLoc = XMLoadFloat3(&T.Translation) + XMLoadFloat3(&dLoc);
+			XMVECTOR NewRot = XMLoadFloat3(&T.Rotation) + XMLoadFloat3(&dRot);
+			XMVECTOR NewScale = XMLoadFloat3(&T.Scale) + XMLoadFloat3(&dScale);
+
+			FTransform NewT;
+			XMStoreFloat3(&NewT.Translation, NewLoc);
+			XMStoreFloat3(&NewT.Rotation, NewRot);
+			XMStoreFloat3(&NewT.Scale, NewScale);
+
+			Target->SetLocalTransform(NewT);
+		}
+		else if (AActor* OwnerPtr = GetOwner().lock().get()) // 타겟이 없으면 액터(RootComponent)에 적용 (루트 모션)
+		{
+			// 위치는 액터의 현재 회전 방향을 고려해서 더해줘야 함
+			XMFLOAT4 ActorQuat = OwnerPtr->GetActorQuaternion();
+			XMVECTOR vActorQuat = XMLoadFloat4(&ActorQuat);
+			XMVECTOR vRotatedDeltaLoc = XMVector3Rotate(XMLoadFloat3(&dLoc), vActorQuat);
+
+			// 위치 적용
+			XMFLOAT3 curLoc = OwnerPtr->GetActorLocation();
+			XMVECTOR vNewLoc = XMLoadFloat3(&curLoc) + vRotatedDeltaLoc;
+			XMFLOAT3 finalLoc;
+			XMStoreFloat3(&finalLoc, vNewLoc);
+			OwnerPtr->SetActorLocation(finalLoc);
+
+			// 회전 적용 (Euler 누적)
+			XMFLOAT3 curRot = OwnerPtr->GetActorRotation();
+			XMVECTOR vNewRot = XMLoadFloat3(&curRot) + XMLoadFloat3(&dRot);
+			XMFLOAT3 finalRot;
+			XMStoreFloat3(&finalRot, vNewRot);
+			OwnerPtr->SetActorRotation(finalRot);
+
+			// 스케일 적용
+			XMFLOAT3 curScale = OwnerPtr->GetActorScale();
+			XMVECTOR vNewScale = XMLoadFloat3(&curScale) + XMLoadFloat3(&dScale);
+			XMFLOAT3 finalScale;
+			XMStoreFloat3(&finalScale, vNewScale);
+			OwnerPtr->SetActorScale(finalScale);
 		}
 	}
-	else
-	{
-		// 일반 프레임 델타 계산 (기존 로직)
-		FTransform prevT = mSampler->SampleTransform(SecondToFrame(prevTime));
-		FTransform currT = mSampler->SampleTransform(SecondToFrame(mCurrentTime));
 
-		vDeltaLoc = XMLoadFloat3(&currT.Translation) - XMLoadFloat3(&prevT.Translation);
-		vDeltaRot = XMLoadFloat3(&currT.Rotation) - XMLoadFloat3(&prevT.Rotation);
-		vDeltaScale = XMLoadFloat3(&currT.Scale) - XMLoadFloat3(&prevT.Scale);
+
+	for (FCurveBind& BoundCurve : mBoundCurves)
+	{
+		float Value = BoundCurve.CurveSampler.SampleAnimDataByFrame(SecondToFrame(FinalTime));
+		if (BoundCurve.bModifier)
+		{
+			Value *= BoundCurve.BaseValue;
+		}
+
+		*BoundCurve.TargetPtr = Value;
 	}
 
-	// 비트 플래그에 따른 마스킹
-	XMFLOAT3 dLoc, dRot, dScale;
-	XMStoreFloat3(&dLoc, vDeltaLoc);
-	XMStoreFloat3(&dRot, vDeltaRot);
-	XMStoreFloat3(&dScale, vDeltaScale);
 
-	if (!(mRootMotionFlags & ERootMotion::LocX)) dLoc.x = 0.f;
-	if (!(mRootMotionFlags & ERootMotion::LocY)) dLoc.y = 0.f;
-	if (!(mRootMotionFlags & ERootMotion::LocZ)) dLoc.z = 0.f;
-
-	if (!(mRootMotionFlags & ERootMotion::RotX)) dRot.x = 0.f;
-	if (!(mRootMotionFlags & ERootMotion::RotY)) dRot.y = 0.f;
-	if (!(mRootMotionFlags & ERootMotion::RotZ)) dRot.z = 0.f;
-
-	if (!(mRootMotionFlags & ERootMotion::ScaleX)) dScale.x = 0.f;
-	if (!(mRootMotionFlags & ERootMotion::ScaleY)) dScale.y = 0.f;
-	if (!(mRootMotionFlags & ERootMotion::ScaleZ)) dScale.z = 0.f;
-
-	// 4. 최종 적용 대상 결정 (캐싱된 타겟이 없으면 액터)
-	if (auto Target = mTarget.lock()) // 특정 씬 컴포넌트를 조종할 때
-	{
-		// 컴포넌트는 상대(Local) 좌표계이므로 델타를 그냥 더해줌
-		FTransform T = Target->GetLocalTransform();
-
-		XMVECTOR NewLoc = XMLoadFloat3(&T.Translation) + XMLoadFloat3(&dLoc);
-		XMVECTOR NewRot = XMLoadFloat3(&T.Rotation) + XMLoadFloat3(&dRot);
-		XMVECTOR NewScale = XMLoadFloat3(&T.Scale) + XMLoadFloat3(&dScale);
-
-		FTransform NewT;
-		XMStoreFloat3(&NewT.Translation, NewLoc);
-		XMStoreFloat3(&NewT.Rotation, NewRot);
-		XMStoreFloat3(&NewT.Scale, NewScale);
-
-		Target->SetLocalTransform(NewT);
-	}
-	else if(AActor* OwnerPtr = GetOwner().lock().get()) // 타겟이 없으면 액터(RootComponent)에 적용 (루트 모션)
-	{
-		// 위치는 액터의 현재 회전 방향을 고려해서 더해줘야 함
-		XMFLOAT4 ActorQuat = OwnerPtr->GetActorQuaternion();
-		XMVECTOR vActorQuat = XMLoadFloat4(&ActorQuat);
-		XMVECTOR vRotatedDeltaLoc = XMVector3Rotate(XMLoadFloat3(&dLoc), vActorQuat);
-
-		// 위치 적용
-		XMFLOAT3 curLoc = OwnerPtr->GetActorLocation();
-		XMVECTOR vNewLoc = XMLoadFloat3(&curLoc) + vRotatedDeltaLoc;
-		XMFLOAT3 finalLoc;
-		XMStoreFloat3(&finalLoc, vNewLoc);
-		OwnerPtr->SetActorLocation(finalLoc);
-
-		// 회전 적용 (Euler 누적)
-		XMFLOAT3 curRot = OwnerPtr->GetActorRotation();
-		XMVECTOR vNewRot = XMLoadFloat3(&curRot) + XMLoadFloat3(&dRot);
-		XMFLOAT3 finalRot;
-		XMStoreFloat3(&finalRot, vNewRot);
-		OwnerPtr->SetActorRotation(finalRot);
-
-		// 스케일 적용
-		XMFLOAT3 curScale = OwnerPtr->GetActorScale();
-		XMVECTOR vNewScale = XMLoadFloat3(&curScale) + XMLoadFloat3(&dScale);
-		XMFLOAT3 finalScale;
-		XMStoreFloat3(&finalScale, vNewScale);
-		OwnerPtr->SetActorScale(finalScale);
-	}
+	// 항상 마지막에 오도록
+	mCurrentTime = FinalTime;
 }
 
 bool WObjectAnimComponent::LoadAnimation(const std::string& AssetName, const std::string& AnimName)
 {
+	mBoundCurves.clear();
 	if (FObjectAnimDataAsset* ObjectAnimData = FAssetManager::GetAsset<FObjectAnimDataAsset>(AssetName))
 	{
 		mFps = ObjectAnimData->GetFPS();
@@ -317,7 +346,7 @@ bool WObjectAnimComponent::LoadAnimation(const std::string& AssetName, const std
 
 		const auto& ObjectCurveMap = ObjectAnimData->GetObjectCurveMap();
 		mSampler = MakeUnique<FObjectAnimSampler>(&ObjectCurveMap.at(AnimName));
-
+		
 		return mSampler != nullptr;
 	}
 
@@ -328,6 +357,64 @@ void WObjectAnimComponent::LoadAndPlay(const std::string& AssetName, const std::
 {
 	LoadAnimation(AssetName, AnimName);
 	Play(PlayRate, bLoop, Flags);
+}
+
+void WObjectAnimComponent::BindCurve(const std::string& CurveName, float* TargetPtr, bool bModifier, float BaseValue)
+{
+	if (TargetPtr == nullptr)
+	{
+		return;
+	}
+
+	FCurveBind* BoundCurve;
+	int i = GetBoundCurveIndex(TargetPtr);
+	if (i < mBoundCurves.size())
+	{
+		BoundCurve = &mBoundCurves[i];
+	}
+	else
+	{
+		i = (int)mBoundCurves.size();
+		mBoundCurves.push_back({});
+		BoundCurve = &mBoundCurves.back();
+		BoundCurve->TargetPtr = TargetPtr;
+	}
+
+	FCurveSampler CurveSampler = mSampler->GetCurveSampler(CurveName);
+	if (!CurveSampler.IsValid())
+	{
+		RemoveBoundCurveAt(i);
+		return;
+	}
+
+	BoundCurve->CurveSampler = CurveSampler;
+	BoundCurve->bModifier = bModifier;
+	BoundCurve->BaseValue = BaseValue;
+}
+
+void WObjectAnimComponent::RemoveBoundCurveAt(int i)
+{
+	if (i < mBoundCurves.size() - 1)
+	{
+		mBoundCurves[i] = std::move(mBoundCurves.back());
+	}
+
+	mBoundCurves.pop_back();
+}
+
+int WObjectAnimComponent::GetBoundCurveIndex(float* TargetPtr)
+{
+	return std::find_if(mBoundCurves.begin(), mBoundCurves.end(), [=](const FCurveBind& BoundCurve)
+		{
+			return BoundCurve.TargetPtr == TargetPtr;
+		}
+	) - mBoundCurves.begin();
+}
+
+WObjectAnimComponent::FCurveBind* WObjectAnimComponent::GetBoundCurve(float* TargetPtr)
+{
+	int i = GetBoundCurveIndex(TargetPtr);
+	return i < mBoundCurves.size() ? &mBoundCurves[i] : nullptr;
 }
 
 void WObjectAnimComponent::Play(float PlayRate, bool bLoop, uint16_t Flags)

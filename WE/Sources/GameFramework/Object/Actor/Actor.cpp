@@ -110,6 +110,25 @@ AActor::AActor():
 		return [this]() { this->Destroy(); };
 		});
 
+	RegisterWActionFactory("SpawnActor", [this](const WAttributesMap& Attributes)
+		{
+			std::string Name = Attributes.at("Name");
+			
+			FTransform LocalTransform;
+			ExtractAttribute(Attributes, "Loc", LocalTransform.Translation);
+			ExtractAttribute(Attributes, "Rot", LocalTransform.Rotation);
+			ExtractAttribute(Attributes, "Scale", LocalTransform.Scale);
+
+			return [=]()
+			{
+				FActorSpawnParameter Param;
+				XMMATRIX W = this->GetWorldMatrix();
+				XMMATRIX L = LocalTransform.GetTransformMatrix();
+				Param.Transform.SetByTransformMatrix(L * W);
+				GetWorld()->SpawnActorByFactory<AActor>(Name, Param);
+			};
+		});
+
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// WAction End
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -119,10 +138,25 @@ AActor::AActor():
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	mOnSpawnEvent = RegisterWEvent("OnSpawn");
+	mOnDestroyEvent = RegisterWEvent("OnDestroy");
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// WEvent End
 	////////////////////////////////////////////////////////////////////////////////////////////////
+}
+
+void AActor::Tick(float DeltaSecond)
+{
+	Super::Tick(DeltaSecond);
+
+	mElapsedTime += DeltaSecond;
+
+	int NumOnTimeEvent = (int)mOnTimeEvents.size();
+	while (mOnTimeEventIndex < NumOnTimeEvent && mOnTimeEvents[mOnTimeEventIndex]->mTime <= mElapsedTime)
+	{
+		mOnTimeEvents[mOnTimeEventIndex++]->Dispatch();
+	}
+
 }
 
 void AActor::BeginPlay()
@@ -131,6 +165,21 @@ void AActor::BeginPlay()
 	BeginComponents();
 
 	mOnSpawnEvent->Dispatch();
+}
+
+void AActor::AddActions(AActor::WEvent* Event, TArray<TSharedPtr<FBlueprintActionNode>>& Actions)
+{
+	for (const auto& ActionInfo : Actions)
+	{
+		auto ActionFactory = mWActionFactoryMap.find(ActionInfo->Name);
+		if (ActionFactory == mWActionFactoryMap.end())
+		{
+			ShowMessageBox(std::string("Invalid Action name:\n") + Event->Name + "::" + ActionInfo->Name);
+			assert(false);
+		}
+
+		Event->AddAction(ActionFactory->second(ActionInfo->Attributes));
+	}
 }
 
 void AActor::LoadBlueprint(const FBlueprintAsset* Blueprint)
@@ -146,9 +195,18 @@ void AActor::LoadBlueprint(const FBlueprintAsset* Blueprint)
 
 	for (const auto& EventInfo : Blueprint->mEvents)
 	{
+		WEvent* Event = nullptr;
 		if (EventInfo->Name.substr(0, 2) == "On")
 		{
-			if (mWEventsMap.count(EventInfo->Name) == 0)
+			if (EventInfo->Name == "OnTime")
+			{
+				TSharedPtr<WOnTimeEvent> OnTimeEvent = MakeShared<WOnTimeEvent>();
+				Event = OnTimeEvent.get();
+				OnTimeEvent->Name = "OnTime";
+				OnTimeEvent->mTime = ParseFloat(EventInfo->Attributes["Time"]);
+				mOnTimeEvents.push_back(std::move(OnTimeEvent));
+			}
+			else if (mWEventsMap.count(EventInfo->Name) == 0)
 			{
 				ShowMessageBox("Invalid event name:\n" + EventInfo->Name);
 				assert(false);
@@ -164,20 +222,15 @@ void AActor::LoadBlueprint(const FBlueprintAsset* Blueprint)
 
 			RegisterWEvent(EventInfo->Name);
 		}
-		auto& Event = mWEventsMap[EventInfo->Name];
-
-		for (const auto& ActionInfo : EventInfo->Actions)
+		if (Event == nullptr)
 		{
-			auto ActionFactory = mWActionFactoryMap.find(ActionInfo->Name);
-			if (ActionFactory == mWActionFactoryMap.end())
-			{
-				ShowMessageBox(std::string("Invalid Action name:\n") + EventInfo->Name + "::" + ActionInfo->Name);
-				assert(false);
-			}
-
-			Event->AddAction(ActionFactory->second(ActionInfo->Attributes));
+			Event = mWEventsMap[EventInfo->Name].get();
 		}
+
+		AddActions(Event, EventInfo->Actions);
 	}
+
+	std::sort(mOnTimeEvents.begin(), mOnTimeEvents.end(), [](const TSharedPtr<WOnTimeEvent>& A, const TSharedPtr<WOnTimeEvent>& B) { return A->mTime < B->mTime; });
 }
 
 void AActor::SetRootComponent(TWeakPtr<WSceneComponent> Component)
@@ -241,7 +294,11 @@ XMFLOAT4 AActor::GetActorQuaternion()
 
 void AActor::Destroy()
 {
-	GetWorld()->DestroyActor(GetWeakPtr<AActor>().lock());
+	if (!IsPendingKill())
+	{
+		GetWorld()->DestroyActor(GetWeakPtr<AActor>().lock());
+		mOnDestroyEvent->Dispatch();
+	}
 }
 
 void AActor::Activate()
@@ -330,8 +387,25 @@ const AActor::WEvent* AActor::RegisterWEvent(const std::string& Name)
 		assert(false);
 	}
 
-	mWEventsMap[Name] = MakeShared<WEvent>();
-	return mWEventsMap[Name].get();
+	TSharedPtr<WEvent> Event = MakeShared<WEvent>();
+	Event->Name = Name;
+	mWEventsMap[Name] = Event;
+	return Event.get();
+}
+
+void AActor::SetWProperty(const std::string& Name, WVariantValue Value)
+{
+	WProperty Property = mWPropertiesMap[Name];
+
+	// 실행 시점에는 단순 값 대입만 발생 (파싱 X, 매우 빠름)
+	std::visit([](auto&& TargetPtr, auto&& SourceValue) {
+		using TargetType = std::remove_pointer_t<std::decay_t<decltype(TargetPtr)>>;
+		using SourceType = std::decay_t<decltype(SourceValue)>;
+
+		if constexpr (std::is_same_v<TargetType, SourceType>) {
+			if (TargetPtr) *TargetPtr = SourceValue;
+		}
+		}, Property, Value);
 }
 
 void AActor::LoadWComponent_Internal(FBlueprintComponentNode* CompNode, WSceneComponent* Parent)

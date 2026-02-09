@@ -32,6 +32,7 @@ struct FBlueprintActionNode
 struct FBlueprintEventNode
 {
 	std::string Name;
+	WAttributesMap Attributes;
 	TArray<TSharedPtr<FBlueprintActionNode>> Actions;
 };
 

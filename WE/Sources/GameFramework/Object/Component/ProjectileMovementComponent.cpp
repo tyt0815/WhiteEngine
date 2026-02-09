@@ -98,7 +98,7 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
     }
 
     // 4. 속도 제한 (Max Speed)
-    if (mMaxSpeed > 0.0f)
+    if (mMaxSpeed >= 0.0f)
     {
         float SpeedSq = XMVectorGetX(XMVector3LengthSq(CurrentVelocityV));
         if (SpeedSq > mMaxSpeed * mMaxSpeed)

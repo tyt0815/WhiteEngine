@@ -1,4 +1,4 @@
-<AProjectileBase InitSpeed = "(0, 0, 2)" Life = "10" HomingTurnLimit = "360" GravityScale = "0">
+<AProjectileBase InitSpeed = "(0, 0, 2)" Acceleration = "100" Life = "10" HomingTurnLimit = "360" GravityScale = "0" MaxSpeed = "10">
     
     <Components>
         <Mesh Name = "Body" Asset = "SM_MetalRing" Loc = "(0, -2, 0)">
@@ -11,15 +11,27 @@
     <Events>
         <OnSpawn>
             <Animation Asset = "OA_ColdLaunch" Anim = "Projectile" Target = "Spline" Loop = "true" Loc = "Y"/>
+            <CurveBind Target = "MaxSpeed" Comp = "Spline" Curve = "LocationY" Modifier = "false"/>
         </OnSpawn>
 
         <OnHit>
-            <Event Name = "CustomEvent"/>
-            <!-- <Destroy/> -->
+            <Particle Asset = "P_Explosion_Red_Large"/>
         </OnHit>
 
+        <OnTime Time = "2">
+            <Particle Asset = "P_Explosion_Green_Tiny"/>
+        </OnTime>
+
+        <OnTime Time = "1">
+            <Particle Asset = "P_Spark_Cyan"/>
+        </OnTime>
+
+        <!-- <OnDestroy>
+            <SpawnActor Name = "BP_Projectile" Loc = "(0, 2, 0)" Rot = "(0, 45, 0)"/>
+        </OnDestroy> -->
+
         <CustomEvent>
-            <Particle Asset = "P_Explosion"/>
+            <Particle Asset = "P_Explosion_Red_Large"/>
         </CustomEvent>
     </Events>
 

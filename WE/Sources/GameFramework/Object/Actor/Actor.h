@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Object.h"
+#include "Asset/BlueprintAsset.h"
 #include "GameFramework/Object/Component/SceneComponent.h"
 #include "Component/PhysicsComponent.h"
 #include "Utility/Class.h"
@@ -16,13 +17,14 @@ extern const int gFrameResourcesNum;
 class FMeshGeometry;
 class FMaterial;
 class WCameraComponent;
-class FBlueprintAsset;
 
 void ShowMessageBox(const std::string& Content);
 
 void ReportParseError(const std::string& Type, const std::string& WrongValue);
 
 void ApplySceneComponentDefaultAttributes(WSceneComponent* Comp, const std::unordered_map<std::string, std::string>& Attributes);
+
+WWorld* GetWorld();
 
 template<typename T> struct WPropertyTrait;
 template<> struct WPropertyTrait<bool>
@@ -97,6 +99,8 @@ public:
 
 	virtual ~AActor() {};
 
+	virtual void Tick(float DeltaSecond) override;
+
 	virtual void Destroy() override;
 
 	virtual void Activate() override;
@@ -136,6 +140,9 @@ public:
 
 	XMFLOAT4 GetActorQuaternion();
 
+protected:
+	float mElapsedTime = 0;
+
 private:
 	void UpdateRecursive();
 
@@ -160,7 +167,6 @@ private:
 public:
 	void LoadBlueprint(const FBlueprintAsset* Blueprint);
 
-protected:
 	using WAttributesMap = std::unordered_map<std::string, std::string>;
 
 	using WComponentFactory = std::function<WSceneComponent* (const WAttributesMap&)>;
@@ -175,6 +181,8 @@ protected:
 	class WEvent
 	{
 	public:
+		std::string Name;
+
 		void Dispatch() const
 		{
 			for (const WAction& Action : mActions) Action();
@@ -190,6 +198,13 @@ protected:
 	};
 	using WEventsMap = std::unordered_map<std::string, TSharedPtr<WEvent>>;
 
+	class WOnTimeEvent : public WEvent
+	{
+	public:
+		float mTime;
+	};
+
+protected:
 	virtual void LoadWAttributes(const WAttributesMap& Attributes) {}
 
 	virtual void OnLoadWComponent(struct FBlueprintComponentNode* CompNode, WSceneComponent* Comp) {}
@@ -199,6 +214,8 @@ protected:
 	void RegisterWActionFactory(const std::string Name, WActionFactoryFunc Lambda);
 
 	const WEvent* RegisterWEvent(const std::string& Name);
+
+	void AddActions(AActor::WEvent* Event, TArray<TSharedPtr<FBlueprintActionNode>>& Actions);
 
 	template<typename T>
 	void RegisterWProperty(const std::string& Name, T* Property)
@@ -211,6 +228,8 @@ protected:
 
 		mWPropertiesMap[Name] = Property;
 	}
+
+	void SetWProperty(const std::string& Name, WVariantValue Value);
 
 private:
 	void LoadWComponent_Internal(struct FBlueprintComponentNode* Comp, WSceneComponent* Parent);
@@ -227,12 +246,22 @@ private:
 
 	WPropertiesMap mWPropertiesMap;
 
+	TArray<TSharedPtr<WOnTimeEvent>> mOnTimeEvents;
+	int mOnTimeEventIndex = 0;
+
 	const WEvent* mOnSpawnEvent;
 
+	const WEvent* mOnDestroyEvent;
+
 public:
-	WSceneComponent* GetWComponent(const std::string& Name) const
+	__forceinline WSceneComponent* GetWComponent(const std::string& Name) const
 	{
 		return mWComponentsMap.at(Name);
+	}
+
+	__forceinline WProperty GetWProperty(const std::string& Name) const
+	{
+		return mWPropertiesMap.at(Name);
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
@@ -282,6 +311,11 @@ public:
 	__forceinline XMFLOAT3 GetActorScale() const
 	{
 		return mRootComponent.lock()->GetLocalScale();
+	}
+
+	__forceinline XMMATRIX GetWorldMatrix() const
+	{
+		return mRootComponent.lock()->GetWorldMatrix();
 	}
 
 	__forceinline void SetActorScale(XMFLOAT3 Scale)

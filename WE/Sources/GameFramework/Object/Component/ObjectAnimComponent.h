@@ -81,6 +81,14 @@ class WObjectAnimComponent : public WActorComponent
 {
 	typedef WActorComponent Super;
 
+	struct FCurveBind
+	{
+		FCurveSampler CurveSampler;
+		float* TargetPtr = nullptr;
+		float BaseValue;
+		bool bModifier;
+	};
+
 public:
 	WObjectAnimComponent();
 
@@ -93,6 +101,18 @@ public:
 
 	void LoadAndPlay(const std::string& AssetName, const std::string& AnimName, float PlayRate, bool bLoop, uint16_t Flags);
 
+	// @param CurveName Curve의 이름
+	// @param TargetPtr 바인딩할 값의 포인터
+	// @param bModifier 모디파이어로 작동할 것 인지. false일 경우 TargetPtr = CurveValue, true일 경우 BaseValue * CurveValue
+	// @param BaseValue bModifier가 true일 경우 사용되는 옵션
+	void BindCurve(const std::string& CurveName, float* TargetPtr, bool bModifier = false, float BaseValue = 0);
+
+	void RemoveBoundCurveAt(int Index);
+
+	int GetBoundCurveIndex(float* TargetPtr);
+
+	FCurveBind* GetBoundCurve(float* TargetPtr);
+
 	void Play(float PlayRate, bool bLoop, uint16_t Flags);
 
 	void Stop();
@@ -103,6 +123,8 @@ private:
 	TUniquePtr<FObjectAnimSampler> mSampler;
 
 	TWeakPtr<WSceneComponent> mTarget;
+
+	TArray<FCurveBind> mBoundCurves;
 
 	float mFrameEnd = 0;
 	float mFps = 0;

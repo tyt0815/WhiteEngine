@@ -140,6 +140,24 @@ AProjectileBase::AProjectileBase()
 		return Action;
 		});
 
+	RegisterWActionFactory("CurveBind", [this](const WAttributesMap& Attributes)
+		{
+			std::string TargetName = Attributes.at("Target");
+			float* Prop = std::get<float*>(GetWProperty(TargetName));
+
+			WObjectAnimComponent* AnimComp = mWObjAnimComp[Attributes.at("Comp")];
+
+			std::string CurveName = Attributes.at("Curve");
+
+			bool bIsModifier = false;
+			ExtractAttribute(Attributes, "Modifier", bIsModifier);
+
+			return [=]()
+			{
+				AnimComp->BindCurve(CurveName, Prop, bIsModifier, *Prop);
+			};
+		});
+
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// WAction End
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -174,8 +192,6 @@ AProjectileBase::AProjectileBase()
 void AProjectileBase::Tick(float DeltaSecond)
 {
 	Super::Tick(DeltaSecond);
-
-	
 
 	if (mbSmartHoming)
 	{
@@ -288,47 +304,85 @@ void AProjectileBase::SetSmartHoming(bool bSmartHoming, float Range)
 	mSmartHomingRange = Range;
 }
 
+void DrawExplosion(XMFLOAT3 Location, float Radius, XMFLOAT4 Color, float Life)
+{
+	auto DrawLine = [&](float dx, float dy, float dz) {
+		GetWorld()->DrawDebugLine(
+			XMFLOAT3(Location.x - dx, Location.y - dy, Location.z - dz),
+			XMFLOAT3(Location.x + dx, Location.y + dy, Location.z + dz),
+			Color, Life
+		);
+	};
+
+	// 기본 축 (XYZ)
+	DrawLine(Radius, 0, 0); DrawLine(0, Radius, 0); DrawLine(0, 0, Radius);
+
+	// 평면 대각선 (XY, YZ, XZ)
+	float D = Radius * 0.7071f;
+	DrawLine(D, D, 0); DrawLine(D, -D, 0);
+	DrawLine(0, D, D); DrawLine(0, D, -D);
+	DrawLine(D, 0, D); DrawLine(D, 0, -D);
+
+	// 공간 대각선
+	float D3 = Radius * 0.5773f;
+	DrawLine(D3, D3, D3); DrawLine(D3, D3, -D3);
+	DrawLine(D3, -D3, D3); DrawLine(D3, -D3, -D3);
+}
+
 void AProjectileBase::PlayParticle(const std::string& Name)
 {
-	if (Name == "P_Explosion")
+	// 1. Red & Small (치명적인 불꽃 또는 작은 불꽃)
+	if (Name == "P_Explosion_Red_Small")
 	{
-		XMFLOAT3 Location = GetActorLocation();
-		float Radius = 5;
-		XMFLOAT4 Color = { 1, 1, 0, 1 };
+		float Radius = 2.5f;
+		XMFLOAT4 Color = { 1.0f, 0.2f, 0.2f, 1.0f }; // 연한 빨강
+		float Life = 0.3f; // 짧고 강렬하게
+		DrawExplosion(GetActorLocation(), Radius, Color, Life);
+	}
+	// 2. Red & Large (거대 화염 폭발)
+	else if (Name == "P_Explosion_Red_Large")
+	{
+		float Radius = 12.0f;
+		XMFLOAT4 Color = { 0.8f, 0.1f, 0.0f, 1.0f }; // 핏빛 빨강
+		float Life = 0.8f;
+		DrawExplosion(GetActorLocation(), Radius, Color, Life);
+	}
+	// 3. Blue & Medium (차가운 마법 폭발)
+	else if (Name == "P_Explosion_Blue")
+	{
+		float Radius = 6.0f;
+		XMFLOAT4 Color = { 0.2f, 0.6f, 1.0f, 1.0f }; // 스카이 블루
 		float Life = 0.5f;
-
-		auto DrawLine = [&](float dx, float dy, float dz) {
-			GetWorld()->DrawDebugLine(
-				XMFLOAT3(Location.x - dx, Location.y - dy, Location.z - dz),
-				XMFLOAT3(Location.x + dx, Location.y + dy, Location.z + dz),
-				Color, Life
-			);
-		};
-
-		// --- 기본축 ---
-		DrawLine(Radius, 0, 0); // X
-		DrawLine(0, Radius, 0); // Y
-		DrawLine(0, 0, Radius); // Z
-
-		// --- 평면 대각선 (45도 방향들) ---
-		float D = Radius * 0.7071f; // sin(45) = 0.707
-		DrawLine(D, D, 0);  // XY 대각선 1
-		DrawLine(D, -D, 0); // XY 대각선 2
-		DrawLine(0, D, D);  // YZ 대각선 1
-		DrawLine(0, D, -D); // YZ 대각선 2
-		DrawLine(D, 0, D);  // XZ 대각선 1
-		DrawLine(D, 0, -D); // XZ 대각선 2
-
-		// --- 완전 대각선 (정육면체 모서리 방향) ---
-		float D3 = Radius * 0.5773f; // 1/sqrt(3)
-		DrawLine(D3, D3, D3);
-		DrawLine(D3, D3, -D3);
-		DrawLine(D3, -D3, D3);
-		DrawLine(D3, -D3, -D3);
+		DrawExplosion(GetActorLocation(), Radius, Color, Life);
+	}
+	// 4. Green & Tiny (독성 가스 분출)
+	else if (Name == "P_Explosion_Green_Tiny")
+	{
+		float Radius = 1.5f;
+		XMFLOAT4 Color = { 0.3f, 1.0f, 0.3f, 1.0f }; // 네온 그린
+		float Life = 0.4f;
+		DrawExplosion(GetActorLocation(), Radius, Color, Life);
+	}
+	// 5. Purple & Huge (보스급 마법 또는 블랙홀 연출)
+	else if (Name == "P_Explosion_Purple_Huge")
+	{
+		float Radius = 25.0f;
+		XMFLOAT4 Color = { 0.5f, 0.0f, 0.8f, 1.0f }; // 진보라
+		float Life = 1.2f; // 오래 남도록
+		DrawExplosion(GetActorLocation(), Radius, Color, Life);
+	}
+	// 6. Cyan & Spark (전기 스파크 연출)
+	else if (Name == "P_Spark_Cyan")
+	{
+		float Radius = 3.0f;
+		XMFLOAT4 Color = { 0.0f, 1.0f, 1.0f, 1.0f }; // 시안
+		float Life = 0.2f; // 아주 빠르게 깜빡임
+		DrawExplosion(GetActorLocation(), Radius, Color, Life);
 	}
 	else
 	{
 		ShowMessageBox("Invalid particle name:\n" + Name);
+		assert(false);
 	}
 }
 

@@ -258,6 +258,8 @@ void FBlueprintAsset::SerializeEvent(FBinaryWriter& Writer, FXMLElement* EventEl
     std::string EventName = EventElement->Name();
     Writer << EventName;
 
+    SerializeAttributes(Writer, EventElement);
+
     // 2. 이 이벤트에 달린 액션 개수
     int NumActions = EventElement->ChildElementCount();
     Writer << NumActions;
@@ -279,6 +281,8 @@ void FBlueprintAsset::DeserializeEvent(FBinaryReader& Reader, TSharedPtr<FBluepr
 {
     // 1. 이벤트 이름 읽기
     Reader >> EventNode->Name;
+
+    DeserializeAttributes(Reader, EventNode->Attributes);
 
     // 2. 액션 개수 읽기
     int NumActions;

@@ -27,7 +27,7 @@ void WTestWorld::Tick(float DeltaSecond)
 	if (a > SpawnDelay)
 	{
 		FActorSpawnParameter Param;
-		Param.Transform.Translation = XMFLOAT3(0, -1, 10);
+		Param.Transform.Translation = XMFLOAT3(0, 3, 10);
 		SpawnActorByFactory<AProjectileBase>("BP_Projectile", Param);
 
 		a = 0;
