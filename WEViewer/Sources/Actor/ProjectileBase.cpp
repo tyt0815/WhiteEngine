@@ -196,6 +196,12 @@ AProjectileBase::AProjectileBase()
 			return Comp;
 		});
 
+	RegisterWComponentFactory("Anim", [this](auto&& Attributes) {
+		auto Comp = this->CreateComponent<WObjectAnimComponent>();
+
+		return Comp;
+		});
+
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// 
 	// WComponent End
@@ -213,17 +219,11 @@ AProjectileBase::AProjectileBase()
 		return [this, Name]() { this->PlayParticle(Name); };
 		});
 
-	/*RegisterWActionFactory("Animation", [this, AnimComp](const WAttributesMap& Attributes) {
-		WObjectAnimComponent* Anim = nullptr;
-		if (Attributes.count("Target"))
-		{
-			assert(mWObjAnimComp.count(Attributes.at("Target")) > 0 && "Set Component Anim = true");
-			Anim = mWObjAnimComp.at(Attributes.at("Target"));
-		}
-		else
-		{
-			Anim = AnimComp.get();
-		}
+	RegisterWActionFactory("Animation", [this](const WAttributesMap& Attributes) {
+		assert(Attributes.count("Target") > 0);
+		const std::string& Target = Attributes.at("Target");
+		WObjectAnimComponent* Anim = dynamic_cast<WObjectAnimComponent*>(GetWComponent(Target));
+		assert(Anim);
 
 		float PlayRate = 1;
 		ExtractAttribute(Attributes, "PlayRate", PlayRate);
@@ -292,14 +292,17 @@ AProjectileBase::AProjectileBase()
 		}
 
 		return Action;
-		});*/
+		});
 
-	/*RegisterWActionFactory("CurveBind", [this](const WAttributesMap& Attributes)
+	RegisterWActionFactory("CurveBind", [this](const WAttributesMap& Attributes)
 		{
-			std::string TargetName = Attributes.at("Target");
-			float* Prop = std::get<float*>(GetWProperty(TargetName));
+			assert(Attributes.count("Target") > 0);
+			const std::string& Target = Attributes.at("Target");
+			WObjectAnimComponent* Anim = dynamic_cast<WObjectAnimComponent*>(GetWComponent(Target));
+			assert(Anim);
 
-			WObjectAnimComponent* AnimComp = Attributes.count("Comp") > 0 ? mWObjAnimComp[Attributes.at("Comp")] : mObjAnimComp.lock().get();
+			const std::string& PropertyName = Attributes.at("Property");
+			float* Prop = std::get<float*>(GetWProperty(PropertyName));
 
 			std::string CurveName = Attributes.at("Curve");
 
@@ -308,9 +311,9 @@ AProjectileBase::AProjectileBase()
 
 			return [=]()
 			{
-				AnimComp->BindCurve(CurveName, Prop, bIsModifier, *Prop);
+				Anim->BindCurve(CurveName, Prop, bIsModifier, *Prop);
 			};
-		});*/
+		});
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// 
@@ -383,15 +386,6 @@ void AProjectileBase::LoadWConfigs(const std::unordered_map<std::string, WAttrib
 void AProjectileBase::ApplyWComponentCommonAttribute(FBlueprintComponentNode* CompNode, WSceneComponent* Comp)
 {
 	Super::ApplyWComponentCommonAttribute(CompNode, Comp);
-
-	//ApplyAttribute<bool>(CompNode->Attributes, "Anim", [=](bool v) {
-	//	if (v)
-	//	{
-	//		WObjectAnimComponent* AnimComp = CreateComponent<WObjectAnimComponent>();
-	//		AnimComp->SetTargetComponent(Comp);
-	//		mWObjAnimComp[CompNode->Attributes["Name"]] = AnimComp;
-	//	}
-	//	});
 }
 
 void DrawExplosion(XMFLOAT3 Location, float Radius, XMFLOAT4 Color, float Life)

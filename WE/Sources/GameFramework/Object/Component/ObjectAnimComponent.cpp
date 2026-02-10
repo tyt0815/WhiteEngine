@@ -272,51 +272,31 @@ void WObjectAnimComponent::Tick(float DeltaTime)
 		if (!(mRootMotionFlags & ERootMotion::ScaleY)) dScale.y = 0.f;
 		if (!(mRootMotionFlags & ERootMotion::ScaleZ)) dScale.z = 0.f;
 
-		// 4. 최종 적용 대상 결정 (캐싱된 타겟이 없으면 액터)
-		if (auto Target = mTarget.lock()) // 특정 씬 컴포넌트를 조종할 때
-		{
-			// 컴포넌트는 상대(Local) 좌표계이므로 델타를 그냥 더해줌
-			FTransform T = Target->GetLocalTransform();
+		
+		XMFLOAT4 CurrQuat = GetLocalQuatRotation();
+		XMVECTOR vCurrQuat = XMLoadFloat4(&CurrQuat);
+		XMVECTOR vRotatedDeltaLoc = XMVector3Rotate(XMLoadFloat3(&dLoc), vCurrQuat);
 
-			XMVECTOR NewLoc = XMLoadFloat3(&T.Translation) + XMLoadFloat3(&dLoc);
-			XMVECTOR NewRot = XMLoadFloat3(&T.Rotation) + XMLoadFloat3(&dRot);
-			XMVECTOR NewScale = XMLoadFloat3(&T.Scale) + XMLoadFloat3(&dScale);
+		// 위치 적용
+		XMFLOAT3 curLoc = GetLocalLocation();
+		XMVECTOR vNewLoc = XMLoadFloat3(&curLoc) + vRotatedDeltaLoc;
+		XMFLOAT3 finalLoc;
+		XMStoreFloat3(&finalLoc, vNewLoc);
+		SetWorldLocation(finalLoc);
 
-			FTransform NewT;
-			XMStoreFloat3(&NewT.Translation, NewLoc);
-			XMStoreFloat3(&NewT.Rotation, NewRot);
-			XMStoreFloat3(&NewT.Scale, NewScale);
+		// 회전 적용 (Euler 누적)
+		XMFLOAT3 curRot = GetLocalRotation();
+		XMVECTOR vNewRot = XMLoadFloat3(&curRot) + XMLoadFloat3(&dRot);
+		XMFLOAT3 finalRot;
+		XMStoreFloat3(&finalRot, vNewRot);
+		SetWorldRotation(finalRot);
 
-			Target->SetLocalTransform(NewT);
-		}
-		else if (AActor* OwnerPtr = GetOwner().lock().get()) // 타겟이 없으면 액터(RootComponent)에 적용 (루트 모션)
-		{
-			// 위치는 액터의 현재 회전 방향을 고려해서 더해줘야 함
-			XMFLOAT4 ActorQuat = OwnerPtr->GetActorQuaternion();
-			XMVECTOR vActorQuat = XMLoadFloat4(&ActorQuat);
-			XMVECTOR vRotatedDeltaLoc = XMVector3Rotate(XMLoadFloat3(&dLoc), vActorQuat);
-
-			// 위치 적용
-			XMFLOAT3 curLoc = OwnerPtr->GetActorLocation();
-			XMVECTOR vNewLoc = XMLoadFloat3(&curLoc) + vRotatedDeltaLoc;
-			XMFLOAT3 finalLoc;
-			XMStoreFloat3(&finalLoc, vNewLoc);
-			OwnerPtr->SetActorLocation(finalLoc);
-
-			// 회전 적용 (Euler 누적)
-			XMFLOAT3 curRot = OwnerPtr->GetActorRotation();
-			XMVECTOR vNewRot = XMLoadFloat3(&curRot) + XMLoadFloat3(&dRot);
-			XMFLOAT3 finalRot;
-			XMStoreFloat3(&finalRot, vNewRot);
-			OwnerPtr->SetActorRotation(finalRot);
-
-			// 스케일 적용
-			XMFLOAT3 curScale = OwnerPtr->GetActorScale();
-			XMVECTOR vNewScale = XMLoadFloat3(&curScale) + XMLoadFloat3(&dScale);
-			XMFLOAT3 finalScale;
-			XMStoreFloat3(&finalScale, vNewScale);
-			OwnerPtr->SetActorScale(finalScale);
-		}
+		// 스케일 적용
+		XMFLOAT3 curScale = GetLocalScale();
+		XMVECTOR vNewScale = XMLoadFloat3(&curScale) + XMLoadFloat3(&dScale);
+		XMFLOAT3 finalScale;
+		XMStoreFloat3(&finalScale, vNewScale);
+		SetWorldScale(finalScale);
 	}
 
 
@@ -429,12 +409,4 @@ void WObjectAnimComponent::Stop()
 {
 	mIsPlaying = false;
 	mCurrentTime = 0.0f;
-}
-
-void WObjectAnimComponent::SetTargetComponent(WSceneComponent* Comp)
-{
-	if (Comp)
-	{
-		mTarget = Comp->GetWeakPtr<WSceneComponent>();
-	}
 }

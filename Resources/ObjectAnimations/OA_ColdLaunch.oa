@@ -13,8 +13,9 @@
          <Keyframe frame="12.00" value="0.5000" interp="BEZIER" h_left_x="10.6667" h_left_y="0.5000" h_right_x="13.3333" h_right_y="0.5000"/>
       </Curve>
       <Curve data_path="rotation_euler" name="RotationX">
-         <Keyframe frame="0.00" value="-45.0000" interp="BEZIER" h_left_x="-2.6667" h_left_y="-45.0000" h_right_x="2.6667" h_right_y="-45.0000"/>
-         <Keyframe frame="8.00" value="-0.0000" interp="BEZIER" h_left_x="5.3333" h_left_y="-37.5000" h_right_x="9.3333" h_right_y="18.7500"/>
+         <Keyframe frame="0.00" value="-0.0000" interp="BEZIER" h_left_x="-1.6667" h_left_y="-0.0000" h_right_x="1.6667" h_right_y="-0.0000"/>
+         <Keyframe frame="5.00" value="-45.0000" interp="BEZIER" h_left_x="3.3333" h_left_y="-45.0000" h_right_x="6.0000" h_right_y="-45.0000"/>
+         <Keyframe frame="8.00" value="-0.0000" interp="BEZIER" h_left_x="7.0000" h_left_y="-20.0893" h_right_x="9.3333" h_right_y="26.7857"/>
          <Keyframe frame="12.00" value="45.0000" interp="BEZIER" h_left_x="10.6667" h_left_y="45.0000" h_right_x="13.3333" h_right_y="45.0000"/>
       </Curve>
    </Object>

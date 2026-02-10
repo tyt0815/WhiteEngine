@@ -77,9 +77,9 @@ namespace ERootMotion
 	};
 }
 
-class WObjectAnimComponent : public WActorComponent
+class WObjectAnimComponent : public WSceneComponent
 {
-	typedef WActorComponent Super;
+	typedef WSceneComponent Super;
 
 	struct FCurveBind
 	{
@@ -117,12 +117,8 @@ public:
 
 	void Stop();
 
-	void SetTargetComponent(WSceneComponent* Comp);
-
 private:
 	TUniquePtr<FObjectAnimSampler> mSampler;
-
-	TWeakPtr<WSceneComponent> mTarget;
 
 	TArray<FCurveBind> mBoundCurves;
 

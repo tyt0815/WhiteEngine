@@ -3,7 +3,7 @@
 
 class WMovementComponent : public WSceneComponent
 {
-	typedef WActorComponent Super;
+	typedef WSceneComponent Super;
 public:
 	WMovementComponent();
 
