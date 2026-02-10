@@ -4,8 +4,8 @@
         <Movement InitSpeed = "(0 0 20)" GravityScale = "0" MaxSpeed = "1000"/>
         <LifeCycle Life = "5" />
 
-        <Homing Strategy = "Nearest" Range = "10" TurnRate = "360" TargetTags = "[Alliance]" StopRange = "5"
-            UseWaypoints = "true" Space = "Direction" Type = "Adaptive" Waypoints = "[(0 0.5 -0.5)]"
+        <Homing Strategy = "Nearest" Range = "100" TurnRate = "360" TargetTags = "[Alliance]" StopRange = "1"
+            UseWaypoints = "true" Space = "Direction" Type = "Adaptive" Waypoints = "[(0 0.5 -0.5), (0 0.5 0)]"
         />
     </Configs>
 

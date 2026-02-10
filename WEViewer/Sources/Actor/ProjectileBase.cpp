@@ -732,6 +732,7 @@ void AProjectileBase::GenerateWaypoints(AActor* Target)
 
 	mFinalWaypoints.clear();
 	mCurrentWaypointIndex = 0;
+	assert(mHomingStopRange > 0);
 
 	XMFLOAT3 MyLoc = GetActorLocation();
 	XMFLOAT3 TargetLoc = Target->GetActorLocation();
