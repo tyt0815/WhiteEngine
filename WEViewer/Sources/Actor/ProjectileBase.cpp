@@ -27,7 +27,8 @@ AProjectileBase::AProjectileBase()
 	RegisterWComponentFactory("Collision", [this](const WAttributesMap& Attributes)
 		{
 			WSceneComponent* Component = nullptr;
-			std::string Type = Attributes.at("Type");
+			const std::string& Name = Attributes.at("Name");
+			const std::string& Type = Attributes.at("Type");
 			if (Type == "Spline")
 			{
 				WSplineCollisionComponent* Comp = this->CreateComponent<WSplineCollisionComponent>();
@@ -90,6 +91,7 @@ AProjectileBase::AProjectileBase()
 				assert(false);
 			}
 
+
 			if (FCollisionGeneratorBase* CollisionGenerator = dynamic_cast<FCollisionGeneratorBase*>(Component))
 			{
 				CollisionGenerator->GenerateCollision();
@@ -99,26 +101,31 @@ AProjectileBase::AProjectileBase()
 					{
 						CollisionGenerator->SetHitDelay(v);
 					});
+				RegisterWProperty(Name + ".Delay", &CollisionGenerator->mHitDelay);
 
 				ApplyAttribute<int>(Attributes, "MaxHit", [=](auto&& v)
 					{
 						CollisionGenerator->SetMaxHit(v);
 					});
+				RegisterWProperty(Name + ".MaxHit", &CollisionGenerator->mMaxHit);
 
 				ApplyAttribute<float>(Attributes, "Damage", [=](auto&& v)
 					{
 						CollisionGenerator->SetDamage(v);
 					});
+				RegisterWProperty(Name + ".Damage", &CollisionGenerator->mDamage);
 
-				ApplyAttribute<TArray<std::string>>(Attributes, "TargetTags", [=](auto&& Arry)
+				ApplyAttribute<std::set<std::string>>(Attributes, "TargetTags", [=](auto&& Arry)
 					{
 						CollisionGenerator->AddTargetTags(Arry);
 					});
+				RegisterWProperty(Name + ".TargetTags", &CollisionGenerator->mTargetTags);
 
 				ApplyAttribute<bool>(Attributes, "Debug", [=](auto&& v) 
 					{
 						CollisionGenerator->SetDebug(v);
 					});
+				RegisterWProperty(Name + ".Debug", &CollisionGenerator->mbDebug);
 			}
 
 
@@ -304,30 +311,7 @@ void AProjectileBase::Tick(float DeltaSecond)
 {
 	Super::Tick(DeltaSecond);
 
-	if (mbSmartHoming)
-	{
-		if (auto ProjComp = mProjMoveComp.lock())
-		{
-			if (!ProjComp->GetHomingTarget())
-			{
-				ProjComp->SetHoming(true);
-
-				// Find Homing Target
-				TArray<AActor*> ActorsToIgnore;
-				ActorsToIgnore.push_back(this);
-				TArray<FHitResult> Hits;
-				GetWorld()->SphereOverlap(GetActorLocation(), mSmartHomingRange, ActorsToIgnore, Hits, false);
-				for (const auto& Hit : Hits)
-				{
-					const auto& Actor = Hit.Actor.lock();
-					if (IHitInterface* HitInter = dynamic_cast<IHitInterface*>(Actor.get()))
-					{
-						ProjComp->SetHomingTarget(Actor->GetRootComponent());
-					}
-				}
-			}
-		}
-	}
+	UpdateHoming(DeltaSecond);
 }
 
 void AProjectileBase::BeginPlay()
@@ -385,15 +369,24 @@ void AProjectileBase::LoadWConfigs(const std::unordered_map<std::string, WAttrib
 	{
 		const WAttributesMap& Attributes = Configs.at("Homing");
 
-		// 6. 유도 기능 (Homing) - float
-		ApplyAttribute<float>(Attributes, "Homing", [&](float v) {
-			SetSmartHoming(true, v);
+		// 전략 설정
+		ApplyAttribute<std::string>(Attributes, "Strategy", [&](const std::string& v) {
+			if (v == "Nearest") mHomingStrategy = EHomingStrategy::Nearest;
+			else if (v == "Angle") mHomingStrategy = EHomingStrategy::Angle;
 			});
 
+		// 공통 파라미터
+		ExtractAttribute(Attributes, "HomingRange", mHomingRange);
+		ExtractAttribute(Attributes, "HomingAngle", mHomingAngle);
+		ExtractAttribute(Attributes, "RetargetTick", mRetargetTick);
 
-		// 7. 유도 회전 제한 (HomingTurnLimit) - float
-		ApplyAttribute<float>(Attributes, "HomingTurnLimit", [&](float v) {
+		// 투사체 컴포넌트 설정
+		ApplyAttribute<float>(Attributes, "HomingTurnRate", [&](float v) {
 			ProjMoveComp->SetHomingTurnLimit(v);
+			});
+
+		ApplyAttribute<std::set<std::string>>(Attributes, "TargetTags", [&](const std::set<std::string>& v) {
+			mHomingTargetTags = v;
 			});
 	}
 }
@@ -410,27 +403,6 @@ void AProjectileBase::ApplyWComponentCommonAttribute(FBlueprintComponentNode* Co
 			mWObjAnimComp[CompNode->Attributes["Name"]] = AnimComp;
 		}
 		});
-}
-
-void AProjectileBase::SetSmartHoming(bool bSmartHoming, float Range)
-{
-	TSharedPtr<WProjectileMovementComponent> ProjMoveComp = mProjMoveComp.lock();
-	if (!ProjMoveComp)
-	{
-		if (WProjectileMovementComponent* Comp = GetComponent<WProjectileMovementComponent>())
-		{
-			mProjMoveComp = Comp->GetWeakPtr<WProjectileMovementComponent>();
-			ProjMoveComp = mProjMoveComp.lock();
-		}
-		else
-		{
-			mbSmartHoming = false;
-			return;
-		}
-	}
-
-	mbSmartHoming = bSmartHoming;
-	mSmartHomingRange = Range;
 }
 
 void DrawExplosion(XMFLOAT3 Location, float Radius, XMFLOAT4 Color, float Life)
@@ -513,6 +485,124 @@ void AProjectileBase::PlayParticle(const std::string& Name)
 		ShowMessageBox("Invalid particle name:\n" + Name);
 		assert(false);
 	}
+}
+
+void AProjectileBase::UpdateHoming(float DeltaSecond)
+{
+	// 1. 호밍 전략이 없으면 즉시 종료
+	if (mHomingStrategy == EHomingStrategy::None) return;
+
+	auto ProjComp = mProjMoveComp.lock();
+	if (!ProjComp) return;
+
+	// 2. 이미 타겟이 설정되어 있다면 검색할 필요 없음
+	// (만약 타겟이 죽었을 때 재검색하게 하려면 이 조건을 수정하면 됩니다)
+	if (ProjComp->GetHomingTarget()) return;
+
+	// 3. 타이머 업데이트 및 검색 수행
+	mRetargetTimer -= DeltaSecond;
+	if (mRetargetTimer <= 0.0f)
+	{
+		mRetargetTimer = mRetargetTick;
+
+		if (AActor* Target = FindBestHomingTarget())
+		{
+			ProjComp->SetHoming(true);
+			ProjComp->SetHomingTarget(Target->GetRootComponent());
+		}
+	}
+}
+
+AActor* AProjectileBase::FindBestHomingTarget()
+{
+	TArray<AActor*> Ignore;
+	Ignore.push_back(this);
+	TArray<FHitResult> Hits;
+
+	// 1. 주변 액터 수집
+	GetWorld()->SphereOverlap(GetActorLocation(), mHomingRange, Ignore, Hits, false);
+
+	if (mHomingStrategy == EHomingStrategy::Nearest)
+	{
+		return FindHomingTarget_Nearest(Hits);
+	}
+	else if (mHomingStrategy == EHomingStrategy::Angle)
+	{
+		return FindHomingTarget_Angle(Hits);
+	}
+
+	return nullptr;
+}
+
+AActor* AProjectileBase::FindHomingTarget_Nearest(const TArray<FHitResult>& Hits)
+{
+	float ClosestDistSq = FLT_MAX;
+	AActor* Target = nullptr;
+	for (auto& Hit : Hits)
+	{
+		auto Candidate = Hit.Actor.lock();
+		if (!IsHomingTarget(Candidate.get()))
+		{
+			continue;
+		}
+
+		XMFLOAT3 CurrLoc = GetActorLocation();
+		XMFLOAT3 TargetLoc = Candidate->GetActorLocation();
+		float DistSq = XMVectorGetX(XMVector3LengthSq(XMLoadFloat3(&TargetLoc) - XMLoadFloat3(&CurrLoc)));
+		if (DistSq < ClosestDistSq)
+		{
+			ClosestDistSq = DistSq;
+			Target = Candidate.get();
+		}
+	}
+	return Target;
+}
+
+AActor* AProjectileBase::FindHomingTarget_Angle(const TArray<FHitResult>& Hits)
+{
+	float BestDot = -1.0f;
+	XMFLOAT3 Forward = GetForwardVector();
+	XMVECTOR ForwardV = XMLoadFloat3(&Forward);
+
+	AActor* Target = nullptr;
+	for (auto& Hit : Hits)
+	{
+		auto Candidate = Hit.Actor.lock();
+		if (!IsHomingTarget(Candidate.get()))
+		{
+			continue;
+		}
+
+		XMFLOAT3 CandidateLoc = Candidate->GetActorLocation();
+		XMFLOAT3 CurrLoc = GetActorLocation();
+		XMVECTOR ToTarget = XMVector3Normalize(XMLoadFloat3(&CandidateLoc) - XMLoadFloat3(&CurrLoc));
+		float Dot = XMVectorGetX(XMVector3Dot(ForwardV, ToTarget));
+
+		// 내적값을 각도로 변환하여 범위 체크
+		float Angle = XMConvertToDegrees(acosf(fmaxf(-1.0f, fminf(1.0f, Dot))));
+		if (Angle <= mHomingAngle && Dot > BestDot)
+		{
+			BestDot = Dot;
+			Target = Candidate.get();
+		}
+	}
+
+	return Target;
+}
+
+bool AProjectileBase::IsHomingTarget(AActor* Actor) const
+{
+	if (Actor)
+	{
+		for (const std::string& TargetTag : mHomingTargetTags)
+		{
+			if (Actor->HasTag(TargetTag))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 void AProjectileBase::OnCollision(AActor* Actor, WPhysicsComponent* Comp, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage)

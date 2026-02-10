@@ -1,6 +1,12 @@
 #include "CollisionGenerator.h"
+#include "Component/ActorComponent.h"
 
 void FCollisionGeneratorBase::AddTargetTags(const TArray<std::string>& InTargetTags)
+{
+    mTargetTags.insert(InTargetTags.begin(), InTargetTags.end());
+}
+
+void FCollisionGeneratorBase::AddTargetTags(const std::set<std::string>& InTargetTags)
 {
     mTargetTags.insert(InTargetTags.begin(), InTargetTags.end());
 }
@@ -91,4 +97,12 @@ void FCollisionGeneratorBase::ProcessHit(const FHitResult& Hit)
         Hit.Distance,
         mDamage
     );
+
+    if (mHitCount >= mMaxHit)
+    {
+        if (WActorComponent* Comp = dynamic_cast<WActorComponent*>(this))
+        {
+            Comp->Deactivate();
+        }
+    }
 }

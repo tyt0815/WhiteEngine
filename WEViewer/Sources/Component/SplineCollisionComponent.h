@@ -37,10 +37,6 @@ protected:
 
 	virtual void OnDeactivate() override;
 
-	virtual void ActivateCollision() override;
-
-	virtual void DeactivateCollision() override;
-
 public:
 	TArray<FCapsuleCollider> mCapsuleCollider;
 

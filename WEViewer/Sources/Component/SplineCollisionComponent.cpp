@@ -153,17 +153,7 @@ void WSplineCollisionComponent::GenerateCollision()
 void WSplineCollisionComponent::OnActivate()
 {
 	Super::OnActivate();
-	ActivateCollision();
-}
 
-void WSplineCollisionComponent::OnDeactivate()
-{
-	Super::OnDeactivate();
-	DeactivateCollision();
-}
-
-void WSplineCollisionComponent::ActivateCollision()
-{
 	if (mbUseBoundingBox && mBoundingBox.CenterComp)
 	{
 		mBoundingBox.PrevLocation = mBoundingBox.CenterComp->GetWorldLocation();
@@ -177,6 +167,7 @@ void WSplineCollisionComponent::ActivateCollision()
 	mElapsedTime = 0;
 }
 
-void WSplineCollisionComponent::DeactivateCollision()
+void WSplineCollisionComponent::OnDeactivate()
 {
+	Super::OnDeactivate();
 }

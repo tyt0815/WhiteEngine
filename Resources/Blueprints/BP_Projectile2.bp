@@ -1,6 +1,6 @@
 <AProjectileBase>
     <Configs>
-        <Movement InitSpeed = "(0, 0, 30)" GravityScale = "0.5" MaxSpeed = "1000"/>
+        <Movement InitSpeed = "(0 0 30)" GravityScale = "0.5" MaxSpeed = "1000"/>
         <LifeCycle Life = "5" />
     </Configs>
 

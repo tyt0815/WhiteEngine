@@ -18,17 +18,14 @@ public:
 	virtual ~ICollisionGenerator() = default;
 
 	virtual void GenerateCollision() = 0;
-
-protected:
-	virtual void ActivateCollision() = 0;
-
-	virtual void DeactivateCollision() = 0;
 };
 
 class FCollisionGeneratorBase : public ICollisionGenerator
 {
 public:
 	void AddTargetTags(const TArray<std::string>& InTargetTags);
+
+	void AddTargetTags(const std::set<std::string>& InTargetTags);
 
 	FOnCollision mOnCollision;
 
@@ -38,7 +35,6 @@ protected:
 	void UpdateCachedIgnoreList();
 
 	void ProcessHit(const FHitResult& Hit);
-
 
 	std::unordered_map<AActor*, float> mIgnoreTimers;
 	std::vector<AActor*> mCachedIgnoreList;
@@ -83,4 +79,6 @@ public:
 	{
 		return mTargetTags.find(Tag) != mTargetTags.end();
 	}
+
+	friend class AProjectileBase;
 };

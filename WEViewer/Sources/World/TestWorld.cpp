@@ -12,10 +12,15 @@ void WTestWorld::BeginPlay()
 	Super::BeginPlay();
 
 	FActorSpawnParameter Param;
-	Param.Transform.Translation = XMFLOAT3(-10, 5, 50);
+	Param.Transform.Translation = XMFLOAT3(-40, 1, 30);
 	GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Enemy", Param);
 	Param.Transform.Translation.x += 2;
+	Param.Transform.Translation.z += 6;
+	GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Enemy", Param);
+	Param.Transform.Translation.x += 6;
 	GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Alliance", Param);
+	Param.Transform.Translation.x += 2;
+	GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Enemy", Param);
 }
 
 void WTestWorld::Tick(float DeltaSecond)
@@ -38,8 +43,12 @@ void WTestWorld::Tick(float DeltaSecond)
 		Param.Transform.Translation.x += 2;
 		SpawnActorByFactory<AProjectileBase>("BP_Projectile3", Param);
 
-		Param.Transform.Translation.x += 2;
+		Param.Transform.Translation.x += 8;
 		SpawnActorByFactory<AProjectileBase>("BP_Projectile4", Param);
+		SpawnActorByFactory<AProjectileBase>("BP_Projectile5", Param);
+
+		Param.Transform.Translation.x += 10;
+		SpawnActorByFactory<AProjectileBase>("BP_Projectile6", Param);
 
 		a = 0;
 

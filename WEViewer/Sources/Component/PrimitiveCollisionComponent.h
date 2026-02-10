@@ -23,10 +23,6 @@ protected:
 
     virtual void OnDeactivate() override;
 
-    virtual void ActivateCollision() override;
-
-    virtual void DeactivateCollision() override;
-
 
 protected:
     virtual void TraceShape(XMFLOAT3 Start, FTransform CurrTransform, const TArray<AActor*>& ActorsToIgnore, FHitResult& Hit) {};

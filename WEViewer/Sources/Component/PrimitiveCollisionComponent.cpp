@@ -24,22 +24,12 @@ void WPrimitiveCollisionComponent::GenerateCollision()
 void WPrimitiveCollisionComponent::OnActivate()
 {
     Super::OnActivate();
-    ActivateCollision();
+    mPrevLocation = GetWorldLocation();
 }
 
 void WPrimitiveCollisionComponent::OnDeactivate()
 {
     Super::OnDeactivate();
-    DeactivateCollision();
-}
-
-void WPrimitiveCollisionComponent::ActivateCollision()
-{
-    mPrevLocation = GetWorldLocation();
-}
-
-void WPrimitiveCollisionComponent::DeactivateCollision()
-{
 }
 
 void WPrimitiveCollisionComponent::Tick(float DeltaSecond)

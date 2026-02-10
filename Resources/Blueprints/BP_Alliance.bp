@@ -1,10 +1,10 @@
 <AHitReactor>
     <Configs>
-        <General Tags = "Alliance"/>
+        <General Tags = "[Alliance]"/>
     </Configs>
 
     <Components>
-        <Mesh Name = "Body" Asset = "SM_ScuffedGoldBox" Scale = "(1, 2, 1)"/>
+        <Mesh Name = "Body" Asset = "SM_ScuffedGoldBox" Scale = "(1 2 1)"/>
     </Components>
 
 

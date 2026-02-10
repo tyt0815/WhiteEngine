@@ -72,11 +72,11 @@ template<> struct WPropertyTrait<XMFLOAT3>
 	{
 		XMFLOAT3 Float3 = { 0.f, 0.f, 0.f };
 
-		int Result = sscanf_s(String.c_str(), "(%f, %f, %f)", &Float3.x, &Float3.y, &Float3.z);
+		int Result = sscanf_s(String.c_str(), "(%f %f %f)", &Float3.x, &Float3.y, &Float3.z);
 
 		if (Result < 3)
 		{
-			ReportParseError("Float3 (x, y, z)", String);
+			ReportParseError("Float3 (x y z)", String);
 		}
 		return Float3;
 	}
@@ -97,22 +97,54 @@ struct WPropertyTrait<std::vector<T>>
 		std::vector<T> Result;
 		if (String.empty()) return Result;
 
-		// 1. 전처리: 대괄호 제거 및 구분자 통일 (쉼표 -> 공백)
+		// 1. 전처리: 대괄호 [ ] 제거
 		std::string CleanStr = String;
 		CleanStr.erase(std::remove(CleanStr.begin(), CleanStr.end(), '['), CleanStr.end());
 		CleanStr.erase(std::remove(CleanStr.begin(), CleanStr.end(), ']'), CleanStr.end());
-		std::replace(CleanStr.begin(), CleanStr.end(), ',', ' ');
 
-		// 2. 파싱: 공백 단위로 끊어서 각 타입 T의 Parse를 호출
+		// 2. 쉼표(,)를 기준으로 토큰 분리
 		std::stringstream ss(CleanStr);
 		std::string Token;
-		while (ss >> Token)
+		while (std::getline(ss, Token, ','))
 		{
-			// T가 std::string이면 위에 만드신 string용 Parse가 호출됩니다.
-			// T가 bool이면 이전에 만든 bool용 Parse가 호출됩니다.
-			Result.push_back(WPropertyTrait<T>::Parse(Token));
-		}
+			// 앞뒤 공백 제거 (Trim) - " 10 20 30" 방지
+			Token.erase(0, Token.find_first_not_of(" "));
+			Token.erase(Token.find_last_not_of(" ") + 1);
 
+			if (!Token.empty())
+			{
+				Result.push_back(WPropertyTrait<T>::Parse(Token));
+			}
+		}
+		return Result;
+	}
+};
+
+template<typename T>
+struct WPropertyTrait<std::set<T>>
+{
+	static std::set<T> Parse(const std::string& String)
+	{
+		std::set<T> Result;
+		if (String.empty()) return Result;
+
+		std::string CleanStr = String;
+		CleanStr.erase(std::remove(CleanStr.begin(), CleanStr.end(), '['), CleanStr.end());
+		CleanStr.erase(std::remove(CleanStr.begin(), CleanStr.end(), ']'), CleanStr.end());
+
+		std::stringstream ss(CleanStr);
+		std::string Token;
+		while (std::getline(ss, Token, ','))
+		{
+			Token.erase(0, Token.find_first_not_of(" "));
+			size_t last = Token.find_last_not_of(" ");
+			if (last != std::string::npos) Token.erase(last + 1);
+
+			if (!Token.empty())
+			{
+				Result.insert(WPropertyTrait<T>::Parse(Token));
+			}
+		}
 		return Result;
 	}
 };
@@ -196,8 +228,8 @@ public:
 	using WAction = std::function<void()>;
 	using WActionFactoryFunc = std::function<WAction(const WAttributesMap&)>;
 
-	using WProperty = std::variant<bool*, int*, float*, XMFLOAT3*, std::string*>;
-	using WVariantValue = std::variant<bool, int, float, XMFLOAT3, std::string>;
+	using WProperty = std::variant		<bool*,	int*,	float*,	XMFLOAT3*,	std::string*,	TArray<std::string>*,	std::set<std::string>*>;
+	using WVariantValue = std::variant	<bool,	int,	float,	XMFLOAT3,	std::string,	TArray<std::string>,	std::set<std::string>>;
 	using WPropertiesMap = std::unordered_map<std::string, WProperty>;
 
 	class WEvent 
