@@ -15,6 +15,8 @@ public:
 public:
 	void SetHomingTarget(WSceneComponent* Target);
 
+	void SetHomingLocation(const XMFLOAT3& Loc);
+
 	void AddForce(const XMFLOAT3& Force);
 
 protected:
@@ -35,6 +37,8 @@ protected:
 
 private:
 	TWeakPtr<WSceneComponent> mHomingTarget;
+
+	XMFLOAT3 mHomingLocation;
 
 	XMFLOAT3 mExternalAcceleration = { 0,0,0 };
 

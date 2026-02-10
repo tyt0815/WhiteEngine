@@ -90,7 +90,7 @@ public:
 
 	__forceinline bool HasTag(const std::string& Tag) const
 	{
-		return mTags.find(Tag) != mTags.end();
+		return mTags.count(Tag) > 0;
 	}
 
 

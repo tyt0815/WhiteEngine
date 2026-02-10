@@ -34,42 +34,49 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
     // 2. 호밍 로직 (속도 벡터의 방향을 꺾음)
     if (mbHomingProjectile)
     {
+        
+        XMFLOAT3 CurrLoc = Owner->GetActorLocation();
+        XMVECTOR CurrLocV = XMLoadFloat3(&CurrLoc);
+        XMFLOAT3 TargetLoc;
         if (TSharedPtr<WSceneComponent> Target = mHomingTarget.lock())
         {
-            XMFLOAT3 CurrLoc = Owner->GetActorLocation();
-            XMVECTOR CurrLocV = XMLoadFloat3(&CurrLoc);
-            XMFLOAT3 TargetLoc = Target->GetWorldLocation();
-            XMVECTOR TargetLocV = XMLoadFloat3(&TargetLoc);
-            XMVECTOR ToTargetV = XMVectorSubtract(TargetLocV, CurrLocV);
+            TargetLoc = Target->GetWorldLocation();
+        }
+        else
+        {
+            TargetLoc = mHomingLocation;
+        }
+        XMVECTOR TargetLocV = XMLoadFloat3(&TargetLoc);
+        XMVECTOR ToTargetV = XMVectorSubtract(TargetLocV, CurrLocV);
 
-            if (XMVectorGetX(XMVector3LengthSq(ToTargetV)) > 0.00001f)
+        if (XMVectorGetX(XMVector3LengthSq(ToTargetV)) > 0.00001f)
+        {
+            XMVECTOR CurrentDirV = XMVector3Normalize(CurrentVelocityV);
+            XMVECTOR ToTargetUnitV = XMVector3Normalize(ToTargetV);
+
+            // 속도 방향과 타겟 방향 사이의 각도 계산
+            float Radian = XMVectorGetX(XMVector3AngleBetweenNormals(CurrentDirV, ToTargetUnitV));
+            if (Radian > 0.0001f)
             {
-                XMVECTOR CurrentDirV = XMVector3Normalize(CurrentVelocityV);
-                XMVECTOR ToTargetUnitV = XMVector3Normalize(ToTargetV);
+                float TurnSpeedRad = XMConvertToRadians(mHomingTurnLimit);
+                float MaxAngleThisFrame = (mHomingTurnLimit > 0) ? TurnSpeedRad * DeltaTime : Radian;
+                float ActualRotation = min(Radian, MaxAngleThisFrame);
 
-                // 속도 방향과 타겟 방향 사이의 각도 계산
-                float Radian = XMVectorGetX(XMVector3AngleBetweenNormals(CurrentDirV, ToTargetUnitV));
-                if (Radian > 0.0001f)
+                XMVECTOR AxisV = XMVector3Normalize(XMVector3Cross(CurrentDirV, ToTargetUnitV));
+                if (XMVector3Equal(AxisV, XMVectorZero()))
                 {
-                    float TurnSpeedRad = XMConvertToRadians(mHomingTurnLimit);
-                    float MaxAngleThisFrame = (mHomingTurnLimit > 0) ? TurnSpeedRad * DeltaTime : Radian;
-                    float ActualRotation = min(Radian, MaxAngleThisFrame);
-
-                    XMVECTOR AxisV = XMVector3Normalize(XMVector3Cross(CurrentDirV, ToTargetUnitV));
-                    if (XMVector3Equal(AxisV, XMVectorZero()))
-                    {
-                        XMFLOAT3 Right = Owner->GetRightVector();
-                        XMVECTOR RightV = XMLoadFloat3(&Right);
-                        AxisV = XMVector3Normalize(XMVector3Cross(RightV, ToTargetUnitV));
-                    }
-
-                    RotationQuatV = XMQuaternionRotationAxis(AxisV, ActualRotation);
-                    bCalcRotQuatV = false;
-                    // 속도 벡터 자체를 회전시킴
-                    CurrentVelocityV = XMVector3Rotate(CurrentVelocityV, RotationQuatV);
+                    XMFLOAT3 Right = Owner->GetRightVector();
+                    XMVECTOR RightV = XMLoadFloat3(&Right);
+                    AxisV = XMVector3Normalize(XMVector3Cross(RightV, ToTargetUnitV));
                 }
+
+                RotationQuatV = XMQuaternionRotationAxis(AxisV, ActualRotation);
+                bCalcRotQuatV = false;
+                // 속도 벡터 자체를 회전시킴
+                CurrentVelocityV = XMVector3Rotate(CurrentVelocityV, RotationQuatV);
             }
         }
+        
     }
 
     if (bCalcRotQuatV)
@@ -203,6 +210,12 @@ void WProjectileMovementComponent::SetHomingTarget(WSceneComponent* Target)
     {
         mHomingTarget.reset();
     }
+}
+
+void WProjectileMovementComponent::SetHomingLocation(const XMFLOAT3& Loc)
+{
+    SetHomingTarget(nullptr);
+    mHomingLocation = Loc;
 }
 
 void WProjectileMovementComponent::AddForce(const XMFLOAT3& Force)

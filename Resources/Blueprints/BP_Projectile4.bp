@@ -5,7 +5,7 @@
 
         <LifeCycle Life = "5" />
 
-        <Homing Strategy = "Nearest" HomingRange = "200" HomingTurnRate = "90" TargetTags = "[Enemy]" />
+        <Homing Strategy = "Nearest" Range = "200" TurnRate = "90" TargetTags = "[Enemy]" />
     </Configs>
 
     <Components>

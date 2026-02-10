@@ -5,7 +5,7 @@
 
         <LifeCycle Life = "5" />
 
-        <Homing Strategy = "Angle" HomingRange = "200" HomingAngle = "90" HomingTurnRate = "180" TargetTags = "[Enemy]" />
+        <Homing Strategy = "Angle" Range = "200" Angle = "90" TurnRate = "180" TargetTags = "[Enemy]" />
     </Configs>
 
     <Components>
