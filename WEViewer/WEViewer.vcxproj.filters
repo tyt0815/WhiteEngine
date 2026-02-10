@@ -24,6 +24,9 @@
     <Filter Include="Sources\Component">
       <UniqueIdentifier>{c80e04e3-ed2f-45b3-acce-ce8a8dcd799a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Actor\빌드제외">
+      <UniqueIdentifier>{cf99ca30-b191-4543-a20d-0087d4609922}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Main.cpp">
@@ -35,26 +38,14 @@
     <ClCompile Include="Sources\Actor\PhysicsSphere.cpp">
       <Filter>Sources\Actor</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Actor\TopAttackMissile.cpp">
-      <Filter>Sources\Actor</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\Actor\PhysicsBox.cpp">
-      <Filter>Sources\Actor</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Actor\MissileSwarmSystem.cpp">
       <Filter>Sources\Actor</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Actor\HitReactor.cpp">
       <Filter>Sources\Actor</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Actor\MissileGridManager.cpp">
-      <Filter>Sources\Actor</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\Pawn\PlayerPawn.cpp">
       <Filter>Sources\Pawn</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Actor\TargetMarker.cpp">
-      <Filter>Sources\Actor</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Actor\ProjectileBase.cpp">
       <Filter>Sources\Actor</Filter>
@@ -74,18 +65,27 @@
     <ClCompile Include="Sources\Component\SphereCollisionComponent.cpp">
       <Filter>Sources\Component</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Interface\CollisionGenerator.cpp">
+      <Filter>Sources\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Actor\MissileGridManager.cpp">
+      <Filter>Sources\Actor\빌드제외</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Actor\MissileSwarmSystem.cpp">
+      <Filter>Sources\Actor\빌드제외</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Actor\TargetMarker.cpp">
+      <Filter>Sources\Actor\빌드제외</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Actor\TopAttackMissile.cpp">
+      <Filter>Sources\Actor\빌드제외</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\World\TestWorld.h">
       <Filter>Sources\World</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Actor\PhysicsSphere.h">
-      <Filter>Sources\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Actor\MissileSwarmSystem.h">
-      <Filter>Sources\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Actor\TopAttackMissile.h">
       <Filter>Sources\Actor</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Actor\PhysicsBox.h">
@@ -97,14 +97,8 @@
     <ClInclude Include="Sources\Actor\HitReactor.h">
       <Filter>Sources\Actor</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Actor\MissileGridManager.h">
-      <Filter>Sources\Actor</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\Pawn\PlayerPawn.h">
       <Filter>Sources\Pawn</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Actor\TargetMarker.h">
-      <Filter>Sources\Actor</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Actor\ProjectileBase.h">
       <Filter>Sources\Actor</Filter>
@@ -126,6 +120,18 @@
     </ClInclude>
     <ClInclude Include="Sources\Component\SphereCollisionComponent.h">
       <Filter>Sources\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\MissileGridManager.h">
+      <Filter>Sources\Actor\빌드제외</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\MissileSwarmSystem.h">
+      <Filter>Sources\Actor\빌드제외</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\TargetMarker.h">
+      <Filter>Sources\Actor\빌드제외</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\TopAttackMissile.h">
+      <Filter>Sources\Actor\빌드제외</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

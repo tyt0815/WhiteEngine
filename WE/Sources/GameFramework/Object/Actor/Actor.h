@@ -89,6 +89,34 @@ template<> struct WPropertyTrait<std::string>
 	}
 };
 
+template<typename T>
+struct WPropertyTrait<std::vector<T>>
+{
+	static std::vector<T> Parse(const std::string& String)
+	{
+		std::vector<T> Result;
+		if (String.empty()) return Result;
+
+		// 1. 전처리: 대괄호 제거 및 구분자 통일 (쉼표 -> 공백)
+		std::string CleanStr = String;
+		CleanStr.erase(std::remove(CleanStr.begin(), CleanStr.end(), '['), CleanStr.end());
+		CleanStr.erase(std::remove(CleanStr.begin(), CleanStr.end(), ']'), CleanStr.end());
+		std::replace(CleanStr.begin(), CleanStr.end(), ',', ' ');
+
+		// 2. 파싱: 공백 단위로 끊어서 각 타입 T의 Parse를 호출
+		std::stringstream ss(CleanStr);
+		std::string Token;
+		while (ss >> Token)
+		{
+			// T가 std::string이면 위에 만드신 string용 Parse가 호출됩니다.
+			// T가 bool이면 이전에 만든 bool용 Parse가 호출됩니다.
+			Result.push_back(WPropertyTrait<T>::Parse(Token));
+		}
+
+		return Result;
+	}
+};
+
 class AActor : public WObject
 {
 	typedef WObject Super;
@@ -190,7 +218,7 @@ public:
 	using WEventLoader = std::function<WEvent*(const WAttributesMap&)>;
 
 protected:
-	virtual void LoadWConfigs(const std::unordered_map<std::string, WAttributesMap>& Configs) {}
+	virtual void LoadWConfigs(const std::unordered_map<std::string, WAttributesMap>& Configs);
 
 	void LoadWEvent(AActor::WEvent* Event, const TArray<TSharedPtr<FBlueprintActionNode>>& Actions);
 

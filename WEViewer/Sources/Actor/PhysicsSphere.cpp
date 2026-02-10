@@ -1,5 +1,4 @@
 #include "PhysicsSphere.h"
-#include "GameFramework/Object/Component/StaticMeshComponent.h"
 #include "Component/SphereComponent.h"
 
 APhysicsSphere::APhysicsSphere()
@@ -12,8 +11,4 @@ APhysicsSphere::APhysicsSphere()
 		Comp->ActivatePhysicBody();
 		Comp->SetRadius(0.5f);
 	}
-
-	auto Component = CreateComponent<WStaticMeshComponent>();
-	Component->SetupAttachment(GetRootComponent());
-	Component->SetStaticMesh(FStaticMeshManager::GetStaticMesh("SM_RustedIron2Sphere"));
 }

@@ -1,7 +1,6 @@
 #pragma once
 #include "Actor/Actor.h"
 #include "Component/BoxComponent.h"
-#include "Component/StaticMeshComponent.h"
 
 class APhysicsBox : public AActor
 {
@@ -12,6 +11,4 @@ public:
 
 private:
 	TWeakPtr<WBoxComponent> mBoxComp;
-
-	TWeakPtr<WStaticMeshComponent> mStaticMeshComp;
 };

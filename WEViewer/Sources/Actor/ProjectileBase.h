@@ -29,7 +29,7 @@ protected:
 	void PlayParticle(const std::string& Name);
 
 private:
-	void OnCollision(AActor* Actor, WPhysicsComponent* Comp, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance);
+	void OnCollision(AActor* Actor, WPhysicsComponent* Comp, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage);
 
 	TWeakPtr<WProjectileMovementComponent> mProjMoveComp;
 	TWeakPtr<WObjectAnimComponent> mObjAnimComp;
@@ -43,8 +43,6 @@ private:
 	float mMaxSpeed = 1;
 
 	float mSmartHomingRange = 0.0f;
-
-	float mDamage = 1.0f;
 
 	bool mbSmartHoming = false;
 };

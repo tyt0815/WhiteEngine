@@ -95,7 +95,30 @@ AProjectileBase::AProjectileBase()
 				CollisionGenerator->GenerateCollision();
 				CollisionGenerator->mOnCollision.Add(this, &AProjectileBase::OnCollision);
 
-				
+				ApplyAttribute<float>(Attributes, "Delay", [=](auto&& v)
+					{
+						CollisionGenerator->SetHitDelay(v);
+					});
+
+				ApplyAttribute<int>(Attributes, "MaxHit", [=](auto&& v)
+					{
+						CollisionGenerator->SetMaxHit(v);
+					});
+
+				ApplyAttribute<float>(Attributes, "Damage", [=](auto&& v)
+					{
+						CollisionGenerator->SetDamage(v);
+					});
+
+				ApplyAttribute<TArray<std::string>>(Attributes, "TargetTags", [=](auto&& Arry)
+					{
+						CollisionGenerator->AddTargetTags(Arry);
+					});
+
+				ApplyAttribute<bool>(Attributes, "Debug", [=](auto&& v) 
+					{
+						CollisionGenerator->SetDebug(v);
+					});
 			}
 
 
@@ -373,15 +396,6 @@ void AProjectileBase::LoadWConfigs(const std::unordered_map<std::string, WAttrib
 			ProjMoveComp->SetHomingTurnLimit(v);
 			});
 	}
-
-	if (Configs.count("Combat"))
-	{
-		const WAttributesMap& Attributes = Configs.at("Combat");
-
-		ApplyAttribute<float>(Attributes, "Damage", [&](float v) {
-			mDamage = v;
-			});
-	}
 }
 
 void AProjectileBase::ApplyWComponentCommonAttribute(FBlueprintComponentNode* CompNode, WSceneComponent* Comp)
@@ -501,7 +515,12 @@ void AProjectileBase::PlayParticle(const std::string& Name)
 	}
 }
 
-void AProjectileBase::OnCollision(AActor* Actor, WPhysicsComponent* Comp, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance)
+void AProjectileBase::OnCollision(AActor* Actor, WPhysicsComponent* Comp, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage)
 {
 	mCommonOnHitEvent.Dispatch();
+
+	if (IHitInterface* HitInterface = dynamic_cast<IHitInterface*>(Actor))
+	{
+		HitInterface->OnHit(this, Comp, ImpactPoint, Normal, Damage);
+	}
 }

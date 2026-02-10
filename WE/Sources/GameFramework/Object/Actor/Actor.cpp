@@ -428,6 +428,19 @@ void AActor::LoadBlueprint(const FBlueprintAsset* Blueprint)
 	LoadWEvents(Blueprint->mEvents, Blueprint->mCustomEvents);
 }
 
+void AActor::LoadWConfigs(const std::unordered_map<std::string, WAttributesMap>& Configs)
+{
+	if (Configs.count("General"))
+	{
+		const WAttributesMap& Attributes = Configs.at("General");
+
+		// 1. 초기 속도 (Initial Velocity) - XMFLOAT3
+		ApplyAttribute<TArray<std::string>>(Attributes, "Tags", [=](auto&& Arry) {
+			this->AddTags(Arry);
+			});
+	}
+}
+
 void AActor::LoadWEvent(AActor::WEvent* Event, const TArray<TSharedPtr<FBlueprintActionNode>>& Actions)
 {
 	for (const auto& ActionInfo : Actions)

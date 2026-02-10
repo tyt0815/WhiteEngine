@@ -20,7 +20,7 @@ void WCapsuleCollisionComponent::TraceShape(XMFLOAT3 Start, FTransform CurrTrans
         GetWorldRotation(),
         ActorsToIgnore,
         Hit,
-        true,           // DrawDebug
+        mbDebug,           // DrawDebug
         1.0f / 60.0f    // LifeTime
     );
 }

@@ -19,7 +19,7 @@ void WSphereCollisionComponent::TraceShape(XMFLOAT3 Start, FTransform CurrTransf
         FinalRadius,                // 스케일이 적용된 반지름
         ActorsToIgnore,
         Hit,
-        true,                       // bDrawDebug
+        mbDebug,                       // bDrawDebug
         1.0f / 60.0f                // DebugDuration
     );
 }

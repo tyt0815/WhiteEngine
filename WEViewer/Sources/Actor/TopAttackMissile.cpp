@@ -247,7 +247,7 @@ void ATopAttackMissile::OnHit(const FHitResult& Hit)
 						}
 						else
 						{
-							HitInt->OnHit(this);
+							// HitInt->OnHit(this);
 						}
 					}
 				}

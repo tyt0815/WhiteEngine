@@ -11,11 +11,4 @@ APhysicsBox::APhysicsBox()
 		Box->SetMotionType(EMotionType::Kinematic);
 		Box->SetObjectChannel(EObjectChannel::EOC_PhysicsBody);
 	}
-
-	mStaticMeshComp = CreateComponent<WStaticMeshComponent>()->GetWeakPtr<WStaticMeshComponent>();
-	if (auto StaticMeshComp = mStaticMeshComp.lock())
-	{
-		StaticMeshComp->SetupAttachment(GetRootComponent());
-		StaticMeshComp->SetStaticMesh(FStaticMeshManager::GetStaticMesh("SM_LaminateFlooringBrownBox"));
-	}
 }

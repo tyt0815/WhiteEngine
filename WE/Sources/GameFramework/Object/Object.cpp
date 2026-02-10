@@ -45,3 +45,8 @@ void WObject::OnDeactivate()
 	GetWorld()->DequeueTick(this);
 	mOnDeactivate.Broadcast();
 }
+
+void WObject::AddTags(TArray<std::string>& Tags)
+{
+	mTags.insert(Tags.begin(), Tags.end());
+}

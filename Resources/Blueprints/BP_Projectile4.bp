@@ -1,0 +1,20 @@
+<AProjectileBase>
+
+    <Configs>
+        <Movement InitSpeed = "(0, 10, 20)" GravityScale = "1" MaxSpeed = "1000"/>
+        <LifeCycle Life = "5" />
+        <Homing Homing = "1000"/>
+    </Configs>
+
+    <Components>
+        <Mesh Name = "Body" Asset = "SM_ScuffedGoldBox">
+            <Collision Name = "BoxCollision" Type = "Box" Extent = "(0.5, 0.5, 0.5)" Damage = "250" Delay = "0.5" TargetTags = "Enemy"/>
+        </Mesh>
+    </Components>
+
+    <Events>
+        <OnHit>
+        </OnHit>
+    </Events>
+
+</AProjectileBase>

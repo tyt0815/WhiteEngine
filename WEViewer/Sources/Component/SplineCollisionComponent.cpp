@@ -7,77 +7,50 @@ WSplineCollisionComponent::WSplineCollisionComponent()
 	SetTickGroup(ETickGroup::ETG_PostPhysics, ETickPriority::ETP_High);
 }
 
-constexpr float FIXED_DELTA = 1.0f / 60.0f;
+inline constexpr float FIXED_DELTA = 1.0f / 60.0f;
 
 void WSplineCollisionComponent::Tick(float DeltaSecond)
 {
 	Super::Tick(DeltaSecond);
 
+	// FCollisionGeneratorBase의 시간 관리 업데이트
+	UpdateActorsToIgnore(DeltaSecond);
+
 	mElapsedTime += DeltaSecond;
-	if (mElapsedTime < FIXED_DELTA)
-	{
-		return;
-	}
+	if (mElapsedTime < FIXED_DELTA) return;
 	mElapsedTime = 0;
 
+	// 무시 리스트 준비 (캐싱된 리스트 사용)
+	TArray<AActor*> TraceIgnore = mCachedIgnoreList;
+	if (auto Owner = GetOwner().lock()) TraceIgnore.push_back(Owner.get());
+
 	bool bNeedCollisionCheck = true;
-	TArray<AActor*> ActorsToIgnore;
 	if (mbUseBoundingBox)
 	{
-		XMFLOAT3 Start = mBoundingBox.PrevLocation;
-		XMFLOAT3 End = mBoundingBox.CenterComp->GetWorldLocation();
-		FHitResult Hit;
-		auto Owner = GetOwner().lock();
-		GetWorld()->BoxTrace(
-			Start,
-			End,
-			XMFLOAT3(1, 1, 1),
-			Owner->GetActorRotation(),
-			ActorsToIgnore,
-			Hit,
-			true,
-			FIXED_DELTA
-		);
+		FHitResult BoxHit;
+		GetWorld()->BoxTrace(mBoundingBox.PrevLocation, mBoundingBox.CenterComp->GetWorldLocation(),
+			XMFLOAT3(1, 1, 1), GetOwner().lock()->GetActorRotation(), TraceIgnore, BoxHit, mbDebug, FIXED_DELTA);
 
-		mBoundingBox.PrevLocation = End;
-
-		if (Hit.Actor.expired())
-		{
-			bNeedCollisionCheck = false;
-		}
+		mBoundingBox.PrevLocation = mBoundingBox.CenterComp->GetWorldLocation();
+		if (BoxHit.Actor.expired()) bNeedCollisionCheck = false;
 	}
 
 	if (bNeedCollisionCheck)
 	{
 		for (FCapsuleCollider& Capsule : mCapsuleCollider)
 		{
-			XMFLOAT3 CurrLocation = Capsule.Comp->GetWorldLocation();
+			XMFLOAT3 CurrLoc = Capsule.Comp->GetWorldLocation();
 			FHitResult Hit;
-			GetWorld()->CapsuleTrace(
-				Capsule.PrevLocation,
-				CurrLocation,
-				Capsule.Radius,
-				Capsule.HalfHeight,
-				Capsule.Comp->GetWorldRotation(),
-				ActorsToIgnore,
-				Hit,
-				true,
-				FIXED_DELTA
-			);
+			GetWorld()->CapsuleTrace(Capsule.PrevLocation, CurrLoc, Capsule.Radius, Capsule.HalfHeight,
+				Capsule.Comp->GetWorldRotation(), TraceIgnore, Hit, mbDebug, FIXED_DELTA);
 
-			if (auto HittedActor = Hit.Actor.lock())
+			if (!Hit.Actor.expired())
 			{
-				ActorsToIgnore.push_back(HittedActor.get());
-
-				mOnCollision.Broadcast(HittedActor.get(), Hit.HitComponent.lock().get(), Hit.ImpactPoint, Hit.Normal, Hit.Distance);
+				// 베이스 클래스의 공통 처리 로직 호출
+				ProcessHit(Hit);
 			}
+			Capsule.PrevLocation = CurrLoc;
 		}
-	}
-
-	// Update PrevLocation
-	for (FCapsuleCollider& Capsule : mCapsuleCollider)
-	{
-		Capsule.PrevLocation = Capsule.Comp->GetWorldLocation();
 	}
 }
 

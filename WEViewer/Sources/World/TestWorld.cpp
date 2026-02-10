@@ -3,17 +3,19 @@
 #include "Actor/PhysicsSphere.h"
 #include "Actor/HitReactor.h"
 #include "Actor/ProjectileBase.h"
-#include "Pawn/PlayerPawn.h"
+//#include "Pawn/PlayerPawn.h"
 
 void WTestWorld::BeginPlay()
 {	
-	SetPlayer(SpawnActor<APlayerPawn>());
+	// SetPlayer(SpawnActor<APlayerPawn>());
 
 	Super::BeginPlay();
 
 	FActorSpawnParameter Param;
-	Param.Transform.Translation = XMFLOAT3(0, 5, 50);
-	GetWorld()->SpawnActor<AHitReactor>(Param);
+	Param.Transform.Translation = XMFLOAT3(-10, 5, 50);
+	GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Enemy", Param);
+	Param.Transform.Translation.x += 2;
+	GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Alliance", Param);
 }
 
 void WTestWorld::Tick(float DeltaSecond)
@@ -35,6 +37,9 @@ void WTestWorld::Tick(float DeltaSecond)
 
 		Param.Transform.Translation.x += 2;
 		SpawnActorByFactory<AProjectileBase>("BP_Projectile3", Param);
+
+		Param.Transform.Translation.x += 2;
+		SpawnActorByFactory<AProjectileBase>("BP_Projectile4", Param);
 
 		a = 0;
 

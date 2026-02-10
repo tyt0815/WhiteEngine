@@ -66,6 +66,6 @@ void AMissileGridManager::Hit(IHitInterface* Victim, ATopAttackMissile* Instigat
 	if (GetHittedActorIndex(Victim) == -1)
 	{
 		mHittedActors.push_back(Victim);
-		Victim->OnHit(Instigator);
+		// Victim->OnHit(Instigator);
 	}
 }
