@@ -11,16 +11,6 @@ void WActorComponent::Destroy()
 	OnDestroy();
 }
 
-void WActorComponent::Activate()
-{
-	OnActivate();
-}
-
-void WActorComponent::Deactivate()
-{
-	OnDeactivate();
-}
-
 TWeakPtr<AActor> WActorComponent::GetOwner() const
 {
 	return mOwner->GetWeakPtr<AActor>();
@@ -28,5 +18,8 @@ TWeakPtr<AActor> WActorComponent::GetOwner() const
 
 void WActorComponent::BeginComponent()
 {
-	OnActivate();
+	if (IsActivate())
+	{
+		Activate();
+	}
 }

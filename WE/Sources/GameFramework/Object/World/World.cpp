@@ -242,7 +242,6 @@ void WWorld::ActivateActor(AActor* Actor)
 	{
 		mActiveActorQueue.emplace_back(Actor);
 		Actor->mActiveActorQueueId = (int)mActiveActorQueue.size() - 1;
-		Actor->OnActivate();
 	}
 }
 
@@ -259,7 +258,6 @@ void WWorld::DeactivateActor(AActor* Actor)
 
 		}
 		mActiveActorQueue.pop_back();
-		Actor->OnDeactivate();
 	}
 }
 

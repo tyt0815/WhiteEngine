@@ -15,23 +15,6 @@ void ReportParseError(const std::string& Type, const std::string& WrongValue)
 	assert(false && "Check the XML attribute format!");
 }
 
-void ApplySceneComponentDefaultAttributes(WSceneComponent* Comp, const std::unordered_map<std::string, std::string>& Attributes)
-{
-	ApplyAttribute(Attributes, "Loc", ParseFloat3, [&](const XMFLOAT3& v) {
-		Comp->SetLocalLocation(v);
-		});
-
-	ApplyAttribute(Attributes, "Rot", ParseFloat3, [&](const XMFLOAT3& v) {
-		// 실수 방지: Rotation 전용 세터 호출
-		Comp->SetLocalRotation(v);
-		});
-
-	ApplyAttribute(Attributes, "Scale", ParseFloat3, [&](const XMFLOAT3& v) {
-		// 실수 방지: Scale 전용 세터 호출
-		Comp->SetLocalScale(v);
-		});
-}
-
 AActor::AActor():
 	mActorCounter(++g_ActorCounter)
 {
@@ -48,10 +31,8 @@ AActor::AActor():
 		{
 			WStaticMeshComponent* Comp = this->CreateComponent<WStaticMeshComponent>();
 
-			ApplySceneComponentDefaultAttributes(Comp, Attributes);
-
 			// Static Mesh 에셋
-			ApplyAttribute(Attributes, "Asset", [&](const std::string& v) {
+			ApplyAttribute<std::string>(Attributes, "Asset", [&](const std::string& v) {
 				Comp->SetStaticMesh(v);
 				});
 
@@ -62,9 +43,7 @@ AActor::AActor():
 		{
 			WSplineComponent* Comp = this->CreateComponent<WSplineComponent>();
 
-			ApplySceneComponentDefaultAttributes(Comp, Attributes);
-
-			ApplyAttribute(Attributes, "Asset", [&](const std::string& v) {
+			ApplyAttribute<std::string>(Attributes, "Asset", [&](const std::string& v) {
 				Comp->LoadSplineFromAsset(v);
 				});
 
@@ -136,6 +115,57 @@ AActor::AActor():
 			};
 		});
 
+	RegisterWActionFactory("Activate", [this](auto&& Attributes)
+		{
+			if (Attributes.count("Target") == 0)
+			{
+				ShowMessageBox(L"Action::Activate: 타겟을 설정해 주세요");
+				assert(false);
+			}
+			const std::string& Target = Attributes.at("Target");
+			WSceneComponent* TargetComp = GetWComponent(Target);
+
+			bool mbWithChild = false;
+			ExtractAttribute(Attributes, "Child", mbWithChild);
+			std::function<void()> Factory;
+			if (mbWithChild)
+			{
+				Factory = [=]() { TargetComp->ActivateWithChild(); };
+			}
+			else
+			{
+				Factory = [=]() { TargetComp->Activate(); };
+			}
+			
+			return Factory;
+		});
+
+	RegisterWActionFactory("Deactivate", [this](auto&& Attributes)
+		{
+			if (Attributes.count("Target") == 0)
+			{
+				ShowMessageBox(L"Action::Deactivate: 타겟을 설정해 주세요");
+				assert(false);
+			}
+
+			const std::string& Target = Attributes.at("Target");
+			WSceneComponent* TargetComp = GetWComponent(Target);
+
+			bool mbWithChild = false;
+			ExtractAttribute(Attributes, "Child", mbWithChild);
+			std::function<void()> Factory;
+			if (mbWithChild)
+			{
+				Factory = [=]() { TargetComp->DeactivateWithChild(); };
+			}
+			else
+			{
+				Factory = [=]() { TargetComp->Deactivate(); };
+			}
+
+			return Factory;
+		});
+
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// WAction End
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -146,7 +176,6 @@ AActor::AActor():
 
 	RegisterSystemEvent("OnSpawn", &mOnSpawnEvent);
 
-
 	RegisterSystemEvent("OnDestroy", &mOnDestroyEvent);
 
 	RegisterSystemEvent("OnTime", [this](auto&& Attributes) {
@@ -156,6 +185,67 @@ AActor::AActor():
 		mOnTimeEvents.push_back(std::move(OnTimeEvent));
 		
 		return &mOnTimeEvents.back()->Event;
+		});
+
+	RegisterSystemEvent("OnActivate", [this](const WAttributesMap& Attributes) -> WEvent* {
+		auto Iter = Attributes.find("Target");
+
+		WEvent* Event = nullptr;
+		if (Iter != Attributes.end())
+		{
+			const std::string& Target = Iter->second;
+			Event = GenerateWEvent(mOnActivateEventsMap, Target);
+			
+			if (WSceneComponent* Comp = GetWComponent(Target))
+			{
+				Comp->mOnActivate.AddLambda([Event]() {
+					Event->Dispatch();
+					});
+			}
+			else
+			{
+				ShowMessageBox("OnHit: Invalid target\n" + Target);
+			}
+		}
+		else
+		{
+			ShowMessageBox("Event::OnActivate: Target attribute is required.");
+			assert(false);
+		}
+
+		return Event;
+		});
+
+	RegisterSystemEvent("OnDeactivate", [this](const WAttributesMap& Attributes) -> WEvent* {
+		auto Iter = Attributes.find("Target");
+
+		WEvent* Event = nullptr;
+		if (Iter != Attributes.end())
+		{
+			const std::string& Target = Iter->second;
+			// 독립적인 WEvent 생성 및 맵 관리 (OnDeactivate용 맵 사용)
+			Event = GenerateWEvent(mOnDeactivateEventsMap, Target);
+
+			if (WSceneComponent* Comp = GetWComponent(Target))
+			{
+				// 컴포넌트의 비활성화 델리게이트에 바인딩
+				Comp->mOnDeactivate.AddLambda([Event]() {
+					if (Event) Event->Dispatch();
+					});
+			}
+			else
+			{
+				ShowMessageBox("OnDeactivate: Invalid target\n" + Target);
+			}
+		}
+		else
+		{
+			// OnDeactivate는 어떤 컴포넌트가 꺼질 때 발생할지 Target이 반드시 필요합니다.
+			ShowMessageBox("Event::OnDeactivate: Target attribute is required.");
+			assert(false);
+		}
+
+		return Event;
 		});
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -186,16 +276,6 @@ void AActor::Destroy()
 	}
 }
 
-void AActor::Activate()
-{
-	GetWorld()->ActivateActor(this);
-}
-
-void AActor::Deactivate()
-{
-	GetWorld()->DeactivateActor(this);
-}
-
 void AActor::OnDestroy()
 {
 	Super::OnDestroy();
@@ -209,9 +289,13 @@ void AActor::OnDestroy()
 void AActor::OnActivate()
 {
 	Super::OnActivate();
+	GetWorld()->ActivateActor(this);
 	for (auto& Comp : mAllComponents)
 	{
-		Comp->OnActivate();
+		if (Comp->IsActivate())
+		{
+			Comp->OnActivate();
+		}
 	}
 }
 
@@ -221,18 +305,21 @@ void AActor::OnDeactivate()
 	{
 		Comp->OnDeactivate();
 	}
+	GetWorld()->DeactivateActor(this);
 	Super::OnDeactivate();
 }
 
 void AActor::BeginPlay()
 {
-	Activate();
-	BeginComponents();
+	if (IsActivate())
+	{
+		Activate();
+		BeginComponents();
+	}
 
 	std::sort(mOnTimeEvents.begin(), mOnTimeEvents.end(), [](const TSharedPtr<FOnTimeEvent>& A, const TSharedPtr<FOnTimeEvent>& B) { return A->Time < B->Time; });
 
 	mOnSpawnEvent.Dispatch();
-
 }
 
 XMFLOAT3 AActor::GetForwardVector() const
@@ -356,6 +443,30 @@ void AActor::LoadWEvent(AActor::WEvent* Event, const TArray<TSharedPtr<FBlueprin
 	}
 }
 
+void AActor::ApplyWComponentCommonAttribute(struct FBlueprintComponentNode* CompNode, WSceneComponent* Comp)
+{
+	ApplyAttribute<XMFLOAT3>(CompNode->Attributes, "Loc", [&](const XMFLOAT3& v) {
+		Comp->SetLocalLocation(v);
+		});
+
+	ApplyAttribute<XMFLOAT3>(CompNode->Attributes, "Rot", [&](const XMFLOAT3& v) {
+		// 실수 방지: Rotation 전용 세터 호출
+		Comp->SetLocalRotation(v);
+		});
+
+	ApplyAttribute<XMFLOAT3>(CompNode->Attributes, "Scale", [&](const XMFLOAT3& v) {
+		// 실수 방지: Scale 전용 세터 호출
+		Comp->SetLocalScale(v);
+		});
+
+	ApplyAttribute<bool>(CompNode->Attributes, "Activate", true, [&](const bool& v) {
+		if (!v)
+		{
+			Comp->Deactivate();
+		}
+		});
+}
+
 void AActor::RegisterWComponentFactory(const std::string& Type, WComponentFactory Lambda)
 {
 	assert(mWComponentFactoryMap.count(Type) == 0 && "Already registered component type");
@@ -376,6 +487,18 @@ void AActor::RegisterSystemEvent(const std::string& Name, WEvent* Event)
 void AActor::RegisterSystemEvent(const std::string& Name, WEventLoader Loader)
 {
 	mSystemEventLoaders[Name] = Loader;
+}
+
+AActor::WEvent* AActor::GenerateWEvent(std::unordered_map<std::string, TSharedPtr<WEvent>>& Container, const std::string& Name)
+{
+	if (Container.count(Name) > 0)
+	{
+		ShowMessageBox(L"이미 등록된 Target 이벤트입니다.");
+		assert(false);
+	}
+
+	Container[Name] = MakeShared<WEvent>();
+	return Container[Name].get();
 }
 
 void AActor::SetWProperty(const std::string& Name, WVariantValue Value)
@@ -400,9 +523,11 @@ void AActor::LoadWComponent_Internal(FBlueprintComponentNode* CompNode, WSceneCo
 	WSceneComponent* Comp = mWComponentFactoryMap[CompNode->Type](CompNode->Attributes);
 	assert(Comp);
 	Comp->SetupAttachment(Parent);
-	if (CompNode->Attributes.count("Name") > 0) RegisterWComponent(CompNode->Attributes["Name"], Comp);
 
-	OnLoadWComponent(CompNode, Comp);
+	// SceneComponent 공용 속성 처리
+	ApplyWComponentCommonAttribute(CompNode, Comp);
+
+	if (CompNode->Attributes.count("Name") > 0) RegisterWComponent(CompNode->Attributes["Name"], Comp);
 	
 	for (const auto ChildCompNode : CompNode->AttachedComponents)
 	{
@@ -449,55 +574,4 @@ void AActor::RegisterWComponent(const std::string& Name, WSceneComponent* Comp)
 	assert(mWComponentsMap.count(Name) == 0 && L"중복된 컴포넌트 이름 입니다.");
 
 	mWComponentsMap[Name] = Comp;
-}
-
-// 1. Float3 파서
-XMFLOAT3 ParseFloat3(const std::string& String)
-{
-	XMFLOAT3 Float3 = { 0.f, 0.f, 0.f };
-	// 유저님이 작성하신 괄호 패턴 유지
-	int Result = sscanf_s(String.c_str(), "(%f, %f, %f)", &Float3.x, &Float3.y, &Float3.z);
-
-	if (Result < 3)
-	{
-		ReportParseError("Float3 (x, y, z)", String);
-	}
-	return Float3;
-}
-
-// 2. Float 파서
-float ParseFloat(const std::string& String)
-{
-	try {
-		return std::stof(String);
-	}
-	catch (...) {
-		ReportParseError("Float", String);
-		return 0.0f;
-	}
-}
-
-// 3. Int 파서
-int ParseInt(const std::string& String)
-{
-	try {
-		return std::stoi(String);
-	}
-	catch (...) {
-		ReportParseError("Int", String);
-		return 0;
-	}
-}
-
-// 4. Bool 파서
-bool ParseBool(const std::string& String)
-{
-	std::string LowerStr = String;
-	std::transform(LowerStr.begin(), LowerStr.end(), LowerStr.begin(), ::tolower);
-
-	if (LowerStr == "true" || LowerStr == "1") return true;
-	if (LowerStr == "false" || LowerStr == "0") return false;
-
-	ReportParseError("Bool (true/false/1/0)", String);
-	return false;
 }

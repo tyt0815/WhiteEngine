@@ -32,7 +32,7 @@ AProjectileBase::AProjectileBase()
 			{
 				WSplineCollisionComponent* Comp = this->CreateComponent<WSplineCollisionComponent>();
 
-				ApplyAttribute(Attributes, "Asset", [&](const std::string& v) {
+				ApplyAttribute<std::string>(Attributes, "Asset", [&](const std::string& v) {
 					Comp->LoadSplineFromAsset(v);
 					});
 
@@ -50,7 +50,7 @@ AProjectileBase::AProjectileBase()
 			{
 				WBoxCollisionComponent* Comp = this->CreateComponent<WBoxCollisionComponent>();
 				
-				ApplyAttribute(Attributes, "Extent", ParseFloat3, [&](const XMFLOAT3& v) {
+				ApplyAttribute<XMFLOAT3>(Attributes, "Extent", [&](const XMFLOAT3& v) {
 					Comp->SetExtent(v);
 					});
 
@@ -61,13 +61,13 @@ AProjectileBase::AProjectileBase()
 				WCapsuleCollisionComponent* Comp = this->CreateComponent<WCapsuleCollisionComponent>();
 
 				// 반지름(Radius) 설정
-				ApplyAttribute(Attributes, "Radius", ParseFloat, [&](float v) {
+				ApplyAttribute<float>(Attributes, "Radius", [&](float v) {
 					float HalfHeight = 0.0f; // 기존 값을 유지하기 위해 임시 저장소 필요 시 로직 조정
 					Comp->SetCapsuleSize(v, 1.0f); // 기본 HalfHeight 예시
 					});
 
 				// 반높이(HalfHeight) 설정
-				ApplyAttribute(Attributes, "HalfHeight", ParseFloat, [&](float v) {
+				ApplyAttribute<float>(Attributes, "HalfHeight", [&](float v) {
 					Comp->SetCapsuleSize(1.0f, v);
 					});
 
@@ -78,7 +78,7 @@ AProjectileBase::AProjectileBase()
 				WSphereCollisionComponent* Comp = this->CreateComponent<WSphereCollisionComponent>();
 
 				// 반지름(Radius) 설정
-				ApplyAttribute(Attributes, "Radius", ParseFloat, [&](float v) {
+				ApplyAttribute<float>(Attributes, "Radius", [&](float v) {
 					Comp->SetRadius(v);
 					});
 
@@ -90,20 +90,12 @@ AProjectileBase::AProjectileBase()
 				assert(false);
 			}
 
-			ApplySceneComponentDefaultAttributes(Component, Attributes);
-
 			if (FCollisionGeneratorBase* CollisionGenerator = dynamic_cast<FCollisionGeneratorBase*>(Component))
 			{
-				assert(CollisionGenerator);
-
-				bool bActivate = false;
-				ExtractAttribute(Attributes, "Activate", bActivate);
-				if (bActivate)
-				{
-					CollisionGenerator->GenerateCollision();
-				}
-
+				CollisionGenerator->GenerateCollision();
 				CollisionGenerator->mOnCollision.Add(this, &AProjectileBase::OnCollision);
+
+				
 			}
 
 
@@ -336,22 +328,22 @@ void AProjectileBase::LoadWConfigs(const std::unordered_map<std::string, WAttrib
 		const WAttributesMap& Attributes = Configs.at("Movement");
 
 		// 1. 초기 속도 (Initial Velocity) - XMFLOAT3
-		ApplyAttribute(Attributes, "InitSpeed", ParseFloat3, [&](const XMFLOAT3& v) {
+		ApplyAttribute<XMFLOAT3>(Attributes, "InitSpeed", [&](const XMFLOAT3& v) {
 			ProjMoveComp->SetInitialVelocity(v);
 			});
 
 		// 2. 최대 속도 (Max Speed) - float
-		ApplyAttribute(Attributes, "MaxSpeed", ParseFloat, [&](float v) {
+		ApplyAttribute<float>(Attributes, "MaxSpeed", [&](float v) {
 			ProjMoveComp->SetMaxSpeed(v);
 			});
 
 		// 3. 가속도 (Acceleration) - float
-		ApplyAttribute(Attributes, "Acceleration", ParseFloat, [&](float v) {
+		ApplyAttribute<float>(Attributes, "Acceleration", [&](float v) {
 			ProjMoveComp->SetAcceleration(v);
 			});
 
 		// 4. 중력 배율 (Gravity Scale) - float
-		ApplyAttribute(Attributes, "GravityScale", ParseFloat, [&](float v) {
+		ApplyAttribute<float>(Attributes, "GravityScale", [&](float v) {
 			ProjMoveComp->SetGravityScale(v);
 			});
 	}
@@ -361,7 +353,7 @@ void AProjectileBase::LoadWConfigs(const std::unordered_map<std::string, WAttrib
 		const WAttributesMap& Attributes = Configs.at("LifeCycle");
 
 		// 5. 수명 (LifeSpan / Life) - float
-		ApplyAttribute(Attributes, "Life", ParseFloat, [&](float v) {
+		ApplyAttribute<float>(Attributes, "Life", [&](float v) {
 			ProjMoveComp->SetLifeSpan(v);
 			});
 	}
@@ -371,13 +363,13 @@ void AProjectileBase::LoadWConfigs(const std::unordered_map<std::string, WAttrib
 		const WAttributesMap& Attributes = Configs.at("Homing");
 
 		// 6. 유도 기능 (Homing) - float
-		ApplyAttribute(Attributes, "Homing", ParseFloat, [&](float v) {
+		ApplyAttribute<float>(Attributes, "Homing", [&](float v) {
 			SetSmartHoming(true, v);
 			});
 
 
 		// 7. 유도 회전 제한 (HomingTurnLimit) - float
-		ApplyAttribute(Attributes, "HomingTurnLimit", ParseFloat, [&](float v) {
+		ApplyAttribute<float>(Attributes, "HomingTurnLimit", [&](float v) {
 			ProjMoveComp->SetHomingTurnLimit(v);
 			});
 	}
@@ -386,22 +378,24 @@ void AProjectileBase::LoadWConfigs(const std::unordered_map<std::string, WAttrib
 	{
 		const WAttributesMap& Attributes = Configs.at("Combat");
 
-		ApplyAttribute(Attributes, "Damage", ParseFloat, [&](float v) {
+		ApplyAttribute<float>(Attributes, "Damage", [&](float v) {
 			mDamage = v;
 			});
 	}
 }
 
-void AProjectileBase::OnLoadWComponent(FBlueprintComponentNode* CompNode, WSceneComponent* Comp)
+void AProjectileBase::ApplyWComponentCommonAttribute(FBlueprintComponentNode* CompNode, WSceneComponent* Comp)
 {
-	Super::OnLoadWComponent(CompNode, Comp);
+	Super::ApplyWComponentCommonAttribute(CompNode, Comp);
 
-	if (CompNode->Attributes.count("Anim") && ParseBool(CompNode->Attributes["Anim"]))
-	{
-		WObjectAnimComponent* AnimComp = CreateComponent<WObjectAnimComponent>();
-		AnimComp->SetTargetComponent(Comp);
-		mWObjAnimComp[CompNode->Attributes["Name"]] = AnimComp;
-	}
+	ApplyAttribute<bool>(CompNode->Attributes, "Anim", [=](bool v) {
+		if (v)
+		{
+			WObjectAnimComponent* AnimComp = CreateComponent<WObjectAnimComponent>();
+			AnimComp->SetTargetComponent(Comp);
+			mWObjAnimComp[CompNode->Attributes["Name"]] = AnimComp;
+		}
+		});
 }
 
 void AProjectileBase::SetSmartHoming(bool bSmartHoming, float Range)

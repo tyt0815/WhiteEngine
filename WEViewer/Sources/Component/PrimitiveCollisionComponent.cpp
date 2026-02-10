@@ -11,14 +11,33 @@ WPrimitiveCollisionComponent::WPrimitiveCollisionComponent()
 void WPrimitiveCollisionComponent::BeginComponent()
 {
     Super::BeginComponent();
-    // 시작 위치 저장
-    mPrevLocation = GetWorldLocation();
 }
 
 void WPrimitiveCollisionComponent::GenerateCollision()
 {
     mbGenerateCollision = true;
     mPrevLocation = GetWorldLocation();
+}
+
+void WPrimitiveCollisionComponent::OnActivate()
+{
+    Super::OnActivate();
+    ActivateCollision();
+}
+
+void WPrimitiveCollisionComponent::OnDeactivate()
+{
+    Super::OnDeactivate();
+    DeactivateCollision();
+}
+
+void WPrimitiveCollisionComponent::ActivateCollision()
+{
+    mPrevLocation = GetWorldLocation();
+}
+
+void WPrimitiveCollisionComponent::DeactivateCollision()
+{
 }
 
 void WPrimitiveCollisionComponent::Tick(float DeltaSecond)

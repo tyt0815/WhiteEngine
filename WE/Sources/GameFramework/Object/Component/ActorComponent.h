@@ -19,12 +19,6 @@ public:
 	// TODO: 미구현
 	void Destroy() override;
 
-	// TODO: 미구현
-	void Activate() override;
-
-	// TODO: 미구현
-	void Deactivate() override;
-
 	TWeakPtr<AActor> GetOwner() const;
 
 public:

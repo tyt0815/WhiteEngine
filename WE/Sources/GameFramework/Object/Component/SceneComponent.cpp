@@ -5,6 +5,32 @@ WSceneComponent::WSceneComponent()
 {
 }
 
+void WSceneComponent::ActivateWithChild()
+{
+	if (!IsActivate())
+	{
+		Activate();
+	}
+
+	for (auto& Child : mChilds)
+	{
+		Child.lock()->ActivateWithChild();
+	}
+}
+
+void WSceneComponent::DeactivateWithChild()
+{
+	if (IsActivate())
+	{
+		Deactivate();
+	}
+
+	for (auto& Child : mChilds)
+	{
+		Child.lock()->DeactivateWithChild();
+	}
+}
+
 void WSceneComponent::UpdateWorldMatrix()
 {
 	if (mbWorldFloat4x4Dirty)
@@ -61,7 +87,10 @@ DirectX::XMMATRIX XM_CALLCONV WSceneComponent::GetInverseWorldMatrix()
 
 void WSceneComponent::UpdateRecursive()
 {
-	Update();
+	if (IsActivate())
+	{
+		Update();
+	}
 
 	for (auto& ChildWeak : mChilds)
 	{

@@ -32,6 +32,15 @@ public:
 
 	virtual void GenerateCollision() override;
 
+protected:
+	virtual void OnActivate() override;
+
+	virtual void OnDeactivate() override;
+
+	virtual void ActivateCollision() override;
+
+	virtual void DeactivateCollision() override;
+
 public:
 	TArray<FCapsuleCollider> mCapsuleCollider;
 

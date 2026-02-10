@@ -84,11 +84,6 @@ void WSplineCollisionComponent::Tick(float DeltaSecond)
 void WSplineCollisionComponent::BeginComponent()
 {
 	Super::BeginComponent();
-
-	for (FCapsuleCollider& Capsule : mCapsuleCollider)
-	{
-		Capsule.PrevLocation = Capsule.Comp->GetWorldLocation();
-	}
 }
 
 void WSplineCollisionComponent::GenerateCollision()
@@ -179,6 +174,36 @@ void WSplineCollisionComponent::GenerateCollision()
 		XMStoreFloat3(&Center, (MinBound + MaxBound) * 0.5f);
 		mBoundingBox.CenterComp->SetWorldLocation(Center);
 		XMStoreFloat3(&mBoundingBox.Extent, (MaxBound - MinBound) * 0.5f);
-		mBoundingBox.PrevLocation = Center;
 	}
+}
+
+void WSplineCollisionComponent::OnActivate()
+{
+	Super::OnActivate();
+	ActivateCollision();
+}
+
+void WSplineCollisionComponent::OnDeactivate()
+{
+	Super::OnDeactivate();
+	DeactivateCollision();
+}
+
+void WSplineCollisionComponent::ActivateCollision()
+{
+	if (mbUseBoundingBox && mBoundingBox.CenterComp)
+	{
+		mBoundingBox.PrevLocation = mBoundingBox.CenterComp->GetWorldLocation();
+	}
+
+	for (FCapsuleCollider& Capsule : mCapsuleCollider)
+	{
+		Capsule.PrevLocation = Capsule.Comp->GetWorldLocation();
+	}
+
+	mElapsedTime = 0;
+}
+
+void WSplineCollisionComponent::DeactivateCollision()
+{
 }

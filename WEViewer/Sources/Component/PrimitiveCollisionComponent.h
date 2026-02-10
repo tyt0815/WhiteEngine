@@ -17,6 +17,17 @@ public:
     // 인터페이스 구현: 단일 충돌체이므로 사실상 초기화 역할
     virtual void GenerateCollision() override;
 
+
+protected:
+    virtual void OnActivate() override;
+
+    virtual void OnDeactivate() override;
+
+    virtual void ActivateCollision() override;
+
+    virtual void DeactivateCollision() override;
+
+
 protected:
     virtual void TraceShape(XMFLOAT3 Start, FTransform CurrTransform, const TArray<AActor*>& ActorsToIgnore, FHitResult& Hit) {};
 

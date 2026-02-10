@@ -17,6 +17,10 @@ public:
 protected:
 
 public:
+	void ActivateWithChild();
+
+	void DeactivateWithChild();
+
 	void UpdateWorldMatrix();
 
 	DirectX::XMFLOAT4X4 GetWorldFloat4x4();

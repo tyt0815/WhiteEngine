@@ -20,9 +20,9 @@ class WCameraComponent;
 
 void ShowMessageBox(const std::string& Content);
 
-void ReportParseError(const std::string& Type, const std::string& WrongValue);
+void ShowMessageBox(const std::wstring& Content);
 
-void ApplySceneComponentDefaultAttributes(WSceneComponent* Comp, const std::unordered_map<std::string, std::string>& Attributes);
+void ReportParseError(const std::string& Type, const std::string& WrongValue);
 
 WWorld* GetWorld();
 
@@ -102,10 +102,6 @@ public:
 	virtual void Tick(float DeltaSecond) override;
 
 	virtual void Destroy() override;
-
-	virtual void Activate() override;
-
-	virtual void Deactivate() override;
 
 protected:
 	virtual void OnDestroy() override;
@@ -198,7 +194,7 @@ protected:
 
 	void LoadWEvent(AActor::WEvent* Event, const TArray<TSharedPtr<FBlueprintActionNode>>& Actions);
 
-	virtual void OnLoadWComponent(struct FBlueprintComponentNode* CompNode, WSceneComponent* Comp) {}
+	virtual void ApplyWComponentCommonAttribute(struct FBlueprintComponentNode* CompNode, WSceneComponent* Comp);
 
 	void RegisterWComponentFactory(const std::string& Type, WComponentFactory Lambda);
 
@@ -220,6 +216,8 @@ protected:
 		mWPropertiesMap[Name] = Property;
 	}
 
+	WEvent* GenerateWEvent(std::unordered_map<std::string, TSharedPtr<WEvent>>& Container, const std::string& Name);
+
 	void SetWProperty(const std::string& Name, WVariantValue Value);
 
 private:
@@ -238,6 +236,8 @@ private:
 	std::unordered_map<std::string, WEventLoader> mSystemEventLoaders;
 
 	std::unordered_map<std::string, TSharedPtr<WEvent>> mCustomEventsMap;
+	std::unordered_map<std::string, TSharedPtr<WEvent>> mOnActivateEventsMap;
+	std::unordered_map<std::string, TSharedPtr<WEvent>> mOnDeactivateEventsMap;
 
 	WPropertiesMap mWPropertiesMap;
 
@@ -379,21 +379,6 @@ inline T* AActor::GetComponent()
 
 REGISTER_ACTOR(AActor);
 
-bool ParseBool(const std::string& String);
-int ParseInt(const std::string& String);
-float ParseFloat(const std::string& String);
-XMFLOAT3 ParseFloat3(const std::string& String);
-
-template <typename TSetterFunc>
-void ApplyAttribute(const std::unordered_map<std::string, std::string>& Attrs, const std::string& Key, TSetterFunc Setter)
-{
-	auto it = Attrs.find(Key);
-	if (it != Attrs.end())
-	{
-		Setter(it->second);
-	}
-}
-
 template <typename T>
 bool ExtractAttribute(const std::unordered_map<std::string, std::string>& Attrs, const std::string& Key, T& Target)
 {
@@ -406,12 +391,28 @@ bool ExtractAttribute(const std::unordered_map<std::string, std::string>& Attrs,
 	return false;
 }
 
-template <typename TParserFunc, typename TSetterFunc>
-void ApplyAttribute(const std::unordered_map<std::string, std::string>& Attrs, const std::string& Key, TParserFunc Parser, TSetterFunc Setter)
+template <typename T, typename TSetterFunc>
+void ApplyAttribute(const std::unordered_map<std::string, std::string>& Attrs, const std::string& Key, TSetterFunc Setter)
 {
 	auto it = Attrs.find(Key);
 	if (it != Attrs.end())
 	{
-		Setter(Parser(it->second));
+		Setter(WPropertyTrait<T>::Parse(it->second));
 	}
+}
+
+template <typename T, typename TSetterFunc>
+void ApplyAttribute(const std::unordered_map<std::string, std::string>& Attrs, const std::string& Key, const T& DefaultValue, TSetterFunc Setter)
+{
+	auto it = Attrs.find(Key);
+	T Value;
+	if (it != Attrs.end())
+	{
+		Value = WPropertyTrait<T>::Parse(it->second);
+	}
+	else
+	{
+		Value = DefaultValue;
+	}
+	Setter(Value);
 }

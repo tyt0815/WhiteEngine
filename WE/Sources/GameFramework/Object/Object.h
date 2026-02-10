@@ -1,6 +1,10 @@
 #pragma once
 #include "Utility/Memory.h"
+#include "Utility/Delegate.h"
 #include <functional>
+
+DECLARE_MULTICAST_DELEGATE(FOnActivate);
+DECLARE_MULTICAST_DELEGATE(FOnDeactivate);
 
 extern class WWorld* g_World;
 
@@ -31,9 +35,13 @@ public:
 
 	virtual void Destroy() = 0;
 
-	virtual void Activate() = 0;
+	void Activate();
 
-	virtual void Deactivate() = 0;
+	void Deactivate();
+
+	FOnActivate mOnActivate;
+
+	FOnDeactivate mOnDeactivate;
 
 protected:
 
@@ -50,6 +58,8 @@ private:
 
 	int mTickId = -1;
 
+	bool mbActivate = true;
+
 public:
 	template<typename T>
 	__forceinline TWeakPtr<T> GetWeakPtr()
@@ -60,6 +70,11 @@ public:
 	__forceinline WWorld* GetWorld() const
 	{
 		return g_World;
+	}
+
+	__forceinline bool IsActivate() const
+	{
+		return mbActivate;
 	}
 
 

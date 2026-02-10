@@ -20,7 +20,7 @@ public:
 protected:
 	virtual void LoadWConfigs(const std::unordered_map<std::string, WAttributesMap>& Configs) override;
 
-	virtual void OnLoadWComponent(struct FBlueprintComponentNode* CompNode, WSceneComponent* Comp) override;
+	virtual void ApplyWComponentCommonAttribute(struct FBlueprintComponentNode* CompNode, WSceneComponent* Comp) override;
 
 protected:
 
