@@ -35,20 +35,20 @@ void WTestWorld::Tick(float DeltaSecond)
 	{
 		FActorSpawnParameter Param;
 		Param.Transform.Translation = XMFLOAT3(-50, 0, 10);
-		SpawnActorByFactory<AProjectileBase>("BP_Projectile1", Param);
+		//SpawnActorByFactory<AProjectileBase>("BP_Projectile1", Param);
 
 		Param.Transform.Translation.x += 2;
-		SpawnActorByFactory<AProjectileBase>("BP_Projectile2", Param);
+		//SpawnActorByFactory<AProjectileBase>("BP_Projectile2", Param);
 
 		Param.Transform.Translation.x += 2;
-		SpawnActorByFactory<AProjectileBase>("BP_Projectile3", Param);
+		//SpawnActorByFactory<AProjectileBase>("BP_Projectile3", Param);
 
 		Param.Transform.Translation.x += 8;
-		SpawnActorByFactory<AProjectileBase>("BP_Projectile4", Param);
-		SpawnActorByFactory<AProjectileBase>("BP_Projectile5", Param);
+		/*SpawnActorByFactory<AProjectileBase>("BP_Projectile4", Param);
+		SpawnActorByFactory<AProjectileBase>("BP_Projectile5", Param);*/
 
 		Param.Transform.Translation.x += 10;
-		SpawnActorByFactory<AProjectileBase>("BP_Projectile6", Param);
+		//SpawnActorByFactory<AProjectileBase>("BP_Projectile6", Param);
 
 		Param.Transform.Translation.x += 2;
 		SpawnActorByFactory<AProjectileBase>("BP_Projectile7", Param);

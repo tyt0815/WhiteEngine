@@ -1,19 +1,17 @@
 <AProjectileBase>
 
     <Configs>
-        <Movement InitSpeed = "(0 0 20)" GravityScale = "0" MaxSpeed = "1000"/>
-        <LifeCycle Life = "5" />
-
-        <Homing Strategy = "Nearest" Range = "100" TurnRate = "360" TargetTags = "[Alliance]" StopRange = "1"
-            UseWaypoints = "true" Space = "Direction" Type = "Adaptive" Waypoints = "[(0 0.5 -0.5), (0 0.5 0)]"
-        />
     </Configs>
 
     <Components>
-        <Mesh Name = "Body" Asset = "SM_ScuffedGoldBox">
-            <Collision Name = "BoxCollision" Type = "Box" 
-                Extent = "(1 1 1)" Damage = "250" Delay = "0.5" TargetTags = "Alliance"/>
-        </Mesh>
+        <Movement Name = "Movement" InitSpeed = "(0 0 20)" GravityScale = "0" MaxSpeed = "1000" LifeSpan = "5"
+            HomingStrategy = "Nearest" HomingRange = "100" HomingTurnRate = "360" HomingTags = "[Alliance]" HomingStopRange = "1"
+            UseWaypoint = "true" WpSpace = "Direction" WpType = "Adaptive" Waypoints = "[(0 0.5 -0.5), (0 0.5 0)]">
+            <Mesh Name = "Body" Asset = "SM_ScuffedGoldBox">
+                <Collision Name = "BoxCollision" Type = "Box" 
+                    Extent = "(1 1 1)" Damage = "250" Delay = "0.5" TargetTags = "Alliance"/>
+            </Mesh>
+        </Movement>
     </Components>
 
     <Events>

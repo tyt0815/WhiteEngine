@@ -4,6 +4,8 @@
 #include "Asset/BlueprintAsset.h"
 #include "Component/BoxComponent.h"
 #include "Component/SphereComponent.h"
+#include "Component/ProjectileMovementComponent.h"
+#include "Component/ObjectAnimComponent.h"
 #include "Component/SplineCollisionComponent.h"
 #include "Component/BoxCollisionComponent.h"
 #include "Component/CapsuleCollisionComponent.h"
@@ -12,11 +14,6 @@
 AProjectileBase::AProjectileBase()
 {
 	SetTickGroup(ETickGroup::ETG_PrePhysics, ETickPriority::ETP_High);
-
-	mProjMoveComp = CreateComponent<WProjectileMovementComponent>()->GetWeakPtr<WProjectileMovementComponent>();
-	auto ProjComp = mProjMoveComp.lock();
-	mObjAnimComp = CreateComponent<WObjectAnimComponent>()->GetWeakPtr<WObjectAnimComponent>();
-	auto AnimComp = mObjAnimComp.lock();
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// 
@@ -132,6 +129,73 @@ AProjectileBase::AProjectileBase()
 			return Component;
 		});
 
+	RegisterWComponentFactory("Movement", [this](const WAttributesMap& Attributes)
+		{
+			const std::string& Name = Attributes.at("Name");
+			auto Comp = this->CreateComponent<WProjectileMovementComponent>();
+
+			// 1. 이동 및 물리 속성
+			ApplyAttribute<XMFLOAT3>(Attributes, "InitSpeed", [=](auto&& v) { Comp->SetInitialVelocity(v); });
+
+			ApplyAttribute<float>(Attributes, "MaxSpeed", [=](auto&& v) { Comp->SetMaxSpeed(v); });
+			RegisterWProperty(Name + ".MaxSpeed", &Comp->mMaxSpeed);
+
+			ApplyAttribute<float>(Attributes, "Acceleration", [=](auto&& v) { Comp->SetAcceleration(v); });
+			RegisterWProperty(Name + ".Acceleration", &Comp->mAcceleration);
+
+			ApplyAttribute<float>(Attributes, "GravityScale", [=](auto&& v) { Comp->SetGravityScale(v); });
+			RegisterWProperty(Name + ".GravityScale", &Comp->mGravityScale);
+
+			ApplyAttribute<float>(Attributes, "LifeSpan", [=](auto&& v) { Comp->SetLifeSpan(v); });
+			RegisterWProperty(Name + ".LifeSpan", &Comp->mLifeSpan);
+
+			// 3. 호밍 (Homing) 속성 적용 및 등록
+			ApplyAttribute<std::string>(Attributes, "HomingStrategy", [=](auto&& v) {
+				if (v == "Nearest") Comp->mHomingStrategy = EHomingStrategy::Nearest;
+				else if (v == "Angle") Comp->mHomingStrategy = EHomingStrategy::Angle;
+				else Comp->mHomingStrategy = EHomingStrategy::None;
+				});
+
+			ApplyAttribute<std::set<std::string>>(Attributes, "HomingTags", [=](auto&& v) { Comp->mHomingTargetTags = v; });
+			RegisterWProperty(Name + ".HomingTags", &Comp->mHomingTargetTags);
+
+			ApplyAttribute<float>(Attributes, "HomingRange", [=](auto&& v) { Comp->mHomingRange = v; });
+			RegisterWProperty(Name + ".HomingRange", &Comp->mHomingRange);
+
+			ApplyAttribute<float>(Attributes, "HomingAngle", [=](auto&& v) { Comp->mHomingAngle = v; });
+			RegisterWProperty(Name + ".HomingAngle", &Comp->mHomingAngle);
+
+			ApplyAttribute<float>(Attributes, "HomingTurnRate", [=](auto&& v) { Comp->SetHomingTurnLimit(v); });
+			RegisterWProperty(Name + ".HomingTurnRate", &Comp->mHomingTurnLimit);
+
+			ApplyAttribute<float>(Attributes, "HomingRetargetTick", [=](auto&& v) { Comp->mRetargetTick = v; });
+			RegisterWProperty(Name + ".RetargetTick", &Comp->mRetargetTick);
+
+			ApplyAttribute<float>(Attributes, "HomingStopRange", [=](auto&& v) { Comp->mHomingStopRange = v; });
+			RegisterWProperty(Name + ".HomingStopRange", &Comp->mHomingStopRange);
+
+			ApplyAttribute<bool>(Attributes, "ForgetPrev", [=](auto&& v) { Comp->mbForgetPreviousTarget = v; });
+			RegisterWProperty(Name + ".ForgetPrev", &Comp->mbForgetPreviousTarget);
+
+			// 4. 웨이포인트 (Waypoint) 속성 적용 및 등록
+			ApplyAttribute<bool>(Attributes, "UseWaypoint", [=](auto&& v) { Comp->mbUseWaypoints = v; });
+			RegisterWProperty(Name + ".UseWaypoint", &Comp->mbUseWaypoints);
+
+			ApplyAttribute<std::string>(Attributes, "WpSpace", [=](auto&& v) { Comp->mWaypointSpace = v; });
+			RegisterWProperty(Name + ".WpSpace", &Comp->mWaypointSpace);
+
+			ApplyAttribute<std::string>(Attributes, "WpBase", [=](auto&& v) { Comp->mWaypointBase = v; });
+			RegisterWProperty(Name + ".WpBase", &Comp->mWaypointBase);
+
+			ApplyAttribute<std::string>(Attributes, "WpType", [=](auto&& v) { Comp->mWaypointType = v; });
+			RegisterWProperty(Name + ".WpType", &Comp->mWaypointType);
+
+			ApplyAttribute<std::vector<XMFLOAT3>>(Attributes, "Waypoints", [=](auto&& v) { Comp->mConfigWaypoints = v; });
+			RegisterWProperty(Name + ".Waypoints", &Comp->mConfigWaypoints);
+
+			return Comp;
+		});
+
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// 
 	// WComponent End
@@ -149,7 +213,7 @@ AProjectileBase::AProjectileBase()
 		return [this, Name]() { this->PlayParticle(Name); };
 		});
 
-	RegisterWActionFactory("Animation", [this, AnimComp](const WAttributesMap& Attributes) {
+	/*RegisterWActionFactory("Animation", [this, AnimComp](const WAttributesMap& Attributes) {
 		WObjectAnimComponent* Anim = nullptr;
 		if (Attributes.count("Target"))
 		{
@@ -228,9 +292,9 @@ AProjectileBase::AProjectileBase()
 		}
 
 		return Action;
-		});
+		});*/
 
-	RegisterWActionFactory("CurveBind", [this](const WAttributesMap& Attributes)
+	/*RegisterWActionFactory("CurveBind", [this](const WAttributesMap& Attributes)
 		{
 			std::string TargetName = Attributes.at("Target");
 			float* Prop = std::get<float*>(GetWProperty(TargetName));
@@ -246,7 +310,7 @@ AProjectileBase::AProjectileBase()
 			{
 				AnimComp->BindCurve(CurveName, Prop, bIsModifier, *Prop);
 			};
-		});
+		});*/
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// 
@@ -258,26 +322,7 @@ AProjectileBase::AProjectileBase()
 	// 
 	// WProperty
 	// 
-	////////////////////////////////////////////////////////////////////////////////////////////////
-
-	RegisterWProperty("Movement.MaxSpeed", &ProjComp->mMaxSpeed);
-	RegisterWProperty("Movement.Acceleration", &ProjComp->mAcceleration);
-	RegisterWProperty("Movement.GravityScale", &ProjComp->mGravityScale);
-
-	RegisterWProperty("LifeCycle.LifeSpan", &ProjComp->mLifeSpan);
-
-
-	RegisterWProperty("Homing.TargetTags", &mHomingTargetTags);
-	RegisterWProperty("Homing.Range", &mHomingRange);
-	RegisterWProperty("Homing.Angle", &mHomingAngle);
-	RegisterWProperty("Homing.RetargetTick", &mRetargetTick);
-	RegisterWProperty("Homing.TurnRate", &ProjComp->mHomingTurnLimit);
-	RegisterWProperty("Homing.StopRange", &mHomingStopRange);
-	RegisterWProperty("Homing.ForgetPrev", &mbForgetPreviousTarget);
-	RegisterWProperty("Waypoint.Use", &mbUseWaypoints);
-	RegisterWProperty("Waypoint.Space", &mWaypointSpace); 
-	RegisterWProperty("Waypoint.Base", &mWaypointBase);   
-	RegisterWProperty("Waypoint.Type", &mWaypointType);   
+	////////////////////////////////////////////////////////////////////////////////////////////////  
 
 	float mHomingTurnLimit = 0;
 
@@ -323,114 +368,30 @@ AProjectileBase::AProjectileBase()
 void AProjectileBase::Tick(float DeltaSecond)
 {
 	Super::Tick(DeltaSecond);
-
-	UpdateHoming(DeltaSecond);
 }
 
 void AProjectileBase::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (WProjectileMovementComponent* Comp = GetComponent<WProjectileMovementComponent>())
-	{
-		mProjMoveComp = Comp->GetWeakPtr<WProjectileMovementComponent>();
-	}
 }
 
 void AProjectileBase::LoadWConfigs(const std::unordered_map<std::string, WAttributesMap>& Configs)
 {
 	Super::LoadWConfigs(Configs);
-
-	TSharedPtr<WProjectileMovementComponent> ProjMoveComp = mProjMoveComp.lock();
-
-	if (Configs.count("Movement"))
-	{
-		const WAttributesMap& Attributes = Configs.at("Movement");
-
-		// 1. 초기 속도 (Initial Velocity) - XMFLOAT3
-		ApplyAttribute<XMFLOAT3>(Attributes, "InitSpeed", [&](const XMFLOAT3& v) {
-			ProjMoveComp->SetInitialVelocity(v);
-			});
-
-		// 2. 최대 속도 (Max Speed) - float
-		ApplyAttribute<float>(Attributes, "MaxSpeed", [&](float v) {
-			ProjMoveComp->SetMaxSpeed(v);
-			});
-
-		// 3. 가속도 (Acceleration) - float
-		ApplyAttribute<float>(Attributes, "Acceleration", [&](float v) {
-			ProjMoveComp->SetAcceleration(v);
-			});
-
-		// 4. 중력 배율 (Gravity Scale) - float
-		ApplyAttribute<float>(Attributes, "GravityScale", [&](float v) {
-			ProjMoveComp->SetGravityScale(v);
-			});
-	}
-
-	if (Configs.count("LifeCycle"))
-	{
-		const WAttributesMap& Attributes = Configs.at("LifeCycle");
-
-		// 5. 수명 (LifeSpan / Life) - float
-		ApplyAttribute<float>(Attributes, "Life", [&](float v) {
-			ProjMoveComp->SetLifeSpan(v);
-			});
-	}
-
-	if (Configs.count("Homing"))
-	{
-		const WAttributesMap& Attributes = Configs.at("Homing");
-
-		// 1. 기본 호밍 설정
-		ApplyAttribute<std::string>(Attributes, "Strategy", [&](const std::string& v) {
-			if (v == "Nearest") mHomingStrategy = EHomingStrategy::Nearest;
-			else if (v == "Angle") mHomingStrategy = EHomingStrategy::Angle;
-			else mHomingStrategy = EHomingStrategy::None;
-			});
-
-		ExtractAttribute(Attributes, "Range", mHomingRange);
-		ExtractAttribute(Attributes, "Angle", mHomingAngle);
-		ExtractAttribute(Attributes, "RetargetTick", mRetargetTick);
-		ExtractAttribute(Attributes, "StopRange", mHomingStopRange);
-		ExtractAttribute(Attributes, "ForgetPrev", mbForgetPreviousTarget);
-
-		ApplyAttribute<float>(Attributes, "TurnRate", [&](float v) {
-			ProjMoveComp->SetHomingTurnLimit(v);
-			});
-
-		ApplyAttribute<std::set<std::string>>(Attributes, "TargetTags", [&](const std::set<std::string>& v) {
-			mHomingTargetTags = v;
-			});
-
-		// 2. Waypoint 설정
-		ExtractAttribute(Attributes, "UseWaypoints", mbUseWaypoints);
-		if (mbUseWaypoints)
-		{
-			ExtractAttribute(Attributes, "Space", mWaypointSpace); // "Direction" or "World"
-			ExtractAttribute(Attributes, "Base", mWaypointBase);   // "Actor" or "Target"
-			ExtractAttribute(Attributes, "Type", mWaypointType);   // "Value" or "Adaptive"
-
-			// Waypoints 리스트 파싱 (XML에서 "Offsets" 같은 키로 float3 배열을 받는다고 가정)
-			ApplyAttribute<std::vector<XMFLOAT3>>(Attributes, "Waypoints", [&](const std::vector<XMFLOAT3>& v) {
-				mConfigWaypoints = v;
-				});
-		}
-	}
 }
 
 void AProjectileBase::ApplyWComponentCommonAttribute(FBlueprintComponentNode* CompNode, WSceneComponent* Comp)
 {
 	Super::ApplyWComponentCommonAttribute(CompNode, Comp);
 
-	ApplyAttribute<bool>(CompNode->Attributes, "Anim", [=](bool v) {
-		if (v)
-		{
-			WObjectAnimComponent* AnimComp = CreateComponent<WObjectAnimComponent>();
-			AnimComp->SetTargetComponent(Comp);
-			mWObjAnimComp[CompNode->Attributes["Name"]] = AnimComp;
-		}
-		});
+	//ApplyAttribute<bool>(CompNode->Attributes, "Anim", [=](bool v) {
+	//	if (v)
+	//	{
+	//		WObjectAnimComponent* AnimComp = CreateComponent<WObjectAnimComponent>();
+	//		AnimComp->SetTargetComponent(Comp);
+	//		mWObjAnimComp[CompNode->Attributes["Name"]] = AnimComp;
+	//	}
+	//	});
 }
 
 void DrawExplosion(XMFLOAT3 Location, float Radius, XMFLOAT4 Color, float Life)
@@ -523,290 +484,4 @@ void AProjectileBase::OnCollision(AActor* Actor, WPhysicsComponent* Comp, XMFLOA
 	{
 		HitInterface->OnHit(this, Comp, ImpactPoint, Normal, Damage);
 	}
-}
-
-void AProjectileBase::SetHomingTarget(AActor* Target)
-{
-	if (mCurrentTarget == Target)
-	{
-		return;
-	}
-
-	mCurrentTarget = Target;
-
-	if (mCurrentTarget == nullptr)
-	{
-		mProjMoveComp.lock()->SetHoming(false);
-		return;
-	}
-
-	auto ProjComp = mProjMoveComp.lock();
-	ProjComp->SetHoming(true);
-	if (mbUseWaypoints)
-	{
-		GenerateWaypoints(Target);
-	}
-
-	if (mFinalWaypoints.size() > 1)
-	{
-		ProjComp->SetHomingLocation(mFinalWaypoints.front());
-	}
-	else
-	{
-		ProjComp->SetHomingTarget(mCurrentTarget->GetRootComponent());
-	}
-
-}
-
-void AProjectileBase::UpdateHoming(float DeltaSecond)
-{
-	auto ProjComp = mProjMoveComp.lock();
-	if (!ProjComp) return;
-
-	// 1. 현재 경유지/타겟 추적 로직
-	if (mCurrentTarget)
-	{
-		if (mHomingStopRange > 0.0f)
-		{
-			XMFLOAT3 MyLoc = GetActorLocation();
-			XMFLOAT3 TargetLoc;
-			if(mCurrentWaypointIndex < mFinalWaypoints.size() - 1)
-			{
-				TargetLoc = mFinalWaypoints[mCurrentWaypointIndex];
-			}
-			else
-			{
-				TargetLoc = mCurrentTarget->GetActorLocation();
-			}
-
-			XMVECTOR VToTarget = XMLoadFloat3(&TargetLoc) - XMLoadFloat3(&MyLoc);
-			float Dist = XMVectorGetX(XMVector3Length(VToTarget));
-
-			// 2. 도착 판정 (StopRange)
-			if (Dist <= mHomingStopRange)
-			{
-				if (mbUseWaypoints && mCurrentWaypointIndex < mFinalWaypoints.size() - 1)
-				{
-					mCurrentWaypointIndex++; // 다음 경유지로
-					if (mCurrentWaypointIndex == mFinalWaypoints.size() - 1)
-					{
-						ProjComp->SetHomingTarget(mCurrentTarget->GetRootComponent());
-					}
-					else
-					{
-						ProjComp->SetHomingLocation(mFinalWaypoints[mCurrentWaypointIndex]);
-					}
-				}
-				else
-				{
-					// 최종 목적지 도착 -> 호밍 해제
-					if (mbForgetPreviousTarget)
-					{
-						mVisitedTargets.insert(mCurrentTarget);
-					}
-
-					mCurrentTarget = nullptr;
-					ProjComp->SetHoming(false);
-					return;
-				}
-			}
-		}
-	}
-	else if(mHomingStrategy != EHomingStrategy::None)// 3. 새로운 타겟 탐색
-	{
-		if (AActor* NewTarget = FindBestHomingTarget())
-		{
-			// 이전에 방문했던 타겟인지 체크
-			if (mVisitedTargets.find(NewTarget) == mVisitedTargets.end())
-			{
-				SetHomingTarget(NewTarget);
-			}
-		}
-	}
-}
-
-AActor* AProjectileBase::FindBestHomingTarget()
-{
-	TArray<AActor*> Ignore;
-	Ignore.push_back(this);
-	TArray<FHitResult> Hits;
-
-	// 1. 주변 액터 수집
-	GetWorld()->SphereOverlap(GetActorLocation(), mHomingRange, Ignore, Hits, false);
-
-	if (mHomingStrategy == EHomingStrategy::Nearest)
-	{
-		return FindHomingTarget_Nearest(Hits);
-	}
-	else if (mHomingStrategy == EHomingStrategy::Angle)
-	{
-		return FindHomingTarget_Angle(Hits);
-	}
-
-	return nullptr;
-}
-
-AActor* AProjectileBase::FindHomingTarget_Nearest(const TArray<FHitResult>& Hits)
-{
-	float ClosestDistSq = FLT_MAX;
-	AActor* Target = nullptr;
-	for (auto& Hit : Hits)
-	{
-		auto Candidate = Hit.Actor.lock();
-		if (!IsHomingTarget(Candidate.get()))
-		{
-			continue;
-		}
-
-		XMFLOAT3 CurrLoc = GetActorLocation();
-		XMFLOAT3 TargetLoc = Candidate->GetActorLocation();
-		float DistSq = XMVectorGetX(XMVector3LengthSq(XMLoadFloat3(&TargetLoc) - XMLoadFloat3(&CurrLoc)));
-		if (DistSq < ClosestDistSq)
-		{
-			ClosestDistSq = DistSq;
-			Target = Candidate.get();
-		}
-	}
-	return Target;
-}
-
-AActor* AProjectileBase::FindHomingTarget_Angle(const TArray<FHitResult>& Hits)
-{
-	float BestDot = -1.0f;
-	XMFLOAT3 Forward = GetForwardVector();
-	XMVECTOR ForwardV = XMLoadFloat3(&Forward);
-
-	AActor* Target = nullptr;
-	for (auto& Hit : Hits)
-	{
-		auto Candidate = Hit.Actor.lock();
-		if (!IsHomingTarget(Candidate.get()))
-		{
-			continue;
-		}
-
-		XMFLOAT3 CandidateLoc = Candidate->GetActorLocation();
-		XMFLOAT3 CurrLoc = GetActorLocation();
-		XMVECTOR ToTarget = XMVector3Normalize(XMLoadFloat3(&CandidateLoc) - XMLoadFloat3(&CurrLoc));
-		float Dot = XMVectorGetX(XMVector3Dot(ForwardV, ToTarget));
-
-		// 내적값을 각도로 변환하여 범위 체크
-		float Angle = XMConvertToDegrees(acosf(fmaxf(-1.0f, fminf(1.0f, Dot))));
-		if (Angle <= mHomingAngle && Dot > BestDot)
-		{
-			BestDot = Dot;
-			Target = Candidate.get();
-		}
-	}
-
-	return Target;
-}
-
-bool AProjectileBase::IsHomingTarget(AActor* Actor) const
-{
-	if (!Actor) return false;
-
-	// 1. 방문 기록 확인
-	if (mbForgetPreviousTarget && mVisitedTargets.count(Actor)) return false;
-
-	// 2. 태그 확인 (액터의 태그 중 하나라도 mHomingTargetTags에 있는지)
-	bool bMatch = false;
-
-	for (const std::string& Tag : mHomingTargetTags)
-	{
-		if (Actor->HasTag(Tag))
-		{
-			bMatch = true;
-			break;
-		}
-	}
-
-	return bMatch;
-}
-
-void AProjectileBase::GenerateWaypoints(AActor* Target)
-{
-	if (!mbUseWaypoints || !Target) return;
-
-	WWorld* World = GetWorld();
-
-	mFinalWaypoints.clear();
-	mCurrentWaypointIndex = 0;
-	assert(mHomingStopRange > 0);
-
-	XMFLOAT3 MyLoc = GetActorLocation();
-	XMFLOAT3 TargetLoc = Target->GetActorLocation();
-
-	XMVECTOR VStart = XMLoadFloat3(&MyLoc);
-	XMVECTOR VTarget = XMLoadFloat3(&TargetLoc);
-	XMVECTOR VBase = (mWaypointBase == "Actor") ? VStart : VTarget;
-	World->DrawDebugLine(MyLoc, TargetLoc, XMFLOAT4(1, 1, 1, 1), 10);
-	XMVECTOR VToTarget = VTarget - VStart;
-	float TotalDist = XMVectorGetX(XMVector3Length(VToTarget));
-
-	// 1. 방향 기반 공간(Direction Space)일 때만 기저 벡터 계산
-	XMVECTOR VForward;
-	XMVECTOR VUp;
-	XMVECTOR VRight;
-
-	if (mWaypointSpace == "Direction")
-	{
-		VForward = XMVector3Normalize(VToTarget);
-
-		XMVECTOR VWorldUp = XMVectorSet(0, 1, 0, 0);
-		float Dot = fabsf(XMVectorGetX(XMVector3Dot(VForward, VWorldUp)));
-
-		if (Dot > 0.99f)
-		{
-			XMVECTOR VAltUp = XMVectorSet(0, 0, 1, 0);
-			VRight = XMVector3Normalize(XMVector3Cross(VAltUp, VForward));
-		}
-		else
-		{
-			VRight = XMVector3Normalize(XMVector3Cross(VWorldUp, VForward));
-		}
-		VUp = XMVector3Cross(VForward, VRight);
-	}
-	else
-	{
-		VForward = XMVectorSet(0, 0, 1, 0);
-		VUp = XMVectorSet(0, 1, 0, 0);
-		VRight = XMVectorSet(1, 0, 0, 0);
-	}
-
-	XMFLOAT3 F, U, R;
-	XMStoreFloat3(&F, VStart + VForward); XMStoreFloat3(&U, VStart + VUp); XMStoreFloat3(&R, VStart + VRight);
-	World->DrawDebugLine(MyLoc, F, XMFLOAT4(1, 0, 0, 1), 10);
-	World->DrawDebugLine(MyLoc, U, XMFLOAT4(0, 1, 0, 1), 10);
-	World->DrawDebugLine(MyLoc, R, XMFLOAT4(0, 0, 1, 1), 10);
-	
-
-	float Scale = (mWaypointType == "Adaptive") ? TotalDist : 1.0f;
-
-	// 2. 경유지 생성 루프
-	for (const auto& Offset : mConfigWaypoints)
-	{
-		XMVECTOR WpPos = VBase;
-		XMVECTOR VOffset = XMLoadFloat3(&Offset);
-
-		if (mWaypointSpace == "Direction")
-		{
-			// 전방(x), 위(y), 우측(z) 기준으로 적용
-			WpPos += VForward * (XMVectorGetZ(VOffset) * Scale);
-			WpPos += VUp * (XMVectorGetY(VOffset) * Scale);
-			WpPos += VRight * (XMVectorGetX(VOffset) * Scale);
-		}
-		else // "World" Space
-		{
-			WpPos += VOffset * Scale;
-		}
-
-		FActorSpawnParameter Param;
-		XMFLOAT3 FinalPos;
-		XMStoreFloat3(&FinalPos, WpPos);
-		World->DrawDebugLine(MyLoc, FinalPos, XMFLOAT4(1, 0, 0, 1), 5);
-		mFinalWaypoints.push_back(FinalPos);
-	}
-
-	mFinalWaypoints.push_back(TargetLoc);
 }

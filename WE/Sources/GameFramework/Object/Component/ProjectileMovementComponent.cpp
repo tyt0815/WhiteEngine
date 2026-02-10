@@ -1,5 +1,6 @@
 #include "ProjectileMovementComponent.h"
 #include "GameFramework/Object/Actor/Actor.h"
+#include "World/World.h"
 
 WProjectileMovementComponent::WProjectileMovementComponent()
 {
@@ -8,16 +9,17 @@ WProjectileMovementComponent::WProjectileMovementComponent()
 void WProjectileMovementComponent::Tick(float DeltaTime)
 {
     mLifeTimeElapsed += DeltaTime;
-    AActor* Owner = GetOwner().lock().get();
 
-    if (!Owner || (mLifeSpan > 0 && mLifeTimeElapsed > mLifeSpan))
-    {
-        if (Owner) Owner->Destroy();
-        return;
-    }
+	if (mLifeSpan > 0 && mLifeTimeElapsed > mLifeSpan)
+	{
+		Deactivate();
+		return;
+	}
 
-    XMFLOAT3 OwnerForward = Owner->GetForwardVector();
-    XMVECTOR OwnerForwardV = XMLoadFloat3(&OwnerForward);
+    UpdateHoming(DeltaTime);
+
+    XMFLOAT3 CurrForward = GetForwardVector();
+    XMVECTOR VCurrForward = XMLoadFloat3(&CurrForward);
 
     // 1. 중력 적용
     constexpr float GravityConstant = 9.8f;
@@ -35,7 +37,7 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
     if (mbHomingProjectile)
     {
         
-        XMFLOAT3 CurrLoc = Owner->GetActorLocation();
+        XMFLOAT3 CurrLoc = GetWorldLocation();
         XMVECTOR CurrLocV = XMLoadFloat3(&CurrLoc);
         XMFLOAT3 TargetLoc;
         if (TSharedPtr<WSceneComponent> Target = mHomingTarget.lock())
@@ -65,7 +67,7 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
                 XMVECTOR AxisV = XMVector3Normalize(XMVector3Cross(CurrentDirV, ToTargetUnitV));
                 if (XMVector3Equal(AxisV, XMVectorZero()))
                 {
-                    XMFLOAT3 Right = Owner->GetRightVector();
+                    XMFLOAT3 Right = GetRightVector();
                     XMVECTOR RightV = XMLoadFloat3(&Right);
                     AxisV = XMVector3Normalize(XMVector3Cross(RightV, ToTargetUnitV));
                 }
@@ -83,13 +85,13 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
     {
         XMVECTOR DirV = XMVector3Normalize(CurrentVelocityV);
 
-        float Radian = XMVectorGetX(XMVector3AngleBetweenNormals(OwnerForwardV, DirV));
+        float Radian = XMVectorGetX(XMVector3AngleBetweenNormals(VCurrForward, DirV));
         if (Radian > 0.0001f)
         {
-            XMVECTOR AxisV = XMVector3Normalize(XMVector3Cross(OwnerForwardV, DirV));
+            XMVECTOR AxisV = XMVector3Normalize(XMVector3Cross(VCurrForward, DirV));
             if (XMVector3Equal(AxisV, XMVectorZero()))
             {
-                XMFLOAT3 Up = Owner->GetUpVector();
+                XMFLOAT3 Up = GetUpVector();
                 AxisV = XMLoadFloat3(&Up);
             }
             // 현재 방향과 속도 방향 사이의 차이만큼 회전 쿼터니언 생성
@@ -100,7 +102,7 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
     XMVECTOR ForwardV = XMVector3Normalize(CurrentVelocityV);
     if (XMVector3Equal(ForwardV, XMVectorZero()))
     {
-        ForwardV = OwnerForwardV;
+        ForwardV = VCurrForward;
     }
     // 3. 전방 추진 가속도 적용 (스칼라)
     if (mAcceleration != 0.0f)
@@ -125,14 +127,14 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
     // 6. 비주얼 정렬 (투사체가 실제 이동 방향을 바라보게 함)
     if (XMVectorGetX(XMVector3LengthSq(CurrentVelocityV)) > 0.01f)
     {
-        XMFLOAT4 CurrQuat = Owner->GetActorQuaternion();
+        XMFLOAT4 CurrQuat = GetWorldQuatRotation();
         XMVECTOR CurrQuatV = XMLoadFloat4(&CurrQuat);
         
         XMFLOAT4 FinalQuat;
         XMStoreFloat4(&FinalQuat, XMQuaternionMultiply(CurrQuatV, RotationQuatV));
         XMFLOAT3 FinalRotation = FDXMath::QuaternionToEuler(FinalQuat);
 
-        Owner->SetActorRotation(FinalRotation);
+        SetWorldRotation(FinalRotation);
     }
 
     mExternalAcceleration = { 0.f, 0.f, 0.f };
@@ -144,12 +146,9 @@ void WProjectileMovementComponent::BeginComponent()
 {
     Super::BeginComponent();
 
-    TSharedPtr<AActor> Owner = GetOwner().lock();
-    assert(Owner);
-
     // 1. 로컬 초기 속도를 월드 속도로 변환
     // mInitialVelocity는 로컬 기준(예: {500, 0, 0})이라고 가정합니다.
-    XMFLOAT4 CurrQuat = Owner->GetActorQuaternion();
+    XMFLOAT4 CurrQuat = GetWorldQuatRotation();
     XMVECTOR CurrQuatV = XMLoadFloat4(&CurrQuat);
     XMVECTOR LocalVelocityV = XMLoadFloat3(&mInitialVelocity);
 
@@ -165,7 +164,7 @@ void WProjectileMovementComponent::BeginComponent()
         XMVECTOR DirV = XMVector3Normalize(WorldVelocityV);
 
         // 현재 액터의 전방 벡터
-        XMFLOAT3 Forward = Owner->GetForwardVector();
+        XMFLOAT3 Forward = GetForwardVector();
         XMVECTOR ForwardV = XMLoadFloat3(&Forward);
 
         // 두 벡터 사이의 각도(Radian) 구하기
@@ -179,7 +178,7 @@ void WProjectileMovementComponent::BeginComponent()
             // 만약 두 벡터가 180도 반대라 외적 축이 0이 나온다면 임의의 상방 축 사용
             if (XMVector3Equal(AxisV, XMVectorZero()))
             {
-                XMFLOAT3 Right = Owner->GetRightVector();
+                XMFLOAT3 Right = GetRightVector();
                 XMVECTOR RightV = XMLoadFloat3(&Right);
                 AxisV = XMVector3Normalize(XMVector3Cross(RightV, DirV));
             }
@@ -195,26 +194,46 @@ void WProjectileMovementComponent::BeginComponent()
             XMStoreFloat4(&FinalQuat, FinalQuatV);
             XMFLOAT3 FinalRotation = FDXMath::QuaternionToEuler(FinalQuat);
 
-            Owner->SetActorRotation(FinalRotation);
+            SetWorldRotation(FinalRotation);
         }
     }
 }
 
 void WProjectileMovementComponent::SetHomingTarget(WSceneComponent* Target)
 {
-    if (Target)
+    if (Target == nullptr)
     {
-        mHomingTarget = Target->GetWeakPtr<WSceneComponent>();
+		mHomingTarget.reset();
+		SetHoming(false);
+		return;
     }
-    else
-    {
-        mHomingTarget.reset();
-    }
+
+	TSharedPtr<WSceneComponent> CurrTarget = mHomingTarget.lock();
+
+	if (CurrTarget.get() == Target)
+	{
+		return;
+	}
+	mHomingTarget = Target->GetWeakPtr<WSceneComponent>();
+	CurrTarget = mHomingTarget.lock();
+
+	SetHoming(true);
+	if (mbUseWaypoints)
+	{
+		GenerateWaypoints(CurrTarget.get());
+	}
+
+	if (mFinalWaypoints.size() > 1)
+	{
+		mFinalHomingTarget = mHomingTarget;
+		mHomingTarget.reset();
+		SetHomingLocation(mFinalWaypoints.front());
+	}
 }
 
 void WProjectileMovementComponent::SetHomingLocation(const XMFLOAT3& Loc)
 {
-    SetHomingTarget(nullptr);
+	mHomingTarget.reset();
     mHomingLocation = Loc;
 }
 
@@ -223,4 +242,244 @@ void WProjectileMovementComponent::AddForce(const XMFLOAT3& Force)
     XMVECTOR CurrentAccel = XMLoadFloat3(&mExternalAcceleration);
     XMVECTOR NewForce = XMLoadFloat3(&Force);
     XMStoreFloat3(&mExternalAcceleration, XMVectorAdd(CurrentAccel, NewForce));
+}
+
+void WProjectileMovementComponent::UpdateHoming(float DeltaSecond)
+{
+	if (auto FinalHomingTarget = mFinalHomingTarget.lock())
+	{
+		if (mHomingStopRange > 0.0f)
+		{
+			XMFLOAT3 MyLoc = GetWorldLocation();
+			XMFLOAT3 TargetLoc;
+			if (mCurrentWaypointIndex < mFinalWaypoints.size())
+			{
+				TargetLoc = mFinalWaypoints[mCurrentWaypointIndex];
+			}
+			else
+			{
+				TargetLoc = FinalHomingTarget->GetWorldLocation();
+			}
+
+			XMVECTOR VToTarget = XMLoadFloat3(&TargetLoc) - XMLoadFloat3(&MyLoc);
+			float Dist = XMVectorGetX(XMVector3Length(VToTarget));
+
+			// 2. 도착 판정 (StopRange)
+			if (Dist <= mHomingStopRange)
+			{
+				if (mbUseWaypoints && mCurrentWaypointIndex < mFinalWaypoints.size())
+				{
+					mCurrentWaypointIndex++;
+					if (mCurrentWaypointIndex == mFinalWaypoints.size())
+					{
+						mHomingTarget = mFinalHomingTarget;
+					}
+					else
+					{
+						SetHomingLocation(mFinalWaypoints[mCurrentWaypointIndex]);
+					}
+				}
+				else
+				{
+					// 최종 목적지 도착 -> 호밍 해제
+					if (mbForgetPreviousTarget)
+					{
+						mVisitedTargets.insert(FinalHomingTarget->GetOwner().lock().get());
+					}
+
+					FinalHomingTarget = nullptr;
+					SetHoming(false);
+					return;
+				}
+			}
+		}
+	}
+	else if (mHomingStrategy != EHomingStrategy::None)// 3. 새로운 타겟 탐색
+	{
+		if (AActor* NewTarget = FindBestHomingTarget())
+		{
+			// 이전에 방문했던 타겟인지 체크
+			if (mVisitedTargets.find(NewTarget) == mVisitedTargets.end())
+			{
+				SetHomingTarget(NewTarget->GetRootComponent());
+			}
+		}
+	}
+}
+
+AActor* WProjectileMovementComponent::FindBestHomingTarget()
+{
+	TArray<AActor*> Ignore;
+	TSharedPtr<AActor> Owner = GetOwner().lock();
+	Ignore.push_back(Owner.get());
+	TArray<FHitResult> Hits;
+
+	// 1. 주변 액터 수집
+	GetWorld()->SphereOverlap(GetWorldLocation(), mHomingRange, Ignore, Hits, false);
+
+	if (mHomingStrategy == EHomingStrategy::Nearest)
+	{
+		return FindHomingTarget_Nearest(Hits);
+	}
+	else if (mHomingStrategy == EHomingStrategy::Angle)
+	{
+		return FindHomingTarget_Angle(Hits);
+	}
+
+	return nullptr;
+}
+
+AActor* WProjectileMovementComponent::FindHomingTarget_Nearest(const TArray<FHitResult>& Hits)
+{
+	float ClosestDistSq = FLT_MAX;
+	AActor* Target = nullptr;
+	for (auto& Hit : Hits)
+	{
+		auto Candidate = Hit.Actor.lock();
+		if (!IsHomingTarget(Candidate.get()))
+		{
+			continue;
+		}
+
+		XMFLOAT3 CurrLoc = GetWorldLocation();
+		XMFLOAT3 TargetLoc = Candidate->GetActorLocation();
+		float DistSq = XMVectorGetX(XMVector3LengthSq(XMLoadFloat3(&TargetLoc) - XMLoadFloat3(&CurrLoc)));
+		if (DistSq < ClosestDistSq)
+		{
+			ClosestDistSq = DistSq;
+			Target = Candidate.get();
+		}
+	}
+	return Target;
+}
+
+AActor* WProjectileMovementComponent::FindHomingTarget_Angle(const TArray<FHitResult>& Hits)
+{
+	float BestDot = -1.0f;
+	XMFLOAT3 Forward = GetForwardVector();
+	XMVECTOR ForwardV = XMLoadFloat3(&Forward);
+
+	AActor* Target = nullptr;
+	for (auto& Hit : Hits)
+	{
+		auto Candidate = Hit.Actor.lock();
+		if (!IsHomingTarget(Candidate.get()))
+		{
+			continue;
+		}
+
+		XMFLOAT3 CandidateLoc = Candidate->GetActorLocation();
+		XMFLOAT3 CurrLoc = GetWorldLocation();
+		XMVECTOR ToTarget = XMVector3Normalize(XMLoadFloat3(&CandidateLoc) - XMLoadFloat3(&CurrLoc));
+		float Dot = XMVectorGetX(XMVector3Dot(ForwardV, ToTarget));
+
+		// 내적값을 각도로 변환하여 범위 체크
+		float Angle = XMConvertToDegrees(acosf(fmaxf(-1.0f, fminf(1.0f, Dot))));
+		if (Angle <= mHomingAngle && Dot > BestDot)
+		{
+			BestDot = Dot;
+			Target = Candidate.get();
+		}
+	}
+
+	return Target;
+}
+
+bool WProjectileMovementComponent::IsHomingTarget(AActor* Actor) const
+{
+	if (!Actor) return false;
+
+	// 1. 방문 기록 확인
+	if (mbForgetPreviousTarget && mVisitedTargets.count(Actor)) return false;
+
+	// 2. 태그 확인 (액터의 태그 중 하나라도 mHomingTargetTags에 있는지)
+	bool bMatch = false;
+
+	for (const std::string& Tag : mHomingTargetTags)
+	{
+		if (Actor->HasTag(Tag))
+		{
+			bMatch = true;
+			break;
+		}
+	}
+
+	return bMatch;
+}
+
+void WProjectileMovementComponent::GenerateWaypoints(WSceneComponent* Target)
+{
+	if (!mbUseWaypoints || !Target) return;
+
+	WWorld* World = GetWorld();
+
+	mFinalWaypoints.clear();
+	mCurrentWaypointIndex = 0;
+	assert(mHomingStopRange > 0);
+
+	XMFLOAT3 MyLoc = GetWorldLocation();
+	XMFLOAT3 TargetLoc = Target->GetWorldLocation();
+
+	XMVECTOR VStart = XMLoadFloat3(&MyLoc);
+	XMVECTOR VTarget = XMLoadFloat3(&TargetLoc);
+	XMVECTOR VBase = (mWaypointBase == "Actor") ? VStart : VTarget;
+	XMVECTOR VToTarget = VTarget - VStart;
+	float TotalDist = XMVectorGetX(XMVector3Length(VToTarget));
+
+	// 1. 방향 기반 공간(Direction Space)일 때만 기저 벡터 계산
+	XMVECTOR VForward;
+	XMVECTOR VUp;
+	XMVECTOR VRight;
+
+	if (mWaypointSpace == "Direction")
+	{
+		VForward = XMVector3Normalize(VToTarget);
+
+		XMVECTOR VWorldUp = XMVectorSet(0, 1, 0, 0);
+		float Dot = fabsf(XMVectorGetX(XMVector3Dot(VForward, VWorldUp)));
+
+		if (Dot > 0.99f)
+		{
+			XMVECTOR VAltUp = XMVectorSet(0, 0, 1, 0);
+			VRight = XMVector3Normalize(XMVector3Cross(VAltUp, VForward));
+		}
+		else
+		{
+			VRight = XMVector3Normalize(XMVector3Cross(VWorldUp, VForward));
+		}
+		VUp = XMVector3Cross(VForward, VRight);
+	}
+	else
+	{
+		VForward = XMVectorSet(0, 0, 1, 0);
+		VUp = XMVectorSet(0, 1, 0, 0);
+		VRight = XMVectorSet(1, 0, 0, 0);
+	}
+
+
+	float Scale = (mWaypointType == "Adaptive") ? TotalDist : 1.0f;
+
+	// 2. 경유지 생성 루프
+	for (const auto& Offset : mConfigWaypoints)
+	{
+		XMVECTOR WpPos = VBase;
+		XMVECTOR VOffset = XMLoadFloat3(&Offset);
+
+		if (mWaypointSpace == "Direction")
+		{
+			// 전방(x), 위(y), 우측(z) 기준으로 적용
+			WpPos += VForward * (XMVectorGetZ(VOffset) * Scale);
+			WpPos += VUp * (XMVectorGetY(VOffset) * Scale);
+			WpPos += VRight * (XMVectorGetX(VOffset) * Scale);
+		}
+		else // "World" Space
+		{
+			WpPos += VOffset * Scale;
+		}
+
+		FActorSpawnParameter Param;
+		XMFLOAT3 FinalPos;
+		XMStoreFloat3(&FinalPos, WpPos);
+		mFinalWaypoints.push_back(FinalPos);
+	}
 }

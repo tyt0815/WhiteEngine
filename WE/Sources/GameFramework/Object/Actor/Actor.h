@@ -228,8 +228,8 @@ public:
 	using WAction = std::function<void()>;
 	using WActionFactoryFunc = std::function<WAction(const WAttributesMap&)>;
 
-	using WProperty = std::variant		<bool*,	int*,	float*,	XMFLOAT3*,	std::string*,	TArray<std::string>*,	std::set<std::string>*>;
-	using WVariantValue = std::variant	<bool,	int,	float,	XMFLOAT3,	std::string,	TArray<std::string>,	std::set<std::string>>;
+	using WProperty = std::variant		<bool*,	int*,	float*,	XMFLOAT3*,	std::string*,	TArray<std::string>*,	std::set<std::string>*,	TArray<XMFLOAT3>*>;
+	using WVariantValue = std::variant	<bool,	int,	float,	XMFLOAT3,	std::string,	TArray<std::string>,	std::set<std::string>,	TArray<XMFLOAT3>>;
 	using WPropertiesMap = std::unordered_map<std::string, WProperty>;
 
 	class WEvent 

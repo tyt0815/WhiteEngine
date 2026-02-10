@@ -418,12 +418,7 @@ void AActor::LoadBlueprint(const FBlueprintAsset* Blueprint)
 {
 	LoadWConfigs(Blueprint->mConfigs);
 
-	WSceneComponent* RootComp = GetRootComponent();
-	assert(RootComp);
-	for (const auto& BlueprintComp : Blueprint->mAttachedComponents)
-	{
-		LoadWComponent_Internal(BlueprintComp.get(), RootComp);
-	}
+	LoadWComponent_Internal(Blueprint->mRootComponent.get(), nullptr);
 
 	LoadWEvents(Blueprint->mEvents, Blueprint->mCustomEvents);
 }
@@ -535,7 +530,14 @@ void AActor::LoadWComponent_Internal(FBlueprintComponentNode* CompNode, WSceneCo
 
 	WSceneComponent* Comp = mWComponentFactoryMap[CompNode->Type](CompNode->Attributes);
 	assert(Comp);
-	Comp->SetupAttachment(Parent);
+	if (Parent)
+	{
+		Comp->SetupAttachment(Parent);
+	}
+	else
+	{
+		SetRootComponent(Comp->GetWeakPtr<WSceneComponent>());
+	}
 
 	// SceneComponent 공용 속성 처리
 	ApplyWComponentCommonAttribute(CompNode, Comp);

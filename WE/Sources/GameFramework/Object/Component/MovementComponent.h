@@ -1,7 +1,7 @@
 #pragma once
-#include "ActorComponent.h"
+#include "SceneComponent.h"
 
-class WMovementComponent : public WActorComponent
+class WMovementComponent : public WSceneComponent
 {
 	typedef WActorComponent Super;
 public:
@@ -13,7 +13,4 @@ public:
 	XMFLOAT3 mVelocity = { 0, 0, 0 };
 
 	XMFLOAT3 mAcceleration = {0, 0, 0};
-
-private:
-	void MoveOwner(XMFLOAT3 WorldDirection);
 };

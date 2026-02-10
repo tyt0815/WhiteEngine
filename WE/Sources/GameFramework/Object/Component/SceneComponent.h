@@ -41,6 +41,12 @@ public:
 
 	DirectX::XMFLOAT3 GetWorldScale();
 
+	XMFLOAT3 GetForwardVector();
+
+	XMFLOAT3 GetRightVector();
+
+	XMFLOAT3 GetUpVector();
+
 	FTransform GetWorldTransform();
 
 	void UpdateRecursive();

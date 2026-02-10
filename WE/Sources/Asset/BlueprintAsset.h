@@ -51,7 +51,7 @@ public:
 
 	std::unordered_map<std::string, WAttributesMap> mConfigs;
 
-	TArray<TSharedPtr<FBlueprintComponentNode>> mAttachedComponents;
+	TSharedPtr<FBlueprintComponentNode> mRootComponent;
 
 	TArray<TSharedPtr<FBlueprintEventNode>> mCustomEvents;
 

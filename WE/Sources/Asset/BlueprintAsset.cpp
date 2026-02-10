@@ -119,7 +119,7 @@ void FBlueprintAsset::Serialize(FBinaryWriter& Writer, FXMLElement* RootElement)
 
     SerializeConfigs(Writer, RootElement->FirstChildElement("Configs"));
 
-    SerializeComponents(Writer, RootElement->FirstChildElement("Components"));
+    SerializeComponent(Writer, RootElement->FirstChildElement("Components")->FirstChildElement());
 
     SerializeEvents(Writer , RootElement->FirstChildElement("Events"));
 }
@@ -130,7 +130,8 @@ void FBlueprintAsset::Deserialize(FBinaryReader& Reader)
 
     DeserializeConfigs(Reader, mConfigs);
 
-    DeserializeComponents(Reader, mAttachedComponents);
+    mRootComponent = MakeShared<FBlueprintComponentNode>();
+    DeserializeComponent(Reader, mRootComponent);
 
     DeserializeEvents(Reader);
 }

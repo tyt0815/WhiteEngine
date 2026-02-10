@@ -1,6 +1,14 @@
 #pragma once
 #include "MovementComponent.h"
+#include "Physics/HitResult.h"
 #include "SceneComponent.h"
+
+enum class EHomingStrategy : uint8_t
+{
+	Nearest,    // 가장 가까운 대상
+	Angle,       // 정면 각도가 가장 일치하는 대상
+	None,
+};
 
 class WProjectileMovementComponent : public WMovementComponent
 {
@@ -36,6 +44,7 @@ protected:
 	bool mbHomingProjectile = false;
 
 private:
+
 	TWeakPtr<WSceneComponent> mHomingTarget;
 
 	XMFLOAT3 mHomingLocation;
@@ -43,6 +52,57 @@ private:
 	XMFLOAT3 mExternalAcceleration = { 0,0,0 };
 
 	float mLifeTimeElapsed = 0.0f;
+
+
+
+	/////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////
+
+	void UpdateHoming(float DeltaSecond);
+
+	AActor* FindBestHomingTarget();
+
+	AActor* FindHomingTarget_Nearest(const TArray<FHitResult>& Hits);
+
+	AActor* FindHomingTarget_Angle(const TArray<FHitResult>& Hits);
+
+	bool IsHomingTarget(AActor* Actor) const;
+
+	void GenerateWaypoints(WSceneComponent* Target);
+
+	
+	std::set<std::string> mHomingTargetTags;
+	float mHomingRange = 10.0f;
+	float mHomingAngle = 45.0f;     // Angle 전략용 (Degree)
+	float mRetargetTick = 0.0f;    // 타겟 갱신 주기
+	float mRetargetTimer = 0.0f;   // 타이머 카운트
+	EHomingStrategy mHomingStrategy = EHomingStrategy::None;
+
+	float mHomingStopRange = 0.0f;     // 0이면 무한 호밍
+	bool mbForgetPreviousTarget = true;
+
+	std::set<AActor*> mVisitedTargets;     // 이미 호밍했던 타겟 목록	
+
+	bool mbUseWaypoints = false;
+	std::string mWaypointSpace = "Direction";
+	std::string mWaypointBase = "Target";  // Actor or Target
+	std::string mWaypointType = "Value";   // Value or Adaptive
+	std::vector<XMFLOAT3> mConfigWaypoints;
+
+	std::vector<XMFLOAT3> mFinalWaypoints;
+
+	TWeakPtr<WSceneComponent> mFinalHomingTarget;
+
+	int mCurrentWaypointIndex = 0;
+
+	/////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
 
 public:
 	__forceinline const XMFLOAT3& GetInitialVelocity() const { return mInitialVelocity; }
