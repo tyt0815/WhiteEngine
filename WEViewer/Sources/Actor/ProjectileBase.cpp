@@ -765,6 +765,8 @@ void AProjectileBase::GenerateWaypoints(AActor* Target)
 		VUp = XMVector3Cross(VForward, VRight);
 	}
 
+	float Scale = (mWaypointType == "Adaptive") ? TotalDist : 1.0f;
+
 	// 2. 경유지 생성 루프
 	for (const auto& Offset : mConfigWaypoints)
 	{
@@ -774,22 +776,13 @@ void AProjectileBase::GenerateWaypoints(AActor* Target)
 		if (mWaypointSpace == "Direction")
 		{
 			// 전방(x), 위(y), 우측(z) 기준으로 적용
-			float Scale = (mWaypointType == "Adaptive") ? TotalDist : 1.0f;
 			WpPos += VForward * (XMVectorGetX(VOffset) * Scale);
 			WpPos += VUp * (XMVectorGetY(VOffset) * Scale);
 			WpPos += VRight * (XMVectorGetZ(VOffset) * Scale);
 		}
 		else // "World" Space
 		{
-			// 순수 월드 축 X, Y, Z 기준으로 적용
-			if (mWaypointType == "Adaptive")
-			{
-				WpPos += VOffset * TotalDist;
-			}
-			else
-			{
-				WpPos += VOffset;
-			}
+			WpPos += VOffset * Scale;
 		}
 
 		FActorSpawnParameter Param;
