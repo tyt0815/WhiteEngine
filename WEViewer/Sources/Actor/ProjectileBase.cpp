@@ -739,17 +739,19 @@ void AProjectileBase::GenerateWaypoints(AActor* Target)
 	XMVECTOR VStart = XMLoadFloat3(&MyLoc);
 	XMVECTOR VTarget = XMLoadFloat3(&TargetLoc);
 	XMVECTOR VBase = (mWaypointBase == "Actor") ? VStart : VTarget;
-	World->DrawDebugLine(MyLoc, TargetLoc, XMFLOAT4(1, 0, 0, 1), 10);
-	XMVECTOR VForward = VTarget - VStart;
-	float TotalDist = XMVectorGetX(XMVector3Length(VForward));
-	VForward = XMVector3Normalize(VForward);
+	World->DrawDebugLine(MyLoc, TargetLoc, XMFLOAT4(1, 1, 1, 1), 10);
+	XMVECTOR VToTarget = VTarget - VStart;
+	float TotalDist = XMVectorGetX(XMVector3Length(VToTarget));
 
 	// 1. 방향 기반 공간(Direction Space)일 때만 기저 벡터 계산
-	XMVECTOR VUp = XMVectorSet(0, 1, 0, 0); // 기본 WorldUp
-	XMVECTOR VRight = XMVectorSet(1, 0, 0, 0);
+	XMVECTOR VForward;
+	XMVECTOR VUp;
+	XMVECTOR VRight;
 
 	if (mWaypointSpace == "Direction")
 	{
+		VForward = XMVector3Normalize(VToTarget);
+
 		XMVECTOR VWorldUp = XMVectorSet(0, 1, 0, 0);
 		float Dot = fabsf(XMVectorGetX(XMVector3Dot(VForward, VWorldUp)));
 
@@ -764,6 +766,19 @@ void AProjectileBase::GenerateWaypoints(AActor* Target)
 		}
 		VUp = XMVector3Cross(VForward, VRight);
 	}
+	else
+	{
+		VForward = XMVectorSet(0, 0, 1, 0);
+		VUp = XMVectorSet(0, 1, 0, 0);
+		VRight = XMVectorSet(1, 0, 0, 0);
+	}
+
+	XMFLOAT3 F, U, R;
+	XMStoreFloat3(&F, VStart + VForward); XMStoreFloat3(&U, VStart + VUp); XMStoreFloat3(&R, VStart + VRight);
+	World->DrawDebugLine(MyLoc, F, XMFLOAT4(1, 0, 0, 1), 10);
+	World->DrawDebugLine(MyLoc, U, XMFLOAT4(0, 1, 0, 1), 10);
+	World->DrawDebugLine(MyLoc, R, XMFLOAT4(0, 0, 1, 1), 10);
+	
 
 	float Scale = (mWaypointType == "Adaptive") ? TotalDist : 1.0f;
 
@@ -776,9 +791,9 @@ void AProjectileBase::GenerateWaypoints(AActor* Target)
 		if (mWaypointSpace == "Direction")
 		{
 			// 전방(x), 위(y), 우측(z) 기준으로 적용
-			WpPos += VForward * (XMVectorGetX(VOffset) * Scale);
+			WpPos += VForward * (XMVectorGetZ(VOffset) * Scale);
 			WpPos += VUp * (XMVectorGetY(VOffset) * Scale);
-			WpPos += VRight * (XMVectorGetZ(VOffset) * Scale);
+			WpPos += VRight * (XMVectorGetX(VOffset) * Scale);
 		}
 		else // "World" Space
 		{
