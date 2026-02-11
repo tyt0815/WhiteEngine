@@ -8,6 +8,8 @@
 #include "Asset/ObjectAnimDataAsset.h"
 #include "Utility/Container.h"
 
+DECLARE_MULTICAST_DELEGATE(FOnAnimStop);
+
 class FCurveSampler
 {
 public:
@@ -61,7 +63,7 @@ private:
 	friend class WObjectAnimComponent;
 };
 
-namespace ERootMotion
+namespace EAnimSampling
 {
 	enum Flags : uint16_t
 	{
@@ -96,10 +98,12 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+	FOnAnimStop mOnStop;
+
 public:
 	bool LoadAnimation(const std::string& AssetName, const std::string& AnimName);
 
-	void LoadAndPlay(const std::string& AssetName, const std::string& AnimName, float PlayRate, bool bLoop, uint16_t Flags);
+	void LoadAndPlay(const std::string& AssetName, const std::string& AnimName, float PlayRate, bool bLoop, uint16_t Flags, bool bRootMotion);
 
 	// @param CurveName Curve의 이름
 	// @param TargetPtr 바인딩할 값의 포인터
@@ -113,7 +117,7 @@ public:
 
 	FCurveBind* GetBoundCurve(float* TargetPtr);
 
-	void Play(float PlayRate, bool bLoop, uint16_t Flags);
+	void Play(float PlayRate, bool bLoop, uint16_t Flags, bool bRootMotion);
 
 	void Stop();
 
@@ -128,8 +132,9 @@ private:
 	float mCurrentTime = 0.0f;
 	bool  mIsPlaying = false;
 	bool  mLoop = false;
+	bool mbRootMotion = false;
 	float mPlayRate = 1.0f;
-	uint16_t mRootMotionFlags;
+	uint16_t mSamplingFlags;
 
 public:
 	__forceinline float GetFrameEnd() const

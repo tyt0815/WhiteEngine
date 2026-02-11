@@ -7,8 +7,6 @@ WSplineCollisionComponent::WSplineCollisionComponent()
 	SetTickGroup(ETickGroup::ETG_PostPhysics, ETickPriority::ETP_High);
 }
 
-inline constexpr float FIXED_DELTA = 1.0f / 60.0f;
-
 void WSplineCollisionComponent::Tick(float DeltaSecond)
 {
 	Super::Tick(DeltaSecond);
@@ -17,7 +15,7 @@ void WSplineCollisionComponent::Tick(float DeltaSecond)
 	UpdateActorsToIgnore(DeltaSecond);
 
 	mElapsedTime += DeltaSecond;
-	if (mElapsedTime < FIXED_DELTA) return;
+	if (mElapsedTime < mCollisionInterval) return;
 	mElapsedTime = 0;
 
 	// 무시 리스트 준비 (캐싱된 리스트 사용)
@@ -29,7 +27,7 @@ void WSplineCollisionComponent::Tick(float DeltaSecond)
 	{
 		FHitResult BoxHit;
 		GetWorld()->BoxTrace(mBoundingBox.PrevLocation, mBoundingBox.CenterComp->GetWorldLocation(),
-			XMFLOAT3(1, 1, 1), GetOwner().lock()->GetActorRotation(), TraceIgnore, BoxHit, mbDebug, FIXED_DELTA);
+			XMFLOAT3(1, 1, 1), GetOwner().lock()->GetActorRotation(), TraceIgnore, BoxHit, mbDebug, mCollisionInterval);
 
 		mBoundingBox.PrevLocation = mBoundingBox.CenterComp->GetWorldLocation();
 		if (BoxHit.Actor.expired()) bNeedCollisionCheck = false;
@@ -42,7 +40,7 @@ void WSplineCollisionComponent::Tick(float DeltaSecond)
 			XMFLOAT3 CurrLoc = Capsule.Comp->GetWorldLocation();
 			FHitResult Hit;
 			GetWorld()->CapsuleTrace(Capsule.PrevLocation, CurrLoc, Capsule.Radius, Capsule.HalfHeight,
-				Capsule.Comp->GetWorldRotation(), TraceIgnore, Hit, mbDebug, FIXED_DELTA);
+				Capsule.Comp->GetWorldRotation(), TraceIgnore, Hit, mbDebug, mCollisionInterval);
 
 			if (!Hit.Actor.expired())
 			{

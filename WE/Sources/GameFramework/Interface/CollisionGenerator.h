@@ -9,6 +9,7 @@ class AActor;
 class WPhysicsComponent;
 using namespace DirectX;
 
+// void OnCollision(WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage)
 // Instigator, HittedComponent, ImpactPoint, Normal, Distance, Damage;
 DECLARE_MULTICAST_DELEGATE_SixParams(FOnCollision, WSceneComponent*, WPhysicsComponent*, XMFLOAT3, XMFLOAT3, float, float);
 
@@ -40,6 +41,8 @@ protected:
 	std::vector<AActor*> mCachedIgnoreList;
 
 	bool mbDebug = false;
+
+	float mCollisionInterval = 1.0f / 60.0f;
 
 private:
 	std::set<std::string> mTargetTags;

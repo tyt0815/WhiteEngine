@@ -20,6 +20,6 @@ void WSphereCollisionComponent::TraceShape(XMFLOAT3 Start, FTransform CurrTransf
         ActorsToIgnore,
         Hit,
         mbDebug,                       // bDrawDebug
-        1.0f / 60.0f                // DebugDuration
+        mCollisionInterval                // DebugDuration
     );
 }

@@ -25,10 +25,7 @@ void WPhysicsComponent::OnActivate()
 	GetWorld()->EnqueuePhysicsComponent(this);
 	if (mbPhysicSimulate)
 	{
-		if (mBody->IsValid())
-		{
-			mBody->Activate();
-		}
+		ActivatePhysicBody();
 	}
 }
 
@@ -41,9 +38,9 @@ void WPhysicsComponent::OnDeactivate()
 	}
 }
 
-void WPhysicsComponent::OnSetTransform()
+void WPhysicsComponent::PostSetupAttachment()
 {
-	Super::OnSetTransform();
+	Super::PostSetupAttachment();
 }
 
 void WPhysicsComponent::UpdateToPhysics()
@@ -57,7 +54,11 @@ void WPhysicsComponent::UpdateToPhysics()
 		}
 
 		mLastPhysicsTransform = WorldTransform;
-		mBody->SetTransform(WorldTransform);
+		mBody->SetLocation(WorldTransform.Translation);
+		
+		const XMFLOAT3& Loc = WorldTransform.Translation;
+		XMFLOAT4 Quat = WorldTransform.GetQuaternionRotationFloat4();
+		mBody->SetLocationAndRotation(Loc, Quat);
 	}
 }
 
@@ -86,42 +87,38 @@ void WPhysicsComponent::UpdateFromPhysics()
 
 void WPhysicsComponent::ActivatePhysicBody()
 {
-	if (!mbPhysicSimulate)
+	mbPhysicSimulate = true;
+	if (mBody->IsValid())
 	{
-		mbPhysicSimulate = true;
-
-		if (mBody->IsValid())
-		{
-			mBody->Activate();
-		}
+		mBody->Activate();
 	}
 }
 
 void WPhysicsComponent::DeactivatePhysicBody()
 {
-	if (mbPhysicSimulate)
+	mbPhysicSimulate = false;
+	if (mBody->IsValid())
 	{
-		mbPhysicSimulate = false;
-		if (mBody->IsValid())
-		{
-			mBody->Deactivate();
-		}
+		mBody->Deactivate();
 	}
-}
-
-void WPhysicsComponent::GenerateOverlapEvent()
-{
-	mbGenerateOverlapEvent = true;
 }
 
 void WPhysicsComponent::SetMotionType(EMotionType MotionType)
 {
-	mMotionType = MotionType;
+	mMotionType = MotionType; 
+	if (mBody->IsValid())
+	{
+		mBody->SetMotiontype(MotionType);
+	}
 }
 
 void WPhysicsComponent::SetObjectChannel(EObjectChannel::EObjectChannel ObjectChannel)
 {
 	mObjectChannel = ObjectChannel;
+	if (mBody->IsValid())
+	{
+		SetObjectChannel(mObjectChannel);
+	}
 }
 
 namespace Physics
@@ -137,5 +134,5 @@ void WPhysicsComponent::CreatePhysicsBody()
 	UINT GroupID = GetOwner().lock()->mActorCounter;
 	Settings.mCollisionGroup.SetGroupID(GroupID);
 	Settings.mCollisionGroup.SetGroupFilter(Physics::g_GroupFilter);
-	mBody->CreateBody(Settings);
+	mBody->Create(Settings);
 }

@@ -1,6 +1,6 @@
 #pragma once
 #include "Component/SplineComponent.h"
-#include "Interface/CollisionGenerator.h"
+#include "GameFramework/Interface/CollisionGenerator.h"
 #include "Physics/HitResult.h"
 #include "Utility/Container.h"
 

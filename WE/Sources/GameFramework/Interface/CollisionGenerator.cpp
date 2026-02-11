@@ -17,7 +17,7 @@ void FCollisionGeneratorBase::UpdateActorsToIgnore(float DeltaSecond)
     for (auto Iter = mIgnoreTimers.begin(); Iter != mIgnoreTimers.end(); )
     {
         Iter->second -= DeltaSecond;
-        if (Iter->second <= 0.0f) 
+        if (Iter->second <= 0.0f)
         {
             Iter = mIgnoreTimers.erase(Iter);
             bChanged = true;
@@ -36,7 +36,7 @@ void FCollisionGeneratorBase::UpdateActorsToIgnore(float DeltaSecond)
 void FCollisionGeneratorBase::UpdateCachedIgnoreList()
 {
     mCachedIgnoreList.clear();
-    for (const auto& KeyValue : mIgnoreTimers) 
+    for (const auto& KeyValue : mIgnoreTimers)
     {
         mCachedIgnoreList.push_back(KeyValue.first);
     }
@@ -56,7 +56,7 @@ void FCollisionGeneratorBase::ProcessHit(const FHitResult& Hit)
         bool bHasTag = false;
         for (const std::string& TargetTag : mTargetTags)
         {
-            if(HittedActor->HasTag(TargetTag))
+            if (HittedActor->HasTag(TargetTag))
             {
                 bHasTag = true;
                 break;
@@ -100,7 +100,7 @@ void FCollisionGeneratorBase::ProcessHit(const FHitResult& Hit)
             mDamage
         );
 
-        if (mHitCount >= mMaxHit)
+        if (mMaxHit > 0 && mHitCount >= mMaxHit)
         {
 
             Comp->Deactivate();

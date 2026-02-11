@@ -206,97 +206,134 @@ void WObjectAnimComponent::Tick(float DeltaTime)
 		}
 	}	
 
-	if (mRootMotionFlags > 0)
+	if (mSamplingFlags > 0)
 	{
-		XMVECTOR vDeltaLoc;
-		XMVECTOR vDeltaRot;
-		XMVECTOR vDeltaScale;
-
-		if (mCurrentTime >= duration)
+		if (mbRootMotion)
 		{
-			// 루프 시점 델타 보정
-			if (mLoop)
+			XMVECTOR vDeltaLoc;
+			XMVECTOR vDeltaRot;
+			XMVECTOR vDeltaScale;
+
+			if (mCurrentTime >= duration)
 			{
-				// A 구간: 이전 시간부터 끝까지의 움직임
-				FTransform prevT = mSampler->SampleTransform(SecondToFrame(prevTime));
-				FTransform endT = mSampler->SampleTransform(SecondToFrame(duration));
+				// 루프 시점 델타 보정
+				if (mLoop)
+				{
+					// A 구간: 이전 시간부터 끝까지의 움직임
+					FTransform prevT = mSampler->SampleTransform(SecondToFrame(prevTime));
+					FTransform endT = mSampler->SampleTransform(SecondToFrame(duration));
 
-				// B 구간: 처음부터 현재 리셋된 시간까지의 움직임
-				FTransform startT = mSampler->SampleTransform(0.0f);
-				FTransform currT = mSampler->SampleTransform(SecondToFrame(FinalTime));
+					// B 구간: 처음부터 현재 리셋된 시간까지의 움직임
+					FTransform startT = mSampler->SampleTransform(0.0f);
+					FTransform currT = mSampler->SampleTransform(SecondToFrame(FinalTime));
 
-				vDeltaLoc = (XMLoadFloat3(&endT.Translation) - XMLoadFloat3(&prevT.Translation)) +
-					(XMLoadFloat3(&currT.Translation) - XMLoadFloat3(&startT.Translation));
+					vDeltaLoc = (XMLoadFloat3(&endT.Translation) - XMLoadFloat3(&prevT.Translation)) +
+						(XMLoadFloat3(&currT.Translation) - XMLoadFloat3(&startT.Translation));
 
-				vDeltaRot = (XMLoadFloat3(&endT.Rotation) - XMLoadFloat3(&prevT.Rotation)) +
-					(XMLoadFloat3(&currT.Rotation) - XMLoadFloat3(&startT.Rotation));
+					vDeltaRot = (XMLoadFloat3(&endT.Rotation) - XMLoadFloat3(&prevT.Rotation)) +
+						(XMLoadFloat3(&currT.Rotation) - XMLoadFloat3(&startT.Rotation));
 
-				vDeltaScale = (XMLoadFloat3(&endT.Scale) - XMLoadFloat3(&prevT.Scale)) +
-					(XMLoadFloat3(&currT.Scale) - XMLoadFloat3(&startT.Scale));
+					vDeltaScale = (XMLoadFloat3(&endT.Scale) - XMLoadFloat3(&prevT.Scale)) +
+						(XMLoadFloat3(&currT.Scale) - XMLoadFloat3(&startT.Scale));
+				}
+				else
+				{
+					FTransform prevT = mSampler->SampleTransform(SecondToFrame(prevTime));
+					FTransform endT = mSampler->SampleTransform(SecondToFrame(duration));
+					vDeltaLoc = XMLoadFloat3(&endT.Translation) - XMLoadFloat3(&prevT.Translation);
+					vDeltaRot = XMLoadFloat3(&endT.Rotation) - XMLoadFloat3(&prevT.Rotation);
+					vDeltaScale = XMLoadFloat3(&endT.Scale) - XMLoadFloat3(&prevT.Scale);
+				}
 			}
 			else
 			{
+				// 일반 프레임 델타 계산 (기존 로직)
 				FTransform prevT = mSampler->SampleTransform(SecondToFrame(prevTime));
-				FTransform endT = mSampler->SampleTransform(SecondToFrame(duration));
-				vDeltaLoc = XMLoadFloat3(&endT.Translation) - XMLoadFloat3(&prevT.Translation);
-				vDeltaRot = XMLoadFloat3(&endT.Rotation) - XMLoadFloat3(&prevT.Rotation);
-				vDeltaScale = XMLoadFloat3(&endT.Scale) - XMLoadFloat3(&prevT.Scale);
+				FTransform currT = mSampler->SampleTransform(SecondToFrame(FinalTime));
+
+				vDeltaLoc = XMLoadFloat3(&currT.Translation) - XMLoadFloat3(&prevT.Translation);
+				vDeltaRot = XMLoadFloat3(&currT.Rotation) - XMLoadFloat3(&prevT.Rotation);
+				vDeltaScale = XMLoadFloat3(&currT.Scale) - XMLoadFloat3(&prevT.Scale);
 			}
+
+			// 비트 플래그에 따른 마스킹
+			XMFLOAT3 dLoc, dRot, dScale;
+			XMStoreFloat3(&dLoc, vDeltaLoc);
+			XMStoreFloat3(&dRot, vDeltaRot);
+			XMStoreFloat3(&dScale, vDeltaScale);
+
+			if (!(mSamplingFlags & EAnimSampling::LocX)) dLoc.x = 0.f;
+			if (!(mSamplingFlags & EAnimSampling::LocY)) dLoc.y = 0.f;
+			if (!(mSamplingFlags & EAnimSampling::LocZ)) dLoc.z = 0.f;
+
+			if (!(mSamplingFlags & EAnimSampling::RotX)) dRot.x = 0.f;
+			if (!(mSamplingFlags & EAnimSampling::RotY)) dRot.y = 0.f;
+			if (!(mSamplingFlags & EAnimSampling::RotZ)) dRot.z = 0.f;
+
+			if (!(mSamplingFlags & EAnimSampling::ScaleX)) dScale.x = 0.f;
+			if (!(mSamplingFlags & EAnimSampling::ScaleY)) dScale.y = 0.f;
+			if (!(mSamplingFlags & EAnimSampling::ScaleZ)) dScale.z = 0.f;
+
+
+			XMFLOAT4 CurrQuat = GetLocalQuatRotation();
+			XMVECTOR vCurrQuat = XMLoadFloat4(&CurrQuat);
+			XMVECTOR vRotatedDeltaLoc = XMVector3Rotate(XMLoadFloat3(&dLoc), vCurrQuat);
+
+			// 위치 적용
+			XMFLOAT3 curLoc = GetLocalLocation();
+			XMVECTOR vNewLoc = XMLoadFloat3(&curLoc) + vRotatedDeltaLoc;
+			XMFLOAT3 finalLoc;
+			XMStoreFloat3(&finalLoc, vNewLoc);
+			SetLocalLocation(finalLoc);
+
+			// 회전 적용 (Euler 누적)
+			XMFLOAT3 curRot = GetLocalRotation();
+			XMVECTOR vNewRot = XMLoadFloat3(&curRot) + XMLoadFloat3(&dRot);
+			XMFLOAT3 finalRot;
+			XMStoreFloat3(&finalRot, vNewRot);
+			SetLocalRotation(finalRot);
+
+			// 스케일 적용
+			XMFLOAT3 curScale = GetLocalScale();
+			XMVECTOR vNewScale = XMLoadFloat3(&curScale) + XMLoadFloat3(&dScale);
+			XMFLOAT3 finalScale;
+			XMStoreFloat3(&finalScale, vNewScale);
+			SetLocalScale(finalScale);
 		}
+
 		else
 		{
-			// 일반 프레임 델타 계산 (기존 로직)
-			FTransform prevT = mSampler->SampleTransform(SecondToFrame(prevTime));
+			// 1. 현재 시간에 해당하는 애니메이션 데이터 샘플링 (절대 좌표)
 			FTransform currT = mSampler->SampleTransform(SecondToFrame(FinalTime));
 
-			vDeltaLoc = XMLoadFloat3(&currT.Translation) - XMLoadFloat3(&prevT.Translation);
-			vDeltaRot = XMLoadFloat3(&currT.Rotation) - XMLoadFloat3(&prevT.Rotation);
-			vDeltaScale = XMLoadFloat3(&currT.Scale) - XMLoadFloat3(&prevT.Scale);
+			// 2. 비트 플래그(mSamplingFlags)에 따라 사용할 값 필터링
+			// 팁: 루트모션이 아닐 때는 이전 값과 섞지 않고 샘플링된 값을 그대로 사용하거나, 
+			// 플래그가 꺼진 축은 현재 컴포넌트의 값을 유지하도록 설계하는 것이 일반적입니다.
+
+			XMFLOAT3 finalLoc = GetLocalLocation();
+			XMFLOAT3 finalRot = GetLocalRotation();
+			XMFLOAT3 finalScale = GetLocalScale();
+
+			// 위치 (Location) 샘플링 적용
+			if (mSamplingFlags & EAnimSampling::LocX) finalLoc.x = currT.Translation.x;
+			if (mSamplingFlags & EAnimSampling::LocY) finalLoc.y = currT.Translation.y;
+			if (mSamplingFlags & EAnimSampling::LocZ) finalLoc.z = currT.Translation.z;
+
+			// 회전 (Rotation - Euler) 샘플링 적용
+			if (mSamplingFlags & EAnimSampling::RotX) finalRot.x = currT.Rotation.x;
+			if (mSamplingFlags & EAnimSampling::RotY) finalRot.y = currT.Rotation.y;
+			if (mSamplingFlags & EAnimSampling::RotZ) finalRot.z = currT.Rotation.z;
+
+			// 스케일 (Scale) 샘플링 적용
+			if (mSamplingFlags & EAnimSampling::ScaleX) finalScale.x = currT.Scale.x;
+			if (mSamplingFlags & EAnimSampling::ScaleY) finalScale.y = currT.Scale.y;
+			if (mSamplingFlags & EAnimSampling::ScaleZ) finalScale.z = currT.Scale.z;
+
+			// 3. 최종 트랜스폼 적용 (절대값 덮어쓰기)
+			SetLocalLocation(finalLoc);
+			SetLocalRotation(finalRot);
+			SetLocalScale(finalScale);
 		}
-
-		// 비트 플래그에 따른 마스킹
-		XMFLOAT3 dLoc, dRot, dScale;
-		XMStoreFloat3(&dLoc, vDeltaLoc);
-		XMStoreFloat3(&dRot, vDeltaRot);
-		XMStoreFloat3(&dScale, vDeltaScale);
-
-		if (!(mRootMotionFlags & ERootMotion::LocX)) dLoc.x = 0.f;
-		if (!(mRootMotionFlags & ERootMotion::LocY)) dLoc.y = 0.f;
-		if (!(mRootMotionFlags & ERootMotion::LocZ)) dLoc.z = 0.f;
-
-		if (!(mRootMotionFlags & ERootMotion::RotX)) dRot.x = 0.f;
-		if (!(mRootMotionFlags & ERootMotion::RotY)) dRot.y = 0.f;
-		if (!(mRootMotionFlags & ERootMotion::RotZ)) dRot.z = 0.f;
-
-		if (!(mRootMotionFlags & ERootMotion::ScaleX)) dScale.x = 0.f;
-		if (!(mRootMotionFlags & ERootMotion::ScaleY)) dScale.y = 0.f;
-		if (!(mRootMotionFlags & ERootMotion::ScaleZ)) dScale.z = 0.f;
-
-		
-		XMFLOAT4 CurrQuat = GetLocalQuatRotation();
-		XMVECTOR vCurrQuat = XMLoadFloat4(&CurrQuat);
-		XMVECTOR vRotatedDeltaLoc = XMVector3Rotate(XMLoadFloat3(&dLoc), vCurrQuat);
-
-		// 위치 적용
-		XMFLOAT3 curLoc = GetLocalLocation();
-		XMVECTOR vNewLoc = XMLoadFloat3(&curLoc) + vRotatedDeltaLoc;
-		XMFLOAT3 finalLoc;
-		XMStoreFloat3(&finalLoc, vNewLoc);
-		SetWorldLocation(finalLoc);
-
-		// 회전 적용 (Euler 누적)
-		XMFLOAT3 curRot = GetLocalRotation();
-		XMVECTOR vNewRot = XMLoadFloat3(&curRot) + XMLoadFloat3(&dRot);
-		XMFLOAT3 finalRot;
-		XMStoreFloat3(&finalRot, vNewRot);
-		SetWorldRotation(finalRot);
-
-		// 스케일 적용
-		XMFLOAT3 curScale = GetLocalScale();
-		XMVECTOR vNewScale = XMLoadFloat3(&curScale) + XMLoadFloat3(&dScale);
-		XMFLOAT3 finalScale;
-		XMStoreFloat3(&finalScale, vNewScale);
-		SetWorldScale(finalScale);
 	}
 
 
@@ -333,10 +370,10 @@ bool WObjectAnimComponent::LoadAnimation(const std::string& AssetName, const std
 	return false;
 }
 
-void WObjectAnimComponent::LoadAndPlay(const std::string& AssetName, const std::string& AnimName, float PlayRate, bool bLoop, uint16_t Flags)
+void WObjectAnimComponent::LoadAndPlay(const std::string& AssetName, const std::string& AnimName, float PlayRate, bool bLoop, uint16_t Flags, bool bRootMotion)
 {
 	LoadAnimation(AssetName, AnimName);
-	Play(PlayRate, bLoop, Flags);
+	Play(PlayRate, bLoop, Flags, bRootMotion);
 }
 
 void WObjectAnimComponent::BindCurve(const std::string& CurveName, float* TargetPtr, bool bModifier, float BaseValue)
@@ -397,16 +434,19 @@ WObjectAnimComponent::FCurveBind* WObjectAnimComponent::GetBoundCurve(float* Tar
 	return i < mBoundCurves.size() ? &mBoundCurves[i] : nullptr;
 }
 
-void WObjectAnimComponent::Play(float PlayRate, bool bLoop, uint16_t Flags)
+void WObjectAnimComponent::Play(float PlayRate, bool bLoop, uint16_t Flags, bool bRootMotion)
 {
 	mIsPlaying = true;
 	mLoop = bLoop;
-	mRootMotionFlags = Flags;
+	mSamplingFlags = Flags;
 	mPlayRate = max(0.001f, PlayRate);
+	mbRootMotion = bRootMotion;
 }
 
 void WObjectAnimComponent::Stop()
 {
 	mIsPlaying = false;
 	mCurrentTime = 0.0f;
+
+	mOnStop.Broadcast();
 }

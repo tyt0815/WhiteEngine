@@ -4,7 +4,7 @@
     </Configs>
 
     <Components>
-        <Mesh Name = "Body" Asset = "SM_ScuffedGoldBox" Scale = "(1 2 1)"/>
+        <Mesh Name = "Root" Asset = "SM_ScuffedGoldBox" Scale = "(1 1 1)"/>
     </Components>
 
 

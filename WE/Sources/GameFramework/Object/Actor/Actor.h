@@ -232,6 +232,8 @@ public:
 	using WVariantValue = std::variant	<bool,	int,	float,	XMFLOAT3,	std::string,	TArray<std::string>,	std::set<std::string>,	TArray<XMFLOAT3>>;
 	using WPropertiesMap = std::unordered_map<std::string, WProperty>;
 
+	using WFunction = std::function<WVariantValue()>;
+
 	class WEvent 
 	{
 	public:
@@ -264,6 +266,37 @@ protected:
 
 	void RegisterSystemEvent(const std::string& Name, WEventLoader Loader);
 
+	void RegisterWFunction(const std::string& Name, WFunction Lambda);
+
+	template<typename T>
+	std::function<T()> SmartParseAttribute(const std::string& Attr)
+	{
+		std::function<T()> Result;
+
+		// 함수 호출
+		if (Attr[0] == '$')
+		{
+			WFunction Func = mWFunctionsMap[Attr.substr(1)];
+			Result = [Func]() { return std::get<T>(Func()); };
+		}
+
+		// 프로퍼티 호출
+		else if (Attr[0] == '*')
+		{
+			T* Prop = std::get<T*>(GetWProperty(Attr.substr(1)));
+			Result = [Prop]() { return *Prop; };
+		}
+
+		// 값
+		else
+		{
+			T Value = WPropertyTrait<T>::Parse(Attr);
+			Result = [Value]() {return Value; };
+		}
+
+		return Result;
+	}
+
 	template<typename T>
 	void RegisterWProperty(const std::string& Name, T* Property)
 	{
@@ -277,6 +310,8 @@ protected:
 	}
 
 	WEvent* GenerateWEvent(std::unordered_map<std::string, TSharedPtr<WEvent>>& Container, const std::string& Name);
+
+	WEvent* GenerateWEvent(std::vector<TSharedPtr<WEvent>>& Container);
 
 	void SetWProperty(const std::string& Name, WVariantValue Value);
 
@@ -299,6 +334,10 @@ private:
 	std::unordered_map<std::string, TSharedPtr<WEvent>> mOnActivateEventsMap;
 	std::unordered_map<std::string, TSharedPtr<WEvent>> mOnDeactivateEventsMap;
 
+	std::unordered_map<std::string, WFunction> mWFunctionsMap;
+
+	TArray<TUniquePtr<std::string>> mWStates;
+
 	WPropertiesMap mWPropertiesMap;
 
 	struct FOnTimeEvent
@@ -314,10 +353,18 @@ private:
 
 	WEvent mOnDestroyEvent;
 
+	float mLifeSpan = 0;
+
 public:
+	template<typename T>
+	__forceinline T* GetWComponent(const std::string& Name) const
+	{
+		return dynamic_cast<T*>(mWComponentsMap.at(Name));
+	}
+
 	__forceinline WSceneComponent* GetWComponent(const std::string& Name) const
 	{
-		return mWComponentsMap.at(Name);
+		return GetWComponent<WSceneComponent>(Name);
 	}
 
 	__forceinline WProperty GetWProperty(const std::string& Name) const

@@ -21,6 +21,6 @@ void WBoxCollisionComponent::TraceShape(XMFLOAT3 Start, FTransform CurrTransform
         ActorsToIgnore,
         Hit,
         mbDebug,           // DrawDebug (필요 시 변수화)
-        1.0f / 60.0f    // LifeTime
+        mCollisionInterval    // LifeTime
     );
 }

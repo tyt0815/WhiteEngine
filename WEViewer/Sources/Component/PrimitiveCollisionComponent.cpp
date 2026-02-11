@@ -3,8 +3,6 @@
 #include "World/World.h"
 #include "Physics/HitResult.h"
 
-inline constexpr float FIXED_DELTA = 1.0f / 60.0f;
-
 WPrimitiveCollisionComponent::WPrimitiveCollisionComponent()
 {
     SetTickGroup(ETickGroup::ETG_PostPhysics, ETickPriority::ETP_High);
@@ -40,7 +38,7 @@ void WPrimitiveCollisionComponent::Tick(float DeltaSecond)
     UpdateActorsToIgnore(DeltaSecond);
 
     mElapsedTime += DeltaSecond;
-    if (mElapsedTime < FIXED_DELTA) return;
+    if (mElapsedTime < mCollisionInterval) return;
     mElapsedTime = 0;
 
     FTransform CurrTransform = GetWorldTransform();

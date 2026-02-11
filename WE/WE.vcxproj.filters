@@ -57,6 +57,9 @@
     <Filter Include="Sources\GUI">
       <UniqueIdentifier>{52a28238-4d4e-4d21-b7f8-e75654c28cfa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\GameFramework\Interface">
+      <UniqueIdentifier>{3041f1da-9af5-4076-9931-0a5af183bbf7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Utility\Timer.cpp">
@@ -292,6 +295,9 @@
     </ClCompile>
     <ClCompile Include="Sources\GameFramework\Object\Actor\ActorFactory.cpp">
       <Filter>Sources\GameFramework\Object\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Interface\CollisionGenerator.cpp">
+      <Filter>Sources\GameFramework\Interface</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -570,6 +576,9 @@
     </ClInclude>
     <ClInclude Include="Sources\Asset\BlueprintTypeTrait.h">
       <Filter>Sources\Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Interface\CollisionGenerator.h">
+      <Filter>Sources\GameFramework\Interface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,5 +1,6 @@
 #include "ProjectileMovementComponent.h"
 #include "GameFramework/Object/Actor/Actor.h"
+#include "GameFramework/Interface/CollisionGenerator.h"
 #include "World/World.h"
 
 WProjectileMovementComponent::WProjectileMovementComponent()
@@ -124,7 +125,7 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
     XMStoreFloat3(&mVelocity, vWorldVelocity);
 
     // 6. 비주얼 정렬 (투사체가 실제 이동 방향을 바라보게 함)
-    if (XMVectorGetX(XMVector3LengthSq(vWorldVelocity)) > 0.01f)
+    if (mbOrientRotationToMovement && XMVectorGetX(XMVector3LengthSq(vWorldVelocity)) > 0.01f)
     {
         XMFLOAT4 CurrQuat = GetWorldQuatRotation();
         XMVECTOR CurrQuatV = XMLoadFloat4(&CurrQuat);
@@ -158,7 +159,7 @@ void WProjectileMovementComponent::BeginComponent()
     XMStoreFloat3(&mVelocity, WorldVelocityV);
 
     // 4. 액터가 실제 날아가는 방향(월드 속도 방향)을 바라보게 회전
-    if (XMVectorGetX(XMVector3Length(WorldVelocityV)) > 0.0001f)
+    if (mbOrientRotationToMovement && XMVectorGetX(XMVector3Length(WorldVelocityV)) > 0.0001f)
     {
         XMVECTOR DirV = XMVector3Normalize(WorldVelocityV);
 
@@ -216,13 +217,15 @@ void WProjectileMovementComponent::SetHomingTarget(WSceneComponent* Target)
 	mHomingTarget = Target->GetWeakPtr<WSceneComponent>();
 	CurrTarget = mHomingTarget.lock();
 
+	mOnLockon.Broadcast();
+
 	SetHoming(true);
 	if (mbUseWaypoints)
 	{
 		GenerateWaypoints(CurrTarget.get());
 	}
 
-	if (mFinalWaypoints.size() > 1)
+	if (mFinalWaypoints.size() > 0)
 	{
 		mFinalHomingTarget = mHomingTarget;
 		mHomingTarget.reset();
@@ -241,6 +244,61 @@ void WProjectileMovementComponent::AddForce(const XMFLOAT3& Force)
     XMVECTOR CurrentAccel = XMLoadFloat3(&mExternalAcceleration);
     XMVECTOR NewForce = XMLoadFloat3(&Force);
     XMStoreFloat3(&mExternalAcceleration, XMVectorAdd(CurrentAccel, NewForce));
+}
+
+void WProjectileMovementComponent::BindCollisionEvent(FCollisionGeneratorBase* CollisionGenerator)
+{
+	if (CollisionGenerator)
+	{
+		CollisionGenerator->mOnCollision.Add(this, &WProjectileMovementComponent::OnCollision);
+	}
+}
+
+void WProjectileMovementComponent::OnCollision(WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage)
+{
+	if (mShouldBounce)
+	{
+		Bounce_Internal(Normal);
+	}
+}
+
+void WProjectileMovementComponent::Bounce_Internal(XMFLOAT3 Normal)
+{
+	// 1. 최대 바운스 횟수 체크
+	if (mMaxBounces > 0 && mCurrentBounces >= mMaxBounces)
+	{
+		DeactivateWithChild(); // 필요 시 호출
+		return;
+	}
+
+	// 2. 물리 계산을 위한 벡터 로드
+	XMVECTOR vInVelocity = XMLoadFloat3(&mVelocity);
+	XMVECTOR vNormal = XMLoadFloat3(&Normal);
+	vNormal = XMVector3Normalize(vNormal); // 노멀 벡터 정규화 확인
+
+	// 3. 반사 벡터 계산 (V - 2 * (V . N) * N)
+	// DirectXMath의 내장 함수를 사용합니다.
+	XMVECTOR vReflected = XMVector3Reflect(vInVelocity, vNormal);
+
+	// 4. 반발 계수(Bounciness) 적용
+	// 속도가 튕길 때마다 에너지를 잃도록 스케일을 조절합니다.
+	vReflected = XMVectorScale(vReflected, mBounciness);
+
+	// 5. 최종 속도 저장
+	XMStoreFloat3(&mVelocity, vReflected);
+
+	// 6. 횟수 누적
+	mCurrentBounces++;
+
+	// 7. 끼임(Stuck) 방지 보정
+	// 충돌 지점에서 노멀 방향으로 아주 미세하게 밀어내어 
+	// 다음 프레임에 또다시 충돌체 내부에서 시작하는 것을 방지합니다.
+	XMFLOAT3 Correction;
+	XMStoreFloat3(&Correction, XMVectorScale(vNormal, 0.1f));
+	AddWorldOffset(Correction);
+
+	// 8. 바운스 이벤트 알림 (사운드나 이펙트 처리용)
+	mOnBounce.Broadcast(); 
 }
 
 void WProjectileMovementComponent::UpdateHoming(float DeltaSecond)
@@ -458,6 +516,8 @@ void WProjectileMovementComponent::GenerateWaypoints(WSceneComponent* Target)
 
 	float Scale = (mWaypointType == "Adaptive") ? TotalDist : 1.0f;
 
+	XMFLOAT3 DebugStart = MyLoc;
+
 	// 2. 경유지 생성 루프
 	for (const auto& Offset : mConfigWaypoints)
 	{
@@ -480,5 +540,9 @@ void WProjectileMovementComponent::GenerateWaypoints(WSceneComponent* Target)
 		XMFLOAT3 FinalPos;
 		XMStoreFloat3(&FinalPos, WpPos);
 		mFinalWaypoints.push_back(FinalPos);
+		GetWorld()->DrawDebugLine(DebugStart, FinalPos, XMFLOAT4(0, 1, 1, 1), 5);
+		DebugStart = FinalPos;
 	}
+
+	GetWorld()->DrawDebugLine(DebugStart, TargetLoc, XMFLOAT4(0, 1, 1, 1), 5);
 }

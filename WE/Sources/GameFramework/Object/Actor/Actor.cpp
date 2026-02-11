@@ -23,7 +23,20 @@ AActor::AActor():
 	SetRootComponent(DummyRoot);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
+	// 
+	// WProperty
+	// 
+	////////////////////////////////////////////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// WProperty End
+	////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// 
 	// WComponent
+	// 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	
 
@@ -50,12 +63,19 @@ AActor::AActor():
 			return Comp;
 		});
 
+	RegisterWComponentFactory("Dummy", [this](auto&& Attributes)
+		{
+			return this->CreateComponent<WSceneComponent>();
+		});
+
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// WComponent End
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
+	// 
 	// WAction
+	// 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	RegisterWActionFactory("Event", [this](const WAttributesMap& Attributes) {
@@ -166,12 +186,23 @@ AActor::AActor():
 			return Factory;
 		});
 
+	RegisterWActionFactory("CreateState", [this](auto&& Attributes)
+		{
+			const std::string& Name = Attributes.at("Name");
+			const std::string& Value = Attributes.at("Value");
+			mWStates.push_back(MakeUnique<std::string>(Value));
+			std::string* StatePtr = mWStates.back().get();
+			return [this, Name, StatePtr]() { RegisterWProperty(Name, StatePtr); };
+		});
+
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// WAction End
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
+	// 
 	// WEvent
+	// 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	RegisterSystemEvent("OnSpawn", &mOnSpawnEvent);
@@ -258,6 +289,11 @@ void AActor::Tick(float DeltaSecond)
 	Super::Tick(DeltaSecond);
 
 	mElapsedTime += DeltaSecond;
+
+	if (mLifeSpan > 0 && mElapsedTime >= mLifeSpan)
+	{
+		Destroy();
+	}
 
 	int NumOnTimeEvent = (int)mOnTimeEvents.size();
 	while (mOnTimeEventIndex < NumOnTimeEvent && mOnTimeEvents[mOnTimeEventIndex]->Time <= mElapsedTime)
@@ -356,10 +392,10 @@ XMFLOAT4 AActor::GetActorQuaternion()
 
 void AActor::SetRootComponent(TWeakPtr<WSceneComponent> Component)
 {
-	if (!mRootComponent.expired() && !Component.expired())
+	TSharedPtr<WSceneComponent> OldRoot = mRootComponent.lock();
+	TSharedPtr<WSceneComponent> NewRoot = Component.lock();
+	if (OldRoot && NewRoot)
 	{
-		TSharedPtr<WSceneComponent> OldRoot = mRootComponent.lock();
-		TSharedPtr<WSceneComponent> NewRoot = Component.lock();
 		if (OldRoot.get() == NewRoot.get())
 		{
 			return;
@@ -368,6 +404,15 @@ void AActor::SetRootComponent(TWeakPtr<WSceneComponent> Component)
 		{
 			OldRoot->SetupAttachment(NewRoot.get());
 		}
+	}
+
+	if (OldRoot)
+	{
+		OldRoot->PropagateWorldFloat4Dirty(true);
+	}
+	if (NewRoot)
+	{
+		NewRoot->PropagateWorldFloat4Dirty(true);
 	}
 
 	mRootComponent = Component;
@@ -420,9 +465,18 @@ void AActor::LoadBlueprint(const FBlueprintAsset* Blueprint)
 
 	WSceneComponent* RootComp = GetRootComponent();
 
-	for (auto Comp : Blueprint->mAttachedComponents)
+	if (Blueprint->mAttachedComponents[0]->Attributes.at("Name") == "Root")
 	{
-		LoadWComponent_Internal(Comp.get(), RootComp);
+		LoadWComponent_Internal(Blueprint->mAttachedComponents[0].get(), nullptr);
+	}
+	else
+	{
+		for (auto Comp : Blueprint->mAttachedComponents)
+		{
+			LoadWComponent_Internal(Comp.get(), RootComp);
+		}
+
+		RegisterWComponent("Root", GetRootComponent());
 	}
 
 	LoadWEvents(Blueprint->mEvents, Blueprint->mCustomEvents);
@@ -434,10 +488,16 @@ void AActor::LoadWConfigs(const std::unordered_map<std::string, WAttributesMap>&
 	{
 		const WAttributesMap& Attributes = Configs.at("General");
 
-		// 1. 초기 속도 (Initial Velocity) - XMFLOAT3
 		ApplyAttribute<TArray<std::string>>(Attributes, "Tags", [=](auto&& Arry) {
 			this->AddTags(Arry);
 			});
+	}
+
+	if (Configs.count("LifeCycle"))
+	{
+		const WAttributesMap& Attributes = Configs.at("LifeCycle");
+
+		ExtractAttribute(Attributes, "LifeSpan", mLifeSpan);
 	}
 }
 
@@ -458,25 +518,43 @@ void AActor::LoadWEvent(AActor::WEvent* Event, const TArray<TSharedPtr<FBlueprin
 
 void AActor::ApplyWComponentCommonAttribute(struct FBlueprintComponentNode* CompNode, WSceneComponent* Comp)
 {
-	ApplyAttribute<XMFLOAT3>(CompNode->Attributes, "Loc", [&](const XMFLOAT3& v) {
+	auto&& Attributes = CompNode->Attributes;
+	const std::string Name = Attributes.at("Name");
+
+	ApplyAttribute<XMFLOAT3>(Attributes, "Loc", [&](const XMFLOAT3& v) {
 		Comp->SetLocalLocation(v);
 		});
 
-	ApplyAttribute<XMFLOAT3>(CompNode->Attributes, "Rot", [&](const XMFLOAT3& v) {
+	ApplyAttribute<XMFLOAT3>(Attributes, "Rot", [&](const XMFLOAT3& v) {
 		// 실수 방지: Rotation 전용 세터 호출
 		Comp->SetLocalRotation(v);
 		});
 
-	ApplyAttribute<XMFLOAT3>(CompNode->Attributes, "Scale", [&](const XMFLOAT3& v) {
+	ApplyAttribute<XMFLOAT3>(Attributes, "Scale", [&](const XMFLOAT3& v) {
 		// 실수 방지: Scale 전용 세터 호출
 		Comp->SetLocalScale(v);
 		});
 
-	ApplyAttribute<bool>(CompNode->Attributes, "Activate", true, [&](const bool& v) {
+	ApplyAttribute<bool>(Attributes, "Activate", true, [&](const bool& v) {
 		if (!v)
 		{
 			Comp->Deactivate();
 		}
+		});
+
+	RegisterWFunction(Name + ".Location", [Comp]()
+		{
+			return Comp->GetWorldLocation();
+		});
+
+	RegisterWFunction(Name + ".Rotation", [Comp]()
+		{
+			return Comp->GetWorldRotation();
+		});
+
+	RegisterWFunction(Name + ".Scale", [Comp]()
+		{
+			return Comp->GetWorldScale();
 		});
 }
 
@@ -502,6 +580,17 @@ void AActor::RegisterSystemEvent(const std::string& Name, WEventLoader Loader)
 	mSystemEventLoaders[Name] = Loader;
 }
 
+void AActor::RegisterWFunction(const std::string& Name, WFunction Lambda)
+{
+	if (mWFunctionsMap.count(Name) > 0)
+	{
+		ShowMessageBox(L"이미 등록된 WFunction 입니다.");
+		assert(false);
+	}
+
+	mWFunctionsMap[Name] = std::move(Lambda);
+}
+
 AActor::WEvent* AActor::GenerateWEvent(std::unordered_map<std::string, TSharedPtr<WEvent>>& Container, const std::string& Name)
 {
 	if (Container.count(Name) > 0)
@@ -512,6 +601,12 @@ AActor::WEvent* AActor::GenerateWEvent(std::unordered_map<std::string, TSharedPt
 
 	Container[Name] = MakeShared<WEvent>();
 	return Container[Name].get();
+}
+
+AActor::WEvent* AActor::GenerateWEvent(TArray<TSharedPtr<WEvent>>& Container)
+{
+	Container.push_back(MakeShared<WEvent>());
+	return Container.back().get();
 }
 
 void AActor::SetWProperty(const std::string& Name, WVariantValue Value)

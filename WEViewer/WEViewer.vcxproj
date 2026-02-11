@@ -53,7 +53,6 @@
     <ClCompile Include="Sources\Component\PrimitiveCollisionComponent.cpp" />
     <ClCompile Include="Sources\Component\SphereCollisionComponent.cpp" />
     <ClCompile Include="Sources\Component\SplineCollisionComponent.cpp" />
-    <ClCompile Include="Sources\Interface\CollisionGenerator.cpp" />
     <ClCompile Include="Sources\Main.cpp" />
     <ClCompile Include="Sources\Pawn\PlayerPawn.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -101,7 +100,6 @@
     <ClInclude Include="Sources\Component\PrimitiveCollisionComponent.h" />
     <ClInclude Include="Sources\Component\SphereCollisionComponent.h" />
     <ClInclude Include="Sources\Component\SplineCollisionComponent.h" />
-    <ClInclude Include="Sources\Interface\CollisionGenerator.h" />
     <ClInclude Include="Sources\Interface\HitInterface.h" />
     <ClInclude Include="Sources\Pawn\PlayerPawn.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

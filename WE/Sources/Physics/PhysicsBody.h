@@ -18,7 +18,7 @@ public:
 	~FPhysicsBody();
 
 public:
-	void CreateBody(JPH::BodyCreationSettings Settings);
+	void Create(JPH::BodyCreationSettings Settings);
 
 	void UpdateShape(JPH::ShapeRefC Shape);
 
@@ -26,17 +26,17 @@ public:
 
 	void Deactivate();
 
-	void SetPosition(XMFLOAT3 Position);
+	void SetLocation(const XMFLOAT3& Location);
+
+	void SetRotation(const XMFLOAT4& Quaternion);
+
+	void SetLocationAndRotation(const XMFLOAT3& Location, const XMFLOAT4& Quaternion);
 
 	void SetMotiontype(JPH::EMotionType MotionType);
-
-	void SetActivate(bool bActivate);
 
 	XMFLOAT3 GetLocation() const;
 
 	XMFLOAT3 GetRotation() const;
-
-	void SetTransform(const FTransform& Transform);
 
 protected:
 

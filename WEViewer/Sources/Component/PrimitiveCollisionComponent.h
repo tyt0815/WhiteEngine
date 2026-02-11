@@ -1,6 +1,6 @@
 #pragma once
 #include "Component/SceneComponent.h"
-#include "Interface/CollisionGenerator.h"
+#include "GameFramework/Interface/CollisionGenerator.h"
 #include "Physics/HitResult.h"
 
 class WPrimitiveCollisionComponent : public WSceneComponent, public FCollisionGeneratorBase

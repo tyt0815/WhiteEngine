@@ -3,6 +3,9 @@
 #include "Physics/HitResult.h"
 #include "SceneComponent.h"
 
+DECLARE_MULTICAST_DELEGATE(FOnLockon);
+DECLARE_MULTICAST_DELEGATE(FOnBounce);
+
 enum class EHomingStrategy : uint8_t
 {
 	Nearest,    // 가장 가까운 대상
@@ -27,6 +30,12 @@ public:
 
 	void AddForce(const XMFLOAT3& Force);
 
+	void BindCollisionEvent(class FCollisionGeneratorBase* CollisionGenerator);
+
+	FOnLockon mOnLockon;
+
+	FOnBounce mOnBounce;
+
 protected:
 	XMFLOAT3 mInitialVelocity = { 0, 0, 0 };
 
@@ -43,7 +52,12 @@ protected:
 
 	bool mbHomingProjectile = false;
 
+	bool mbOrientRotationToMovement = true;
+
 private:
+	void OnCollision(WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage);
+
+	void Bounce_Internal(XMFLOAT3 Normal);
 
 	TWeakPtr<WSceneComponent> mHomingTarget;
 
@@ -53,7 +67,10 @@ private:
 
 	float mLifeTimeElapsed = 0.0f;
 
-
+	bool mShouldBounce = false;
+	float mBounciness = 0.6f;
+	int   mMaxBounces = 3;
+	int   mCurrentBounces = 0;
 
 	/////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////

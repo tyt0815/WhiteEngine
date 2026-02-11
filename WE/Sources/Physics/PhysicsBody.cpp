@@ -19,7 +19,7 @@ FPhysicsBody::~FPhysicsBody()
 	}
 }
 
-void FPhysicsBody::CreateBody(JPH::BodyCreationSettings Settings)
+void FPhysicsBody::Create(JPH::BodyCreationSettings Settings)
 {
 	UINT64 UserDataID = Physics::FUserDataManager::CreateUserData(mOwner->GetWeakPtr<WPhysicsComponent>());
 	mUserData = Physics::FUserDataManager::GetUserData(UserDataID);
@@ -27,7 +27,6 @@ void FPhysicsBody::CreateBody(JPH::BodyCreationSettings Settings)
 	Settings.mPosition = ToJPHPosition(mOwner->GetWorldLocation());
 	Settings.mRotation = TOJPHQuatRotation(FDXMath::EulerToQuaternion(mOwner->GetWorldRotation()));
 	mBody = Physics::GetBodyInterface().CreateBody(Settings);
-	Physics::GetBodyInterface().AddBody(mBody->GetID(), EActivation::Activate);
 }
 
 void FPhysicsBody::UpdateShape(JPH::ShapeRefC Shape)
@@ -53,21 +52,27 @@ void FPhysicsBody::Deactivate()
 	}
 }
 
-void FPhysicsBody::SetPosition(XMFLOAT3 Position)
+void FPhysicsBody::SetLocation(const XMFLOAT3& Location)
 {
-	Physics::GetBodyInterface().SetPosition(mBody->GetID(), ToJPHPosition(Position), EActivation::Activate);
+	Physics::GetBodyInterface().SetPosition(mBody->GetID(), ToJPHPosition(Location), EActivation::Activate);
+}
+
+void FPhysicsBody::SetRotation(const XMFLOAT4& Quaternion)
+{
+	Quat Q = TOJPHQuatRotation(Quaternion);
+	Physics::GetBodyInterface().SetRotation(mBody->GetID(), Q, EActivation::Activate);
+}
+
+void FPhysicsBody::SetLocationAndRotation(const XMFLOAT3& Location, const XMFLOAT4& Quaternion)
+{
+	RVec3 Pos = ToJPHPosition(Location);
+	Quat Rot = TOJPHQuatRotation(Quaternion);
+	Physics::GetBodyInterface().SetPositionAndRotationWhenChanged(mBody->GetID(), Pos, Rot, EActivation::Activate);
 }
 
 void FPhysicsBody::SetMotiontype(EMotionType MotionType)
 {
 	Physics::GetBodyInterface().SetMotionType(mBody->GetID(), MotionType, JPH::EActivation::Activate);
-}
-
-void FPhysicsBody::SetActivate(bool bActivate)
-{
-	bActivate ?
-		Physics::GetBodyInterface().ActivateBody(mBody->GetID()) :
-		Physics::GetBodyInterface().DeactivateBody(mBody->GetID());
 }
 
 XMFLOAT3 FPhysicsBody::GetLocation() const
@@ -78,13 +83,4 @@ XMFLOAT3 FPhysicsBody::GetLocation() const
 XMFLOAT3 FPhysicsBody::GetRotation() const
 {
 	return FDXMath::QuaternionToEuler(ToDXQuatRotation(Physics::GetBodyInterface().GetRotation(mBody->GetID())));
-}
-
-void FPhysicsBody::SetTransform(const FTransform& Transform)
-{
-	RVec3 Pos = ToJPHPosition(Transform.Translation);
-	Quat Quat = TOJPHQuatRotation(Transform.GetQuaternionRotationFloat4());
-
-	JPH::EActivation Activation = Physics::GetBodyInterface().IsActive(mBody->GetID()) ? EActivation::Activate : EActivation::DontActivate;
-	Physics::GetBodyInterface().SetPositionAndRotation(mBody->GetID(), Pos, Quat, Activation);
 }

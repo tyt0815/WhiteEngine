@@ -1,17 +1,12 @@
 <AProjectileBase>
 
-    <Configs>
-        <Movement InitSpeed = "(0 0 20)" GravityScale = "0" MaxSpeed = "1000"/>
-
-        <LifeCycle Life = "5" />
-
-        <Homing Strategy = "Nearest" Range = "200" TurnRate = "90" TargetTags = "[Enemy]" />
-    </Configs>
-
     <Components>
-        <Mesh Name = "Body" Asset = "SM_LaminateFlooringBrownBox">
-            <Collision Name = "BoxCollision" Type = "Box" Extent = "(0.5 0.5 0.5)" Damage = "250" Delay = "0.5" TargetTags = "Enemy"/>
-        </Mesh>
+        <Movement Name = "Movement" InitSpeed = "(0 0 20)" GravityScale = "0" MaxSpeed = "1000" LifeSpan = "5"
+            HomingStrategy = "Nearest" HomingRange = "200" HomingTurnRate = "90" HomingTags = "[Enemy]">
+            <Mesh Name = "Body" Asset = "SM_LaminateFlooringBrownBox">
+                <Collision Name = "BoxCollision" Type = "Box" Extent = "(0.5 0.5 0.5)" Damage = "250" Delay = "0.5" TargetTags = "Enemy"/>
+            </Mesh>
+        </Movement>
     </Components>
 
     <Events>

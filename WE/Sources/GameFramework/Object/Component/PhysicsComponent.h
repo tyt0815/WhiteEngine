@@ -26,7 +26,7 @@ protected:
 
 	virtual void OnDeactivate() override;
 
-	virtual void OnSetTransform() override;
+	virtual void PostSetupAttachment() override;
 
 public:
 	void UpdateToPhysics();
@@ -36,8 +36,6 @@ public:
 	void ActivatePhysicBody();
 
 	void DeactivatePhysicBody();
-
-	void GenerateOverlapEvent();
 
 	void SetMotionType(EMotionType MotionType);
 

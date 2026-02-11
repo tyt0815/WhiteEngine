@@ -112,6 +112,8 @@ void WSceneComponent::SetupAttachment(WSceneComponent* InParent)
 			Parent->mChilds.push_back(GetWeakPtr<WSceneComponent>());
 		}
 	}
+
+	PostSetupAttachment();
 }
 
 DirectX::XMFLOAT4 WSceneComponent::GetLocalQuatRotation()
@@ -329,6 +331,15 @@ void WSceneComponent::PropagateWorldFloat4Dirty(bool bForce)
 	}
 }
 
+void WSceneComponent::AddWorldOffset(XMFLOAT3 WorldOffset)
+{
+	XMFLOAT3 WorldLoc = GetWorldLocation();
+	XMVECTOR vWorldLoc = XMLoadFloat3(&WorldLoc);
+	XMVECTOR vWorldOffset = XMLoadFloat3(&WorldOffset);
+	XMStoreFloat3(&WorldLoc, vWorldLoc + vWorldOffset);
+	SetWorldLocation(WorldLoc);
+}
+
 void WSceneComponent::Update()
 {
 	
@@ -337,4 +348,9 @@ void WSceneComponent::Update()
 void WSceneComponent::OnSetTransform()
 {
 	PropagateWorldFloat4Dirty();
+}
+
+void WSceneComponent::PostSetupAttachment()
+{
+	PropagateWorldFloat4Dirty(true);
 }

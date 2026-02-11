@@ -21,6 +21,8 @@ public:
 
 	TWeakPtr<AActor> GetOwner() const;
 
+	bool HasTag(const std::string& Tag, bool bCheckOwner);
+
 public:
 	virtual void BeginComponent();
 

@@ -4,26 +4,30 @@
     </Configs>
 
     <Components>    
-        <Movement Name = "Movement2" InitSpeed = "(10 0 10)" GravityScale = "0" MaxSpeed = "1000" HomingStrategy = "Nearest" HomingRange = "100" HomingTurnRate = "90" HomingTags = "[Alliance]">
-                <Mesh Name = "Body" Asset = "SM_ScuffedGoldBox">
-                    <Collision Name = "BoxCollision" Type = "Box" 
-                        Extent = "(1 1 1)" Damage = "250" Delay = "0.5" TargetTags = "Alliance"/>
-                </Mesh>
-        </Movement>
-
-        <Movement Name = "Movement3" InitSpeed = "(-10 0 10)" GravityScale = "0" MaxSpeed = "1000" HomingStrategy = "Nearest" HomingRange = "100" HomingTurnRate = "90" HomingTags = "[Alliance]">
-                <Mesh Name = "Body2" Asset = "SM_ScuffedGoldBox">
-                    <Collision Name = "BoxCollision2" Type = "Box" 
-                        Extent = "(1 1 1)" Damage = "250" Delay = "0.5" TargetTags = "Alliance"/>
-                </Mesh>
+        <Movement Name = "Movement" OrientToMovement = "true" InitSpeed = "(0 5 10)" GravityScale = "1" MaxSpeed = "1000" 
+        HomingStrategy = "None" HomingRange = "20" HomingTurnRate = "90" HomingTags = "[Alliance]"
+        ShouldBounce = "true" Bounciness = "1"
+        >
+            <Mesh Name = "Mesh" Asset = "SM_ScuffedGoldBox" Scale = "(0.5 0.5 1)">
+                <Collision Name = "BoxCollision" Type = "Box" MaxHit = "0"
+                    Extent = "(0.5 0.5 0.5)" Damage = "250" Delay = "0.1" Debug = "true" Interval = "0"/>
+            </Mesh>
         </Movement>
     </Components>
 
     <Events>
 
-        <!-- <OnHit Target = "BoxCollision2">
-            <Deactivate Target = "Movement3" WithChild = "true"/>
-        </OnHit> -->
+        <OnSpawn>
+            <BindCollision Movement = "Movement" Collision = "BoxCollision"/>
+        </OnSpawn>
+
+        <OnHit Target = "BoxCollision" Filter = "[Alliance, Enemy]">
+            <Deactivate Target = "Movement" WithChild = "true"/>
+        </OnHit>
+
+        <OnBounce Target = "Movement">
+            <Particle Loc = "*ImpactPoint" Asset = "P_Explosion_Red_Small"/>
+        </OnBounce>
     </Events>
 
 </AProjectileBase>

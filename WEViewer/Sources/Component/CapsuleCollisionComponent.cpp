@@ -21,6 +21,6 @@ void WCapsuleCollisionComponent::TraceShape(XMFLOAT3 Start, FTransform CurrTrans
         ActorsToIgnore,
         Hit,
         mbDebug,           // DrawDebug
-        1.0f / 60.0f    // LifeTime
+        mCollisionInterval   // LifeTime
     );
 }

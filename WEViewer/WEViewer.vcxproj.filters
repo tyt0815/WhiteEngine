@@ -65,9 +65,6 @@
     <ClCompile Include="Sources\Component\SphereCollisionComponent.cpp">
       <Filter>Sources\Component</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Interface\CollisionGenerator.cpp">
-      <Filter>Sources\Interface</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\Actor\MissileGridManager.cpp">
       <Filter>Sources\Actor\빌드제외</Filter>
     </ClCompile>
@@ -105,9 +102,6 @@
     </ClInclude>
     <ClInclude Include="Sources\Component\SplineCollisionComponent.h">
       <Filter>Sources\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Interface\CollisionGenerator.h">
-      <Filter>Sources\Interface</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Component\PrimitiveCollisionComponent.h">
       <Filter>Sources\Component</Filter>

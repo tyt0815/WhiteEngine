@@ -94,19 +94,19 @@ AProjectileBase::AProjectileBase()
 				CollisionGenerator->GenerateCollision();
 				CollisionGenerator->mOnCollision.Add(this, &AProjectileBase::OnCollision);
 
-				ApplyAttribute<float>(Attributes, "Delay", [=](auto&& v)
+				ApplyAttribute<float>(Attributes, "Delay", 0, [=](auto&& v)
 					{
 						CollisionGenerator->SetHitDelay(v);
 					});
 				RegisterWProperty(Name + ".Delay", &CollisionGenerator->mHitDelay);
 
-				ApplyAttribute<int>(Attributes, "MaxHit", [=](auto&& v)
+				ApplyAttribute<int>(Attributes, "MaxHit", 0, [=](auto&& v)
 					{
 						CollisionGenerator->SetMaxHit(v);
 					});
 				RegisterWProperty(Name + ".MaxHit", &CollisionGenerator->mMaxHit);
 
-				ApplyAttribute<float>(Attributes, "Damage", [=](auto&& v)
+				ApplyAttribute<float>(Attributes, "Damage", 0, [=](auto&& v)
 					{
 						CollisionGenerator->SetDamage(v);
 					});
@@ -118,11 +118,16 @@ AProjectileBase::AProjectileBase()
 					});
 				RegisterWProperty(Name + ".TargetTags", &CollisionGenerator->mTargetTags);
 
-				ApplyAttribute<bool>(Attributes, "Debug", [=](auto&& v) 
+				ApplyAttribute<bool>(Attributes, "Debug", false, [=](auto&& v) 
 					{
 						CollisionGenerator->SetDebug(v);
 					});
 				RegisterWProperty(Name + ".Debug", &CollisionGenerator->mbDebug);
+
+				ApplyAttribute<float>(Attributes, "Interval", 1.0f / 60.0f, [=](auto&& v)
+					{
+						CollisionGenerator->mCollisionInterval = v;
+					});
 			}
 
 
@@ -148,6 +153,11 @@ AProjectileBase::AProjectileBase()
 
 			ApplyAttribute<float>(Attributes, "LifeSpan", [=](auto&& v) { Comp->SetLifeSpan(v); });
 			RegisterWProperty(Name + ".LifeSpan", &Comp->mLifeSpan);
+
+			ApplyAttribute<bool>(Attributes, "OrientToMovement", true, [=](auto&& v) 
+				{
+					Comp->mbOrientRotationToMovement = v; 
+				});
 
 			// 3. 호밍 (Homing) 속성 적용 및 등록
 			ApplyAttribute<std::string>(Attributes, "HomingStrategy", [=](auto&& v) {
@@ -193,6 +203,16 @@ AProjectileBase::AProjectileBase()
 			ApplyAttribute<std::vector<XMFLOAT3>>(Attributes, "Waypoints", [=](auto&& v) { Comp->mConfigWaypoints = v; });
 			RegisterWProperty(Name + ".Waypoints", &Comp->mConfigWaypoints);
 
+			// 5. 바운스 (Bounce) 속성 적용 및 등록
+			ApplyAttribute<bool>(Attributes, "ShouldBounce", false, [=](auto&& v) { Comp->mShouldBounce = v; });
+			RegisterWProperty(Name + ".ShouldBounce", &Comp->mShouldBounce);
+
+			ApplyAttribute<float>(Attributes, "Bounciness", 1, [=](auto&& v) { Comp->mBounciness = v; });
+			RegisterWProperty(Name + ".Bounciness", &Comp->mBounciness);
+
+			ApplyAttribute<int>(Attributes, "MaxBounces", 0, [=](auto&& v) { Comp->mMaxBounces = v; });
+			RegisterWProperty(Name + ".MaxBounces", &Comp->mMaxBounces);
+
 			return Comp;
 		});
 
@@ -203,9 +223,7 @@ AProjectileBase::AProjectileBase()
 		});
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
-	// 
 	// WComponent End
-	// 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -216,10 +234,14 @@ AProjectileBase::AProjectileBase()
 
 	RegisterWActionFactory("Particle", [this](const WAttributesMap& Attributes) {
 		std::string Name = Attributes.at("Asset");
-		return [this, Name]() { this->PlayParticle(Name); };
+
+		auto LocFunc = SmartParseAttribute<XMFLOAT3>(Attributes.at("Loc"));
+		std::function<void()> FactoryFunc = [=]() { this->PlayParticle(LocFunc(), Name); };
+
+		return FactoryFunc;
 		});
 
-	RegisterWActionFactory("Animation", [this](const WAttributesMap& Attributes) {
+	RegisterWActionFactory("PlayAnim", [this](const WAttributesMap& Attributes) {
 		assert(Attributes.count("Target") > 0);
 		const std::string& Target = Attributes.at("Target");
 		WObjectAnimComponent* Anim = dynamic_cast<WObjectAnimComponent*>(GetWComponent(Target));
@@ -229,54 +251,56 @@ AProjectileBase::AProjectileBase()
 		ExtractAttribute(Attributes, "PlayRate", PlayRate);
 		bool bLoop = false;
 		ExtractAttribute(Attributes, "Loop", bLoop);
+		bool bRootMotion = false;
+		ExtractAttribute(Attributes, "RootMotion", bRootMotion);
 
 		uint16_t Flags = 0;
 		std::string LocFlag;
 		ExtractAttribute(Attributes, "Loc", LocFlag);
 		if (LocFlag.find('X') != std::string::npos)
 		{
-			Flags |= ERootMotion::LocX;
+			Flags |= EAnimSampling::LocX;
 		}
 		if (LocFlag.find('Y') != std::string::npos)
 		{
-			Flags |= ERootMotion::LocY;
+			Flags |= EAnimSampling::LocY;
 		}
 		if (LocFlag.find('Z') != std::string::npos)
 		{
-			Flags |= ERootMotion::LocZ;
+			Flags |= EAnimSampling::LocZ;
 		}
 		std::string RotFlag;
 		ExtractAttribute(Attributes, "Rot", RotFlag);
 		if (RotFlag.find('X') != std::string::npos)
 		{
-			Flags |= ERootMotion::RotX;
+			Flags |= EAnimSampling::RotX;
 		}
 		if (RotFlag.find('Y') != std::string::npos)
 		{
-			Flags |= ERootMotion::RotY;
+			Flags |= EAnimSampling::RotY;
 		}
 		if (RotFlag.find('Z') != std::string::npos)
 		{
-			Flags |= ERootMotion::RotZ;
+			Flags |= EAnimSampling::RotZ;
 		}
 		std::string ScaleFlag;
 		ExtractAttribute(Attributes, "Scale", ScaleFlag);
 		if (ScaleFlag.find('X') != std::string::npos)
 		{
-			Flags |= ERootMotion::ScaleX;
+			Flags |= EAnimSampling::ScaleX;
 		}
 		if (ScaleFlag.find('Y') != std::string::npos)
 		{
-			Flags |= ERootMotion::ScaleY;
+			Flags |= EAnimSampling::ScaleY;
 		}
 		if (ScaleFlag.find('Z') != std::string::npos)
 		{
-			Flags |= ERootMotion::ScaleZ;
+			Flags |= EAnimSampling::ScaleZ;
 		}
 
 		if (Flags == 0)
 		{
-			Flags = ERootMotion::All;
+			Flags = EAnimSampling::All;
 		}
 
 		WAction Action;
@@ -284,11 +308,11 @@ AProjectileBase::AProjectileBase()
 		{
 			std::string AssetName = Attributes.at("Asset");
 			std::string AnimName = Attributes.at("Anim");
-			Action = [=]() { Anim->LoadAndPlay(AssetName, AnimName, PlayRate, bLoop, Flags); };
+			Action = [=]() { Anim->LoadAndPlay(AssetName, AnimName, PlayRate, bLoop, Flags, bRootMotion); };
 		}
 		else
 		{
-			Action = [=]() { Anim->Play(PlayRate, bLoop, Flags); };
+			Action = [=]() { Anim->Play(PlayRate, bLoop, Flags, bRootMotion); };
 		}
 
 		return Action;
@@ -315,10 +339,19 @@ AProjectileBase::AProjectileBase()
 			};
 		});
 
+	RegisterWActionFactory("BindCollision", [this](auto&& Attributes)
+		{
+			const std::string& MovementName = Attributes.at("Movement");
+			const std::string& CollisionName = Attributes.at("Collision");
+
+			WProjectileMovementComponent* MovementComp = GetWComponent<WProjectileMovementComponent>(MovementName);
+			FCollisionGeneratorBase* CollisionComp = GetWComponent<FCollisionGeneratorBase>(CollisionName);
+
+			return [=]() {MovementComp->BindCollisionEvent(CollisionComp); };
+		});
+
 	////////////////////////////////////////////////////////////////////////////////////////////////
-	// 
 	// WAction End
-	// 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -327,32 +360,55 @@ AProjectileBase::AProjectileBase()
 	// 
 	////////////////////////////////////////////////////////////////////////////////////////////////  
 
-	float mHomingTurnLimit = 0;
+	RegisterWProperty("ImpactPoint", &mImpactPoint_Internal);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// WProperty End
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
+	// 
 	// WEvent
+	// 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	RegisterSystemEvent("OnHit", [this](const WAttributesMap& Attributes) -> WEvent* {
-		auto Iter = Attributes.find("Target");
+		auto TargetIter = Attributes.find("Target");
 
 		WEvent* Event = &mCommonOnHitEvent;
-		if (Iter != Attributes.end())
+		if (TargetIter != Attributes.end())
 		{
-			const std::string& Target = Iter->second;
+			const std::string& Target = TargetIter->second;
 			mOnHitEvents.push_back({});
 			Event = &mOnHitEvents.back();
 
 			if (FCollisionGeneratorBase* CollisionGenerator = dynamic_cast<FCollisionGeneratorBase*>(GetWComponent(Target)))
 			{
-				CollisionGenerator->mOnCollision.AddLambda([Event](auto&&...)
-					{
-						Event->Dispatch();
-					});
+				TArray<std::string> Filter;
+				ExtractAttribute(Attributes, "Filter", Filter);
+				if (Filter.size() == 0)
+				{
+					CollisionGenerator->mOnCollision.AddLambda([Event, this](WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage)
+						{
+							this->mImpactPoint_Internal = ImpactPoint;
+							Event->Dispatch();
+						});
+				}
+				else
+				{
+					CollisionGenerator->mOnCollision.AddLambda([Event, Filter, this](WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage)
+						{
+							this->mImpactPoint_Internal = ImpactPoint;
+							for (const std::string& Tag : Filter)
+							{
+								if (HittedComponent->HasTag(Tag, true))
+								{
+									Event->Dispatch();
+									break;
+								}
+							}
+						});
+				}
 			}
 			else
 			{
@@ -361,6 +417,41 @@ AProjectileBase::AProjectileBase()
 		}
 
 		return Event;
+		});
+
+	RegisterSystemEvent("OnLockon", [this](auto&& Attributes)
+		{
+			const std::string& Target = Attributes.at("Target");
+			WEvent* Event = GenerateWEvent(mOnLockonEvents);
+
+			if (WProjectileMovementComponent* TargetComp = GetWComponent<WProjectileMovementComponent>(Target))
+			{
+				TargetComp->mOnLockon.AddLambda([Event]() { Event->Dispatch(); });
+			}
+
+			return Event;
+		});
+
+	RegisterSystemEvent("OnBounce", [this](auto&& Attributes)
+		{
+			WEvent* Event = GenerateWEvent(mOnBounceEvents);
+
+			const std::string& TargetName = Attributes.at("Target");
+			WProjectileMovementComponent* Target = GetWComponent<WProjectileMovementComponent>(TargetName);
+			Target->mOnBounce.AddLambda([Event]() { Event->Dispatch(); });
+
+			return Event;
+		});
+
+	RegisterSystemEvent("OnAnimStop", [this](auto&& Attributes)
+		{
+			const std::string& TargetName = Attributes.at("Target");
+			WObjectAnimComponent* Comp = GetWComponent<WObjectAnimComponent>(TargetName);
+			WEvent* Event = GenerateWEvent(mOnAnimStopEvents);
+
+			Comp->mOnStop.AddLambda([Event]() { Event->Dispatch(); });
+
+			return Event;
 		});
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -413,7 +504,7 @@ void DrawExplosion(XMFLOAT3 Location, float Radius, XMFLOAT4 Color, float Life)
 	DrawLine(D3, -D3, D3); DrawLine(D3, -D3, -D3);
 }
 
-void AProjectileBase::PlayParticle(const std::string& Name)
+void AProjectileBase::PlayParticle(XMFLOAT3 Loc, const std::string& Name)
 {
 	// 1. Red & Small (치명적인 불꽃 또는 작은 불꽃)
 	if (Name == "P_Explosion_Red_Small")
@@ -421,7 +512,7 @@ void AProjectileBase::PlayParticle(const std::string& Name)
 		float Radius = 2.5f;
 		XMFLOAT4 Color = { 1.0f, 0.2f, 0.2f, 1.0f }; // 연한 빨강
 		float Life = 0.3f; // 짧고 강렬하게
-		DrawExplosion(GetActorLocation(), Radius, Color, Life);
+		DrawExplosion(Loc, Radius, Color, Life);
 	}
 	// 2. Red & Large (거대 화염 폭발)
 	else if (Name == "P_Explosion_Red_Large")
@@ -429,7 +520,7 @@ void AProjectileBase::PlayParticle(const std::string& Name)
 		float Radius = 12.0f;
 		XMFLOAT4 Color = { 0.8f, 0.1f, 0.0f, 1.0f }; // 핏빛 빨강
 		float Life = 0.8f;
-		DrawExplosion(GetActorLocation(), Radius, Color, Life);
+		DrawExplosion(Loc, Radius, Color, Life);
 	}
 	// 3. Blue & Medium (차가운 마법 폭발)
 	else if (Name == "P_Explosion_Blue")
@@ -437,7 +528,7 @@ void AProjectileBase::PlayParticle(const std::string& Name)
 		float Radius = 6.0f;
 		XMFLOAT4 Color = { 0.2f, 0.6f, 1.0f, 1.0f }; // 스카이 블루
 		float Life = 0.5f;
-		DrawExplosion(GetActorLocation(), Radius, Color, Life);
+		DrawExplosion(Loc, Radius, Color, Life);
 	}
 	// 4. Green & Tiny (독성 가스 분출)
 	else if (Name == "P_Explosion_Green_Tiny")
@@ -445,7 +536,7 @@ void AProjectileBase::PlayParticle(const std::string& Name)
 		float Radius = 1.5f;
 		XMFLOAT4 Color = { 0.3f, 1.0f, 0.3f, 1.0f }; // 네온 그린
 		float Life = 0.4f;
-		DrawExplosion(GetActorLocation(), Radius, Color, Life);
+		DrawExplosion(Loc, Radius, Color, Life);
 	}
 	// 5. Purple & Huge (보스급 마법 또는 블랙홀 연출)
 	else if (Name == "P_Explosion_Purple_Huge")
@@ -453,7 +544,7 @@ void AProjectileBase::PlayParticle(const std::string& Name)
 		float Radius = 25.0f;
 		XMFLOAT4 Color = { 0.5f, 0.0f, 0.8f, 1.0f }; // 진보라
 		float Life = 1.2f; // 오래 남도록
-		DrawExplosion(GetActorLocation(), Radius, Color, Life);
+		DrawExplosion(Loc, Radius, Color, Life);
 	}
 	// 6. Cyan & Spark (전기 스파크 연출)
 	else if (Name == "P_Spark_Cyan")
@@ -461,7 +552,7 @@ void AProjectileBase::PlayParticle(const std::string& Name)
 		float Radius = 3.0f;
 		XMFLOAT4 Color = { 0.0f, 1.0f, 1.0f, 1.0f }; // 시안
 		float Life = 0.2f; // 아주 빠르게 깜빡임
-		DrawExplosion(GetActorLocation(), Radius, Color, Life);
+		DrawExplosion(Loc, Radius, Color, Life);
 	}
 	else
 	{

@@ -77,10 +77,14 @@ public:
 
 	void PropagateWorldFloat4Dirty(bool bForce = false);
 
+	void AddWorldOffset(XMFLOAT3 WorldOffset);
+
 protected:
 	virtual void Update();
 
 	virtual void OnSetTransform();
+
+	virtual void PostSetupAttachment();
 
 	bool mbWorldFloat4x4Dirty = true;
 

@@ -1,0 +1,25 @@
+<AProjectileBase>
+
+    <Configs>
+        <LifeCycle LifeSpan = "2"/>
+    </Configs>
+
+    <Components>
+        <Anim Name = "Anim">
+            <Mesh Name = "Body" Asset = "SM_ScuffedGoldBox"/>
+        </Anim>
+    </Components>
+
+    <Events>
+
+        <OnSpawn>
+            <PlayAnim Target = "Anim" Asset = "OA_ColdLaunch" Anim = "Projectile" Loop = "true" RootMotion = "true"/>
+        </OnSpawn>
+
+        <OnAnimStop Target = "Anim">
+            <Destroy/>
+        </OnAnimStop>
+
+    </Events>
+
+</AProjectileBase>
