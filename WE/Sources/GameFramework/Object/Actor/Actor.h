@@ -336,7 +336,7 @@ private:
 
 	std::unordered_map<std::string, WFunction> mWFunctionsMap;
 
-	TArray<TUniquePtr<std::string>> mWStates;
+	TArray<TUniquePtr<WVariantValue>> mCustomWProperies;
 
 	WPropertiesMap mWPropertiesMap;
 
@@ -383,6 +383,24 @@ public:
 	int mActiveActorQueueId = -1;
 
 	bool mbPendingKill = false;
+
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	// Spline Section
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////
+private:
+	struct FSplineFollowInfo
+	{
+		WSceneComponent* Target = nullptr;
+		class WSplineComponent* Spline = nullptr;
+		float Duration = 1;
+		float ElapsedTime = 0;
+		bool bLoop = false;
+		bool bUseRotation = true;
+	};
+
+	TArray<FSplineFollowInfo> mSplineFollowInfos;
 
 public:
 

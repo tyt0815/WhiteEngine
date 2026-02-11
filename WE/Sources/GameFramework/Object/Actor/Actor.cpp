@@ -186,14 +186,43 @@ AActor::AActor():
 			return Factory;
 		});
 
-	RegisterWActionFactory("CreateState", [this](auto&& Attributes)
+	RegisterWActionFactory("FollowSpline", [this](auto&& Attributes)
 		{
-			const std::string& Name = Attributes.at("Name");
-			const std::string& Value = Attributes.at("Value");
-			mWStates.push_back(MakeUnique<std::string>(Value));
-			std::string* StatePtr = mWStates.back().get();
-			return [this, Name, StatePtr]() { RegisterWProperty(Name, StatePtr); };
+			const std::string TargetName = Attributes.at("Target");
+			const std::string SplineName = Attributes.at("Spline");
+			FSplineFollowInfo Info;
+			Info.Target = GetWComponent(TargetName);
+			Info.Spline = GetWComponent<WSplineComponent>(SplineName);
+			ExtractAttribute(Attributes, "Duration", Info.Duration);
+			ExtractAttribute(Attributes, "UseRotation", Info.bUseRotation);
+			ExtractAttribute(Attributes, "Loop", Info.bLoop);
+
+			return [=]() 
+			{
+				mSplineFollowInfos.push_back(Info);
+			};
 		});
+
+	//RegisterWActionFactory("CreateProperty", [this](auto&& Attributes)
+	//	{
+	//		const std::string& Name = Attributes.at("Name");
+	//		const std::string& Value = Attributes.at("Value");
+	//		const std::string& Type = Attributes.at("")
+
+	//		mCustomWProperies
+	//		mWStates.push_back(MakeUnique<std::string>(Value));
+	//		std::string* StatePtr = mWStates.back().get();
+	//		return [this, Name, StatePtr]() { RegisterWProperty(Name, StatePtr); };
+	//	});
+
+	//RegisterWActionFactory("CreateState", [this](auto&& Attributes)
+	//	{
+	//		const std::string& Name = Attributes.at("Name");
+	//		const std::string& Value = Attributes.at("Value");
+	//		mWStates.push_back(MakeUnique<std::string>(Value));
+	//		std::string* StatePtr = mWStates.back().get();
+	//		return [this, Name, StatePtr]() { RegisterWProperty(Name, StatePtr); };
+	//	});
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// WAction End
@@ -301,6 +330,69 @@ void AActor::Tick(float DeltaSecond)
 		mOnTimeEvents[mOnTimeEventIndex++]->Event.Dispatch();
 	}
 
+	// mSplineFollowInfos는 std::vector 또는 std::list라고 가정합니다.
+	for (auto it = mSplineFollowInfos.begin(); it != mSplineFollowInfos.end(); )
+	{
+		FSplineFollowInfo& Info = *it;
+
+		// 1. 유효성 검사
+		if (!Info.Target || !Info.Spline)
+		{
+			it = mSplineFollowInfos.erase(it);
+			continue;
+		}
+
+		// 2. 시간 누적 및 비율 계산
+		Info.ElapsedTime += DeltaSecond;
+		float Alpha = Info.ElapsedTime / Info.Duration;
+
+		// 3. 종료 및 루프 판정
+		bool bFinished = false;
+		if (Alpha >= 1.0f)
+		{
+			if (Info.bLoop)
+			{
+				// 루프 시 초과된 시간을 나머지 연산으로 넘겨주어 프레임 끊김 방지
+				Info.ElapsedTime = fmodf(Info.ElapsedTime, Info.Duration);
+				Alpha = Info.ElapsedTime / Info.Duration;
+			}
+			else
+			{
+				Alpha = 1.0f;
+				bFinished = true;
+			}
+		}
+
+		// 4. 스플라인 거리 기반 샘플링
+		// 비율(Alpha)을 전체 길이(GetSplineLength)에 곱해 현재 가야 할 거리를 구합니다.
+		float TotalLength = Info.Spline->GetSplineLength();
+		float TargetDistance = TotalLength * Alpha;
+
+		// 5. 트랜스폼 업데이트
+		// GetWorldTransformAtDistanceAlongSpline을 사용하여 월드 좌표계 이동 지원
+		FTransform NewTransform = Info.Spline->GetWorldTransformAtDistanceAlongSpline(TargetDistance);
+
+		// 위치 적용
+		Info.Target->SetWorldLocation(NewTransform.Translation);
+
+		// 옵션에 따른 회전 적용
+		if (Info.bUseRotation)
+		{
+			// FTransform 내에 XMFLOAT3 타입의 Rotation(Euler)이 있다고 가정하거나, 
+			// 필요 시 Quaternion을 사용하여 회전을 직접 설정합니다.
+			Info.Target->SetWorldRotation(NewTransform.Rotation);
+		}
+
+		// 6. 반복자 관리
+		if (bFinished)
+		{
+			it = mSplineFollowInfos.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
 }
 
 void AActor::Destroy()
