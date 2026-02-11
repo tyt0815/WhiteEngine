@@ -21,7 +21,7 @@ protected:
 	void PlayParticle(const std::string& Name);
 
 private:
-	void OnCollision(AActor* Actor, WPhysicsComponent* Comp, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage);
+	void OnCollision(WSceneComponent* Instigator, WPhysicsComponent* HittedComp, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage);
 
 	TArray<WEvent> mOnHitEvents;
 	WEvent mCommonOnHitEvent;

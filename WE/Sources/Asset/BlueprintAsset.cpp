@@ -57,7 +57,12 @@ bool FBlueprintAsset::LoadAsset(const std::wstring& FilePath)
 
 bool FBlueprintAsset::SmartLoad(const std::wstring& SourcePath, TArray<unsigned char>& RawBuffer)
 {
-    std::wstring BinaryPath = SourcePath + L"bin";
+    std::filesystem::path p(SourcePath);
+
+    std::filesystem::path binFolder = p.parent_path() / "bin";
+    std::filesystem::path fileNameWithBin = p.filename().wstring() + L"bin";
+
+    std::wstring BinaryPath = (binFolder / fileNameWithBin).wstring();
 
     // 살짝 보강한다면
     if (CheckIfNeedCompile(SourcePath, BinaryPath))
@@ -119,7 +124,7 @@ void FBlueprintAsset::Serialize(FBinaryWriter& Writer, FXMLElement* RootElement)
 
     SerializeConfigs(Writer, RootElement->FirstChildElement("Configs"));
 
-    SerializeComponent(Writer, RootElement->FirstChildElement("Components")->FirstChildElement());
+    SerializeComponents(Writer, RootElement->FirstChildElement("Components"));
 
     SerializeEvents(Writer , RootElement->FirstChildElement("Events"));
 }
@@ -130,8 +135,7 @@ void FBlueprintAsset::Deserialize(FBinaryReader& Reader)
 
     DeserializeConfigs(Reader, mConfigs);
 
-    mRootComponent = MakeShared<FBlueprintComponentNode>();
-    DeserializeComponent(Reader, mRootComponent);
+    DeserializeComponents(Reader, mAttachedComponents);
 
     DeserializeEvents(Reader);
 }

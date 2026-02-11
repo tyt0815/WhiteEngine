@@ -163,7 +163,34 @@ DirectX::XMFLOAT3 WSceneComponent::GetWorldScale()
 	return GetWorldTransform().Scale;
 }
 
-XMFLOAT3 WSceneComponent::GetForwardVector()
+XMFLOAT3 WSceneComponent::GetWorldForwardVector()
+{
+	XMMATRIX RotationMatrix = GetWorldTransform().GetRotationMatrix();
+	XMVECTOR VForward = XMVector3Transform({ 0.0f, 0.0f, 1.0f }, RotationMatrix);
+	XMFLOAT3 Foward;
+	XMStoreFloat3(&Foward, XMVector3Normalize(VForward));
+	return Foward;
+}
+
+XMFLOAT3 WSceneComponent::GetWorldRightVector()
+{
+	XMMATRIX RotationMatrix = GetWorldTransform().GetRotationMatrix();
+	XMVECTOR VRight = XMVector3Transform({ 1.0f, 0.0f, 0.0f }, RotationMatrix);
+	XMFLOAT3 Right;
+	XMStoreFloat3(&Right, XMVector3Normalize(VRight));
+	return Right;
+}
+
+XMFLOAT3 WSceneComponent::GetWorldUpVector()
+{
+	XMMATRIX RotationMatrix = GetWorldTransform().GetRotationMatrix();
+	XMVECTOR VUp = XMVector3Transform({ 0.0f, 1.0f, 0.0f }, RotationMatrix);
+	XMFLOAT3 Up;
+	XMStoreFloat3(&Up, XMVector3Normalize(VUp));
+	return Up;
+}
+
+XMFLOAT3 WSceneComponent::GetLocalForwardVector()
 {
 	XMMATRIX RotationMatrix = mTransform.GetRotationMatrix();
 	XMVECTOR VForward = XMVector3Transform({ 0.0f, 0.0f, 1.0f }, RotationMatrix);
@@ -172,7 +199,7 @@ XMFLOAT3 WSceneComponent::GetForwardVector()
 	return Foward;
 }
 
-XMFLOAT3 WSceneComponent::GetRightVector()
+XMFLOAT3 WSceneComponent::GetLocalRightVector()
 {
 	XMMATRIX RotationMatrix = mTransform.GetRotationMatrix();
 	XMVECTOR VRight = XMVector3Transform({ 1.0f, 0.0f, 0.0f }, RotationMatrix);
@@ -181,7 +208,7 @@ XMFLOAT3 WSceneComponent::GetRightVector()
 	return Right;
 }
 
-XMFLOAT3 WSceneComponent::GetUpVector()
+XMFLOAT3 WSceneComponent::GetLocalUpVector()
 {
 	XMMATRIX RotationMatrix = mTransform.GetRotationMatrix();
 	XMVECTOR VUp = XMVector3Transform({ 0.0f, 1.0f, 0.0f }, RotationMatrix);

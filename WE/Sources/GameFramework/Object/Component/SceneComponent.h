@@ -41,11 +41,17 @@ public:
 
 	DirectX::XMFLOAT3 GetWorldScale();
 
-	XMFLOAT3 GetForwardVector();
+	XMFLOAT3 GetWorldForwardVector();
 
-	XMFLOAT3 GetRightVector();
+	XMFLOAT3 GetWorldRightVector();
 
-	XMFLOAT3 GetUpVector();
+	XMFLOAT3 GetWorldUpVector();
+
+	XMFLOAT3 GetLocalForwardVector();
+
+	XMFLOAT3 GetLocalRightVector();
+
+	XMFLOAT3 GetLocalUpVector();
 
 	FTransform GetWorldTransform();
 

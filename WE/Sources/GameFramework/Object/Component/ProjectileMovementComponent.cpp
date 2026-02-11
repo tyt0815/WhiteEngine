@@ -12,33 +12,32 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
 
 	if (mLifeSpan > 0 && mLifeTimeElapsed > mLifeSpan)
 	{
-		Deactivate();
+		DeactivateWithChild();
 		return;
 	}
 
     UpdateHoming(DeltaTime);
 
-    XMFLOAT3 CurrForward = GetForwardVector();
-    XMVECTOR VCurrForward = XMLoadFloat3(&CurrForward);
+    XMFLOAT3 WorldForward = GetWorldForwardVector();
+    XMVECTOR vWorldForward = XMLoadFloat3(&WorldForward);
 
     // 1. 중력 적용
     constexpr float GravityConstant = 9.8f;
-    XMVECTOR CurrentVelocityV = XMLoadFloat3(&mVelocity);
-    XMVECTOR GravityV = XMVectorSet(0.0f, -GravityConstant * mGravityScale * DeltaTime, 0.0f, 0.0f);
-    CurrentVelocityV = XMVectorAdd(CurrentVelocityV, GravityV);
-    XMVECTOR RotationQuatV = XMQuaternionIdentity();
+    XMVECTOR vWorldVelocity = XMLoadFloat3(&mVelocity);
+    XMVECTOR vGravity = XMVectorSet(0.0f, -GravityConstant * mGravityScale * DeltaTime, 0.0f, 0.0f);
+    vWorldVelocity = XMVectorAdd(vWorldVelocity, vGravity);
+    XMVECTOR vQuat = XMQuaternionIdentity();
     bool bCalcRotQuatV = true;
 
     // 1-1. 외부 가속도 적용 (AddForce로 누적된 값)
-    XMVECTOR ExternalAccelV = XMLoadFloat3(&mExternalAcceleration);
-    CurrentVelocityV = XMVectorAdd(CurrentVelocityV, XMVectorScale(ExternalAccelV, DeltaTime));
+    XMVECTOR vExternalAccel = XMLoadFloat3(&mExternalAcceleration);
+    vWorldVelocity = XMVectorAdd(vWorldVelocity, XMVectorScale(vExternalAccel, DeltaTime));
 
     // 2. 호밍 로직 (속도 벡터의 방향을 꺾음)
     if (mbHomingProjectile)
     {
-        
-        XMFLOAT3 CurrLoc = GetWorldLocation();
-        XMVECTOR CurrLocV = XMLoadFloat3(&CurrLoc);
+        XMFLOAT3 WorldLoc = GetWorldLocation();
+        XMVECTOR vWorldLoc = XMLoadFloat3(&WorldLoc);
         XMFLOAT3 TargetLoc;
         if (TSharedPtr<WSceneComponent> Target = mHomingTarget.lock())
         {
@@ -48,13 +47,13 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
         {
             TargetLoc = mHomingLocation;
         }
-        XMVECTOR TargetLocV = XMLoadFloat3(&TargetLoc);
-        XMVECTOR ToTargetV = XMVectorSubtract(TargetLocV, CurrLocV);
+        XMVECTOR vTargetLoc = XMLoadFloat3(&TargetLoc);
+        XMVECTOR vToTarget = XMVectorSubtract(vTargetLoc, vWorldLoc);
 
-        if (XMVectorGetX(XMVector3LengthSq(ToTargetV)) > 0.00001f)
+        if (XMVectorGetX(XMVector3LengthSq(vToTarget)) > 0.00001f)
         {
-            XMVECTOR CurrentDirV = XMVector3Normalize(CurrentVelocityV);
-            XMVECTOR ToTargetUnitV = XMVector3Normalize(ToTargetV);
+            XMVECTOR CurrentDirV = XMVector3Normalize(vWorldVelocity);
+            XMVECTOR ToTargetUnitV = XMVector3Normalize(vToTarget);
 
             // 속도 방향과 타겟 방향 사이의 각도 계산
             float Radian = XMVectorGetX(XMVector3AngleBetweenNormals(CurrentDirV, ToTargetUnitV));
@@ -67,15 +66,15 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
                 XMVECTOR AxisV = XMVector3Normalize(XMVector3Cross(CurrentDirV, ToTargetUnitV));
                 if (XMVector3Equal(AxisV, XMVectorZero()))
                 {
-                    XMFLOAT3 Right = GetRightVector();
+                    XMFLOAT3 Right = GetWorldRightVector();
                     XMVECTOR RightV = XMLoadFloat3(&Right);
                     AxisV = XMVector3Normalize(XMVector3Cross(RightV, ToTargetUnitV));
                 }
 
-                RotationQuatV = XMQuaternionRotationAxis(AxisV, ActualRotation);
+                vQuat = XMQuaternionRotationAxis(AxisV, ActualRotation);
                 bCalcRotQuatV = false;
                 // 속도 벡터 자체를 회전시킴
-                CurrentVelocityV = XMVector3Rotate(CurrentVelocityV, RotationQuatV);
+                vWorldVelocity = XMVector3Rotate(vWorldVelocity, vQuat);
             }
         }
         
@@ -83,55 +82,55 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
 
     if (bCalcRotQuatV)
     {
-        XMVECTOR DirV = XMVector3Normalize(CurrentVelocityV);
+        XMVECTOR DirV = XMVector3Normalize(vWorldVelocity);
 
-        float Radian = XMVectorGetX(XMVector3AngleBetweenNormals(VCurrForward, DirV));
+        float Radian = XMVectorGetX(XMVector3AngleBetweenNormals(vWorldForward, DirV));
         if (Radian > 0.0001f)
         {
-            XMVECTOR AxisV = XMVector3Normalize(XMVector3Cross(VCurrForward, DirV));
+            XMVECTOR AxisV = XMVector3Normalize(XMVector3Cross(vWorldForward, DirV));
             if (XMVector3Equal(AxisV, XMVectorZero()))
             {
-                XMFLOAT3 Up = GetUpVector();
+                XMFLOAT3 Up = GetWorldUpVector();
                 AxisV = XMLoadFloat3(&Up);
             }
             // 현재 방향과 속도 방향 사이의 차이만큼 회전 쿼터니언 생성
-            RotationQuatV = XMQuaternionRotationAxis(AxisV, Radian);
+            vQuat = XMQuaternionRotationAxis(AxisV, Radian);
         }
     }
 
-    XMVECTOR ForwardV = XMVector3Normalize(CurrentVelocityV);
+    XMVECTOR ForwardV = XMVector3Normalize(vWorldVelocity);
     if (XMVector3Equal(ForwardV, XMVectorZero()))
     {
-        ForwardV = VCurrForward;
+        ForwardV = vWorldForward;
     }
     // 3. 전방 추진 가속도 적용 (스칼라)
     if (mAcceleration != 0.0f)
     {
         // 호밍/중력이 적용된 후의 '현재 진행 방향'으로 가속    
-        CurrentVelocityV = XMVectorAdd(CurrentVelocityV, XMVectorScale(ForwardV, mAcceleration * DeltaTime));
+        vWorldVelocity = XMVectorAdd(vWorldVelocity, XMVectorScale(ForwardV, mAcceleration * DeltaTime));
     }
 
     // 4. 속도 제한 (Max Speed)
     if (mMaxSpeed >= 0.0f)
     {
-        float SpeedSq = XMVectorGetX(XMVector3LengthSq(CurrentVelocityV));
+        float SpeedSq = XMVectorGetX(XMVector3LengthSq(vWorldVelocity));
         if (SpeedSq > mMaxSpeed * mMaxSpeed)
         {
-            CurrentVelocityV = XMVectorScale(ForwardV, mMaxSpeed);
+            vWorldVelocity = XMVectorScale(ForwardV, mMaxSpeed);
         }
     }
 
     // 5. 최종 속도 저장
-    XMStoreFloat3(&mVelocity, CurrentVelocityV);
+    XMStoreFloat3(&mVelocity, vWorldVelocity);
 
     // 6. 비주얼 정렬 (투사체가 실제 이동 방향을 바라보게 함)
-    if (XMVectorGetX(XMVector3LengthSq(CurrentVelocityV)) > 0.01f)
+    if (XMVectorGetX(XMVector3LengthSq(vWorldVelocity)) > 0.01f)
     {
         XMFLOAT4 CurrQuat = GetWorldQuatRotation();
         XMVECTOR CurrQuatV = XMLoadFloat4(&CurrQuat);
         
         XMFLOAT4 FinalQuat;
-        XMStoreFloat4(&FinalQuat, XMQuaternionMultiply(CurrQuatV, RotationQuatV));
+        XMStoreFloat4(&FinalQuat, XMQuaternionMultiply(CurrQuatV, vQuat));
         XMFLOAT3 FinalRotation = FDXMath::QuaternionToEuler(FinalQuat);
 
         SetWorldRotation(FinalRotation);
@@ -164,7 +163,7 @@ void WProjectileMovementComponent::BeginComponent()
         XMVECTOR DirV = XMVector3Normalize(WorldVelocityV);
 
         // 현재 액터의 전방 벡터
-        XMFLOAT3 Forward = GetForwardVector();
+        XMFLOAT3 Forward = GetWorldForwardVector();
         XMVECTOR ForwardV = XMLoadFloat3(&Forward);
 
         // 두 벡터 사이의 각도(Radian) 구하기
@@ -178,7 +177,7 @@ void WProjectileMovementComponent::BeginComponent()
             // 만약 두 벡터가 180도 반대라 외적 축이 0이 나온다면 임의의 상방 축 사용
             if (XMVector3Equal(AxisV, XMVectorZero()))
             {
-                XMFLOAT3 Right = GetRightVector();
+                XMFLOAT3 Right = GetWorldRightVector();
                 XMVECTOR RightV = XMLoadFloat3(&Right);
                 AxisV = XMVector3Normalize(XMVector3Cross(RightV, DirV));
             }
@@ -356,7 +355,7 @@ AActor* WProjectileMovementComponent::FindHomingTarget_Nearest(const TArray<FHit
 AActor* WProjectileMovementComponent::FindHomingTarget_Angle(const TArray<FHitResult>& Hits)
 {
 	float BestDot = -1.0f;
-	XMFLOAT3 Forward = GetForwardVector();
+	XMFLOAT3 Forward = GetWorldForwardVector();
 	XMVECTOR ForwardV = XMLoadFloat3(&Forward);
 
 	AActor* Target = nullptr;

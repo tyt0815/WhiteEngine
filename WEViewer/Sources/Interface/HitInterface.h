@@ -9,5 +9,5 @@ class WPhysicsComponent;
 class IHitInterface
 {
 public:
-	virtual void OnHit(AActor* Instigator, WPhysicsComponent* HittedComp, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Damage) = 0;
+	virtual void OnHit(WSceneComponent* Instigator, WPhysicsComponent* HittedComp, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Damage) = 0;
 };

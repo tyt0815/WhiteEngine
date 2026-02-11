@@ -88,21 +88,23 @@ void FCollisionGeneratorBase::ProcessHit(const FHitResult& Hit)
     }
     mHitCount++;
 
-    // 4. 이벤트 방송
-    mOnCollision.Broadcast(
-        HittedActor.get(),
-        Hit.HitComponent.lock().get(),
-        Hit.ImpactPoint,
-        Hit.Normal,
-        Hit.Distance,
-        mDamage
-    );
-
-    if (mHitCount >= mMaxHit)
+    if (WSceneComponent* Comp = dynamic_cast<WSceneComponent*>(this))
     {
-        if (WActorComponent* Comp = dynamic_cast<WActorComponent*>(this))
+        // 4. 이벤트 방송
+        mOnCollision.Broadcast(
+            Comp,
+            Hit.HitComponent.lock().get(),
+            Hit.ImpactPoint,
+            Hit.Normal,
+            Hit.Distance,
+            mDamage
+        );
+
+        if (mHitCount >= mMaxHit)
         {
+
             Comp->Deactivate();
+
         }
     }
 }

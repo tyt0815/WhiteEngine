@@ -470,12 +470,12 @@ void AProjectileBase::PlayParticle(const std::string& Name)
 	}
 }
 
-void AProjectileBase::OnCollision(AActor* Actor, WPhysicsComponent* Comp, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage)
+void AProjectileBase::OnCollision(WSceneComponent* Instigator, WPhysicsComponent* HittedComp, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage)
 {
 	mCommonOnHitEvent.Dispatch();
-
-	if (IHitInterface* HitInterface = dynamic_cast<IHitInterface*>(Actor))
+	TSharedPtr<AActor> Actor = HittedComp->GetOwner().lock();
+	if (IHitInterface* HitInterface = dynamic_cast<IHitInterface*>(Actor.get()))
 	{
-		HitInterface->OnHit(this, Comp, ImpactPoint, Normal, Damage);
+		HitInterface->OnHit(Instigator, HittedComp, ImpactPoint, Normal, Damage);
 	}
 }

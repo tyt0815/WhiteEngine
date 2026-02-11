@@ -152,7 +152,7 @@ AActor::AActor():
 			WSceneComponent* TargetComp = GetWComponent(Target);
 
 			bool mbWithChild = false;
-			ExtractAttribute(Attributes, "Child", mbWithChild);
+			ExtractAttribute(Attributes, "WithChild", mbWithChild);
 			std::function<void()> Factory;
 			if (mbWithChild)
 			{
@@ -418,7 +418,12 @@ void AActor::LoadBlueprint(const FBlueprintAsset* Blueprint)
 {
 	LoadWConfigs(Blueprint->mConfigs);
 
-	LoadWComponent_Internal(Blueprint->mRootComponent.get(), nullptr);
+	WSceneComponent* RootComp = GetRootComponent();
+
+	for (auto Comp : Blueprint->mAttachedComponents)
+	{
+		LoadWComponent_Internal(Comp.get(), RootComp);
+	}
 
 	LoadWEvents(Blueprint->mEvents, Blueprint->mCustomEvents);
 }

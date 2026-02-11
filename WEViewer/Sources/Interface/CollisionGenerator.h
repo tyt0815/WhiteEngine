@@ -9,8 +9,8 @@ class AActor;
 class WPhysicsComponent;
 using namespace DirectX;
 
-// Actor, Component, ImpactPoint, Normal, Distance, Damage;
-DECLARE_MULTICAST_DELEGATE_SixParams(FOnCollision, AActor*, WPhysicsComponent*, XMFLOAT3, XMFLOAT3, float, float);
+// Instigator, HittedComponent, ImpactPoint, Normal, Distance, Damage;
+DECLARE_MULTICAST_DELEGATE_SixParams(FOnCollision, WSceneComponent*, WPhysicsComponent*, XMFLOAT3, XMFLOAT3, float, float);
 
 class ICollisionGenerator
 {
