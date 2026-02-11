@@ -120,17 +120,16 @@ AActor::AActor():
 		{
 			std::string Name = Attributes.at("Name");
 			
-			FTransform LocalTransform;
-			ExtractAttribute(Attributes, "Loc", LocalTransform.Translation);
-			ExtractAttribute(Attributes, "Rot", LocalTransform.Rotation);
-			ExtractAttribute(Attributes, "Scale", LocalTransform.Scale);
+			auto LocFunc = SmartParseAttribute<XMFLOAT3>(Attributes, "Loc", "(0 0 0)");
+			auto RotFunc = SmartParseAttribute<XMFLOAT3>(Attributes, "Rot", "(0 0 0)");
+			auto ScaleFunc = SmartParseAttribute<XMFLOAT3>(Attributes, "Scale", "(1 1 1)");
 
 			return [=]()
 			{
 				FActorSpawnParameter Param;
-				XMMATRIX W = this->GetWorldMatrix();
-				XMMATRIX L = LocalTransform.GetTransformMatrix();
-				Param.Transform.SetByTransformMatrix(L * W);
+				Param.Transform.Translation = LocFunc();
+				Param.Transform.Rotation = RotFunc();
+				Param.Transform.Scale = ScaleFunc();
 				GetWorld()->SpawnActorByFactory<AActor>(Name, Param);
 			};
 		});
@@ -145,19 +144,18 @@ AActor::AActor():
 			const std::string& Target = Attributes.at("Target");
 			WSceneComponent* TargetComp = GetWComponent(Target);
 
-			bool mbWithChild = false;
-			ExtractAttribute(Attributes, "Child", mbWithChild);
-			std::function<void()> Factory;
-			if (mbWithChild)
-			{
-				Factory = [=]() { TargetComp->ActivateWithChild(); };
-			}
-			else
-			{
-				Factory = [=]() { TargetComp->Activate(); };
-			}
+			auto WithChildFunc = SmartParseAttribute<bool>(Attributes, "WithChild", "true");
 			
-			return Factory;
+			return [=]() {
+				if (WithChildFunc())
+				{
+					TargetComp->ActivateWithChild();
+				}
+				else
+				{
+					TargetComp->Activate();
+				}
+			};
 		});
 
 	RegisterWActionFactory("Deactivate", [this](auto&& Attributes)
@@ -171,34 +169,39 @@ AActor::AActor():
 			const std::string& Target = Attributes.at("Target");
 			WSceneComponent* TargetComp = GetWComponent(Target);
 
-			bool mbWithChild = false;
-			ExtractAttribute(Attributes, "WithChild", mbWithChild);
-			std::function<void()> Factory;
-			if (mbWithChild)
-			{
-				Factory = [=]() { TargetComp->DeactivateWithChild(); };
-			}
-			else
-			{
-				Factory = [=]() { TargetComp->Deactivate(); };
-			}
+			auto WithChildFunc = SmartParseAttribute<bool>(Attributes, "WithChild", "true");
 
-			return Factory;
+			return [=]() {
+				if (WithChildFunc())
+				{
+					TargetComp->DeactivateWithChild();
+				}
+				else
+				{
+					TargetComp->Deactivate();
+				}
+			};
 		});
 
 	RegisterWActionFactory("FollowSpline", [this](auto&& Attributes)
 		{
 			const std::string TargetName = Attributes.at("Target");
 			const std::string SplineName = Attributes.at("Spline");
-			FSplineFollowInfo Info;
-			Info.Target = GetWComponent(TargetName);
-			Info.Spline = GetWComponent<WSplineComponent>(SplineName);
-			ExtractAttribute(Attributes, "Duration", Info.Duration);
-			ExtractAttribute(Attributes, "UseRotation", Info.bUseRotation);
-			ExtractAttribute(Attributes, "Loop", Info.bLoop);
+			WSceneComponent* Target = GetWComponent(TargetName);
+			WSplineComponent* Spline = GetWComponent<WSplineComponent>(SplineName);
+
+			auto DurationFunc = SmartParseAttribute<float>(Attributes,"Duration", "1");
+			auto UseRotationFunc = SmartParseAttribute<bool>(Attributes, "UseRotation", "true");
+			auto LoopFunc = SmartParseAttribute<bool>(Attributes, "Loop", "false");
 
 			return [=]() 
 			{
+				FSplineFollowInfo Info;
+				Info.Target = Target;
+				Info.Spline = Spline;
+				Info.Duration = DurationFunc();
+				Info.bUseRotation = UseRotationFunc();
+				Info.bLoop = LoopFunc();
 				mSplineFollowInfos.push_back(Info);
 			};
 		});

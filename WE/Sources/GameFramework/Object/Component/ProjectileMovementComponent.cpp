@@ -506,6 +506,15 @@ void WProjectileMovementComponent::GenerateWaypoints(WSceneComponent* Target)
 		}
 		VUp = XMVector3Cross(VForward, VRight);
 	}
+	else if (mWaypointSpace == "Relative")
+	{
+		XMFLOAT3 WorldF = GetWorldForwardVector();
+		VForward = XMLoadFloat3(&WorldF);
+		XMFLOAT3 WorldU = GetWorldUpVector();
+		VUp = XMLoadFloat3(&WorldU);
+		XMFLOAT3 WorldR = GetWorldRightVector();
+		VRight = XMLoadFloat3(&WorldR);
+	}
 	else
 	{
 		VForward = XMVectorSet(0, 0, 1, 0);

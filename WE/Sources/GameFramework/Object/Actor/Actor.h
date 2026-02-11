@@ -269,28 +269,39 @@ protected:
 	void RegisterWFunction(const std::string& Name, WFunction Lambda);
 
 	template<typename T>
-	std::function<T()> SmartParseAttribute(const std::string& Attr)
+	std::function<T()> SmartParseAttribute(const WAttributesMap& Attributes, const std::string& Name, const std::string& Default)
 	{
 		std::function<T()> Result;
 
-		// 함수 호출
-		if (Attr[0] == '$')
+		auto Iter = Attributes.find(Name);
+		const std::string* Attr;
+		if (Iter == Attributes.end())
 		{
-			WFunction Func = mWFunctionsMap[Attr.substr(1)];
+			Attr = &Default;
+		}
+		else
+		{
+			Attr = &Iter->second;
+		}
+
+		// 함수 호출
+		if (Attr->at(0) == '$')
+		{
+			WFunction Func = mWFunctionsMap[Attr->substr(1)];
 			Result = [Func]() { return std::get<T>(Func()); };
 		}
 
 		// 프로퍼티 호출
-		else if (Attr[0] == '*')
+		else if (Attr->at(0) == '*')
 		{
-			T* Prop = std::get<T*>(GetWProperty(Attr.substr(1)));
+			T* Prop = std::get<T*>(GetWProperty(Attr->substr(1)));
 			Result = [Prop]() { return *Prop; };
 		}
 
 		// 값
 		else
 		{
-			T Value = WPropertyTrait<T>::Parse(Attr);
+			T Value = WPropertyTrait<T>::Parse(*Attr);
 			Result = [Value]() {return Value; };
 		}
 

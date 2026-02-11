@@ -235,7 +235,7 @@ AProjectileBase::AProjectileBase()
 	RegisterWActionFactory("Particle", [this](const WAttributesMap& Attributes) {
 		std::string Name = Attributes.at("Asset");
 
-		auto LocFunc = SmartParseAttribute<XMFLOAT3>(Attributes.at("Loc"));
+		auto LocFunc = SmartParseAttribute<XMFLOAT3>(Attributes, "Loc", "(0 0 0)");
 		std::function<void()> FactoryFunc = [=]() { this->PlayParticle(LocFunc(), Name); };
 
 		return FactoryFunc;
@@ -247,12 +247,9 @@ AProjectileBase::AProjectileBase()
 		WObjectAnimComponent* Anim = dynamic_cast<WObjectAnimComponent*>(GetWComponent(Target));
 		assert(Anim);
 
-		float PlayRate = 1;
-		ExtractAttribute(Attributes, "PlayRate", PlayRate);
-		bool bLoop = false;
-		ExtractAttribute(Attributes, "Loop", bLoop);
-		bool bRootMotion = false;
-		ExtractAttribute(Attributes, "RootMotion", bRootMotion);
+		auto PlayRateFunc = SmartParseAttribute<float>(Attributes, "PlayRate", "1");
+		auto LoopFunc = SmartParseAttribute<bool>(Attributes, "Loop", "false");
+		auto RootMotionFunc = SmartParseAttribute<bool>(Attributes, "RootMotion", "false");
 
 		uint16_t Flags = 0;
 		std::string LocFlag;
@@ -308,11 +305,11 @@ AProjectileBase::AProjectileBase()
 		{
 			std::string AssetName = Attributes.at("Asset");
 			std::string AnimName = Attributes.at("Anim");
-			Action = [=]() { Anim->LoadAndPlay(AssetName, AnimName, PlayRate, bLoop, Flags, bRootMotion); };
+			Action = [=]() { Anim->LoadAndPlay(AssetName, AnimName, PlayRateFunc(), LoopFunc(), Flags, RootMotionFunc()); };
 		}
 		else
 		{
-			Action = [=]() { Anim->Play(PlayRate, bLoop, Flags, bRootMotion); };
+			Action = [=]() { Anim->Play(PlayRateFunc(), LoopFunc(), Flags, RootMotionFunc()); };
 		}
 
 		return Action;
@@ -328,14 +325,13 @@ AProjectileBase::AProjectileBase()
 			const std::string& PropertyName = Attributes.at("Property");
 			float* Prop = std::get<float*>(GetWProperty(PropertyName));
 
-			std::string CurveName = Attributes.at("Curve");
+			auto CurveFunc = SmartParseAttribute<std::string>(Attributes, "Curve", "");
 
-			bool bIsModifier = false;
-			ExtractAttribute(Attributes, "Modifier", bIsModifier);
+			auto ModifierFunc = SmartParseAttribute<bool>(Attributes, "Modifier", "false");
 
 			return [=]()
 			{
-				Anim->BindCurve(CurveName, Prop, bIsModifier, *Prop);
+				Anim->BindCurve(CurveFunc(), Prop, ModifierFunc(), *Prop);
 			};
 		});
 
@@ -384,21 +380,19 @@ AProjectileBase::AProjectileBase()
 
 			if (FCollisionGeneratorBase* CollisionGenerator = dynamic_cast<FCollisionGeneratorBase*>(GetWComponent(Target)))
 			{
-				TArray<std::string> Filter;
-				ExtractAttribute(Attributes, "Filter", Filter);
-				if (Filter.size() == 0)
-				{
-					CollisionGenerator->mOnCollision.AddLambda([Event, this](WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage)
+				
+				auto FilterFunc = SmartParseAttribute<TArray<std::string>>(Attributes, "Filter", "[]");
+
+				CollisionGenerator->mOnCollision.AddLambda([=](WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage)
+					{
+						this->mImpactPoint_Internal = ImpactPoint;
+						TArray<std::string> Filter = std::move(FilterFunc());
+						if (Filter.size() == 0)
 						{
-							this->mImpactPoint_Internal = ImpactPoint;
 							Event->Dispatch();
-						});
-				}
-				else
-				{
-					CollisionGenerator->mOnCollision.AddLambda([Event, Filter, this](WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage)
+						}
+						else
 						{
-							this->mImpactPoint_Internal = ImpactPoint;
 							for (const std::string& Tag : Filter)
 							{
 								if (HittedComponent->HasTag(Tag, true))
@@ -407,8 +401,8 @@ AProjectileBase::AProjectileBase()
 									break;
 								}
 							}
-						});
-				}
+						}
+					});
 			}
 			else
 			{
