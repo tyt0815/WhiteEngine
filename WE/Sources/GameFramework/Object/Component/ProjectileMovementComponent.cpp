@@ -533,7 +533,7 @@ void WProjectileMovementComponent::GenerateWaypoints(WSceneComponent* Target)
 		XMVECTOR WpPos = VBase;
 		XMVECTOR VOffset = XMLoadFloat3(&Offset);
 
-		if (mWaypointSpace == "Direction")
+		if (mWaypointSpace != "World")
 		{
 			// 전방(x), 위(y), 우측(z) 기준으로 적용
 			WpPos += VForward * (XMVectorGetZ(VOffset) * Scale);
