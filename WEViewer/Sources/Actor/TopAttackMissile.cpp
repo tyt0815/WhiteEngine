@@ -13,8 +13,8 @@ ATopAttackMissile::ATopAttackMissile()
 	{
 		StaticMeshComp->SetupAttachment(GetRootComponent());
 		StaticMeshComp->SetStaticMesh(FStaticMeshManager::GetStaticMesh("SM_MetalCylinder"));
-		StaticMeshComp->SetLocalScale(XMFLOAT3(.1f, .2f, .1f));
-		StaticMeshComp->SetLocalRotation(XMFLOAT3(90, 0, 0));
+		StaticMeshComp->SetRelativeScale(XMFLOAT3(.1f, .2f, .1f));
+		StaticMeshComp->SetRelativeRotation(XMFLOAT3(90, 0, 0));
 	}
 
 	mProjectileMovementComponent = CreateComponent<WProjectileMovementComponent>()->GetWeakPtr<WProjectileMovementComponent>();

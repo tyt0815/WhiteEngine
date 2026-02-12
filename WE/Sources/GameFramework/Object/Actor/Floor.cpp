@@ -22,7 +22,7 @@ AFloor::AFloor()
 		BoxComp->SetExtent(XMFLOAT3(100, Height, 100));
 		BoxComp->SetMotionType(EMotionType::Static);
 		BoxComp->SetObjectChannel(EObjectChannel::EOC_WorldStatic);
-		BoxComp->SetLocalLocation(XMFLOAT3(0, -Height, 0));
+		BoxComp->SetRelativeLocation(XMFLOAT3(0, -Height, 0));
 	}
 }
 

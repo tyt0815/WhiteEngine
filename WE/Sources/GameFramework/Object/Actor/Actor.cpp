@@ -510,7 +510,7 @@ void AActor::SetActorTransform(FTransform Transform)
 {
 	if (auto Root = mRootComponent.lock())
 	{
-		Root->SetLocalTransform(Transform);
+		Root->SetRelativeTransform(Transform);
 	}
 }
 
@@ -622,17 +622,17 @@ void AActor::ApplyWComponentCommonAttribute(const WAttributesMap& Attributes, WS
 	const std::string Name = Attributes.at("Name");
 
 	ApplyAttribute<XMFLOAT3>(Attributes, "Loc", [&](const XMFLOAT3& v) {
-		Comp->SetLocalLocation(v);
+		Comp->SetRelativeLocation(v);
 		});
 
 	ApplyAttribute<XMFLOAT3>(Attributes, "Rot", [&](const XMFLOAT3& v) {
 		// 실수 방지: Rotation 전용 세터 호출
-		Comp->SetLocalRotation(v);
+		Comp->SetRelativeRotation(v);
 		});
 
 	ApplyAttribute<XMFLOAT3>(Attributes, "Scale", [&](const XMFLOAT3& v) {
 		// 실수 방지: Scale 전용 세터 호출
-		Comp->SetLocalScale(v);
+		Comp->SetRelativeScale(v);
 		});
 
 	ApplyAttribute<bool>(Attributes, "Activate", true, [&](const bool& v) {
@@ -662,17 +662,17 @@ void AActor::RegisterWComponentCommonFunction(const std::string Name, WSceneComp
 
 	RegisterWFunction(Name + ".GetRelativeLocation()", [Comp]()
 		{
-			return Comp->GetLocalLocation();
+			return Comp->GetRelativeLocation();
 		});
 
 	RegisterWFunction(Name + ".GetRelativeRotation()", [Comp]()
 		{
-			return Comp->GetLocalRotation();
+			return Comp->GetRelativeRotation();
 		});
 
 	RegisterWFunction(Name + ".GetRelativeScale()", [Comp]()
 		{
-			return Comp->GetLocalScale();
+			return Comp->GetRelativeScale();
 		});
 }
 

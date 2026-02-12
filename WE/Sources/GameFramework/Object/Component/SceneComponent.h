@@ -59,21 +59,21 @@ public:
 
 	void SetupAttachment(WSceneComponent* Parent);
 
-	void SetLocalRotation(DirectX::XMFLOAT3 Rotation);
+	void SetRelativeLocation(DirectX::XMFLOAT3 Location);
 
-	void SetLocalTransform(const FTransform& Transform);
+	void SetRelativeRotation(DirectX::XMFLOAT3 Rotation);
 
-	void SetLocalLocation(DirectX::XMFLOAT3 Location);
+	void SetRelativeScale(DirectX::XMFLOAT3 Scale);
 
-	void SetLocalScale(DirectX::XMFLOAT3 Scale);
-
-	void SetWorldTransform(FTransform Transform);
+	void SetRelativeTransform(const FTransform& Transform);
 
 	void SetWorldLocation(XMFLOAT3 Location);
 
 	void SetWorldRotation(XMFLOAT3 Rotation);
 
 	void SetWorldScale(XMFLOAT3 Scale);
+
+	void SetWorldTransform(FTransform Transform);
 
 	void PropagateWorldFloat4Dirty(bool bForce = false);
 
@@ -105,17 +105,17 @@ public:
 	{
 		return mTransform;
 	}
-	inline DirectX::XMFLOAT3 GetLocalLocation() const
+	inline DirectX::XMFLOAT3 GetRelativeLocation() const
 	{
 		return mTransform.Translation;
 	}
 
-	inline DirectX::XMFLOAT3 GetLocalRotation() const
+	inline DirectX::XMFLOAT3 GetRelativeRotation() const
 	{
 		return mTransform.Rotation;
 	}
 
-	inline DirectX::XMFLOAT3 GetLocalScale() const
+	inline DirectX::XMFLOAT3 GetRelativeScale() const
 	{
 		return mTransform.Scale;
 	}

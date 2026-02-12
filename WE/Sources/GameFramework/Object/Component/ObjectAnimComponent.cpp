@@ -280,25 +280,25 @@ void WObjectAnimComponent::Tick(float DeltaTime)
 			XMVECTOR vRotatedDeltaLoc = XMVector3Rotate(XMLoadFloat3(&dLoc), vCurrQuat);
 
 			// 위치 적용
-			XMFLOAT3 curLoc = GetLocalLocation();
+			XMFLOAT3 curLoc = GetRelativeLocation();
 			XMVECTOR vNewLoc = XMLoadFloat3(&curLoc) + vRotatedDeltaLoc;
 			XMFLOAT3 finalLoc;
 			XMStoreFloat3(&finalLoc, vNewLoc);
-			SetLocalLocation(finalLoc);
+			SetRelativeLocation(finalLoc);
 
 			// 회전 적용 (Euler 누적)
-			XMFLOAT3 curRot = GetLocalRotation();
+			XMFLOAT3 curRot = GetRelativeRotation();
 			XMVECTOR vNewRot = XMLoadFloat3(&curRot) + XMLoadFloat3(&dRot);
 			XMFLOAT3 finalRot;
 			XMStoreFloat3(&finalRot, vNewRot);
-			SetLocalRotation(finalRot);
+			SetRelativeRotation(finalRot);
 
 			// 스케일 적용
-			XMFLOAT3 curScale = GetLocalScale();
+			XMFLOAT3 curScale = GetRelativeScale();
 			XMVECTOR vNewScale = XMLoadFloat3(&curScale) + XMLoadFloat3(&dScale);
 			XMFLOAT3 finalScale;
 			XMStoreFloat3(&finalScale, vNewScale);
-			SetLocalScale(finalScale);
+			SetRelativeScale(finalScale);
 		}
 
 		else
@@ -310,9 +310,9 @@ void WObjectAnimComponent::Tick(float DeltaTime)
 			// 팁: 루트모션이 아닐 때는 이전 값과 섞지 않고 샘플링된 값을 그대로 사용하거나, 
 			// 플래그가 꺼진 축은 현재 컴포넌트의 값을 유지하도록 설계하는 것이 일반적입니다.
 
-			XMFLOAT3 finalLoc = GetLocalLocation();
-			XMFLOAT3 finalRot = GetLocalRotation();
-			XMFLOAT3 finalScale = GetLocalScale();
+			XMFLOAT3 finalLoc = GetRelativeLocation();
+			XMFLOAT3 finalRot = GetRelativeRotation();
+			XMFLOAT3 finalScale = GetRelativeScale();
 
 			// 위치 (Location) 샘플링 적용
 			if (mSamplingFlags & EAnimSampling::LocX) finalLoc.x = currT.Translation.x;
@@ -330,9 +330,9 @@ void WObjectAnimComponent::Tick(float DeltaTime)
 			if (mSamplingFlags & EAnimSampling::ScaleZ) finalScale.z = currT.Scale.z;
 
 			// 3. 최종 트랜스폼 적용 (절대값 덮어쓰기)
-			SetLocalLocation(finalLoc);
-			SetLocalRotation(finalRot);
-			SetLocalScale(finalScale);
+			SetRelativeLocation(finalLoc);
+			SetRelativeRotation(finalRot);
+			SetRelativeScale(finalScale);
 		}
 	}
 

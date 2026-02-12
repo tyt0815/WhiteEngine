@@ -95,7 +95,7 @@ void WSplineCollisionComponent::GenerateCollision()
 
 		WSceneComponent* Comp = Owner->CreateComponent<WSceneComponent>();
 		Comp->SetupAttachment(this);
-		Comp->SetLocalTransform(Transform);
+		Comp->SetRelativeTransform(Transform);
 
 		FCapsuleCollider CapsuleCollider;
 		CapsuleCollider.Comp = Comp;

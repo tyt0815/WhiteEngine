@@ -292,27 +292,27 @@ public:
 
 	__forceinline XMFLOAT3 GetActorLocation() const
 	{
-		return mRootComponent.lock()->GetLocalLocation();
+		return mRootComponent.lock()->GetRelativeLocation();
 	}
 
 	__forceinline void SetActorLocation(XMFLOAT3 Location)
 	{
-		mRootComponent.lock()->SetLocalLocation(Location);
+		mRootComponent.lock()->SetRelativeLocation(Location);
 	}
 
 	__forceinline XMFLOAT3 GetActorRotation() const
 	{
-		return mRootComponent.lock()->GetLocalRotation();
+		return mRootComponent.lock()->GetRelativeRotation();
 	}
 
 	__forceinline void SetActorRotation(XMFLOAT3 Rotation)
 	{
-		mRootComponent.lock()->SetLocalRotation(Rotation);
+		mRootComponent.lock()->SetRelativeRotation(Rotation);
 	}
 
 	__forceinline XMFLOAT3 GetActorScale() const
 	{
-		return mRootComponent.lock()->GetLocalScale();
+		return mRootComponent.lock()->GetRelativeScale();
 	}
 
 	__forceinline XMMATRIX GetWorldMatrix() const
@@ -322,7 +322,7 @@ public:
 
 	__forceinline void SetActorScale(XMFLOAT3 Scale)
 	{
-		mRootComponent.lock()->SetLocalScale(Scale);
+		mRootComponent.lock()->SetRelativeScale(Scale);
 	}
 
 	__forceinline bool IsPendingKill() const

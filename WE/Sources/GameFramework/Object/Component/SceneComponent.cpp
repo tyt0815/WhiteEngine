@@ -235,7 +235,7 @@ FTransform WSceneComponent::GetWorldTransform()
 	return Transform;
 }
 
-void WSceneComponent::SetLocalRotation(DirectX::XMFLOAT3 Rotation)
+void WSceneComponent::SetRelativeRotation(DirectX::XMFLOAT3 Rotation)
 {
 	mTransform.Rotation = Rotation;
 	mTransform.Rotation.x = fmodf(mTransform.Rotation.x, 360.0f);
@@ -245,21 +245,21 @@ void WSceneComponent::SetLocalRotation(DirectX::XMFLOAT3 Rotation)
 	OnSetTransform();
 }
 
-void WSceneComponent::SetLocalTransform(const FTransform& Transform)
+void WSceneComponent::SetRelativeTransform(const FTransform& Transform)
 {
 	mTransform = Transform;
 
 	OnSetTransform();
 }
 
-void WSceneComponent::SetLocalLocation(DirectX::XMFLOAT3 Location)
+void WSceneComponent::SetRelativeLocation(DirectX::XMFLOAT3 Location)
 {
 	mTransform.Translation = Location;
 
 	OnSetTransform();
 }
 
-void WSceneComponent::SetLocalScale(DirectX::XMFLOAT3 Scale)
+void WSceneComponent::SetRelativeScale(DirectX::XMFLOAT3 Scale)
 {
 	mTransform.Scale = Scale;
 
@@ -283,11 +283,11 @@ void WSceneComponent::SetWorldTransform(FTransform Transform)
 		Transform.Rotation = FDXMath::QuaternionToEuler(Quat);
 		XMStoreFloat3(&Transform.Scale, S);
 
-		SetLocalTransform(Transform);
+		SetRelativeTransform(Transform);
 	}
 	else
 	{
-		SetLocalTransform(Transform);
+		SetRelativeTransform(Transform);
 	}
 }
 
