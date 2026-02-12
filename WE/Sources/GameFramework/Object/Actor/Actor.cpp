@@ -220,6 +220,67 @@ AActor::AActor():
 			};
 		});
 
+	RegisterWActionFactory("SetWorldLocation", [this](auto&& Attributes)
+		{
+			const std::string TargetName = Attributes.at("Target");
+			WSceneComponent* TargetComp = GetWComponent<WSceneComponent>(TargetName);
+			auto LocFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Loc", "{0, 0, 0}");
+			return [TargetComp, LocFunc]()
+			{
+				TargetComp->SetWorldLocation(LocFunc());
+			};
+		});
+	RegisterWActionFactory("SetRelativeLocation", [this](auto&& Attributes)
+		{
+			const std::string TargetName = Attributes.at("Target");
+			WSceneComponent* TargetComp = GetWComponent<WSceneComponent>(TargetName);
+			auto LocFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Loc", "{0, 0, 0}");
+			return [TargetComp, LocFunc]()
+			{
+				TargetComp->SetRelativeLocation(LocFunc());
+			};
+		});
+	RegisterWActionFactory("SetWorldRotation", [this](auto&& Attributes)
+		{
+			const std::string TargetName = Attributes.at("Target");
+			WSceneComponent* TargetComp = GetWComponent<WSceneComponent>(TargetName);
+			auto RotFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Rot", "{0, 0, 0}");
+			return [TargetComp, RotFunc]()
+			{
+				TargetComp->SetWorldRotation(RotFunc());
+			};
+		});
+	RegisterWActionFactory("SetRelativeRotation", [this](auto&& Attributes)
+		{
+			const std::string TargetName = Attributes.at("Target");
+			WSceneComponent* TargetComp = GetWComponent<WSceneComponent>(TargetName);
+			auto RotFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Rot", "{0, 0, 0}");
+			return [TargetComp, RotFunc]()
+			{
+				TargetComp->SetRelativeRotation(RotFunc());
+			};
+		});
+	RegisterWActionFactory("SetWorldScale", [this](auto&& Attributes)
+		{
+			const std::string TargetName = Attributes.at("Target");
+			WSceneComponent* TargetComp = GetWComponent<WSceneComponent>(TargetName);
+			auto ScaleFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Scale", "{1, 1, 1}");
+			return [TargetComp, ScaleFunc]()
+			{
+				TargetComp->SetWorldScale(ScaleFunc());
+			};
+		});
+	RegisterWActionFactory("SetRelativeScale", [this](auto&& Attributes)
+		{
+			const std::string TargetName = Attributes.at("Target");
+			WSceneComponent* TargetComp = GetWComponent<WSceneComponent>(TargetName);
+			auto ScaleFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Scale", "{1, 1, 1}");
+			return [TargetComp, ScaleFunc]()
+			{
+				TargetComp->SetRelativeScale(ScaleFunc());
+			};
+		});
+
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// WAction End
 	////////////////////////////////////////////////////////////////////////////////////////////////

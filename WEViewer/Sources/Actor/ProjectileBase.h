@@ -29,6 +29,7 @@ private:
 	TArray<TSharedPtr<WEvent>> mOnLockonEvents;
 	TArray<TSharedPtr<WEvent>> mOnBounceEvents;
 	TArray<TSharedPtr<WEvent>> mOnAnimStopEvents;
+	TArray<TSharedPtr<WEvent>> mOnHomingFailEvents;
 };
 
 REGISTER_ACTOR(AProjectileBase);

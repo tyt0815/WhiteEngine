@@ -3,15 +3,7 @@
 #include "Physics/HitResult.h"
 #include "SceneComponent.h"
 
-DECLARE_MULTICAST_DELEGATE(FOnLockon);
-DECLARE_MULTICAST_DELEGATE(FOnBounce);
-
-enum class EHomingStrategy : uint8_t
-{
-	Nearest,    // 가장 가까운 대상
-	Angle,       // 정면 각도가 가장 일치하는 대상
-	None,
-};
+DECLARE_MULTICAST_DELEGATE(FProjectileMovementEventDelegate);
 
 class WProjectileMovementComponent : public WMovementComponent
 {
@@ -32,9 +24,11 @@ public:
 
 	void BindCollisionEvent(class FCollisionGeneratorBase* CollisionGenerator);
 
-	FOnLockon mOnLockon;
+	FProjectileMovementEventDelegate mOnLockon;
 
-	FOnBounce mOnBounce;
+	FProjectileMovementEventDelegate mOnBounce;
+
+	FProjectileMovementEventDelegate mOnHomingFail;
 
 protected:
 	XMFLOAT3 mInitialVelocity = { 0, 0, 0 };
@@ -94,7 +88,7 @@ private:
 	float mHomingAngle = 45.0f;     // Angle 전략용 (Degree)
 	float mRetargetTick = 0.0f;    // 타겟 갱신 주기
 	float mRetargetTimer = 0.0f;   // 타이머 카운트
-	EHomingStrategy mHomingStrategy = EHomingStrategy::None;
+	std::string mHomingStrategy = "None";
 
 	float mHomingStopRange = 0.0f;     // 0이면 무한 호밍
 	bool mbForgetPreviousTarget = true;

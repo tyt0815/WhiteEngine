@@ -161,11 +161,10 @@ AProjectileBase::AProjectileBase()
 				});
 
 			// 3. 호밍 (Homing) 속성 적용 및 등록
-			ApplyAttribute<std::string>(Attributes, "HomingStrategy", [=](auto&& v) {
-				if (v == "Nearest") Comp->mHomingStrategy = EHomingStrategy::Nearest;
-				else if (v == "Angle") Comp->mHomingStrategy = EHomingStrategy::Angle;
-				else Comp->mHomingStrategy = EHomingStrategy::None;
+			ApplyAttribute<std::string>(Attributes, "HomingStrategy", "None", [=](auto&& v) {
+				Comp->mHomingStrategy = v;
 				});
+			RegisterWProperty(Name + ".HomingStrategy", &Comp->mHomingStrategy);
 
 			ApplyAttribute<std::set<std::string>>(Attributes, "HomingTags", [=](auto&& v) { Comp->mHomingTargetTags = v; });
 			RegisterWProperty(Name + ".HomingTags", &Comp->mHomingTargetTags);
@@ -445,6 +444,17 @@ AProjectileBase::AProjectileBase()
 			WEvent* Event = GenerateWEvent(mOnAnimStopEvents);
 
 			Comp->mOnStop.AddLambda([Event]() { Event->Dispatch(); });
+
+			return Event;
+		});
+
+	RegisterSystemEvent("OnHomingFail", [this](auto&& Attributes)
+		{
+			const std::string& TargetName = Attributes.at("Target");
+			WProjectileMovementComponent* Comp = GetWComponent<WProjectileMovementComponent>(TargetName);
+			WEvent* Event = GenerateWEvent(mOnHomingFailEvents);
+
+			Comp->mOnHomingFail.AddLambda([Event]() { Event->Dispatch(); });
 
 			return Event;
 		});

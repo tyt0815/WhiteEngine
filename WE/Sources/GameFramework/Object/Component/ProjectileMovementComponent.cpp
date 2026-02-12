@@ -351,15 +351,21 @@ void WProjectileMovementComponent::UpdateHoming(float DeltaSecond)
 			}
 		}
 	}
-	else if (mHomingStrategy != EHomingStrategy::None)// 3. 새로운 타겟 탐색
+	else if (mHomingStrategy != "None")// 3. 새로운 타겟 탐색
 	{
+		bool bHomingFail = true;
 		if (AActor* NewTarget = FindBestHomingTarget())
 		{
 			// 이전에 방문했던 타겟인지 체크
 			if (mVisitedTargets.find(NewTarget) == mVisitedTargets.end())
 			{
+				bHomingFail = false;
 				SetHomingTarget(NewTarget->GetRootComponent());
 			}
+		}
+		if (bHomingFail)
+		{
+			mOnHomingFail.Broadcast();
 		}
 	}
 }
@@ -374,11 +380,11 @@ AActor* WProjectileMovementComponent::FindBestHomingTarget()
 	// 1. 주변 액터 수집
 	GetWorld()->SphereOverlap(GetWorldLocation(), mHomingRange, Ignore, Hits, false);
 
-	if (mHomingStrategy == EHomingStrategy::Nearest)
+	if (mHomingStrategy == "Nearest")
 	{
 		return FindHomingTarget_Nearest(Hits);
 	}
-	else if (mHomingStrategy == EHomingStrategy::Angle)
+	else if (mHomingStrategy == "Angle")
 	{
 		return FindHomingTarget_Angle(Hits);
 	}
