@@ -580,6 +580,12 @@
     <ClInclude Include="Sources\GameFramework\Interface\CollisionGenerator.h">
       <Filter>Sources\GameFramework\Interface</Filter>
     </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Parser.h">
+      <Filter>Sources\GameFramework\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\WEngineTypes.h">
+      <Filter>Sources\GameFramework\Object</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\BillboardCommon.hlsli">

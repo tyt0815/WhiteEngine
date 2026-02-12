@@ -2,6 +2,7 @@
 #include "Utility/Memory.h"
 #include "Utility/Delegate.h"
 #include "Utility/Container.h"
+#include "Utility/Debug.h"
 #include <functional>
 #include <set>
 

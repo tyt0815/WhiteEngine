@@ -51,9 +51,25 @@ FGameApplication::~FGameApplication()
 {
 
 }
-
+#include <iostream>
 void FGameApplication::Initialize()
 {
+	if (AllocConsole())
+	{
+		// 2. stdout(출력), stderr(에러), stdin(입력)을 새 콘솔 창(CONOUT$, CONIN$)으로 연결
+		FILE* fp;
+		freopen_s(&fp, "CONOUT$", "w", stdout);
+		freopen_s(&fp, "CONOUT$", "w", stderr);
+		freopen_s(&fp, "CONIN$", "r", stdin);
+
+		// 3. iostream 동기화 (cout이 정상 작동하도록 함)
+		std::ios::sync_with_stdio();
+
+		// 3. [중요] 와이드 문자(wcout)를 위한 로케일 및 모드 설정
+		// 이 부분이 없으면 wcout에 wstring을 넣어도 출력되지 않습니다.
+		_wsetlocale(LC_ALL, L"korean");
+	}
+
 	timeBeginPeriod(1); // 타이머 해상도를 1ms로 설정
 
 	// 프로그램 종료 시

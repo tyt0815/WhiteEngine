@@ -5,6 +5,7 @@
 #include "Component/ObjectAnimComponent.h"
 #include "World/World.h"
 #include "Asset/BlueprintAsset.h"
+#include "Parser.h"
 
 unsigned int g_ActorCounter = 0;
 
@@ -89,12 +90,12 @@ AActor::AActor():
 		std::string RawValue = Attributes.at("Value");
 
 		auto it = mWPropertiesMap.find(Name);
-		WVariantValue ParsedValue;
+		WEvalValue ParsedValue;
 
 		std::visit([&](auto&& Arg) {
 			using T = std::remove_pointer_t<std::decay_t<decltype(Arg)>>;
 
-			ParsedValue = WPropertyTrait<T>::Parse(RawValue);
+			ParsedValue = WValueParser<T>::Parse(RawValue);
 			}, it->second);
 
 		return [this, Name, ParsedValue]() {
@@ -120,9 +121,9 @@ AActor::AActor():
 		{
 			std::string Name = Attributes.at("Name");
 			
-			auto LocFunc = SmartParseAttribute<XMFLOAT3>(Attributes, "Loc", "(0 0 0)");
-			auto RotFunc = SmartParseAttribute<XMFLOAT3>(Attributes, "Rot", "(0 0 0)");
-			auto ScaleFunc = SmartParseAttribute<XMFLOAT3>(Attributes, "Scale", "(1 1 1)");
+			auto LocFunc = WExpressionParser::Parse<XMFLOAT3>(this, Attributes, "Loc", "Root.GetWorldLocation()");
+			auto RotFunc = WExpressionParser::Parse<XMFLOAT3>(this, Attributes, "Rot", "Root.GetWorldRotation()");
+			auto ScaleFunc = WExpressionParser::Parse<XMFLOAT3>(this, Attributes, "Scale", "Root.GetWorldScale()");
 
 			return [=]()
 			{
@@ -144,7 +145,7 @@ AActor::AActor():
 			const std::string& Target = Attributes.at("Target");
 			WSceneComponent* TargetComp = GetWComponent(Target);
 
-			auto WithChildFunc = SmartParseAttribute<bool>(Attributes, "WithChild", "true");
+			auto WithChildFunc = WExpressionParser::Parse<bool>(this, Attributes, "WithChild", "true");
 			
 			return [=]() {
 				if (WithChildFunc())
@@ -169,7 +170,7 @@ AActor::AActor():
 			const std::string& Target = Attributes.at("Target");
 			WSceneComponent* TargetComp = GetWComponent(Target);
 
-			auto WithChildFunc = SmartParseAttribute<bool>(Attributes, "WithChild", "true");
+			auto WithChildFunc = WExpressionParser::Parse<bool>(this, Attributes, "WithChild", "true");
 
 			return [=]() {
 				if (WithChildFunc())
@@ -190,9 +191,9 @@ AActor::AActor():
 			WSceneComponent* Target = GetWComponent(TargetName);
 			WSplineComponent* Spline = GetWComponent<WSplineComponent>(SplineName);
 
-			auto DurationFunc = SmartParseAttribute<float>(Attributes,"Duration", "1");
-			auto UseRotationFunc = SmartParseAttribute<bool>(Attributes, "UseRotation", "true");
-			auto LoopFunc = SmartParseAttribute<bool>(Attributes, "Loop", "false");
+			auto DurationFunc = WExpressionParser::Parse<float>(this, Attributes,"Duration", "1");
+			auto UseRotationFunc = WExpressionParser::Parse<bool>(this, Attributes, "UseRotation", "true");
+			auto LoopFunc = WExpressionParser::Parse<bool>(this, Attributes, "Loop", "false");
 
 			return [=]() 
 			{
@@ -206,26 +207,23 @@ AActor::AActor():
 			};
 		});
 
-	//RegisterWActionFactory("CreateProperty", [this](auto&& Attributes)
-	//	{
-	//		const std::string& Name = Attributes.at("Name");
-	//		const std::string& Value = Attributes.at("Value");
-	//		const std::string& Type = Attributes.at("")
-
-	//		mCustomWProperies
-	//		mWStates.push_back(MakeUnique<std::string>(Value));
-	//		std::string* StatePtr = mWStates.back().get();
-	//		return [this, Name, StatePtr]() { RegisterWProperty(Name, StatePtr); };
-	//	});
-
-	//RegisterWActionFactory("CreateState", [this](auto&& Attributes)
-	//	{
-	//		const std::string& Name = Attributes.at("Name");
-	//		const std::string& Value = Attributes.at("Value");
-	//		mWStates.push_back(MakeUnique<std::string>(Value));
-	//		std::string* StatePtr = mWStates.back().get();
-	//		return [this, Name, StatePtr]() { RegisterWProperty(Name, StatePtr); };
-	//	});
+	RegisterWActionFactory("Branch", [this](auto&& Attributes)
+		{
+			auto bConditionFunc = WExpressionParser::Parse<bool>(this, Attributes, "Condition", "true");
+			const std::string OnTrueEventName = Attributes.at("OnTrue");
+			const std::string OnFalseEventName = Attributes.at("OnFalse");
+			return [=]()
+			{
+				if (bConditionFunc())
+				{
+					this->mCustomEventsMap[OnTrueEventName]->Dispatch();
+				}
+				else
+				{
+					this->mCustomEventsMap[OnFalseEventName]->Dispatch();
+				}
+			};
+		});
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// WAction End
@@ -560,9 +558,15 @@ void AActor::LoadBlueprint(const FBlueprintAsset* Blueprint)
 
 	WSceneComponent* RootComp = GetRootComponent();
 
-	if (Blueprint->mAttachedComponents[0]->Attributes.at("Name") == "Root")
+	auto&& AttachedComp = Blueprint->mAttachedComponents;
+	if (AttachedComp[0]->Attributes.at("Name") == "Root")
 	{
 		LoadWComponent_Internal(Blueprint->mAttachedComponents[0].get(), nullptr);
+
+		if (AttachedComp.size() > 1)
+		{
+			std::wcout << L"Root 컴포넌트 지정시, Root의 하위에 있지 않은 컴포넌트는 무시됩니다." << std::endl;
+		}
 	}
 	else
 	{
@@ -571,10 +575,17 @@ void AActor::LoadBlueprint(const FBlueprintAsset* Blueprint)
 			LoadWComponent_Internal(Comp.get(), RootComp);
 		}
 
-		RegisterWComponent("Root", GetRootComponent());
+		WSceneComponent* Root = GetRootComponent();
+		RegisterWComponent("Root", Root);
+		RegisterWComponentCommonFunction("Root", Root);
 	}
 
 	LoadWEvents(Blueprint->mEvents, Blueprint->mCustomEvents);
+}
+
+WEvalValue AActor::ExecuteWFunction(const std::string& Name)
+{
+	return mWFunctionsMap[Name]();
 }
 
 void AActor::LoadWConfigs(const std::unordered_map<std::string, WAttributesMap>& Configs)
@@ -611,9 +622,8 @@ void AActor::LoadWEvent(AActor::WEvent* Event, const TArray<TSharedPtr<FBlueprin
 	}
 }
 
-void AActor::ApplyWComponentCommonAttribute(struct FBlueprintComponentNode* CompNode, WSceneComponent* Comp)
+void AActor::ApplyWComponentCommonAttribute(const WAttributesMap& Attributes, WSceneComponent* Comp)
 {
-	auto&& Attributes = CompNode->Attributes;
 	const std::string Name = Attributes.at("Name");
 
 	ApplyAttribute<XMFLOAT3>(Attributes, "Loc", [&](const XMFLOAT3& v) {
@@ -636,20 +646,38 @@ void AActor::ApplyWComponentCommonAttribute(struct FBlueprintComponentNode* Comp
 			Comp->Deactivate();
 		}
 		});
+}
 
-	RegisterWFunction(Name + ".Location", [Comp]()
+void AActor::RegisterWComponentCommonFunction(const std::string Name, WSceneComponent* Comp)
+{
+	RegisterWFunction(Name + ".GetWorldLocation()", [Comp]()
 		{
 			return Comp->GetWorldLocation();
 		});
 
-	RegisterWFunction(Name + ".Rotation", [Comp]()
+	RegisterWFunction(Name + ".GetWorldRotation()", [Comp]()
 		{
 			return Comp->GetWorldRotation();
 		});
 
-	RegisterWFunction(Name + ".Scale", [Comp]()
+	RegisterWFunction(Name + ".GetWorldScale()", [Comp]()
 		{
 			return Comp->GetWorldScale();
+		});
+
+	RegisterWFunction(Name + ".GetRelativeLocation()", [Comp]()
+		{
+			return Comp->GetLocalLocation();
+		});
+
+	RegisterWFunction(Name + ".GetRelativeRotation()", [Comp]()
+		{
+			return Comp->GetLocalRotation();
+		});
+
+	RegisterWFunction(Name + ".GetRelativeScale()", [Comp]()
+		{
+			return Comp->GetLocalScale();
 		});
 }
 
@@ -704,9 +732,9 @@ AActor::WEvent* AActor::GenerateWEvent(TArray<TSharedPtr<WEvent>>& Container)
 	return Container.back().get();
 }
 
-void AActor::SetWProperty(const std::string& Name, WVariantValue Value)
+void AActor::SetWProperty(const std::string& Name, WEvalValue Value)
 {
-	WProperty Property = mWPropertiesMap[Name];
+	WSourceRef Property = mWPropertiesMap[Name];
 
 	// 실행 시점에는 단순 값 대입만 발생 (파싱 X, 매우 빠름)
 	std::visit([](auto&& TargetPtr, auto&& SourceValue) {
@@ -735,7 +763,9 @@ void AActor::LoadWComponent_Internal(FBlueprintComponentNode* CompNode, WSceneCo
 	}
 
 	// SceneComponent 공용 속성 처리
-	ApplyWComponentCommonAttribute(CompNode, Comp);
+	const std::string& Name = CompNode->Attributes.at("Name");
+	ApplyWComponentCommonAttribute(CompNode->Attributes, Comp);
+	RegisterWComponentCommonFunction(Name, Comp);
 
 	if (CompNode->Attributes.count("Name") > 0) RegisterWComponent(CompNode->Attributes["Name"], Comp);
 	

@@ -10,6 +10,7 @@
 #include "Component/BoxCollisionComponent.h"
 #include "Component/CapsuleCollisionComponent.h"
 #include "Component/SphereCollisionComponent.h"
+#include "Parser.h"
 
 AProjectileBase::AProjectileBase()
 {
@@ -235,7 +236,7 @@ AProjectileBase::AProjectileBase()
 	RegisterWActionFactory("Particle", [this](const WAttributesMap& Attributes) {
 		std::string Name = Attributes.at("Asset");
 
-		auto LocFunc = SmartParseAttribute<XMFLOAT3>(Attributes, "Loc", "(0 0 0)");
+		auto LocFunc = WExpressionParser::Parse<XMFLOAT3>(this, Attributes, "Loc", "Root.GetWorldLocation()");
 		std::function<void()> FactoryFunc = [=]() { this->PlayParticle(LocFunc(), Name); };
 
 		return FactoryFunc;
@@ -247,9 +248,9 @@ AProjectileBase::AProjectileBase()
 		WObjectAnimComponent* Anim = dynamic_cast<WObjectAnimComponent*>(GetWComponent(Target));
 		assert(Anim);
 
-		auto PlayRateFunc = SmartParseAttribute<float>(Attributes, "PlayRate", "1");
-		auto LoopFunc = SmartParseAttribute<bool>(Attributes, "Loop", "false");
-		auto RootMotionFunc = SmartParseAttribute<bool>(Attributes, "RootMotion", "false");
+		auto PlayRateFunc = WExpressionParser::Parse<float>(this, Attributes, "PlayRate", "1");
+		auto LoopFunc = WExpressionParser::Parse<bool>(this, Attributes, "Loop", "false");
+		auto RootMotionFunc = WExpressionParser::Parse<bool>(this, Attributes, "RootMotion", "false");
 
 		uint16_t Flags = 0;
 		std::string LocFlag;
@@ -323,11 +324,11 @@ AProjectileBase::AProjectileBase()
 			assert(Anim);
 
 			const std::string& PropertyName = Attributes.at("Property");
-			float* Prop = std::get<float*>(GetWProperty(PropertyName));
+			float* Prop = std::get<float*>(GetWPropertyPtr(PropertyName));
 
-			auto CurveFunc = SmartParseAttribute<std::string>(Attributes, "Curve", "");
+			auto CurveFunc = WExpressionParser::Parse<std::string>(this, Attributes, "Curve", "");
 
-			auto ModifierFunc = SmartParseAttribute<bool>(Attributes, "Modifier", "false");
+			auto ModifierFunc = WExpressionParser::Parse<bool>(this, Attributes, "Modifier", "false");
 
 			return [=]()
 			{
@@ -381,7 +382,7 @@ AProjectileBase::AProjectileBase()
 			if (FCollisionGeneratorBase* CollisionGenerator = dynamic_cast<FCollisionGeneratorBase*>(GetWComponent(Target)))
 			{
 				
-				auto FilterFunc = SmartParseAttribute<TArray<std::string>>(Attributes, "Filter", "[]");
+				auto FilterFunc = WExpressionParser::Parse<TArray<std::string>>(this, Attributes, "Filter", "[]");
 
 				CollisionGenerator->mOnCollision.AddLambda([=](WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage)
 					{
@@ -466,11 +467,6 @@ void AProjectileBase::BeginPlay()
 void AProjectileBase::LoadWConfigs(const std::unordered_map<std::string, WAttributesMap>& Configs)
 {
 	Super::LoadWConfigs(Configs);
-}
-
-void AProjectileBase::ApplyWComponentCommonAttribute(FBlueprintComponentNode* CompNode, WSceneComponent* Comp)
-{
-	Super::ApplyWComponentCommonAttribute(CompNode, Comp);
 }
 
 void DrawExplosion(XMFLOAT3 Location, float Radius, XMFLOAT4 Color, float Life)

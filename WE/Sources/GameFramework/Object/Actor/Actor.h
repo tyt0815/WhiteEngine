@@ -8,9 +8,11 @@
 #include "Utility/Container.h"
 #include "Physics/PhysicsCore.h"
 #include "ActorFactory.h"
+#include "WEngineTypes.h"
 #include <d3d12.h>
 #include <memory>
 #include <variant>
+#include <sstream>
 
 extern const int gFrameResourcesNum;
 
@@ -25,129 +27,6 @@ void ShowMessageBox(const std::wstring& Content);
 void ReportParseError(const std::string& Type, const std::string& WrongValue);
 
 WWorld* GetWorld();
-
-template<typename T> struct WPropertyTrait;
-template<> struct WPropertyTrait<bool>
-{
-	static bool Parse(const std::string& String)
-	{
-		std::string LowerStr = String;
-		std::transform(LowerStr.begin(), LowerStr.end(), LowerStr.begin(), ::tolower);
-
-		if (LowerStr == "true" || LowerStr == "1") return true;
-		if (LowerStr == "false" || LowerStr == "0") return false;
-		ReportParseError("Bool (true/false/1/0)", String);
-		return false;
-	}
-};
-template<> struct WPropertyTrait<int>
-{
-	static int Parse(const std::string& String)
-	{
-		try {
-			return std::stoi(String);
-		}
-		catch (...) {
-			ReportParseError("Int", String);
-			return 0;
-		}
-	}
-};
-template<> struct WPropertyTrait<float>
-{
-	static float Parse(const std::string& String)
-	{
-		try {
-			return std::stof(String);
-		}
-		catch (...) {
-			ReportParseError("Float", String);
-			return 0.0f;
-		}
-	}
-};
-template<> struct WPropertyTrait<XMFLOAT3>
-{
-	static XMFLOAT3 Parse(const std::string& String)
-	{
-		XMFLOAT3 Float3 = { 0.f, 0.f, 0.f };
-
-		int Result = sscanf_s(String.c_str(), "(%f %f %f)", &Float3.x, &Float3.y, &Float3.z);
-
-		if (Result < 3)
-		{
-			ReportParseError("Float3 (x y z)", String);
-		}
-		return Float3;
-	}
-};
-template<> struct WPropertyTrait<std::string>
-{
-	static std::string Parse(const std::string& String)
-	{
-		return String;
-	}
-};
-
-template<typename T>
-struct WPropertyTrait<std::vector<T>>
-{
-	static std::vector<T> Parse(const std::string& String)
-	{
-		std::vector<T> Result;
-		if (String.empty()) return Result;
-
-		// 1. 전처리: 대괄호 [ ] 제거
-		std::string CleanStr = String;
-		CleanStr.erase(std::remove(CleanStr.begin(), CleanStr.end(), '['), CleanStr.end());
-		CleanStr.erase(std::remove(CleanStr.begin(), CleanStr.end(), ']'), CleanStr.end());
-
-		// 2. 쉼표(,)를 기준으로 토큰 분리
-		std::stringstream ss(CleanStr);
-		std::string Token;
-		while (std::getline(ss, Token, ','))
-		{
-			// 앞뒤 공백 제거 (Trim) - " 10 20 30" 방지
-			Token.erase(0, Token.find_first_not_of(" "));
-			Token.erase(Token.find_last_not_of(" ") + 1);
-
-			if (!Token.empty())
-			{
-				Result.push_back(WPropertyTrait<T>::Parse(Token));
-			}
-		}
-		return Result;
-	}
-};
-
-template<typename T>
-struct WPropertyTrait<std::set<T>>
-{
-	static std::set<T> Parse(const std::string& String)
-	{
-		std::set<T> Result;
-		if (String.empty()) return Result;
-
-		std::string CleanStr = String;
-		CleanStr.erase(std::remove(CleanStr.begin(), CleanStr.end(), '['), CleanStr.end());
-		CleanStr.erase(std::remove(CleanStr.begin(), CleanStr.end(), ']'), CleanStr.end());
-
-		std::stringstream ss(CleanStr);
-		std::string Token;
-		while (std::getline(ss, Token, ','))
-		{
-			Token.erase(0, Token.find_first_not_of(" "));
-			size_t last = Token.find_last_not_of(" ");
-			if (last != std::string::npos) Token.erase(last + 1);
-
-			if (!Token.empty())
-			{
-				Result.insert(WPropertyTrait<T>::Parse(Token));
-			}
-		}
-		return Result;
-	}
-};
 
 class AActor : public WObject
 {
@@ -228,11 +107,9 @@ public:
 	using WAction = std::function<void()>;
 	using WActionFactoryFunc = std::function<WAction(const WAttributesMap&)>;
 
-	using WProperty = std::variant		<bool*,	int*,	float*,	XMFLOAT3*,	std::string*,	TArray<std::string>*,	std::set<std::string>*,	TArray<XMFLOAT3>*>;
-	using WVariantValue = std::variant	<bool,	int,	float,	XMFLOAT3,	std::string,	TArray<std::string>,	std::set<std::string>,	TArray<XMFLOAT3>>;
-	using WPropertiesMap = std::unordered_map<std::string, WProperty>;
+	using WPropertiesMap = std::unordered_map<std::string, WSourceRef>;
 
-	using WFunction = std::function<WVariantValue()>;
+	using WFunction = std::function<WEvalValue()>;
 
 	class WEvent 
 	{
@@ -251,12 +128,40 @@ public:
 	};
 	using WEventLoader = std::function<WEvent*(const WAttributesMap&)>;
 
+	WEvalValue ExecuteWFunction(const std::string& Name);
+
+	template<typename T>
+	T ExecuteWFunction(const std::string& FullName)
+	{
+		auto it = mWFunctionsMap.find(FullName);
+
+		if (it != mWFunctionsMap.end())
+		{
+			try 
+			{
+				// 실행 후 T 타입으로 형변환하여 반환
+				return std::get<T>(it->second());
+			}
+			catch (const std::bad_variant_access&) {
+				Log("Return Type Mismatch for: " + FullName);
+			}
+		}
+		else
+		{
+			Log("Function Key Not Found in Map: " + FullName);
+		}
+
+		return T{};
+	}
+
 protected:
 	virtual void LoadWConfigs(const std::unordered_map<std::string, WAttributesMap>& Configs);
 
 	void LoadWEvent(AActor::WEvent* Event, const TArray<TSharedPtr<FBlueprintActionNode>>& Actions);
 
-	virtual void ApplyWComponentCommonAttribute(struct FBlueprintComponentNode* CompNode, WSceneComponent* Comp);
+	virtual void ApplyWComponentCommonAttribute(const WAttributesMap& Attributes, WSceneComponent* Comp);
+
+	void RegisterWComponentCommonFunction(const std::string Name, WSceneComponent* Comp);
 
 	void RegisterWComponentFactory(const std::string& Type, WComponentFactory Lambda);
 
@@ -267,46 +172,6 @@ protected:
 	void RegisterSystemEvent(const std::string& Name, WEventLoader Loader);
 
 	void RegisterWFunction(const std::string& Name, WFunction Lambda);
-
-	template<typename T>
-	std::function<T()> SmartParseAttribute(const WAttributesMap& Attributes, const std::string& Name, const std::string& Default)
-	{
-		std::function<T()> Result;
-
-		auto Iter = Attributes.find(Name);
-		const std::string* Attr;
-		if (Iter == Attributes.end())
-		{
-			Attr = &Default;
-		}
-		else
-		{
-			Attr = &Iter->second;
-		}
-
-		// 함수 호출
-		if (Attr->at(0) == '$')
-		{
-			WFunction Func = mWFunctionsMap[Attr->substr(1)];
-			Result = [Func]() { return std::get<T>(Func()); };
-		}
-
-		// 프로퍼티 호출
-		else if (Attr->at(0) == '*')
-		{
-			T* Prop = std::get<T*>(GetWProperty(Attr->substr(1)));
-			Result = [Prop]() { return *Prop; };
-		}
-
-		// 값
-		else
-		{
-			T Value = WPropertyTrait<T>::Parse(*Attr);
-			Result = [Value]() {return Value; };
-		}
-
-		return Result;
-	}
 
 	template<typename T>
 	void RegisterWProperty(const std::string& Name, T* Property)
@@ -324,7 +189,7 @@ protected:
 
 	WEvent* GenerateWEvent(std::vector<TSharedPtr<WEvent>>& Container);
 
-	void SetWProperty(const std::string& Name, WVariantValue Value);
+	void SetWProperty(const std::string& Name, WEvalValue Value);
 
 private:
 	void LoadWComponent_Internal(struct FBlueprintComponentNode* Comp, WSceneComponent* Parent);
@@ -347,7 +212,7 @@ private:
 
 	std::unordered_map<std::string, WFunction> mWFunctionsMap;
 
-	TArray<TUniquePtr<WVariantValue>> mCustomWProperies;
+	TArray<TUniquePtr<WEvalValue>> mCustomWProperies;
 
 	WPropertiesMap mWPropertiesMap;
 
@@ -378,7 +243,7 @@ public:
 		return GetWComponent<WSceneComponent>(Name);
 	}
 
-	__forceinline WProperty GetWProperty(const std::string& Name) const
+	__forceinline WSourceRef GetWPropertyPtr(const std::string& Name) const
 	{
 		return mWPropertiesMap.at(Name);
 	}
@@ -514,41 +379,3 @@ inline T* AActor::GetComponent()
 }
 
 REGISTER_ACTOR(AActor);
-
-template <typename T>
-bool ExtractAttribute(const std::unordered_map<std::string, std::string>& Attrs, const std::string& Key, T& Target)
-{
-	auto it = Attrs.find(Key);
-	if (it != Attrs.end())
-	{
-		Target = WPropertyTrait<T>::Parse(it->second);
-		return true;
-	}
-	return false;
-}
-
-template <typename T, typename TSetterFunc>
-void ApplyAttribute(const std::unordered_map<std::string, std::string>& Attrs, const std::string& Key, TSetterFunc Setter)
-{
-	auto it = Attrs.find(Key);
-	if (it != Attrs.end())
-	{
-		Setter(WPropertyTrait<T>::Parse(it->second));
-	}
-}
-
-template <typename T, typename TSetterFunc>
-void ApplyAttribute(const std::unordered_map<std::string, std::string>& Attrs, const std::string& Key, const T& DefaultValue, TSetterFunc Setter)
-{
-	auto it = Attrs.find(Key);
-	T Value;
-	if (it != Attrs.end())
-	{
-		Value = WPropertyTrait<T>::Parse(it->second);
-	}
-	else
-	{
-		Value = DefaultValue;
-	}
-	Setter(Value);
-}

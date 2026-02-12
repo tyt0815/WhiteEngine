@@ -15,8 +15,6 @@ public:
 protected:
 	virtual void LoadWConfigs(const std::unordered_map<std::string, WAttributesMap>& Configs) override;
 
-	virtual void ApplyWComponentCommonAttribute(struct FBlueprintComponentNode* CompNode, WSceneComponent* Comp) override;
-
 protected:
 	void PlayParticle(XMFLOAT3 Loc, const std::string& Name);
 

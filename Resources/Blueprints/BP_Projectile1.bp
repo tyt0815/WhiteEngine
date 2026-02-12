@@ -4,7 +4,7 @@
     </Configs>
 
     <Components>
-        <Movement Name = "Movement" InitSpeed = "(0 0 10)" GravityScale = "0" MaxSpeed = "10" LifeSpan = "5">
+        <Movement Name = "Movement" InitSpeed = "{0, 0, 10}" GravityScale = "0" MaxSpeed = "10" LifeSpan = "5">
             <Mesh Name = "Body" Asset = "SM_ScuffedGoldBox"/>
         </Movement>
     </Components>
