@@ -24,8 +24,6 @@ void ShowMessageBox(const std::string& Content);
 
 void ShowMessageBox(const std::wstring& Content);
 
-void ReportParseError(const std::string& Type, const std::string& WrongValue);
-
 WWorld* GetWorld();
 
 class AActor : public WObject
@@ -184,6 +182,8 @@ protected:
 
 		mWPropertiesMap[Name] = Property;
 	}
+
+	void RegisterWProperty(const std::string& Name, WEvalValue& Value);
 
 	WEvent* GenerateWEvent(std::unordered_map<std::string, TSharedPtr<WEvent>>& Container, const std::string& Name);
 

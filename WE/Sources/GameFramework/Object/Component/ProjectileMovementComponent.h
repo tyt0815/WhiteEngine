@@ -69,7 +69,7 @@ private:
 
 	bool mShouldBounce = false;
 	float mBounciness = 0.6f;
-	int   mMaxBounces = 3;
+	float   mMaxBounces = 3;
 	int   mCurrentBounces = 0;
 
 	/////////////////////////////////////////////////////////////////////////////////////////

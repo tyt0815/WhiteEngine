@@ -9,13 +9,6 @@
 
 unsigned int g_ActorCounter = 0;
 
-void ReportParseError(const std::string& Type, const std::string& WrongValue)
-{
-	std::string ErrorMsg = "Invalid " + Type + " format: " + WrongValue;
-	ShowMessageBox(ErrorMsg);
-	assert(false && "Check the XML attribute format!");
-}
-
 AActor::AActor():
 	mActorCounter(++g_ActorCounter)
 {
@@ -84,24 +77,26 @@ AActor::AActor():
 		return [this, Name]() { this->mCustomEventsMap[Name]->Dispatch(); };
 		});	
 
+	RegisterWActionFactory("Register", [this](auto&& Attributes)
+		{
+			std::string Name = Attributes.at("Name");
+			WEvalValue Value = WExpressionParser::Evaluate(this, Attributes, "Value", "None");
+			mCustomWProperies.push_back(MakeUnique<WEvalValue>(Value));
+			WEvalValue* ValuePtr = mCustomWProperies.back().get();
+			return [this, Name, ValuePtr]() 
+			{ 
+				RegisterWProperty(Name, *ValuePtr); 
+			};
+		});
+
 	RegisterWActionFactory("Set", [this](const WAttributesMap& Attributes) {
 
 		std::string Name = Attributes.at("Name");
-		std::string RawValue = Attributes.at("Value");
+		auto ValueFunc = WExpressionParser::Bind(this, Attributes, "Value", "None");
 
-		auto it = mWPropertiesMap.find(Name);
-		WEvalValue ParsedValue;
-
-		std::visit([&](auto&& Arg) {
-			using T = std::remove_pointer_t<std::decay_t<decltype(Arg)>>;
-
-			ParsedValue = WValueParser<T>::Parse(RawValue);
-			}, it->second);
-
-		return [this, Name, ParsedValue]() {
-			auto Property = mWPropertiesMap[Name];
-
-			// 실행 시점에는 단순 값 대입만 발생 (파싱 X, 매우 빠름)
+		return [this, Name, ValueFunc]() {
+			WSourceRef Target = mWPropertiesMap[Name];
+			WEvalValue Value = ValueFunc();
 			std::visit([](auto&& TargetPtr, auto&& SourceValue) {
 				using TargetType = std::remove_pointer_t<std::decay_t<decltype(TargetPtr)>>;
 				using SourceType = std::decay_t<decltype(SourceValue)>;
@@ -109,7 +104,7 @@ AActor::AActor():
 				if constexpr (std::is_same_v<TargetType, SourceType>) {
 					if (TargetPtr) *TargetPtr = SourceValue;
 				}
-				}, Property, ParsedValue);
+				}, Target, Value);
 		};
 		});
 
@@ -121,9 +116,9 @@ AActor::AActor():
 		{
 			std::string Name = Attributes.at("Name");
 			
-			auto LocFunc = WExpressionParser::Parse<XMFLOAT3>(this, Attributes, "Loc", "Root.GetWorldLocation()");
-			auto RotFunc = WExpressionParser::Parse<XMFLOAT3>(this, Attributes, "Rot", "Root.GetWorldRotation()");
-			auto ScaleFunc = WExpressionParser::Parse<XMFLOAT3>(this, Attributes, "Scale", "Root.GetWorldScale()");
+			auto LocFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Loc", "Root.GetWorldLocation()");
+			auto RotFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Rot", "Root.GetWorldRotation()");
+			auto ScaleFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Scale", "Root.GetWorldScale()");
 
 			return [=]()
 			{
@@ -145,7 +140,7 @@ AActor::AActor():
 			const std::string& Target = Attributes.at("Target");
 			WSceneComponent* TargetComp = GetWComponent(Target);
 
-			auto WithChildFunc = WExpressionParser::Parse<bool>(this, Attributes, "WithChild", "true");
+			auto WithChildFunc = WExpressionParser::Bind<bool>(this, Attributes, "WithChild", "true");
 			
 			return [=]() {
 				if (WithChildFunc())
@@ -170,7 +165,7 @@ AActor::AActor():
 			const std::string& Target = Attributes.at("Target");
 			WSceneComponent* TargetComp = GetWComponent(Target);
 
-			auto WithChildFunc = WExpressionParser::Parse<bool>(this, Attributes, "WithChild", "true");
+			auto WithChildFunc = WExpressionParser::Bind<bool>(this, Attributes, "WithChild", "true");
 
 			return [=]() {
 				if (WithChildFunc())
@@ -191,9 +186,9 @@ AActor::AActor():
 			WSceneComponent* Target = GetWComponent(TargetName);
 			WSplineComponent* Spline = GetWComponent<WSplineComponent>(SplineName);
 
-			auto DurationFunc = WExpressionParser::Parse<float>(this, Attributes,"Duration", "1");
-			auto UseRotationFunc = WExpressionParser::Parse<bool>(this, Attributes, "UseRotation", "true");
-			auto LoopFunc = WExpressionParser::Parse<bool>(this, Attributes, "Loop", "false");
+			auto DurationFunc = WExpressionParser::Bind<float>(this, Attributes,"Duration", "1");
+			auto UseRotationFunc = WExpressionParser::Bind<bool>(this, Attributes, "UseRotation", "true");
+			auto LoopFunc = WExpressionParser::Bind<bool>(this, Attributes, "Loop", "false");
 
 			return [=]() 
 			{
@@ -209,7 +204,7 @@ AActor::AActor():
 
 	RegisterWActionFactory("Branch", [this](auto&& Attributes)
 		{
-			auto bConditionFunc = WExpressionParser::Parse<bool>(this, Attributes, "Condition", "true");
+			auto bConditionFunc = WExpressionParser::Bind<bool>(this, Attributes, "Condition", "true");
 			const std::string OnTrueEventName = Attributes.at("OnTrue");
 			const std::string OnFalseEventName = Attributes.at("OnFalse");
 			return [=]()
@@ -712,6 +707,15 @@ void AActor::RegisterWFunction(const std::string& Name, WFunction Lambda)
 	}
 
 	mWFunctionsMap[Name] = std::move(Lambda);
+}
+
+void AActor::RegisterWProperty(const std::string& Name, WEvalValue& Value)
+{
+	std::visit([this, Name](auto&& v) 
+		{
+			using T = std::decay_t<decltype(v)>;
+			RegisterWProperty<T>(Name,&v);
+		}, Value);
 }
 
 AActor::WEvent* AActor::GenerateWEvent(std::unordered_map<std::string, TSharedPtr<WEvent>>& Container, const std::string& Name)

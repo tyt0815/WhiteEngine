@@ -52,6 +52,7 @@
     <ClCompile Include="Sources\GameFramework\Object\Component\SplineComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\StaticMeshComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Object.cpp" />
+    <ClCompile Include="Sources\GameFramework\Object\Parser.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Pawn\GhostCameraPawn.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Pawn\Pawn.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\World\DefaultWorld.cpp" />
@@ -106,7 +107,7 @@
     <ClInclude Include="Sources\Asset\AssetManager.h" />
     <ClInclude Include="Sources\Asset\AssetLoader.h" />
     <ClInclude Include="Sources\Asset\BlueprintAsset.h" />
-    <ClInclude Include="Sources\Asset\BlueprintTypeTrait.h" />
+    <ClInclude Include="Sources\Asset\BlueprintTypes.h" />
     <ClInclude Include="Sources\Asset\ObjectAnimDataAsset.h" />
     <ClInclude Include="Sources\Asset\SplineDataAsset.h" />
     <ClInclude Include="Sources\Asset\XMLDataAsset.h" />

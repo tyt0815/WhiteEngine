@@ -14,7 +14,6 @@
         <OnSpawn>
             <FollowSpline Target = "Body" Spline = "Spline" Loop = "true" Duration = "0.25"/>
         </OnSpawn>
-
     </Events>
 
 </AProjectileBase>

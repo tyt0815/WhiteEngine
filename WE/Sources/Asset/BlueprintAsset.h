@@ -3,6 +3,7 @@
 #include "Asset.h"
 #include "Utility/Container.h"
 #include "Utility/Memory.h"
+#include "BlueprintTypes.h"
 #include <tinyxml2.h>
 #include <variant>
 
@@ -18,8 +19,6 @@ struct FAttribute
 	std::string Name;
 	std::unordered_map<std::string, std::string> Attributes;
 };
-
-using WAttributesMap = std::unordered_map<std::string, std::string>;
 
 struct FBlueprintComponentNode
 {

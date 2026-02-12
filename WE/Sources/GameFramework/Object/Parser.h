@@ -1,54 +1,47 @@
 #pragma once
 #include "WEngineTypes.h"
+#include "Asset/BlueprintTypes.h"
+#include <functional>
 
-inline XMFLOAT3 operator+(const XMFLOAT3& a, const XMFLOAT3& b) { return { a.x + b.x, a.y + b.y, a.z + b.z }; }
-inline XMFLOAT3 operator-(const XMFLOAT3& a, const XMFLOAT3& b) { return { a.x - b.x, a.y - b.y, a.z - b.z }; }
-inline XMFLOAT3 operator*(const XMFLOAT3& a, const XMFLOAT3& b) { return { a.x * b.x, a.y * b.y, a.z * b.z }; }
-inline XMFLOAT3 operator/(const XMFLOAT3& a, const XMFLOAT3& b) { return { a.x / b.x, a.y / b.y, a.z / b.z }; }
+class AActor;
 
 template<typename T> struct WValueParser;
 template<> struct WValueParser<bool>
 {
-	static bool Parse(const std::string& String)
+	static bool Parse(const std::string& String, bool& Out)
 	{
 		std::string LowerStr = String;
 		std::transform(LowerStr.begin(), LowerStr.end(), LowerStr.begin(), ::tolower);
 
-		if (LowerStr == "true" || LowerStr == "1") return true;
-		if (LowerStr == "false" || LowerStr == "0") return false;
-		ReportParseError("Bool (true/false/1/0)", String);
+		if (LowerStr == "true")
+		{
+			Out = true;
+			return true;
+		}
+		if (LowerStr == "false")
+		{
+			Out = false;
+			return true;
+		}
 		return false;
-	}
-};
-template<> struct WValueParser<int>
-{
-	static int Parse(const std::string& String)
-	{
-		try {
-			return std::stoi(String);
-		}
-		catch (...) {
-			ReportParseError("Int", String);
-			return 0;
-		}
 	}
 };
 template<> struct WValueParser<float>
 {
-	static float Parse(const std::string& String)
+	static float Parse(const std::string& String, float& Out)
 	{
 		try {
-			return std::stof(String);
+			Out = std::stof(String);
+			return true;
 		}
 		catch (...) {
-			ReportParseError("Float", String);
-			return 0.0f;
+			return false;
 		}
 	}
 };
 template<> struct WValueParser<XMFLOAT3>
 {
-	static XMFLOAT3 Parse(const std::string& String)
+	static bool Parse(const std::string& String, XMFLOAT3& Out)
 	{
 		XMFLOAT3 Float3 = { 0.f, 0.f, 0.f };
 
@@ -56,16 +49,12 @@ template<> struct WValueParser<XMFLOAT3>
 
 		if (Result < 3)
 		{
-			ReportParseError("Float3 {x, y, z}", String);
+			return false;
 		}
-		return Float3;
-	}
-};
-template<> struct WValueParser<std::string>
-{
-	static std::string Parse(const std::string& String)
-	{
-		return String;
+
+		Out = std::move(Float3);
+
+		return true;
 	}
 };
 
@@ -98,19 +87,27 @@ static std::vector<std::string> SplitByCommaSafe(const std::string& s) {
 template<typename T>
 struct WValueParser<std::vector<T>>
 {
-	static std::vector<T> Parse(const std::string& String)
+	static bool Parse(const std::string& String, std::vector<T>& Out)
 	{
-		std::vector<T> Result;
+		Out.clear();
 		std::string CleanStr = String;
 
 		// 1. 앞뒤 공백 제거 및 가장 바깥쪽 대괄호 제거
 		CleanStr.erase(0, CleanStr.find_first_not_of(" \t"));
 		CleanStr.erase(CleanStr.find_last_not_of(" \t") + 1);
 
-		if (CleanStr.front() == '[') CleanStr.erase(0, 1);
-		if (CleanStr.back() == ']') CleanStr.pop_back();
+		if (CleanStr.front() != '[')
+		{
+			return false;
+		}
+		CleanStr.erase(0, 1);
+		if (CleanStr.back() != ']')
+		{
+			return false;
+		}
+		CleanStr.pop_back();
 
-		if (CleanStr.empty()) return Result;
+		if (CleanStr.empty()) return true;
 
 		// 2. 안전한 분리 로직 사용
 		std::vector<std::string> tokens = SplitByCommaSafe(CleanStr);
@@ -122,23 +119,44 @@ struct WValueParser<std::vector<T>>
 			token.erase(token.find_last_not_of(" \t") + 1);
 
 			if (!token.empty())
-				Result.push_back(WValueParser<T>::Parse(token));
+			{
+				T Value;
+				if (WValueParser<T>::Parse(token, Value))
+				{
+					Out.push_back(Value);
+				}
+				else
+				{
+					return false;
+				}
+			}
+				
 		}
-		return Result;
+		return true;
 	}
 };
 
 template<typename T>
 struct WValueParser<std::set<T>>
 {
-	static std::set<T> Parse(const std::string& String)
+	static bool Parse(const std::string& String, std::set<T>& Out)
 	{
-		std::set<T> Result;
-		if (String.empty()) return Result;
+		if (String.empty()) return true;
 
 		std::string CleanStr = String;
-		CleanStr.erase(std::remove(CleanStr.begin(), CleanStr.end(), '['), CleanStr.end());
-		CleanStr.erase(std::remove(CleanStr.begin(), CleanStr.end(), ']'), CleanStr.end());
+		CleanStr.erase(0, CleanStr.find_first_not_of(" \t"));
+		CleanStr.erase(CleanStr.find_last_not_of(" \t") + 1);
+
+		if (CleanStr.front() != '[')
+		{
+			return false;
+		}
+		CleanStr.erase(0, 1);
+		if (CleanStr.back() != ']')
+		{
+			return false;
+		}
+		CleanStr.pop_back();
 
 		std::stringstream ss(CleanStr);
 		std::string Token;
@@ -150,10 +168,27 @@ struct WValueParser<std::set<T>>
 
 			if (!Token.empty())
 			{
-				Result.insert(WValueParser<T>::Parse(Token));
+				T Value;
+				if (WValueParser<T>::Parse(Token, Value))
+				{
+					Out.insert(Value);
+				}
+				else
+				{
+					return false;
+				}
 			}
 		}
-		return Result;
+		return true;
+	}
+};
+
+template<> struct WValueParser<std::string>
+{
+	static bool Parse(const std::string& String, std::string& Out)
+	{
+		Out = String;
+		return true;
 	}
 };
 
@@ -163,7 +198,7 @@ bool ExtractAttribute(const std::unordered_map<std::string, std::string>& Attrs,
 	auto it = Attrs.find(Key);
 	if (it != Attrs.end())
 	{
-		Target = WValueParser<T>::Parse(it->second);
+		WValueParser<T>::Parse(it->second, Target);
 		return true;
 	}
 	return false;
@@ -175,7 +210,9 @@ void ApplyAttribute(const std::unordered_map<std::string, std::string>& Attrs, c
 	auto it = Attrs.find(Key);
 	if (it != Attrs.end())
 	{
-		Setter(WValueParser<T>::Parse(it->second));
+		T Value;
+		WValueParser<T>::Parse(it->second, Value);
+		Setter(Value);
 	}
 }
 
@@ -186,7 +223,7 @@ void ApplyAttribute(const std::unordered_map<std::string, std::string>& Attrs, c
 	T Value;
 	if (it != Attrs.end())
 	{
-		Value = WValueParser<T>::Parse(it->second);
+		WValueParser<T>::Parse(it->second, Value);
 	}
 	else
 	{
@@ -198,149 +235,139 @@ void ApplyAttribute(const std::unordered_map<std::string, std::string>& Attrs, c
 class WExpressionParser
 {
 public:
+	static WEvalValue Evaluate(AActor* Context, const WAttributesMap& Attributes, const std::string& Name, const std::string& DefaultExpression);
+
+	static std::function<WEvalValue()> Bind(AActor* Context, const WAttributesMap& Attributes, const std::string& Name, const std::string& DefaultExpression);
+
 	template<typename T>
-	static std::function<T()> Parse(AActor* Context, const WAttributesMap& Attributes, const std::string& Name, const std::string& DefaultExpression)
+	static std::function<T()> Bind(AActor* Context, const WAttributesMap& Attributes, const std::string& Name, const std::string& DefaultExpression)
 	{
-		auto it = Attributes.find(Name);
+		// 위에서 만든 WEvalValue 버전의 Bind를 호출
+		auto BaseEval = Bind(Context, Attributes, Name, DefaultExpression);
 
-		std::string TargetExpression = (it != Attributes.end() && !it->second.empty()) ? it->second : DefaultExpression;
-		if (TargetExpression.empty()) return []() { return T{}; };
+		// 결과를 T로 변환해주는 래퍼 람다 반환
+		return [BaseEval]() -> T {
+			WEvalValue Result = BaseEval();
 
-		// [중요] if constexpr을 사용하여 bool, string, vector 등은 수식 파서 생성을 원천 차단
-		if constexpr (std::is_same_v<T, bool> ||
-			std::is_same_v<T, std::string> ||
-			std::is_same_v<T, std::vector<std::string>> ||
-			std::is_same_v<T, std::set<std::string>>) // 컨테이너들도 포함
-		{
-			// 1. 함수/프로퍼티 체크
-			if (TargetExpression.back() == ')') {
-				return [Context, TargetExpression]() { return Context->ExecuteWFunction<T>(TargetExpression); };
-			}
-			if (TargetExpression[0] == '*') {
-				std::string PropName = TargetExpression.substr(1);
-				return [Context, PropName]() { return *std::get<T*>(Context->GetWPropertyPtr(PropName)); };
-			}
-
-			// 2. 단순 값 파싱
-			T Value = WValueParser<T>::Parse(TargetExpression);
-			return [Value]() { return Value; };
-		}
-		else
-		{
-			// [이 부분] T가 산술 연산이 가능한 타입(float, XMFLOAT3 등)일 때만 이 코드가 컴파일됨
-			size_t Pos = 0;
-			try {
-				return ParseExpression<T>(Context, TargetExpression, Pos);
-			}
-			catch (...) {
-				return []() { return T{}; };
-			}
-		}
+			return std::visit([](auto&& arg) -> T {
+				using ArgType = std::decay_t<decltype(arg)>;
+				if constexpr (std::is_convertible_v<ArgType, T>) {
+					return static_cast<T>(arg);
+				}
+				return T{};
+				}, Result);
+		};
 	}
-
 
 private:
-	// 1. 더하기/빼기 (가장 낮은 우선순위)
-	template<typename T>
-	static std::function<T()> ParseExpression(AActor* Context, const std::string& Exp, size_t& Pos)
-	{
-		auto Left = ParseTerm<T>(Context, Exp, Pos);
+	static std::function<WEvalValue()> ParseLogical(AActor* Context, const std::string& Exp, size_t& Pos);
 
-		while (Pos < Exp.length()) {
-			char Op = Peek(Exp, Pos);
-			if (Op != '+' && Op != '-') break;
-			Pos++; // 연산자 소비
+	static std::function<WEvalValue()> ParseExpression(AActor* Context, const std::string& Exp, size_t& Pos);
 
-			auto Right = ParseTerm<T>(Context, Exp, Pos);
-			if (Op == '+')
-				Left = [Left, Right]() { return Left() + Right(); };
-			else
-				Left = [Left, Right]() { return Left() - Right(); };
-		}
-		return Left;
-	}
+	static std::function<WEvalValue()> ParseTerm(AActor* Context, const std::string& Exp, size_t& Pos);
 
-	// 2. 곱하기/나누기
-	template<typename T>
-	static std::function<T()> ParseTerm(AActor* Context, const std::string& Exp, size_t& Pos)
-	{
-		std::function<T()> Left = ParseFactor<T>(Context, Exp, Pos);
-
-		while (Pos < Exp.length()) {
-			char Op = Peek(Exp, Pos);
-			if (Op != '*' && Op != '/') break;
-			Pos++;
-
-			std::function<T()> Right = ParseFactor<T>(Context, Exp, Pos);
-			if (Op == '*')
-				Left = [Left, Right]() { return Left() * Right(); };
-			else
-				Left = [Left, Right]() { return Left() / Right(); };
-		}
-		return Left;
-	}
-
-	// 3. 최우선 순위 (괄호, 함수, 변수, 값)
-	template<typename T>
-	static std::function<T()> ParseFactor(AActor* Context, const std::string& Exp, size_t& Pos)
-	{
-		SkipSpaces(Exp, Pos);
-
-		// A. 괄호 처리
-		if (Peek(Exp, Pos) == '(') {
-			Pos++; // '(' 소비
-			auto SubExpr = ParseExpression<T>(Context, Exp, Pos);
-			SkipSpaces(Exp, Pos);
-			if (Peek(Exp, Pos) == ')') Pos++; // ')' 소비
-			return SubExpr;
-		}
-
-		// B. 토큰 추출 (연산자나 괄호를 만나기 전까지)
-		size_t Start = Pos;
-		while (Pos < Exp.length() && !IsOperator(Exp[Pos]) && Exp[Pos] != '(' && Exp[Pos] != ')') {
-			Pos++;
-		}
-
-		// 만약 함수라면 ( 예: GetLoc() ) 괄호까지 포함해서 추출
-		if (Peek(Exp, Pos) == '(')
-		{
-			while (Pos < Exp.length() && Exp[Pos] != ')') Pos++;
-			if (Pos < Exp.length()) Pos++; // ')'까지 소비
-		}
-
-		std::string Token = Exp.substr(Start, Pos - Start);
-		Token.erase(std::remove(Token.begin(), Token.end(), ' '), Token.end()); // 공백 제거
-
-		// C. 토큰 성격 판별
-		// 1) 함수: 끝이 ) 인 경우
-		if (!Token.empty() && Token.back() == ')') {
-			return [Context, Token]() {
-				return Context->ExecuteWFunction<T>(Token);
-			};
-		}
-		// 2) 프로퍼티: 시작이 $ 인 경우
-		else if (!Token.empty() && Token[0] == '$') {
-			std::string PropName = Token.substr(1);
-			return [Context, PropName]() {
-				return *std::get<T*>(Context->GetWPropertyPtr(PropName));
-			};
-		}
-		// 3) 값: { } 또는 숫자 (WPropertyTrait 활용)
-		else {
-			T Value = WValueParser<T>::Parse(Token);
-			return [Value]() { return Value; };
-		}
-	}
+	static std::function<WEvalValue()> ParseFactor(AActor* Context, const std::string& Exp, size_t& Pos);
 
 	// 유틸리티 함수들
-	static char Peek(const std::string& Exp, size_t& Pos) {
-		SkipSpaces(Exp, Pos);
-		return (Pos < Exp.length()) ? Exp[Pos] : '\0';
-	}
+	static char Peek(const std::string& Exp, size_t& Pos);
 
-	static bool IsOperator(char c) { return c == '+' || c == '-' || c == '*' || c == '/'; }
+	static std::string PeekTwo(const std::string& Exp, size_t Pos);
 
-	static void SkipSpaces(const std::string& Exp, size_t& Pos) {
-		while (Pos < Exp.length() && isspace(Exp[Pos])) Pos++;
-	}
+	static bool IsOperator(char c);
+
+	static std::string PeekOperator(const std::string& Exp, size_t Pos);
+
+	static void SkipSpaces(const std::string& Exp, size_t& Pos);
+
+	//// 1. 더하기/빼기 (가장 낮은 우선순위)
+	//template<typename T>
+	//static std::function<T()> ParseExpression(AActor* Context, const std::string& Exp, size_t& Pos)
+	//{
+	//	auto Left = ParseTerm<T>(Context, Exp, Pos);
+
+	//	while (Pos < Exp.length()) {
+	//		char Op = Peek(Exp, Pos);
+	//		if (Op != '+' && Op != '-') break;
+	//		Pos++; // 연산자 소비
+
+	//		auto Right = ParseTerm<T>(Context, Exp, Pos);
+	//		if (Op == '+')
+	//			Left = [Left, Right]() { return Left() + Right(); };
+	//		else
+	//			Left = [Left, Right]() { return Left() - Right(); };
+	//	}
+	//	return Left;
+	//}
+
+	//// 2. 곱하기/나누기
+	//template<typename T>
+	//static std::function<T()> ParseTerm(AActor* Context, const std::string& Exp, size_t& Pos)
+	//{
+	//	std::function<T()> Left = ParseFactor<T>(Context, Exp, Pos);
+
+	//	while (Pos < Exp.length()) {
+	//		char Op = Peek(Exp, Pos);
+	//		if (Op != '*' && Op != '/') break;
+	//		Pos++;
+
+	//		std::function<T()> Right = ParseFactor<T>(Context, Exp, Pos);
+	//		if (Op == '*')
+	//			Left = [Left, Right]() { return Left() * Right(); };
+	//		else
+	//			Left = [Left, Right]() { return Left() / Right(); };
+	//	}
+	//	return Left;
+	//}
+
+	//// 3. 최우선 순위 (괄호, 함수, 변수, 값)
+	//template<typename T>
+	//static std::function<T()> ParseFactor(AActor* Context, const std::string& Exp, size_t& Pos)
+	//{
+	//	SkipSpaces(Exp, Pos);
+
+	//	// A. 괄호 처리
+	//	if (Peek(Exp, Pos) == '(') {
+	//		Pos++; // '(' 소비
+	//		auto SubExpr = ParseExpression<T>(Context, Exp, Pos);
+	//		SkipSpaces(Exp, Pos);
+	//		if (Peek(Exp, Pos) == ')') Pos++; // ')' 소비
+	//		return SubExpr;
+	//	}
+
+	//	// B. 토큰 추출 (연산자나 괄호를 만나기 전까지)
+	//	size_t Start = Pos;
+	//	while (Pos < Exp.length() && !IsOperator(Exp[Pos]) && Exp[Pos] != '(' && Exp[Pos] != ')') {
+	//		Pos++;
+	//	}
+
+	//	// 만약 함수라면 ( 예: GetLoc() ) 괄호까지 포함해서 추출
+	//	if (Peek(Exp, Pos) == '(')
+	//	{
+	//		while (Pos < Exp.length() && Exp[Pos] != ')') Pos++;
+	//		if (Pos < Exp.length()) Pos++; // ')'까지 소비
+	//	}
+
+	//	std::string Token = Exp.substr(Start, Pos - Start);
+	//	Token.erase(std::remove(Token.begin(), Token.end(), ' '), Token.end()); // 공백 제거
+
+	//	// C. 토큰 성격 판별
+	//	// 1) 함수: 끝이 ) 인 경우
+	//	if (!Token.empty() && Token.back() == ')') {
+	//		return [Context, Token]() {
+	//			return Context->ExecuteWFunction<T>(Token);
+	//		};
+	//	}
+	//	// 2) 프로퍼티: 시작이 $ 인 경우
+	//	else if (!Token.empty() && Token[0] == '$') {
+	//		std::string PropName = Token.substr(1);
+	//		return [Context, PropName]() {
+	//			return *std::get<T*>(Context->GetWPropertyPtr(PropName));
+	//		};
+	//	}
+	//	// 3) 값: { } 또는 숫자 (WPropertyTrait 활용)
+	//	else {
+	//		T Value = WValueParser<T>::Parse(Token);
+	//		return [Value]() { return Value; };
+	//	}
+	//}
 };

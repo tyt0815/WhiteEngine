@@ -66,6 +66,9 @@ void WTestWorld::Tick(float DeltaSecond)
 		Param.Transform.Translation.x += 4;
 		SpawnActorByFactory<AProjectileBase>("BP_Projectile10", Param);
 
+		Param.Transform.Translation.x += 4;
+		SpawnActorByFactory<AProjectileBase>("BP_Projectile11", Param);
+
 		a = 0;
 
 	}

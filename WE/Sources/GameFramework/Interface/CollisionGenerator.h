@@ -51,7 +51,7 @@ private:
 	float mHitDelay = 0;
 
 	// 0일 경우 제한 없음
-	int mMaxHit = 0;
+	float mMaxHit = 0;
 
 	int mHitCount = 0;
 
@@ -65,7 +65,7 @@ public:
 
 	__forceinline void SetMaxHit(int Value)
 	{
-		mMaxHit = Value;
+		mMaxHit = (float)Value;
 	}
 
 	__forceinline void SetDamage(float Value)

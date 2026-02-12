@@ -299,6 +299,9 @@
     <ClCompile Include="Sources\GameFramework\Interface\CollisionGenerator.cpp">
       <Filter>Sources\GameFramework\Interface</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Parser.cpp">
+      <Filter>Sources\GameFramework\Object</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -574,9 +577,6 @@
     <ClInclude Include="Sources\GameFramework\Object\Actor\ActorFactory.h">
       <Filter>Sources\GameFramework\Object\Actor</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Asset\BlueprintTypeTrait.h">
-      <Filter>Sources\Asset</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\GameFramework\Interface\CollisionGenerator.h">
       <Filter>Sources\GameFramework\Interface</Filter>
     </ClInclude>
@@ -585,6 +585,9 @@
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\WEngineTypes.h">
       <Filter>Sources\GameFramework\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Asset\BlueprintTypes.h">
+      <Filter>Sources\Asset</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

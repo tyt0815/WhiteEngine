@@ -35,9 +35,9 @@ AProjectileBase::AProjectileBase()
 					Comp->LoadSplineFromAsset(v);
 					});
 
-				int Segment = 1;
+				float Segment = 1;
 				ExtractAttribute(Attributes, "Segment", Segment);
-				Comp->SetSegment(Segment);
+				Comp->SetSegment((int)Segment);
 
 				bool bUseBoundingBox = true;
 				ExtractAttribute(Attributes, "BoundingBox", bUseBoundingBox);
@@ -101,9 +101,9 @@ AProjectileBase::AProjectileBase()
 					});
 				RegisterWProperty(Name + ".Delay", &CollisionGenerator->mHitDelay);
 
-				ApplyAttribute<int>(Attributes, "MaxHit", 0, [=](auto&& v)
+				ApplyAttribute<float>(Attributes, "MaxHit", 0, [=](auto&& v)
 					{
-						CollisionGenerator->SetMaxHit(v);
+						CollisionGenerator->SetMaxHit((int)v);
 					});
 				RegisterWProperty(Name + ".MaxHit", &CollisionGenerator->mMaxHit);
 
@@ -211,7 +211,7 @@ AProjectileBase::AProjectileBase()
 			ApplyAttribute<float>(Attributes, "Bounciness", 1, [=](auto&& v) { Comp->mBounciness = v; });
 			RegisterWProperty(Name + ".Bounciness", &Comp->mBounciness);
 
-			ApplyAttribute<int>(Attributes, "MaxBounces", 0, [=](auto&& v) { Comp->mMaxBounces = v; });
+			ApplyAttribute<float>(Attributes, "MaxBounces", 0, [=](auto&& v) { Comp->mMaxBounces = v; });
 			RegisterWProperty(Name + ".MaxBounces", &Comp->mMaxBounces);
 
 			return Comp;
@@ -236,7 +236,7 @@ AProjectileBase::AProjectileBase()
 	RegisterWActionFactory("Particle", [this](const WAttributesMap& Attributes) {
 		std::string Name = Attributes.at("Asset");
 
-		auto LocFunc = WExpressionParser::Parse<XMFLOAT3>(this, Attributes, "Loc", "Root.GetWorldLocation()");
+		auto LocFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Loc", "Root.GetWorldLocation()");
 		std::function<void()> FactoryFunc = [=]() { this->PlayParticle(LocFunc(), Name); };
 
 		return FactoryFunc;
@@ -248,9 +248,9 @@ AProjectileBase::AProjectileBase()
 		WObjectAnimComponent* Anim = dynamic_cast<WObjectAnimComponent*>(GetWComponent(Target));
 		assert(Anim);
 
-		auto PlayRateFunc = WExpressionParser::Parse<float>(this, Attributes, "PlayRate", "1");
-		auto LoopFunc = WExpressionParser::Parse<bool>(this, Attributes, "Loop", "false");
-		auto RootMotionFunc = WExpressionParser::Parse<bool>(this, Attributes, "RootMotion", "false");
+		auto PlayRateFunc = WExpressionParser::Bind<float>(this, Attributes, "PlayRate", "1");
+		auto LoopFunc = WExpressionParser::Bind<bool>(this, Attributes, "Loop", "false");
+		auto RootMotionFunc = WExpressionParser::Bind<bool>(this, Attributes, "RootMotion", "false");
 
 		uint16_t Flags = 0;
 		std::string LocFlag;
@@ -326,9 +326,9 @@ AProjectileBase::AProjectileBase()
 			const std::string& PropertyName = Attributes.at("Property");
 			float* Prop = std::get<float*>(GetWPropertyPtr(PropertyName));
 
-			auto CurveFunc = WExpressionParser::Parse<std::string>(this, Attributes, "Curve", "");
+			auto CurveFunc = WExpressionParser::Bind<std::string>(this, Attributes, "Curve", "");
 
-			auto ModifierFunc = WExpressionParser::Parse<bool>(this, Attributes, "Modifier", "false");
+			auto ModifierFunc = WExpressionParser::Bind<bool>(this, Attributes, "Modifier", "false");
 
 			return [=]()
 			{
@@ -382,7 +382,7 @@ AProjectileBase::AProjectileBase()
 			if (FCollisionGeneratorBase* CollisionGenerator = dynamic_cast<FCollisionGeneratorBase*>(GetWComponent(Target)))
 			{
 				
-				auto FilterFunc = WExpressionParser::Parse<TArray<std::string>>(this, Attributes, "Filter", "[]");
+				auto FilterFunc = WExpressionParser::Bind<TArray<std::string>>(this, Attributes, "Filter", "[]");
 
 				CollisionGenerator->mOnCollision.AddLambda([=](WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage)
 					{

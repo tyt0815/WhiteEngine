@@ -1,0 +1,30 @@
+<AProjectileBase>
+
+    <Configs>
+        <LifeCycle LifeSpan = "5"/>
+    </Configs>
+
+    <Components>
+        <Mesh Name = "Body" Asset = "SM_MetalRing"/>
+        <Spline Name = "Spline" Asset = "SP_Ring"/>
+    </Components>
+
+    <Events>
+        <OnSpawn>
+            <Register Name = "P0" Value = "0"/>
+            <Register Name = "P1" Value = "1"/>
+            <Set Name = "P0" Value = "2"/>
+
+            <Branch Condition = "$P0 < $P1" OnTrue = "Custom1" OnFalse = "Custom2"/>
+        </OnSpawn>
+
+        <Custom1>
+            <FollowSpline Target = "Body" Spline = "Spline" Loop = "true" Duration = "0.25"/>
+        </Custom1>
+
+        <Custom2>
+            
+        </Custom2>
+    </Events>
+
+</AProjectileBase>
