@@ -60,11 +60,12 @@ bool FBlueprintAsset::SmartLoad(const std::wstring& SourcePath, TArray<unsigned 
     std::filesystem::path p(SourcePath);
 
     std::filesystem::path binFolder = p.parent_path() / "bin";
+    std::filesystem::create_directories(binFolder);
+
     std::filesystem::path fileNameWithBin = p.filename().wstring() + L"bin";
 
     std::wstring BinaryPath = (binFolder / fileNameWithBin).wstring();
 
-    // 살짝 보강한다면
     if (CheckIfNeedCompile(SourcePath, BinaryPath))
     {
         std::vector<unsigned char> Buffer;

@@ -13,6 +13,7 @@
 #include <memory>
 #include <variant>
 #include <sstream>
+#include <queue>
 
 extern const int gFrameResourcesNum;
 
@@ -216,13 +217,6 @@ private:
 
 	WPropertiesMap mWPropertiesMap;
 
-	struct FOnTimeEvent
-	{
-		WEvent Event;
-		float Time;
-	};
-
-	TArray<TSharedPtr<FOnTimeEvent>> mOnTimeEvents;
 	int mOnTimeEventIndex = 0;
 
 	WEvent mOnSpawnEvent;
@@ -230,6 +224,21 @@ private:
 	WEvent mOnDestroyEvent;
 
 	float mLifeSpan = 0;
+
+	struct FTimerActionInfo
+	{
+		const WEvent* Event;
+		float ExpireTime = 0;
+		float Time = 0;
+		bool bLoop = false;
+
+		bool operator>(const FTimerActionInfo& Other) const 
+		{
+			return Time > Other.Time;
+		}
+	};
+
+	std::priority_queue<FTimerActionInfo, std::vector<FTimerActionInfo>, std::greater<FTimerActionInfo>> mTimerActionInfos;
 
 public:
 	template<typename T>

@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <Windows.h>
 #include <sstream>
+#include <iostream>
 
 class FAssetManager final
 {
@@ -38,7 +39,7 @@ inline bool FAssetManager::LoadAsset(const std::wstring& FilePath, const std::st
 	Asset->mName = AssetName;
 	if (!Asset->LoadAsset(FilePath))
 	{
-		assert(false && "Fail to load asset");
+		std::cout << "Fail to load asset: " << AssetName << std::endl;
 		return false;
 	}
 	GetInstance()->mAssets[AssetName] = std::move(Asset);

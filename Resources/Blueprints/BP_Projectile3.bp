@@ -14,6 +14,10 @@
     </Components>
 
     <Events>
+        <OnSpawn>
+            <Event Name = "BlinkStart"/>
+        </OnSpawn>
+
         <OnHit>
             <Particle Loc = "Movement.GetWorldLocation()" Asset = "P_Explosion_Red_Small"/>
         </OnHit>
@@ -22,12 +26,15 @@
             <Destroy/>
         </OnHit>
 
-        <OnTime Time = "0.5">
+        <BlinkStart>
             <Deactivate Target = "Body" WithChild = "true"/>
-        </OnTime>
-        <OnTime Time = "0.75">
+            <Timer Time = "0.2" Event = "BlinkEnd"/>
+        </BlinkStart>
+
+        <BlinkEnd>
             <Activate Target = "Body" WithChild = "true"/>
-        </OnTime>
+            <Timer Time = "0.2" Event = "BlinkStart"/>
+        </BlinkEnd>
 
         <OnActivate Target = "Body">
             <Particle Loc = "Movement.GetWorldLocation()" Asset = "P_Explosion_Blue"/>

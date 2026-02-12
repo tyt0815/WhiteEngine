@@ -72,6 +72,67 @@ AActor::AActor():
 	// 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
+	RegisterWActionFactory("SetWorldLocation", [this](auto&& Attributes)
+		{
+			const std::string TargetName = Attributes.at("Target");
+			WSceneComponent* TargetComp = GetWComponent<WSceneComponent>(TargetName);
+			auto LocFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Loc", "{0, 0, 0}");
+			return [TargetComp, LocFunc]()
+			{
+				TargetComp->SetWorldLocation(LocFunc());
+			};
+		});
+	RegisterWActionFactory("SetRelativeLocation", [this](auto&& Attributes)
+		{
+			const std::string TargetName = Attributes.at("Target");
+			WSceneComponent* TargetComp = GetWComponent<WSceneComponent>(TargetName);
+			auto LocFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Loc", "{0, 0, 0}");
+			return [TargetComp, LocFunc]()
+			{
+				TargetComp->SetRelativeLocation(LocFunc());
+			};
+		});
+	RegisterWActionFactory("SetWorldRotation", [this](auto&& Attributes)
+		{
+			const std::string TargetName = Attributes.at("Target");
+			WSceneComponent* TargetComp = GetWComponent<WSceneComponent>(TargetName);
+			auto RotFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Rot", "{0, 0, 0}");
+			return [TargetComp, RotFunc]()
+			{
+				TargetComp->SetWorldRotation(RotFunc());
+			};
+		});
+	RegisterWActionFactory("SetRelativeRotation", [this](auto&& Attributes)
+		{
+			const std::string TargetName = Attributes.at("Target");
+			WSceneComponent* TargetComp = GetWComponent<WSceneComponent>(TargetName);
+			auto RotFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Rot", "{0, 0, 0}");
+			return [TargetComp, RotFunc]()
+			{
+				TargetComp->SetRelativeRotation(RotFunc());
+			};
+		});
+	RegisterWActionFactory("SetWorldScale", [this](auto&& Attributes)
+		{
+			const std::string TargetName = Attributes.at("Target");
+			WSceneComponent* TargetComp = GetWComponent<WSceneComponent>(TargetName);
+			auto ScaleFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Scale", "{1, 1, 1}");
+			return [TargetComp, ScaleFunc]()
+			{
+				TargetComp->SetWorldScale(ScaleFunc());
+			};
+		});
+	RegisterWActionFactory("SetRelativeScale", [this](auto&& Attributes)
+		{
+			const std::string TargetName = Attributes.at("Target");
+			WSceneComponent* TargetComp = GetWComponent<WSceneComponent>(TargetName);
+			auto ScaleFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Scale", "{1, 1, 1}");
+			return [TargetComp, ScaleFunc]()
+			{
+				TargetComp->SetRelativeScale(ScaleFunc());
+			};
+		});
+
 	RegisterWActionFactory("Event", [this](const WAttributesMap& Attributes) {
 		std::string Name = Attributes.at("Name");
 		return [this, Name]() { this->mCustomEventsMap[Name]->Dispatch(); };
@@ -207,6 +268,7 @@ AActor::AActor():
 			auto bConditionFunc = WExpressionParser::Bind<bool>(this, Attributes, "Condition", "true");
 			const std::string OnTrueEventName = Attributes.at("OnTrue");
 			const std::string OnFalseEventName = Attributes.at("OnFalse");
+
 			return [=]()
 			{
 				if (bConditionFunc())
@@ -220,64 +282,66 @@ AActor::AActor():
 			};
 		});
 
-	RegisterWActionFactory("SetWorldLocation", [this](auto&& Attributes)
+	RegisterWActionFactory("Timer", [this](auto&& Attributes) -> std::function<void()>
 		{
-			const std::string TargetName = Attributes.at("Target");
-			WSceneComponent* TargetComp = GetWComponent<WSceneComponent>(TargetName);
-			auto LocFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Loc", "{0, 0, 0}");
-			return [TargetComp, LocFunc]()
+			auto TimeFunc = WExpressionParser::Bind<float>(this, Attributes, "Time", "0");
+			auto bLoopFunc = WExpressionParser::Bind<bool>(this, Attributes, "Loop", "false");
+
+			if (Attributes.count("Event") == 0)
 			{
-				TargetComp->SetWorldLocation(LocFunc());
+				std::cout << "Action::Timer - Please set Event Attribute";
+				return []() {};
+			}
+			const std::string& EventName = Attributes.at("Event");
+
+			return [this, TimeFunc, bLoopFunc, EventName]()
+			{
+				FTimerActionInfo Info;
+				Info.Event = this->mCustomEventsMap[EventName].get();
+				Info.Time = TimeFunc();
+				Info.bLoop = bLoopFunc();
+				Info.ExpireTime = mElapsedTime + Info.Time;
+
+				mTimerActionInfos.push(std::move(Info));
 			};
 		});
-	RegisterWActionFactory("SetRelativeLocation", [this](auto&& Attributes)
+
+	RegisterWActionFactory("SetUpdateOrder", [this](auto&& Attributes) -> std::function<void()>
 		{
-			const std::string TargetName = Attributes.at("Target");
-			WSceneComponent* TargetComp = GetWComponent<WSceneComponent>(TargetName);
-			auto LocFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Loc", "{0, 0, 0}");
-			return [TargetComp, LocFunc]()
+			auto TargetFunc = WExpressionParser::Bind<std::string>(this, Attributes, "Target", "this_self_none_default");
+			auto OrderFunc = WExpressionParser::Bind<float>(this, Attributes, "Order", "0.0"); // 기본값 1.0 (Normal)
+
+			std::string TargetName = TargetFunc();
+			WObject* TargetObj = nullptr;
+			if (TargetName == "this_self_none_default")
 			{
-				TargetComp->SetRelativeLocation(LocFunc());
-			};
-		});
-	RegisterWActionFactory("SetWorldRotation", [this](auto&& Attributes)
-		{
-			const std::string TargetName = Attributes.at("Target");
-			WSceneComponent* TargetComp = GetWComponent<WSceneComponent>(TargetName);
-			auto RotFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Rot", "{0, 0, 0}");
-			return [TargetComp, RotFunc]()
+				TargetObj = this;
+			}
+			else
 			{
-				TargetComp->SetWorldRotation(RotFunc());
-			};
-		});
-	RegisterWActionFactory("SetRelativeRotation", [this](auto&& Attributes)
-		{
-			const std::string TargetName = Attributes.at("Target");
-			WSceneComponent* TargetComp = GetWComponent<WSceneComponent>(TargetName);
-			auto RotFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Rot", "{0, 0, 0}");
-			return [TargetComp, RotFunc]()
+				TargetObj = this->GetWComponent(TargetName);
+			}
+
+			return [this, TargetObj, OrderFunc]()
 			{
-				TargetComp->SetRelativeRotation(RotFunc());
-			};
-		});
-	RegisterWActionFactory("SetWorldScale", [this](auto&& Attributes)
-		{
-			const std::string TargetName = Attributes.at("Target");
-			WSceneComponent* TargetComp = GetWComponent<WSceneComponent>(TargetName);
-			auto ScaleFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Scale", "{1, 1, 1}");
-			return [TargetComp, ScaleFunc]()
-			{
-				TargetComp->SetWorldScale(ScaleFunc());
-			};
-		});
-	RegisterWActionFactory("SetRelativeScale", [this](auto&& Attributes)
-		{
-			const std::string TargetName = Attributes.at("Target");
-			WSceneComponent* TargetComp = GetWComponent<WSceneComponent>(TargetName);
-			auto ScaleFunc = WExpressionParser::Bind<XMFLOAT3>(this, Attributes, "Scale", "{1, 1, 1}");
-			return [TargetComp, ScaleFunc]()
-			{
-				TargetComp->SetRelativeScale(ScaleFunc());
+				if (!TargetObj) return;
+				
+				int TotalOrder = static_cast<int>(OrderFunc());
+				if (TotalOrder < 0) TotalOrder = 0;
+
+				const int PriorityCount = static_cast<int>(ETickPriority::ETP_None);
+				const int GroupCount = static_cast<int>(ETickGroup::ETG_None);
+
+				int GroupIdx = TotalOrder / PriorityCount;
+				if (GroupIdx >= GroupCount) GroupIdx = GroupCount - 1;
+
+				int PriorityIdx = TotalOrder % PriorityCount;
+
+				ETickGroup Group = static_cast<ETickGroup>(GroupIdx);
+				ETickPriority Priority = static_cast<ETickPriority>(PriorityIdx);
+
+
+				TargetObj->SetTickGroup(Group, Priority);
 			};
 		});
 
@@ -294,15 +358,6 @@ AActor::AActor():
 	RegisterSystemEvent("OnSpawn", &mOnSpawnEvent);
 
 	RegisterSystemEvent("OnDestroy", &mOnDestroyEvent);
-
-	RegisterSystemEvent("OnTime", [this](auto&& Attributes) {
-		TSharedPtr<FOnTimeEvent> OnTimeEvent = MakeShared<FOnTimeEvent>();
-		ExtractAttribute(Attributes, "Time", OnTimeEvent->Time);
-
-		mOnTimeEvents.push_back(std::move(OnTimeEvent));
-		
-		return &mOnTimeEvents.back()->Event;
-		});
 
 	RegisterSystemEvent("OnActivate", [this](const WAttributesMap& Attributes) -> WEvent* {
 		auto Iter = Attributes.find("Target");
@@ -381,10 +436,24 @@ void AActor::Tick(float DeltaSecond)
 		Destroy();
 	}
 
-	int NumOnTimeEvent = (int)mOnTimeEvents.size();
-	while (mOnTimeEventIndex < NumOnTimeEvent && mOnTimeEvents[mOnTimeEventIndex]->Time <= mElapsedTime)
+	// Timer 액션 처리
+	while (!mTimerActionInfos.empty())
 	{
-		mOnTimeEvents[mOnTimeEventIndex++]->Event.Dispatch();
+		if (mTimerActionInfos.top().ExpireTime > mElapsedTime)
+		{
+			break;
+		}
+
+		FTimerActionInfo Info = mTimerActionInfos.top();
+		mTimerActionInfos.pop();
+
+		Info.Event->Dispatch();
+
+		if (Info.bLoop)
+		{
+			Info.ExpireTime += Info.Time;
+			mTimerActionInfos.push(Info);
+		}
 	}
 
 	// mSplineFollowInfos는 std::vector 또는 std::list라고 가정합니다.
@@ -501,8 +570,6 @@ void AActor::BeginPlay()
 		Activate();
 		BeginComponents();
 	}
-
-	std::sort(mOnTimeEvents.begin(), mOnTimeEvents.end(), [](const TSharedPtr<FOnTimeEvent>& A, const TSharedPtr<FOnTimeEvent>& B) { return A->Time < B->Time; });
 
 	mOnSpawnEvent.Dispatch();
 }

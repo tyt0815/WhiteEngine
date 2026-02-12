@@ -39,7 +39,7 @@ void WTestWorld::Tick(float DeltaSecond)
 	if (a > SpawnDelay)
 	{
 		FActorSpawnParameter Param;
-		/*Param.Transform.Translation = XMFLOAT3(-50, 0, 10);
+		Param.Transform.Translation = XMFLOAT3(-50, 0, 10);
 		SpawnActorByFactory<AProjectileBase>("BP_Projectile1", Param);
 
 		Param.Transform.Translation.x += 2;
@@ -67,7 +67,7 @@ void WTestWorld::Tick(float DeltaSecond)
 		SpawnActorByFactory<AProjectileBase>("BP_Projectile10", Param);
 
 		Param.Transform.Translation.x += 4;
-		SpawnActorByFactory<AProjectileBase>("BP_Projectile11", Param);*/
+		SpawnActorByFactory<AProjectileBase>("BP_Projectile11", Param);
 
 		Param.Transform.Translation.x += 4;
 		SpawnActorByFactory<AProjectileBase>("BP_Projectile12", Param);

@@ -1,11 +1,12 @@
 <AProjectileBase>
 
     <Configs>
+        <LifeCycle LifeSpan = "5"/>
     </Configs>
 
     <Components>
-        <Movement Name = "Movement" InitSpeed = "{0, 0, 20}" GravityScale = "0" MaxSpeed = "1000" LifeSpan = "5"
-            HomingStrategy = "None" HomingRange = "200" HomingAngle = "90" HomingTurnRate = "45" HomingTags = "[Enemy]">
+        <Movement Name = "Movement" InitSpeed = "{0, 0, 20}" GravityScale = "0" MaxSpeed = "1000"
+            HomingStrategy = "Nearest" HomingRange = "1" HomingAngle = "90" HomingTurnRate = "45" HomingTags = "[Enemy]">
             <Mesh Name = "Body" Asset = "SM_LaminateFlooringBrownBox">
                 <Collision Name = "BoxCollision" Type = "Box" Extent = "{0.5, 0.5, 0.5}" Damage = "250" Delay = "0.5" TargetTags = "Enemy"/>
             </Mesh>
@@ -13,18 +14,14 @@
     </Components>
 
     <Events>
-        <OnHit>
-            <Destroy/>
-        </OnHit>
+        <OnSpawn>
+            <Timer Time = "1" Event = "Timer1" Loop = "true"/>
+        </OnSpawn>
 
-        <OnTime Time = "1">
-            <Set Name = "Movement.HomingStrategy" Value = "Nearest"/>
+        <Timer1>
             <SetWorldLocation Target = "Movement" Loc = "Movement.GetWorldLocation() + {0, 5, 0}"/>  
-        </OnTime>
-
-        <OnHomingFail Target = "Movement">
-            <Destroy/>
-        </OnHomingFail>
+        </Timer1>
+        
     </Events>
 
 </AProjectileBase>
