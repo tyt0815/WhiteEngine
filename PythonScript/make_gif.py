@@ -49,9 +49,9 @@ def make_gif(input_path, output_path, start_time, end_time, fps=18, width=1200, 
         print(f"에러 발생: {e}")
 
 if __name__ == "__main__":
-    in_path = "미사일 스웜.mp4"
+    in_path = "Component - Movement.mp4"
     folder_path, file_name = os.path.split(in_path)
     out_path = os.path.join(folder_path, file_name.split('.')[0] + '.gif')
     
     # 예시 1: 리사이즈 없이 원본에서 1280x720 영역만 중앙에서 도려내기
-    make_gif(in_path, out_path, 5, 16, width=1280, height=720, resize_first=True)
+    make_gif(in_path, out_path, 4, 6.5, fps = 30, width=1280, height=720, resize_first=True)

@@ -1,0 +1,15 @@
+<AProjectileBase>
+
+    <Configs>
+        <General Tags = "[Tag1, Tag2]"/>
+        <LifeCycle LifeSpan = "5"/>
+    </Configs>
+
+    <Components>
+
+        <Collision Name = "CollisionComp" Type = "Spline" Debug = "true" Asset = "SP_Ring" BoundingBox = "False" Rot = "{0, 90, 0}" Segment = "8"/>
+        
+
+    </Components>
+
+</AProjectileBase>

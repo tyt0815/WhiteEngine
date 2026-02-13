@@ -72,6 +72,11 @@ void WTestWorld::Tick(float DeltaSecond)
 		Param.Transform.Translation.x += 4;
 		SpawnActorByFactory<AProjectileBase>("BP_Projectile12", Param);
 
+		//FActorSpawnParameter Param;
+		//Param.Transform.Translation = XMFLOAT3(0, 0.1f, 10);
+		//Param.Transform.Rotation = XMFLOAT3(0, 90, 0);
+		//SpawnActorByFactory<AProjectileBase>("BP_Overview", Param);
+
 		a = 0;
 
 	}

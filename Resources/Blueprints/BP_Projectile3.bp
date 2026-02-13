@@ -6,10 +6,9 @@
 
     <Components>
         <Movement Name = "Movement" InitSpeed = "{0, 10, 20}" GravityScale = "1" MaxSpeed = "1000" LifeSpan = "5">
-            <Mesh Name = "Body" Asset = "SM_MetalRing">
-                <Collision Name = "SplineCollision" Type = "Spline" Delay = "0.1" MaxHit = "1" Asset = "SP_Ring" Segment = "8" BoundingBox = "true"/>
-                <Collision Name = "BoxCollision" Loc = "{0, 10, 0}" Type = "Box" Extent = "{1, 1, 1}"/>
-            </Mesh>
+            <Collision Name = "SplineCollision" Debug = "true" Type = "Spline" Delay = "0.1" MaxHit = "1" Asset = "SP_Ring" Segment = "8" BoundingBox = "true">
+                <Mesh Name = "Body" Asset = "SM_MetalRing"/>
+            </Collision>
         </Movement>
     </Components>
 
@@ -19,10 +18,6 @@
         </OnSpawn>
 
         <OnHit>
-            <Particle Loc = "Movement.GetWorldLocation()" Asset = "P_Explosion_Red_Small"/>
-        </OnHit>
-
-        <OnHit Target = "BoxCollision">
             <Destroy/>
         </OnHit>
 
@@ -37,7 +32,7 @@
         </BlinkEnd>
 
         <OnActivate Target = "Body">
-            <Particle Loc = "Movement.GetWorldLocation()" Asset = "P_Explosion_Blue"/>
+            <!-- <Particle Loc = "Movement.GetWorldLocation()" Asset = "P_Explosion_Red_Small"/> -->
         </OnActivate>
     </Events>
 

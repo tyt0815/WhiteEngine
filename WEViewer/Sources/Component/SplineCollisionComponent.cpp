@@ -33,11 +33,12 @@ void WSplineCollisionComponent::Tick(float DeltaSecond)
 		if (BoxHit.Actor.expired()) bNeedCollisionCheck = false;
 	}
 
-	if (bNeedCollisionCheck)
+	for (FCapsuleCollider& Capsule : mCapsuleCollider)
 	{
-		for (FCapsuleCollider& Capsule : mCapsuleCollider)
+		XMFLOAT3 CurrLoc = Capsule.Comp->GetWorldLocation();
+
+		if (bNeedCollisionCheck)
 		{
-			XMFLOAT3 CurrLoc = Capsule.Comp->GetWorldLocation();
 			FHitResult Hit;
 			GetWorld()->CapsuleTrace(Capsule.PrevLocation, CurrLoc, Capsule.Radius, Capsule.HalfHeight,
 				Capsule.Comp->GetWorldRotation(), TraceIgnore, Hit, mbDebug, mCollisionInterval);
@@ -47,8 +48,9 @@ void WSplineCollisionComponent::Tick(float DeltaSecond)
 				// 베이스 클래스의 공통 처리 로직 호출
 				ProcessHit(Hit);
 			}
-			Capsule.PrevLocation = CurrLoc;
 		}
+		
+		Capsule.PrevLocation = CurrLoc;
 	}
 }
 

@@ -19,7 +19,7 @@
         </OnSpawn>
 
         <Timer1>
-            <SetWorldLocation Target = "Movement" Loc = "Movement.GetWorldLocation() + {0, 5, 0}"/>  
+            <SetWorldLocation Target = "Movement" Loc = "Movement.GetWorldLocation() + {0, 5, 0} * -1"/>  
         </Timer1>
         
     </Events>

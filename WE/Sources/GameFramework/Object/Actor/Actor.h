@@ -225,6 +225,8 @@ private:
 
 	float mLifeSpan = 0;
 
+	float mDeltaTime = 0;
+
 	struct FTimerActionInfo
 	{
 		const WEvent* Event;
@@ -234,7 +236,7 @@ private:
 
 		bool operator>(const FTimerActionInfo& Other) const 
 		{
-			return Time > Other.Time;
+			return ExpireTime > Other.ExpireTime;
 		}
 	};
 

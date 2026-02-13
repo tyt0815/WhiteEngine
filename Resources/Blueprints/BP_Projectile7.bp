@@ -1,7 +1,8 @@
+
 <AProjectileBase>
 
     <Configs>
-    <LifeCycle LifeSpan = "5"/>
+        <LifeCycle LifeSpan = "5"/>
     </Configs>
 
     <Components>    
@@ -26,9 +27,15 @@
         </OnHit>
 
         <OnBounce Target = "Movement">
-            <Particle Loc = "$ImpactPoint" Asset = "P_Explosion_Green_Tiny"/>
-            <Particle Loc = "Movement.GetWorldLocation()" Asset = "P_Explosion_Green_Tiny"/>
+            <Event Name = "ParticleEvent"/>
         </OnBounce>
+
+        <ParticleEvent>
+            <Particle Loc = "$ImpactPoint + {0, 1, 0}" Asset = "P_Explosion_Green_Tiny"/>
+            <Particle Loc = "Movement.GetWorldLocation()" Asset = "P_Explosion_Green_Tiny"/>
+        </ParticleEvent>
+
     </Events>
 
 </AProjectileBase>
+
