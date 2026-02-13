@@ -25,7 +25,7 @@ struct FBlueprintComponentNode
 	std::string Type;
 	WAttributesMap Attributes;
 
-	TArray<TSharedPtr<FBlueprintComponentNode>> AttachedComponents;
+	TArray<TUniquePtr<FBlueprintComponentNode>> AttachedComponents;
 };
 
 struct FBlueprintActionNode
@@ -38,7 +38,19 @@ struct FBlueprintEventNode
 {
 	std::string Name;
 	WAttributesMap Attributes;
-	TArray<TSharedPtr<FBlueprintActionNode>> Actions;
+	TArray<TUniquePtr<FBlueprintActionNode>> Actions;
+};
+
+struct FBlueprintState
+{
+	std::string Name;
+	TArray<TUniquePtr<FBlueprintEventNode>> Events;
+};
+
+struct FBlueprintStateMachine
+{
+	std::string InitialState;
+	TArray<TUniquePtr<FBlueprintState>> States;
 };
 
 class FBlueprintAsset : public FAsset
@@ -50,11 +62,8 @@ public:
 
 	std::unordered_map<std::string, WAttributesMap> mConfigs;
 
-	TArray<TSharedPtr<FBlueprintComponentNode>> mAttachedComponents;
-
-	TArray<TSharedPtr<FBlueprintEventNode>> mCustomEvents;
-
-	TArray<TSharedPtr<FBlueprintEventNode>> mEvents;
+	TArray<TUniquePtr<FBlueprintComponentNode>> mAttachedComponents;
+	
 
 protected:
 	virtual bool LoadAsset(const std::wstring& FilePath) override;

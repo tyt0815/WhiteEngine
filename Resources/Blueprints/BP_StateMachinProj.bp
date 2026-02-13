@@ -1,0 +1,49 @@
+<AProjectileBase>
+
+    <Configs>
+    </Configs>
+
+    <Components>
+        <Movement Name = "Movement" InitSpeed = "{0, 0, 10}" GravityScale = "0" MaxSpeed = "10" LifeSpan = "5">
+            <Mesh Name = "Body" Asset = "SM_ScuffedGoldBox"/>
+        </Movement>
+    </Components>
+
+    <StateMachine Initial = "Spawn">
+        <GlobalEvents>
+            <OnSpawn>
+                <Particle Loc = "Movement.GetWorldLocation()" Asset = "P_Explosion_Red_Small"/>
+            </OnSpawn>
+        </GlobalEvents>
+
+        <CustomEvents>
+            <Custom1>
+                <SetWorldLocation Target = "Movement" Loc = "Movement.GetWorldLocation() + {0, 5, 0} * -1"/> 
+            </Custom1>
+        </CustomEvents>
+
+        <State Name = "Spawn">
+            <OnSpawn>
+                <Call = "Custom1">
+            </OnSpawn>
+
+            <Custom1>
+                <Particle Loc = "Movement.GetWorldLocation()" Asset = "P_Explosion_Green_Tiny"/>
+            </Custom1>
+        </State>
+
+        <State Name = "State1">
+            <OnSpawn>
+                <Call = "Custom1">
+            </OnSpawn>
+        </State>
+
+        <State Name = "State2" Base = "State1">
+            <OnDestroy>
+                <Call = "Custom1">
+            </OnDestroy>
+        </State>
+
+    </StateMachine>
+
+</AProjectileBase>

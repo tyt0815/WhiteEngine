@@ -148,6 +148,7 @@
     <ClInclude Include="Sources\GameFramework\Object\Parser.h" />
     <ClInclude Include="Sources\GameFramework\Object\Pawn\GhostCameraPawn.h" />
     <ClInclude Include="Sources\GameFramework\Object\Pawn\Pawn.h" />
+    <ClInclude Include="Sources\GameFramework\Object\WFactoryManager.h" />
     <ClInclude Include="Sources\GameFramework\Object\World\DefaultWorld.h" />
     <ClInclude Include="Sources\GameFramework\Object\World\World.h" />
     <ClInclude Include="Sources\GameFramework\Object\WEngineTypes.h" />

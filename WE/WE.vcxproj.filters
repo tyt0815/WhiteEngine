@@ -589,6 +589,9 @@
     <ClInclude Include="Sources\Asset\BlueprintTypes.h">
       <Filter>Sources\Asset</Filter>
     </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\WFactoryManager.h">
+      <Filter>Sources\GameFramework\Object</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\BillboardCommon.hlsli">
