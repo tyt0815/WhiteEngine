@@ -60,6 +60,9 @@
     <Filter Include="Sources\GameFramework\Interface">
       <UniqueIdentifier>{3041f1da-9af5-4076-9931-0a5af183bbf7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\GameFramework\Object\Factory">
+      <UniqueIdentifier>{ca859a55-fb5c-42f8-a89e-ae7088f1f772}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Utility\Timer.cpp">
@@ -290,17 +293,17 @@
     <ClCompile Include="Sources\Physics\HitResult.cpp">
       <Filter>Sources\Physics</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\GameFramework\Object\Component\ComponentFactory.cpp">
-      <Filter>Sources\GameFramework\Object\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\GameFramework\Object\Actor\ActorFactory.cpp">
-      <Filter>Sources\GameFramework\Object\Actor</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\GameFramework\Interface\CollisionGenerator.cpp">
       <Filter>Sources\GameFramework\Interface</Filter>
     </ClCompile>
     <ClCompile Include="Sources\GameFramework\Object\Parser.cpp">
       <Filter>Sources\GameFramework\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Factory\ActorFactory.cpp">
+      <Filter>Sources\GameFramework\Object\Factory</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Factory\ComponentFactory.cpp">
+      <Filter>Sources\GameFramework\Object\Factory</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -571,12 +574,6 @@
     <ClInclude Include="Sources\Utility\Debug.h">
       <Filter>Sources\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\GameFramework\Object\Component\ComponentFactory.h">
-      <Filter>Sources\GameFramework\Object\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\GameFramework\Object\Actor\ActorFactory.h">
-      <Filter>Sources\GameFramework\Object\Actor</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\GameFramework\Interface\CollisionGenerator.h">
       <Filter>Sources\GameFramework\Interface</Filter>
     </ClInclude>
@@ -589,8 +586,17 @@
     <ClInclude Include="Sources\Asset\BlueprintTypes.h">
       <Filter>Sources\Asset</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\GameFramework\Object\WFactoryManager.h">
-      <Filter>Sources\GameFramework\Object</Filter>
+    <ClInclude Include="Sources\GameFramework\Object\Factory\WActionFactory.h">
+      <Filter>Sources\GameFramework\Object\Factory</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Factory\ActorFactory.h">
+      <Filter>Sources\GameFramework\Object\Factory</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Factory\ComponentFactory.h">
+      <Filter>Sources\GameFramework\Object\Factory</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Factory\WEventFactory.h">
+      <Filter>Sources\GameFramework\Object\Factory</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
