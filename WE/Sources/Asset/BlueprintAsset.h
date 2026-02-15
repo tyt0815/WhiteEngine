@@ -4,8 +4,9 @@
 #include "Utility/Container.h"
 #include "Utility/Memory.h"
 #include "BlueprintTypes.h"
+#include "WActionRegistry.h"
 #include <tinyxml2.h>
-#include <variant>
+#include <vector>
 
 using FXMLDocument = tinyxml2::XMLDocument;
 using FXMLElement = tinyxml2::XMLElement;
@@ -14,43 +15,29 @@ using FXMLAttribute = tinyxml2::XMLAttribute;
 class FBinaryWriter;
 class FBinaryReader;
 
-struct FAttribute
-{
-	std::string Name;
-	std::unordered_map<std::string, std::string> Attributes;
+class AActor;
+class WActorComponent;
+
+using WActionFactory = std::function<WActionLambda(WObject* Target)>;
+
+struct FComponentRuntimeSetup {
+    std::string Name;
+    std::string ParentName;
+    std::string Type;
+    WAttributesMap Attributes;
+    std::function<WActorComponent* (AActor* Owner)> CreateFunc;
 };
 
-struct FBlueprintComponentNode
-{
-	std::string Type;
-	WAttributesMap Attributes;
-
-	TArray<TUniquePtr<FBlueprintComponentNode>> AttachedComponents;
+struct FEventRuntimeBinding {
+    std::string Tag;
+    WAttributesMap Attributes;
+    std::vector<WActionFactory> ActionFactories;
 };
 
-struct FBlueprintActionNode
-{
-	std::string Name;
-	WAttributesMap Attributes;
-};
-
-struct FBlueprintEventNode
-{
-	std::string Name;
-	WAttributesMap Attributes;
-	TArray<TUniquePtr<FBlueprintActionNode>> Actions;
-};
-
-struct FBlueprintState
-{
-	std::string Name;
-	TArray<TUniquePtr<FBlueprintEventNode>> Events;
-};
-
-struct FBlueprintStateMachine
-{
-	std::string InitialState;
-	TArray<TUniquePtr<FBlueprintState>> States;
+struct FStateRuntimeSetup {
+    std::string Name;
+    std::string BaseName;
+    std::vector<FEventRuntimeBinding> EventBindings;
 };
 
 class FBlueprintAsset : public FAsset
@@ -58,12 +45,8 @@ class FBlueprintAsset : public FAsset
 	typedef FAsset Super;
 
 public:
-	std::string mParentClass;
-
-	std::unordered_map<std::string, WAttributesMap> mConfigs;
-
-	TArray<TUniquePtr<FBlueprintComponentNode>> mAttachedComponents;
-	
+    // 실제 액터가 스폰될 때 이 함수를 호출하여 람다들을 인스턴스화함
+    void ApplyToActor(AActor* TargetActor) const;
 
 protected:
 	virtual bool LoadAsset(const std::wstring& FilePath) override;
@@ -71,39 +54,42 @@ protected:
 private:
 	bool SmartLoad(const std::wstring& FilePath, TArray<unsigned char>& RawBuffer);
 
-	void RegisterToFactory();
-
 	bool CheckIfNeedCompile(const std::wstring& Src, const std::wstring& Bin);
 
 	bool OnCompile(const std::wstring& SrcPath, std::vector<unsigned char>& OutBuffer);
 
+    void BindToActorFactory();
+
 	void Serialize(FBinaryWriter& Writer, FXMLElement* RootElement);
-
-	void Deserialize(FBinaryReader& Reader);
-
 	void SerializeAttributes(FBinaryWriter& Writer, FXMLElement* Element);
-
-	void DeserializeAttributes(FBinaryReader& Reader, WAttributesMap& AttributesMap);
-
-	void SerializeConfigs(FBinaryWriter& Writer, FXMLElement* ConfigsElement);
-
-	void DeserializeConfigs(FBinaryReader& Reader, std::unordered_map<std::string, WAttributesMap>& ConfigNode);
-
-	void SerializeConfig(FBinaryWriter& Writer, FXMLElement* ConfigElement);
-
 	void SerializeComponents(FBinaryWriter& Writer, FXMLElement* ComponentsElement);
-
-	void DeserializeComponents(FBinaryReader& Reader, TArray<TSharedPtr<FBlueprintComponentNode>>& AttachedComponents);
-
 	void SerializeComponent(FBinaryWriter& Writer, FXMLElement* ComponentElement);
-
-	void DeserializeComponent(FBinaryReader& Reader, TSharedPtr<FBlueprintComponentNode>& ComponentNode);
-
+	void SerializeStateMachine(FBinaryWriter& Writer, FXMLElement* StateMachineElement);
+	void SerializeState(FBinaryWriter& Writer, FXMLElement* StateElement);
 	void SerializeEvents(FBinaryWriter& Writer, FXMLElement* EventsElement);
-
-	void DeserializeEvents(FBinaryReader& Reader);
-
 	void SerializeEvent(FBinaryWriter& Writer, FXMLElement* EventElement);
 
-	void DeserializeEvent(FBinaryReader& Reader);
+private:
+    void Deserialize(FBinaryReader& Reader);
+    void DeserializeAttributes(FBinaryReader& Reader, WAttributesMap& OutAttr);
+
+    void DeserializeComponents(FBinaryReader& Reader, std::string ParentName = "");
+
+    void DeserializeStateMachine(FBinaryReader& Reader);
+
+    void DeserializeEvents(FBinaryReader& Reader, std::vector<FEventRuntimeBinding>& OutBindings);
+
+public:
+    // --- 컴파일된 런타임 데이터 ---
+    std::string mParentClass;
+
+    // 생성 순서와 계층 구조가 포함된 컴포넌트 생성 공장들
+    std::vector<FComponentRuntimeSetup> mComponentSetups;
+
+    // 스테이트 머신 런타임 데이터
+    struct {
+        bool bExist = false;
+        std::string InitialState;
+        std::unordered_map<std::string, FStateRuntimeSetup> States;
+    } mRuntimeStateMachine;
 };

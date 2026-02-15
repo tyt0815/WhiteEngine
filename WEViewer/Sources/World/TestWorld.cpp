@@ -2,8 +2,7 @@
 #include "Actor/PhysicsBox.h"
 #include "Actor/PhysicsSphere.h"
 #include "Actor/HitReactor.h"
-#include "Actor/ProjectileBase.h"
-//#include "Pawn/PlayerPawn.h"
+#include "Actor/StateMachineActor.h"
 
 void WTestWorld::BeginPlay()
 {	
@@ -11,21 +10,21 @@ void WTestWorld::BeginPlay()
 
 	Super::BeginPlay();
 
-	FActorSpawnParameter Param;
-	Param.Transform.Scale = XMFLOAT3(1, 2, 1);
-	Param.Transform.Translation = XMFLOAT3(-40, 1, 30);
-	GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Enemy", Param);
-	Param.Transform.Translation.x += 2;
-	Param.Transform.Translation.z += 6;
-	GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Enemy", Param);
-	Param.Transform.Translation.x += 6;
-	GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Alliance", Param);
-	Param.Transform.Translation.x += 2;
-	GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Enemy", Param);
-	Param.Transform.Translation.x += 2;
-	GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Alliance", Param);
-	Param.Transform.Translation.x += 2;
-	GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Enemy", Param);
+	//FActorSpawnParameter Param;
+	//Param.Transform.Scale = XMFLOAT3(1, 2, 1);
+	//Param.Transform.Translation = XMFLOAT3(-40, 1, 30);
+	//GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Enemy", Param);
+	//Param.Transform.Translation.x += 2;
+	//Param.Transform.Translation.z += 6;
+	//GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Enemy", Param);
+	//Param.Transform.Translation.x += 6;
+	//GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Alliance", Param);
+	//Param.Transform.Translation.x += 2;
+	//GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Enemy", Param);
+	//Param.Transform.Translation.x += 2;
+	//GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Alliance", Param);
+	//Param.Transform.Translation.x += 2;
+	//GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Enemy", Param);
 }
 
 void WTestWorld::Tick(float DeltaSecond)
@@ -71,6 +70,8 @@ void WTestWorld::Tick(float DeltaSecond)
 
 		//Param.Transform.Translation.x += 4;
 		//SpawnActorByFactory<AProjectileBase>("BP_Projectile12", Param);
+
+		SpawnActorByFactory<AActor>("BP_StateMachinProj");
 
 		a = 0;
 

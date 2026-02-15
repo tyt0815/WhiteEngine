@@ -4,7 +4,7 @@
 #include "Utility/FileIO.h"
 #include "Utility/String.h"
 #include "Actor/Actor.h"
-#include "Component/ActorComponent.h"
+#include "WComponentRegistry.h"
 #include <filesystem>
 
 int CountChildElement(FXMLElement* Parent, const std::string& Name)
@@ -50,7 +50,7 @@ bool FBlueprintAsset::LoadAsset(const std::wstring& FilePath)
 
     Deserialize(Reader);
 
-    RegisterToFactory();
+    BindToActorFactory();
 
     return true;
 }
@@ -77,17 +77,6 @@ bool FBlueprintAsset::SmartLoad(const std::wstring& SourcePath, TArray<unsigned 
     }
 
     return FileIO::LoadBufferFromFile(BinaryPath, RawBuffer);
-}
-
-void FBlueprintAsset::RegisterToFactory()
-{
-    FActorFactory::RegisterActor(mName, [&]()
-        {
-            TSharedPtr<AActor> Actor = FActorFactory::CreateActor<AActor>(mParentClass);
-            Actor->LoadBlueprint(this);
-            return Actor;
-        }
-    );
 }
 
 bool FBlueprintAsset::CheckIfNeedCompile(const std::wstring& Src, const std::wstring& Bin)
@@ -117,28 +106,30 @@ bool FBlueprintAsset::OnCompile(const std::wstring& SrcPath, std::vector<unsigne
     return true;
 }
 
+void FBlueprintAsset::BindToActorFactory()
+{
+    FActorFactory::RegisterActor(mName, [this]()
+        {
+            auto Actor = FActorFactory::GetInstance()->CreateActor<AActor>(mParentClass);
+
+            if (Actor)
+            {
+                Actor->LoadBlueprint(this);
+            }
+
+            return Actor;
+        });
+}
+
 void FBlueprintAsset::Serialize(FBinaryWriter& Writer, FXMLElement* RootElement)
 {
     // ParentClass 쓰기
     const std::string Parent = RootElement->Name();
     Writer << Parent;
 
-    SerializeConfigs(Writer, RootElement->FirstChildElement("Configs"));
-
     SerializeComponents(Writer, RootElement->FirstChildElement("Components"));
 
-    SerializeEvents(Writer , RootElement->FirstChildElement("Events"));
-}
-
-void FBlueprintAsset::Deserialize(FBinaryReader& Reader)
-{
-    Reader >> mParentClass;
-
-    DeserializeConfigs(Reader, mConfigs);
-
-    DeserializeComponents(Reader, mAttachedComponents);
-
-    DeserializeEvents(Reader);
+    SerializeStateMachine(Writer, RootElement->FirstChildElement("StateMachine"));
 }
 
 void FBlueprintAsset::SerializeAttributes(FBinaryWriter& Writer, FXMLElement* Element)
@@ -155,60 +146,6 @@ void FBlueprintAsset::SerializeAttributes(FBinaryWriter& Writer, FXMLElement* El
 
         Attribute = Attribute->Next();
     }
-}
-
-void FBlueprintAsset::DeserializeAttributes(FBinaryReader& Reader, WAttributesMap& AttributesMap)
-{
-    int NumAttributes;
-    Reader >> NumAttributes;
-
-    for (int i = 0; i < NumAttributes; ++i)
-    {
-        std::string Name;
-        std::string Value;
-        Reader >> Name >> Value;
-        AttributesMap[Name] = std::move(Value);
-    }
-}
-
-void FBlueprintAsset::SerializeConfigs(FBinaryWriter& Writer, FXMLElement* ConfigsElement)
-{
-    if (ConfigsElement == nullptr)
-    {
-        Writer << (int)0;
-        return;
-    }
-
-    int NumConfigs = ConfigsElement->ChildElementCount();
-    Writer << NumConfigs;
-
-    FXMLElement* ConfigElement = ConfigsElement->FirstChildElement();
-    while (ConfigElement)
-    {
-        SerializeConfig(Writer, ConfigElement);
-        ConfigElement = ConfigElement->NextSiblingElement();
-    }
-}
-
-void FBlueprintAsset::DeserializeConfigs(FBinaryReader& Reader, std::unordered_map<std::string, WAttributesMap>& ConfigNode)
-{
-    int NumConfigs;
-    Reader >> NumConfigs;
-
-    for (int i = 0; i < NumConfigs; ++i)
-    {
-        std::string Name;
-        Reader >> Name;
-        DeserializeAttributes(Reader, ConfigNode[Name]);
-    }
-}
-
-void FBlueprintAsset::SerializeConfig(FBinaryWriter& Writer, FXMLElement* ConfigElement)
-{
-    std::string Name = ConfigElement->Name();
-    Writer << Name;
-
-    SerializeAttributes(Writer, ConfigElement);
 }
 
 void FBlueprintAsset::SerializeComponents(FBinaryWriter& Writer, FXMLElement* ComponentsElement)
@@ -231,20 +168,6 @@ void FBlueprintAsset::SerializeComponents(FBinaryWriter& Writer, FXMLElement* Co
     }
 }
 
-void FBlueprintAsset::DeserializeComponents(FBinaryReader& Reader, TArray<TSharedPtr<FBlueprintComponentNode>>& AttachedComponents)
-{
-    int ComponentsNum;
-    Reader >> ComponentsNum;
-
-    AttachedComponents.resize(ComponentsNum);
-
-    for (TSharedPtr<FBlueprintComponentNode>& Comp : AttachedComponents)
-    {
-        Comp = MakeShared<FBlueprintComponentNode>();
-        DeserializeComponent(Reader, Comp);
-    }
-}
-
 void FBlueprintAsset::SerializeComponent(FBinaryWriter& Writer, FXMLElement* ComponentElement)
 {
     assert(ComponentElement && "ComponentElement is nullptr");
@@ -257,13 +180,60 @@ void FBlueprintAsset::SerializeComponent(FBinaryWriter& Writer, FXMLElement* Com
     SerializeComponents(Writer, ComponentElement);
 }
 
-void FBlueprintAsset::DeserializeComponent(FBinaryReader& Reader, TSharedPtr<FBlueprintComponentNode>& Component)
+void FBlueprintAsset::SerializeStateMachine(FBinaryWriter& Writer, FXMLElement* StateMachineElement)
 {
-    Reader >> Component->Type;
+    if (StateMachineElement == nullptr)
+    {
+        Writer << false; // StateMachine 존재 여부
+        return;
+    }
 
-    DeserializeAttributes(Reader, Component->Attributes);
+    Writer << true;
 
-    DeserializeComponents(Reader, Component->AttachedComponents);
+    // 1. Initial State 이름 (예: "Spawn")
+    std::string InitialState = "";
+    if (const char* Initial = StateMachineElement->Attribute("Initial"))
+    {
+        InitialState = Initial;
+    }
+    Writer << InitialState;
+
+    // 4. States 직렬화
+    int NumStates = CountChildElement(StateMachineElement, "State");
+    Writer << NumStates;
+
+    FXMLElement* StateElement = StateMachineElement->FirstChildElement("State");
+    while (StateElement)
+    {
+        SerializeState(Writer, StateElement);
+        StateElement = StateElement->NextSiblingElement("State");
+    }
+}
+
+void FBlueprintAsset::SerializeState(FBinaryWriter& Writer, FXMLElement* StateElement)
+{
+    // 1. State 기본 정보 (Name, Base 상속 여부)
+    std::string StateName = "";
+    if (const char* Name = StateElement->Attribute("Name")) StateName = Name;
+
+    std::string BaseState = "";
+    if (const char* Base = StateElement->Attribute("Base")) BaseState = Base;
+
+    Writer << StateName << BaseState;
+
+    // 2. State 내부의 이벤트들 (OnSpawn, OnUpdate, Custom1 등)
+    // State 태그는 Attributes가 없을 수도 있지만, 확장성을 위해 처리
+    SerializeAttributes(Writer, StateElement);
+
+    int NumEventsInState = StateElement->ChildElementCount();
+    Writer << NumEventsInState;
+
+    FXMLElement* EventElement = StateElement->FirstChildElement();
+    while (EventElement)
+    {
+        SerializeEvent(Writer, EventElement);
+        EventElement = EventElement->NextSiblingElement();
+    }
 }
 
 void FBlueprintAsset::SerializeEvents(FBinaryWriter& Writer, FXMLElement* EventsElement)
@@ -282,17 +252,6 @@ void FBlueprintAsset::SerializeEvents(FBinaryWriter& Writer, FXMLElement* Events
     {
         SerializeEvent(Writer, EventElement);
         EventElement = EventElement->NextSiblingElement();
-    }
-}
-
-void FBlueprintAsset::DeserializeEvents(FBinaryReader& Reader)
-{
-    int NumEvents;
-    Reader >> NumEvents;
-
-    for (int i = 0; i < NumEvents; ++i)
-    {
-        DeserializeEvent(Reader);
     }
 }
 
@@ -321,36 +280,108 @@ void FBlueprintAsset::SerializeEvent(FBinaryWriter& Writer, FXMLElement* EventEl
     }
 }
 
-void FBlueprintAsset::DeserializeEvent(FBinaryReader& Reader)
+void FBlueprintAsset::Deserialize(FBinaryReader& Reader)
 {
-    // 1. 이벤트 이름 읽기
-    TSharedPtr<FBlueprintEventNode> EventNode = MakeShared<FBlueprintEventNode>();
-    Reader >> EventNode->Name;
+    Reader >> mParentClass;
 
-    DeserializeAttributes(Reader, EventNode->Attributes);
+    mComponentSetups.clear();
+    DeserializeComponents(Reader, "");
 
-    // 2. 액션 개수 읽기
-    int NumActions;
-    Reader >> NumActions;
+    DeserializeStateMachine(Reader);
+}
 
-    EventNode->Actions.resize(NumActions);
-    for (int i = 0; i < NumActions; ++i)
+void FBlueprintAsset::DeserializeAttributes(FBinaryReader& Reader, WAttributesMap& OutAttr)
+{
+    int Count;
+    Reader >> Count;
+    for (int i = 0; i < Count; ++i)
     {
-        EventNode->Actions[i] = MakeShared<FBlueprintActionNode>();
-
-        // 3. 액션 이름 읽기
-        Reader >> EventNode->Actions[i]->Name;
-
-        // 4. 액션의 속성 맵 복구
-        DeserializeAttributes(Reader, EventNode->Actions[i]->Attributes);
+        std::string Key, Value;
+        Reader >> Key >> Value;
+        OutAttr[Key] = std::move(Value);
     }
+}
 
-    if (EventNode->Name.substr(0, 2) == "On")
+void FBlueprintAsset::DeserializeComponents(FBinaryReader& Reader, std::string ParentName)
+{
+    int NumComponents;
+    Reader >> NumComponents;
+
+    for (int i = 0; i < NumComponents; ++i)
     {
-        mEvents.push_back(std::move(EventNode));
+        std::string Type;
+        Reader >> Type;
+
+        WAttributesMap Attributes;
+        DeserializeAttributes(Reader, Attributes);
+
+        std::string MyName = Attributes["Name"];
+
+        // [Registry 활용] 컴포넌트 생성 공장 정의
+        auto CreateFunc = [Type, Attributes](AActor* Owner) -> WActorComponent* {
+            return WComponentRegistry::Create(Type, Owner, Attributes);
+        };
+
+        mComponentSetups.push_back({ MyName, ParentName, Type, Attributes, CreateFunc });
+
+        DeserializeComponents(Reader, MyName);
     }
-    else
+}
+
+void FBlueprintAsset::DeserializeStateMachine(FBinaryReader& Reader)
+{
+    Reader >> mRuntimeStateMachine.bExist;
+    if (!mRuntimeStateMachine.bExist) return;
+
+    Reader >> mRuntimeStateMachine.InitialState;
+
+    // States 복구
+    int NumStates;
+    Reader >> NumStates;
+    for (int i = 0; i < NumStates; ++i)
     {
-        mCustomEvents.push_back(std::move(EventNode));
+        FStateRuntimeSetup StateSetup;
+        Reader >> StateSetup.Name;
+        Reader >> StateSetup.BaseName;
+
+        // State 자체의 속성 (필요 시)
+        WAttributesMap StateAttr;
+        DeserializeAttributes(Reader, StateAttr);
+
+        // State 내부 이벤트들
+        DeserializeEvents(Reader, StateSetup.EventBindings);
+
+        mRuntimeStateMachine.States[StateSetup.Name] = std::move(StateSetup);
+    }
+}
+
+void FBlueprintAsset::DeserializeEvents(FBinaryReader& Reader, std::vector<FEventRuntimeBinding>& OutBindings)
+{
+    int NumEvents;
+    Reader >> NumEvents;
+    OutBindings.reserve(OutBindings.size() + NumEvents);
+
+    for (int i = 0; i < NumEvents; ++i)
+    {
+        FEventRuntimeBinding Binding;
+        Reader >> Binding.Tag; // OnSpawn, OnHit 등
+        DeserializeAttributes(Reader, Binding.Attributes);
+
+        int NumActions;
+        Reader >> NumActions;
+        for (int j = 0; j < NumActions; ++j)
+        {
+            std::string ActionTag;
+            Reader >> ActionTag;
+            WAttributesMap ActionAttr;
+            DeserializeAttributes(Reader, ActionAttr);
+
+            WActionFactory Factory = [ActionTag, ActionAttr](WObject* Target) -> WActionLambda {
+                return WActionRegistry::Create(ActionTag, Target, ActionAttr);
+            };
+
+            Binding.ActionFactories.push_back(std::move(Factory));
+        }
+        OutBindings.push_back(std::move(Binding));
     }
 }

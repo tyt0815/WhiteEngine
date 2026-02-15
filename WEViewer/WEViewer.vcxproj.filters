@@ -21,9 +21,6 @@
     <Filter Include="Sources\Pawn">
       <UniqueIdentifier>{2fa35f5e-e51e-4c9d-986f-8f36bc750324}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Component">
-      <UniqueIdentifier>{c80e04e3-ed2f-45b3-acce-ce8a8dcd799a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Actor\빌드제외">
       <UniqueIdentifier>{cf99ca30-b191-4543-a20d-0087d4609922}</UniqueIdentifier>
     </Filter>
@@ -47,24 +44,6 @@
     <ClCompile Include="Sources\Pawn\PlayerPawn.cpp">
       <Filter>Sources\Pawn</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\Actor\ProjectileBase.cpp">
-      <Filter>Sources\Actor</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Component\SplineCollisionComponent.cpp">
-      <Filter>Sources\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Component\PrimitiveCollisionComponent.cpp">
-      <Filter>Sources\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Component\BoxCollisionComponent.cpp">
-      <Filter>Sources\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Component\CapsuleCollisionComponent.cpp">
-      <Filter>Sources\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\Component\SphereCollisionComponent.cpp">
-      <Filter>Sources\Component</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\Actor\MissileGridManager.cpp">
       <Filter>Sources\Actor\빌드제외</Filter>
     </ClCompile>
@@ -75,6 +54,9 @@
       <Filter>Sources\Actor\빌드제외</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Actor\TopAttackMissile.cpp">
+      <Filter>Sources\Actor\빌드제외</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Actor\ProjectileBase.cpp">
       <Filter>Sources\Actor\빌드제외</Filter>
     </ClCompile>
   </ItemGroup>
@@ -97,24 +79,6 @@
     <ClInclude Include="Sources\Pawn\PlayerPawn.h">
       <Filter>Sources\Pawn</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\Actor\ProjectileBase.h">
-      <Filter>Sources\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Component\SplineCollisionComponent.h">
-      <Filter>Sources\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Component\PrimitiveCollisionComponent.h">
-      <Filter>Sources\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Component\BoxCollisionComponent.h">
-      <Filter>Sources\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Component\CapsuleCollisionComponent.h">
-      <Filter>Sources\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Component\SphereCollisionComponent.h">
-      <Filter>Sources\Component</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\Actor\MissileGridManager.h">
       <Filter>Sources\Actor\빌드제외</Filter>
     </ClInclude>
@@ -125,6 +89,9 @@
       <Filter>Sources\Actor\빌드제외</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Actor\TopAttackMissile.h">
+      <Filter>Sources\Actor\빌드제외</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\ProjectileBase.h">
       <Filter>Sources\Actor\빌드제외</Filter>
     </ClInclude>
   </ItemGroup>

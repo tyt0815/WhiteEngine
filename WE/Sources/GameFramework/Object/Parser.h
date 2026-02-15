@@ -3,7 +3,7 @@
 #include "Asset/BlueprintTypes.h"
 #include <functional>
 
-class AActor;
+class WObject;
 
 template<typename T> struct WValueParser;
 template<> struct WValueParser<bool>
@@ -235,12 +235,12 @@ void ApplyAttribute(const std::unordered_map<std::string, std::string>& Attrs, c
 class WExpressionParser
 {
 public:
-	static WEvalValue Evaluate(AActor* Context, const WAttributesMap& Attributes, const std::string& Name, const std::string& DefaultExpression);
+	static WEvalValue Evaluate(WObject* Context, const WAttributesMap& Attributes, const std::string& Name, const std::string& DefaultExpression);
 
-	static std::function<WEvalValue()> Bind(AActor* Context, const WAttributesMap& Attributes, const std::string& Name, const std::string& DefaultExpression);
+	static std::function<WEvalValue()> Bind(WObject* Context, const WAttributesMap& Attributes, const std::string& Name, const std::string& DefaultExpression);
 
 	template<typename T>
-	static std::function<T()> Bind(AActor* Context, const WAttributesMap& Attributes, const std::string& Name, const std::string& DefaultExpression)
+	static std::function<T()> Bind(WObject* Context, const WAttributesMap& Attributes, const std::string& Name, const std::string& DefaultExpression)
 	{
 		// 위에서 만든 WEvalValue 버전의 Bind를 호출
 		auto BaseEval = Bind(Context, Attributes, Name, DefaultExpression);
@@ -260,13 +260,13 @@ public:
 	}
 
 private:
-	static std::function<WEvalValue()> ParseLogical(AActor* Context, const std::string& Exp, size_t& Pos);
+	static std::function<WEvalValue()> ParseLogical(WObject* Context, const std::string& Exp, size_t& Pos);
 
-	static std::function<WEvalValue()> ParseExpression(AActor* Context, const std::string& Exp, size_t& Pos);
+	static std::function<WEvalValue()> ParseExpression(WObject* Context, const std::string& Exp, size_t& Pos);
 
-	static std::function<WEvalValue()> ParseTerm(AActor* Context, const std::string& Exp, size_t& Pos);
+	static std::function<WEvalValue()> ParseTerm(WObject* Context, const std::string& Exp, size_t& Pos);
 
-	static std::function<WEvalValue()> ParseFactor(AActor* Context, const std::string& Exp, size_t& Pos);
+	static std::function<WEvalValue()> ParseFactor(WObject* Context, const std::string& Exp, size_t& Pos);
 
 	// 유틸리티 함수들
 	static char Peek(const std::string& Exp, size_t& Pos);
@@ -281,7 +281,7 @@ private:
 
 	//// 1. 더하기/빼기 (가장 낮은 우선순위)
 	//template<typename T>
-	//static std::function<T()> ParseExpression(AActor* Context, const std::string& Exp, size_t& Pos)
+	//static std::function<T()> ParseExpression(WObject* Context, const std::string& Exp, size_t& Pos)
 	//{
 	//	auto Left = ParseTerm<T>(Context, Exp, Pos);
 
@@ -301,7 +301,7 @@ private:
 
 	//// 2. 곱하기/나누기
 	//template<typename T>
-	//static std::function<T()> ParseTerm(AActor* Context, const std::string& Exp, size_t& Pos)
+	//static std::function<T()> ParseTerm(WObject* Context, const std::string& Exp, size_t& Pos)
 	//{
 	//	std::function<T()> Left = ParseFactor<T>(Context, Exp, Pos);
 
@@ -321,7 +321,7 @@ private:
 
 	//// 3. 최우선 순위 (괄호, 함수, 변수, 값)
 	//template<typename T>
-	//static std::function<T()> ParseFactor(AActor* Context, const std::string& Exp, size_t& Pos)
+	//static std::function<T()> ParseFactor(WObject* Context, const std::string& Exp, size_t& Pos)
 	//{
 	//	SkipSpaces(Exp, Pos);
 

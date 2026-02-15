@@ -83,5 +83,5 @@ public:
 		return mTargetTags.find(Tag) != mTargetTags.end();
 	}
 
-	friend class AProjectileBase;
+	friend class WComponentRegistry;
 };

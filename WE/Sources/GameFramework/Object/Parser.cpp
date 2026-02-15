@@ -1,7 +1,7 @@
 #include "Parser.h"
 #include "Actor/Actor.h"
 
-WEvalValue WExpressionParser::Evaluate(AActor* Context, const WAttributesMap& Attributes, const std::string& Name, const std::string& DefaultExpression)
+WEvalValue WExpressionParser::Evaluate(WObject* Context, const WAttributesMap& Attributes, const std::string& Name, const std::string& DefaultExpression)
 {
     auto it = Attributes.find(Name);
     std::string Exp = (it != Attributes.end() && !it->second.empty()) ? it->second : DefaultExpression;
@@ -16,7 +16,7 @@ WEvalValue WExpressionParser::Evaluate(AActor* Context, const WAttributesMap& At
     return EvalFunc();
 }
 
-std::function<WEvalValue()> WExpressionParser::Bind(AActor* Context, const WAttributesMap& Attributes, const std::string& Name, const std::string& DefaultExpression)
+std::function<WEvalValue()> WExpressionParser::Bind(WObject* Context, const WAttributesMap& Attributes, const std::string& Name, const std::string& DefaultExpression)
 {
     auto it = Attributes.find(Name);
     std::string Exp = (it != Attributes.end() && !it->second.empty()) ? it->second : DefaultExpression;
@@ -39,7 +39,7 @@ std::function<WEvalValue()> WExpressionParser::Bind(AActor* Context, const WAttr
     };
 }
 
-std::function<WEvalValue()> WExpressionParser::ParseLogical(AActor* Context, const std::string& Exp, size_t& Pos)
+std::function<WEvalValue()> WExpressionParser::ParseLogical(WObject* Context, const std::string& Exp, size_t& Pos)
 {
     auto Left = ParseExpression(Context, Exp, Pos);
 
@@ -58,7 +58,7 @@ std::function<WEvalValue()> WExpressionParser::ParseLogical(AActor* Context, con
     return Left;
 }
 
-std::function<WEvalValue()> WExpressionParser::ParseExpression(AActor* Context, const std::string& Exp, size_t& Pos)
+std::function<WEvalValue()> WExpressionParser::ParseExpression(WObject* Context, const std::string& Exp, size_t& Pos)
 {
     auto Left = ParseTerm(Context, Exp, Pos);
 
@@ -75,7 +75,7 @@ std::function<WEvalValue()> WExpressionParser::ParseExpression(AActor* Context, 
     return Left;
 }
 
-std::function<WEvalValue()> WExpressionParser::ParseTerm(AActor* Context, const std::string& Exp, size_t& Pos)
+std::function<WEvalValue()> WExpressionParser::ParseTerm(WObject* Context, const std::string& Exp, size_t& Pos)
 {
     auto Left = ParseFactor(Context, Exp, Pos);
 
@@ -110,7 +110,7 @@ std::variant<Args...> ParseToVariant(const std::string& String, const std::varia
     return Result;
 }
 
-std::function<WEvalValue()> WExpressionParser::ParseFactor(AActor* Context, const std::string& Exp, size_t& Pos)
+std::function<WEvalValue()> WExpressionParser::ParseFactor(WObject* Context, const std::string& Exp, size_t& Pos)
 {
     SkipSpaces(Exp, Pos);
 
@@ -134,17 +134,19 @@ std::function<WEvalValue()> WExpressionParser::ParseFactor(AActor* Context, cons
 
     // A. 함수 처리
     if (!Token.empty() && Token.back() == ')') {
-        return [Context, Token]() { return Context->ExecuteWFunction(Token); };
+        assert(false && "TODO");
+        //return [Context, Token]() { return Context->ExecuteWFunction(Token); };
     }
     // B. 소스 참조 ($)
     else if (!Token.empty() && (Token[0] == '$')) 
     {
+        assert(false && "TODO");
         std::string PropName = Token.substr(1);
-        return [Context, PropName]() 
-        {
-            WSourceRef Ref = Context->GetWPropertyPtr(PropName);
-            return WVariantOp::Deref(Ref); // 포인터를 값으로 변환
-        };
+        //return [Context, PropName]() 
+        //{
+        //    WSourceRef Ref = Context->GetWPropertyPtr(PropName);
+        //    return WVariantOp::Deref(Ref); // 포인터를 값으로 변환
+        //};
     }
     // C. 일반 값
     else 

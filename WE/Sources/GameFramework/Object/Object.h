@@ -1,8 +1,11 @@
 #pragma once
+
+#include "Asset/BlueprintAsset.h"
 #include "Utility/Memory.h"
 #include "Utility/Delegate.h"
 #include "Utility/Container.h"
 #include "Utility/Debug.h"
+#include "WEngineTypes.h"
 #include <functional>
 #include <set>
 
@@ -49,12 +52,21 @@ public:
 	FOnDeactivate mOnDeactivate;
 
 protected:
-
 	virtual void OnDestroy();
 
 	virtual void OnActivate();
 
 	virtual void OnDeactivate();
+
+	//////////////////////////////////////////////////////////////////////////////
+	// WProperty
+	//////////////////////////////////////////////////////////////////////////////
+public:
+	template<typename T>
+	void RegisterWProperty(const std::string& Name, T* PropertyRef);
+
+private:
+	std::unordered_map<std::string, WSourceRef> mWPropertiesMap;
 
 private:
 	ETickGroup mTickGroup = ETickGroup::ETG_None;
@@ -97,3 +109,15 @@ public:
 
 	friend class WWorld;
 };
+
+template<typename T>
+inline void WObject::RegisterWProperty(const std::string& Name, T* PropertyRef)
+{
+	auto Iter = mWPropertiesMap.find(Name);
+	if (Iter != mWPropertiesMap.end())
+	{
+		std::cout << "Already registered WProperty: " + Name << std::endl;
+	}
+
+	mWPropertiesMap[Name] = PropertyRef;
+}

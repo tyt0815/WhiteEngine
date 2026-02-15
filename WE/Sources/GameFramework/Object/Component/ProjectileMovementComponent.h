@@ -148,7 +148,7 @@ public:
 		return Target ? Target.get() : nullptr;
 	}
 
-	friend class AProjectileBase;
+	friend class WComponentRegistry;
 };
 
 REGISTER_COMPONENT(WProjectileMovementComponent);

@@ -1,14 +1,12 @@
 #pragma once
 
 #include "Object.h"
-#include "Asset/BlueprintAsset.h"
 #include "GameFramework/Object/Component/SceneComponent.h"
 #include "Component/PhysicsComponent.h"
 #include "Utility/Class.h"
 #include "Utility/Container.h"
 #include "Physics/PhysicsCore.h"
 #include "ActorFactory.h"
-#include "WEngineTypes.h"
 #include <d3d12.h>
 #include <memory>
 #include <variant>
@@ -20,6 +18,7 @@ extern const int gFrameResourcesNum;
 class FMeshGeometry;
 class FMaterial;
 class WCameraComponent;
+class FBlueprintAsset;
 
 void ShowMessageBox(const std::string& Content);
 
@@ -75,8 +74,6 @@ public:
 protected:
 	virtual void OnCreateComponent(WActorComponent* Comp);
 
-	float mElapsedTime = 0;
-
 private:
 	void UpdateRecursive();
 
@@ -92,155 +89,28 @@ private:
 
 	TWeakPtr<WSceneComponent> mRootComponent;
 
+	int mActorId = -1;
 
-	/////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////////////////////////
-	// Blueprint Section
-	/////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////////////////////////
-public:
-	void LoadBlueprint(const FBlueprintAsset* Blueprint);
+	int mActiveActorQueueId = -1;
 
-	using WComponentFactory = std::function<WSceneComponent* (const WAttributesMap&)>;
+	bool mbPendingKill = false;
 
-	using WAction = std::function<void()>;
-	using WActionFactoryFunc = std::function<WAction(const WAttributesMap&)>;
-
-	using WPropertiesMap = std::unordered_map<std::string, WSourceRef>;
-
-	using WFunction = std::function<WEvalValue()>;
-
-	class WEvent 
-	{
-	public:
-		void Dispatch() const 
-		{
-			for (const auto& Action : mActions) Action();
-		}
-		void AddAction(const WAction& Action) 
-		{ 
-			mActions.push_back(Action);
-		}
-
-	private:
-		std::vector<WAction> mActions;
-	};
-	using WEventLoader = std::function<WEvent*(const WAttributesMap&)>;
-
-	WEvalValue ExecuteWFunction(const std::string& Name);
-
-	template<typename T>
-	T ExecuteWFunction(const std::string& FullName)
-	{
-		auto it = mWFunctionsMap.find(FullName);
-
-		if (it != mWFunctionsMap.end())
-		{
-			try 
-			{
-				// 실행 후 T 타입으로 형변환하여 반환
-				return std::get<T>(it->second());
-			}
-			catch (const std::bad_variant_access&) {
-				Log("Return Type Mismatch for: " + FullName);
-			}
-		}
-		else
-		{
-			Log("Function Key Not Found in Map: " + FullName);
-		}
-
-		return T{};
-	}
-
-protected:
-	virtual void LoadWConfigs(const std::unordered_map<std::string, WAttributesMap>& Configs);
-
-	void LoadWEvent(AActor::WEvent* Event, const TArray<TSharedPtr<FBlueprintActionNode>>& Actions);
-
-	virtual void ApplyWComponentCommonAttribute(const WAttributesMap& Attributes, WSceneComponent* Comp);
-
-	void RegisterWComponentCommonFunction(const std::string Name, WSceneComponent* Comp);
-
-	void RegisterWComponentFactory(const std::string& Type, WComponentFactory Lambda);
-
-	void RegisterWActionFactory(const std::string Name, WActionFactoryFunc Lambda);
-
-	void RegisterSystemEvent(const std::string& Name, WEvent* Event);
-
-	void RegisterSystemEvent(const std::string& Name, WEventLoader Loader);
-
-	void RegisterWFunction(const std::string& Name, WFunction Lambda);
-
-	template<typename T>
-	void RegisterWProperty(const std::string& Name, T* Property)
-	{
-		if (mWPropertiesMap.count(Name) > 0)
-		{
-			ShowMessageBox("Already registered property:\n" + Name);
-			assert(false);
-		}
-
-		mWPropertiesMap[Name] = Property;
-	}
-
-	void RegisterWProperty(const std::string& Name, WEvalValue& Value);
-
-	WEvent* GenerateWEvent(std::unordered_map<std::string, TSharedPtr<WEvent>>& Container, const std::string& Name);
-
-	WEvent* GenerateWEvent(std::vector<TSharedPtr<WEvent>>& Container);
-
-	void SetWProperty(const std::string& Name, WEvalValue Value);
-
-private:
-	void LoadWComponent_Internal(struct FBlueprintComponentNode* Comp, WSceneComponent* Parent);
-
-	void LoadWEvents(const TArray<TSharedPtr<FBlueprintEventNode>>& SystemEvents, const TArray<TSharedPtr<FBlueprintEventNode>>& CustomEvents);
-
-	void RegisterWComponent(const std::string& Name, WSceneComponent* Comp);
-
-	std::unordered_map<std::string, WComponentFactory> mWComponentFactoryMap;
-
-	std::unordered_map<std::string, WSceneComponent*> mWComponentsMap;
-
-	std::unordered_map<std::string, WActionFactoryFunc> mWActionFactoryMap;
-
-	std::unordered_map<std::string, WEventLoader> mSystemEventLoaders;
-
-	std::unordered_map<std::string, TSharedPtr<WEvent>> mCustomEventsMap;
-	std::unordered_map<std::string, TSharedPtr<WEvent>> mOnActivateEventsMap;
-	std::unordered_map<std::string, TSharedPtr<WEvent>> mOnDeactivateEventsMap;
-
-	std::unordered_map<std::string, WFunction> mWFunctionsMap;
-
-	TArray<TUniquePtr<WEvalValue>> mCustomWProperies;
-
-	WPropertiesMap mWPropertiesMap;
-
-	int mOnTimeEventIndex = 0;
-
-	WEvent mOnSpawnEvent;
-
-	WEvent mOnDestroyEvent;
-
-	float mLifeSpan = 0;
+	float mElapsedTime = 0;
 
 	float mDeltaTime = 0;
 
-	struct FTimerActionInfo
-	{
-		const WEvent* Event;
-		float ExpireTime = 0;
-		float Time = 0;
-		bool bLoop = false;
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	// 
+	// Blueprint Section
+	// 
+	/////////////////////////////////////////////////////////////////////////////////////////////
+protected:
+	void AddWComponent(const std::string& Name, WActorComponent* Comp);
 
-		bool operator>(const FTimerActionInfo& Other) const 
-		{
-			return ExpireTime > Other.ExpireTime;
-		}
-	};
+	virtual void LoadBlueprint(const FBlueprintAsset* Asset);
 
-	std::priority_queue<FTimerActionInfo, std::vector<FTimerActionInfo>, std::greater<FTimerActionInfo>> mTimerActionInfos;
+private:
+	std::unordered_map<std::string, WActorComponent*> mWComponentsMap;
 
 public:
 	template<typename T>
@@ -248,28 +118,6 @@ public:
 	{
 		return dynamic_cast<T*>(mWComponentsMap.at(Name));
 	}
-
-	__forceinline WSceneComponent* GetWComponent(const std::string& Name) const
-	{
-		return GetWComponent<WSceneComponent>(Name);
-	}
-
-	__forceinline WSourceRef GetWPropertyPtr(const std::string& Name) const
-	{
-		return mWPropertiesMap.at(Name);
-	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////////////////////////
-	// Blueprint Section End
-	/////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////////////////////////
-
-	int mActorId = -1;
-
-	int mActiveActorQueueId = -1;
-
-	bool mbPendingKill = false;
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////
@@ -347,7 +195,7 @@ public:
 	}
 
 	friend class WWorld;
-	friend class FActorFactory;
+	friend class FBlueprintAsset;
 };
 
 template<typename T>
