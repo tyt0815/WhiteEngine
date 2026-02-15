@@ -62,9 +62,6 @@
     <ClCompile Include="Sources\GameFramework\Object\Pawn\Pawn.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\WActionRegistry.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\WComponentRegistry.cpp" />
-    <ClCompile Include="Sources\GameFramework\Object\WEventRegistry.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="Sources\GameFramework\Object\World\DefaultWorld.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\World\World.cpp" />
     <ClCompile Include="Sources\GameFramework\RenderItemProxy.cpp" />
@@ -165,9 +162,6 @@
     <ClInclude Include="Sources\GameFramework\Object\Pawn\Pawn.h" />
     <ClInclude Include="Sources\GameFramework\Object\WActionRegistry.h" />
     <ClInclude Include="Sources\GameFramework\Object\WComponentRegistry.h" />
-    <ClInclude Include="Sources\GameFramework\Object\WEventRegistry.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\World\DefaultWorld.h" />
     <ClInclude Include="Sources\GameFramework\Object\World\World.h" />
     <ClInclude Include="Sources\GameFramework\Object\WEngineTypes.h" />

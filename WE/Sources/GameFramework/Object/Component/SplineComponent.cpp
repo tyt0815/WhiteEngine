@@ -28,6 +28,49 @@ void WSplineComponent::Tick(float Delta)
 		GetWorld()->DrawDebugLine(Start, End, DebugColors[ColorSelector], 0);
 		ColorSelector = (ColorSelector + 1) % 6;
 	}
+
+
+	float TotalLength = GetSplineLength();
+	if (TotalLength <= 0) return;
+
+	for (auto it = mFollowers.begin(); it != mFollowers.end(); )
+	{
+		// 이동 속도 계산 (길이 / 지속시간)
+		float Speed = TotalLength / it->Duration;
+		it->CurrentDistance += Speed * Delta;
+
+		// 종료 판정
+		if (it->CurrentDistance >= TotalLength)
+		{
+			if (it->bLoop) {
+				it->CurrentDistance = fmod(it->CurrentDistance, TotalLength);
+			}
+			else {
+				it->CurrentDistance = TotalLength;
+				it->bFinished = true;
+			}
+		}
+
+		// 스플라인 데이터 추출 및 타겟 업데이트
+		FTransform TargetTransform = GetWorldTransformAtDistanceAlongSpline(it->CurrentDistance);
+
+		if (it->Target)
+		{
+			it->Target->SetWorldLocation(TargetTransform.Translation);
+			if (it->bUseRotation)
+			{
+				it->Target->SetWorldRotation(TargetTransform.Rotation);
+			}
+		}
+
+		// 끝난 팔로워는 제거
+		if (it->bFinished) {
+			it = mFollowers.erase(it);
+		}
+		else {
+			++it;
+		}
+	}
 }
 
 void WSplineComponent::AddSplineNode(const FSplineNode& Node)

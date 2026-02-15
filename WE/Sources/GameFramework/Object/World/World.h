@@ -8,6 +8,7 @@
 #include "Utility/Class.h"
 
 #include <array>
+#include <queue>
 
 class WPhysicsComponent;
 
@@ -16,8 +17,22 @@ struct FActorSpawnParameter
 	FTransform Transform;
 };
 
+
+
 class WWorld
 {
+	struct WTimer
+	{
+		std::function<bool()> Delegate;
+		float Time = 0;        // 타이머 설정 간격 (루프 시 재설정용)
+		float ExpiredTime = 0; // 만료될 절대 시간 (현재 시간 + 설정 시간)
+		bool bLoop = false;
+
+		bool operator>(const WTimer& Other) const
+		{
+			return ExpiredTime > Other.ExpiredTime;
+		}
+	};
 public:
 	WWorld();
 
@@ -65,6 +80,8 @@ public:
 	void EnqueuePhysicsComponent(WPhysicsComponent* PhysicsComp);
 
 	void DequeuePhysicsComponent(WPhysicsComponent* PhysicsComp);
+
+	void AddWorldTimer(float InTime, bool bInLoop, std::function<bool()> InDelegate);
 
 	void LineTrace(
 		XMFLOAT3 Start, XMFLOAT3 End,
@@ -159,6 +176,8 @@ private:
 
 	void FlushDestroyQueue();
 
+	void TickWorldTimer(float DeltaSecond);
+
 	template<typename T>
 	void RegisterActor(TSharedPtr<T>& Actor);
 
@@ -175,6 +194,10 @@ private:
 	std::vector<TSharedPtr<AActor>> DestroyQueue;
 
 	std::array<std::array<std::vector<WObject*>, static_cast<int>(ETickPriority::ETP_None)>, static_cast<int>(ETickGroup::ETG_None)> mTickGroups;
+
+	std::priority_queue<WTimer, std::vector<WTimer>, std::greater<WTimer>> mTimers;
+
+	float mTotalTime = 0;
 
 	__forceinline std::array<std::vector<WObject*>, static_cast<int>(ETickPriority::ETP_None)>& GetTickGroups(ETickGroup TickGroup)
 	{

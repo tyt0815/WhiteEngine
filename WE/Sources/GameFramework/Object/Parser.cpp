@@ -134,19 +134,17 @@ std::function<WEvalValue()> WExpressionParser::ParseFactor(WObject* Context, con
 
     // A. 함수 처리
     if (!Token.empty() && Token.back() == ')') {
-        assert(false && "TODO");
-        //return [Context, Token]() { return Context->ExecuteWFunction(Token); };
+        return [Context, Token]() { return Context->ExecuteWFunction(Token); };
     }
     // B. 소스 참조 ($)
     else if (!Token.empty() && (Token[0] == '$')) 
     {
-        assert(false && "TODO");
         std::string PropName = Token.substr(1);
-        //return [Context, PropName]() 
-        //{
-        //    WSourceRef Ref = Context->GetWPropertyPtr(PropName);
-        //    return WVariantOp::Deref(Ref); // 포인터를 값으로 변환
-        //};
+        return [Context, PropName]() 
+        {
+            WSourceRef Ref = Context->GetWPropertyPtr(PropName);
+            return WVariantOp::Deref(Ref); // 포인터를 값으로 변환
+        };
     }
     // C. 일반 값
     else 

@@ -1,11 +1,13 @@
 #include "StateMachineActor.h"
 #include "Component/StateMachineComponent.h"
+#include "Component/ProjectileMovementComponent.h"
+#include "Component/ObjectAnimComponent.h"
+#include "GameFramework/Interface/CollisionGenerator.h"
 
 AStateMachineActor::AStateMachineActor()
 {
-	WStateMachineComponent* Comp = CreateComponent<WStateMachineComponent>();
-	AddWComponent("StateMachine", Comp);
-	mStateMachineComp = Comp->GetWeakPtr<WStateMachineComponent>();
+	mStateMachine = CreateComponent<WStateMachineComponent>();
+	AddWComponent("StateMachine", mStateMachine);
 
 	SetTickGroup(ETickGroup::ETG_PrePhysics, ETickPriority::ETP_Low);
 }
@@ -14,16 +16,14 @@ void AStateMachineActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	mStateMachineComp.lock()->SendEvent("OnSpawn");
+	mStateMachine->SendEvent("OnSpawn");
 }
 
 void AStateMachineActor::Tick(float DeltaSecond)
 {
 	Super::Tick(DeltaSecond);
-
-	auto StateMachine = mStateMachineComp.lock();
 	
-	StateMachine->SendEvent("OnUpdate");
+	mStateMachine->SendEvent("OnUpdate");
 }
 
 void AStateMachineActor::LoadBlueprint(const FBlueprintAsset* Asset)
@@ -33,13 +33,10 @@ void AStateMachineActor::LoadBlueprint(const FBlueprintAsset* Asset)
 	const auto& SMData = Asset->mRuntimeStateMachine;
 	if (SMData.bExist)
 	{
-		// 액터 전용 스테이트 머신 인스턴스 생성
-		TSharedPtr<WStateMachineComponent> StateMachine = mStateMachineComp.lock(); // 액터가 보유한 SM 컴포넌트 획득
-
 		for (const auto& [StateName, StateSetup] : SMData.States)
 		{
 			// 스테이트 인스턴스 생성 및 부모 설정(상속 처리)
-			WState* NewState = StateMachine->CreateState(StateName, StateSetup.BaseName);
+			WState* NewState = mStateMachine->CreateState(StateName, StateSetup.BaseName);
 
 			for (const auto& Binding : StateSetup.EventBindings)
 			{
@@ -52,20 +49,53 @@ void AStateMachineActor::LoadBlueprint(const FBlueprintAsset* Asset)
 			}
 		}
 
+		
+
+		for (const auto& Setup : Asset->mComponentSetups)
+		{
+			if (WActorComponent* Comp = GetWComponent<WActorComponent>(Setup.Name))
+			{
+				const std::string& CompName = Setup.Name;
+
+				auto BindSMEvent = [this, &CompName](auto& Delegate, const std::string& Prefix)
+				{
+					std::string FullTag = Prefix + "_" + CompName;
+
+					Delegate.AddLambda([this, FullTag](auto&&...)
+						{
+							mStateMachine->SendEvent(FullTag);
+						});
+				};
+
+				BindSMEvent(Comp->mOnActivate, "OnActivate");
+				BindSMEvent(Comp->mOnDeactivate, "OnDeactivate");
+
+				if (FCollisionGeneratorBase* CollisionComp = dynamic_cast<FCollisionGeneratorBase*>(Comp))
+				{
+					BindSMEvent(CollisionComp->mOnCollision, "OnCollision");
+				}
+				else if (WProjectileMovementComponent* ProjComp = dynamic_cast<WProjectileMovementComponent*>(Comp))
+				{
+					BindSMEvent(ProjComp->mOnLockon, "OnLockon");
+					BindSMEvent(ProjComp->mOnBounce, "OnBounce");
+					BindSMEvent(ProjComp->mOnHomingFail, "OnHomingFail");
+				}
+				else if (WObjectAnimComponent* AnimComp = dynamic_cast<WObjectAnimComponent*>(Comp))
+				{
+					BindSMEvent(AnimComp->mOnStop, "OnAnimStop");
+				}
+			}
+		}
+
 		// 초기 상태 설정
-		StateMachine->SetInitialState(SMData.InitialState);
+		mStateMachine->SetInitialState(SMData.InitialState);
 	}
 
-	//for (const auto& Binding : SMData.CustomEvents)
-	//{
-	//	WEventRegistry::GetInstance()->Register(Binding.Tag, [](WObject* Target, const WAttributesMap& Attr) -> WEvent* {
-	//		AActor* Owner = static_cast<AActor*>(Target);
-	//		return Owner->GetOnSpawnEvent(); // 액터가 기본으로 가진 mOnSpawnEvent 반환
-	//		});
-	//	WEvent* CustomEvent = WEventRegistry::GetInstance()->Create(Binding.Tag, this, Binding.Attributes);
-	//	for (const auto& ActionFactory : Binding.ActionFactories)
-	//	{
-	//		CustomEvent->AddAction(ActionFactory(this));
-	//	}
-	//}
+	
+}
+
+void AStateMachineActor::OnDestroy()
+{
+	mStateMachine->SendEvent("OnDestory");
+	Super::OnDestroy();
 }

@@ -25,6 +25,8 @@ void WTestWorld::BeginPlay()
 	//GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Alliance", Param);
 	//Param.Transform.Translation.x += 2;
 	//GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Enemy", Param);
+
+	SpawnActorByFactory<AActor>("BP_StateMachinProj");
 }
 
 void WTestWorld::Tick(float DeltaSecond)
@@ -71,7 +73,7 @@ void WTestWorld::Tick(float DeltaSecond)
 		//Param.Transform.Translation.x += 4;
 		//SpawnActorByFactory<AProjectileBase>("BP_Projectile12", Param);
 
-		SpawnActorByFactory<AActor>("BP_StateMachinProj");
+		
 
 		a = 0;
 

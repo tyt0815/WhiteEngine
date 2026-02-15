@@ -305,9 +305,6 @@
     <ClCompile Include="Sources\GameFramework\Object\WActionRegistry.cpp">
       <Filter>Sources\GameFramework\Object</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\GameFramework\Object\WEventRegistry.cpp">
-      <Filter>Sources\GameFramework\Object</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\GameFramework\Object\Component\BoxCollisionComponent.cpp">
       <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClCompile>
@@ -620,9 +617,6 @@
       <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\WActionRegistry.h">
-      <Filter>Sources\GameFramework\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\GameFramework\Object\WEventRegistry.h">
       <Filter>Sources\GameFramework\Object</Filter>
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\Component\BoxCollisionComponent.h">

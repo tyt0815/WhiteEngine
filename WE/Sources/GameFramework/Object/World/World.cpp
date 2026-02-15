@@ -46,9 +46,13 @@ void WWorld::BeginPlay()
 
 void WWorld::Tick(float Delta)
 {
+	mTotalTime += Delta;
+
 	FTimer Timer;
 
 	FProfilingData ProfilingData;
+
+	TickWorldTimer(Delta);
 
 	for (auto TickGroup : GetTickGroups(ETickGroup::ETG_PrePhysics))
 	{
@@ -317,6 +321,18 @@ void WWorld::DequeuePhysicsComponent(WPhysicsComponent* PhysicsComp)
 		mPhysicsComponentQueue[i]->mPhysicsCompQueueId = i;
 	}
 	mPhysicsComponentQueue.pop_back();
+}
+
+void WWorld::AddWorldTimer(float InTime, bool bInLoop, std::function<bool()> InDelegate)
+{
+	// 1. 새로운 타이머 구조체 생성 및 데이터 채우기
+	WTimer NewTimer;
+	NewTimer.Delegate = std::move(InDelegate);
+	NewTimer.Time = InTime;
+	NewTimer.ExpiredTime = mTotalTime + InTime;
+	NewTimer.bLoop = bInLoop;
+
+	mTimers.push(std::move(NewTimer));
 }
 
 void WWorld::LineTrace(XMFLOAT3 Start, XMFLOAT3 End, const std::vector<AActor*>& ActorsToIgnore, FHitResult& HitResult, bool bDrawDebug, float DebugDuration)
@@ -806,6 +822,42 @@ void WWorld::FlushDestroyQueue()
 		}
 		mAllActors.pop_back();
 		Actor->OnDestroy();
+	}
+}
+
+void WWorld::TickWorldTimer(float DeltaSecond)
+{
+	// 2. 만료된 타이머들을 순차적으로 처리
+	// priority_queue의 top()은 항상 ExpiredTime이 가장 작은(임박한) 타이머입니다.
+	while (!mTimers.empty())
+	{
+		// 가장 빨리 만료될 타이머의 시간을 확인 (복사 없이 참조만)
+		const WTimer& TopTimer = mTimers.top();
+
+		// 아직 만료 시간이 되지 않았다면 루프 종료
+		if (TopTimer.ExpiredTime > mTotalTime)
+		{
+			break;
+		}
+
+		// 3. 만료된 타이머 정보를 꺼냄 (pop을 해야 하므로 로컬 복사)
+		WTimer Timer = TopTimer;
+		mTimers.pop();
+
+		// 4. 등록된 델리게이트 실행
+		bool bLoop = Timer.bLoop;
+		if (Timer.Delegate)
+		{
+			bLoop = bLoop && Timer.Delegate();
+		}
+
+		// 5. 루프 타이머인 경우 다시 큐에 삽입
+		if (bLoop)
+		{
+			// 누적 시간(mTotalTime) 기반으로 다음 만료 시간을 재계산
+			Timer.ExpiredTime = mTotalTime + Timer.Time;
+			mTimers.push(std::move(Timer));
+		}
 	}
 }
 

@@ -24,6 +24,16 @@ public:
 		float Property1;
 		float Property2;
 	};
+	struct FSplineFollower
+	{
+		WSceneComponent* Target; // 따라갈 컴포넌트
+		float CurrentDistance = 0.0f;
+		float Duration = 1.0f;
+		bool bUseRotation = true;
+		bool bLoop = false;
+		bool bFinished = false;
+	};
+
 public:
 	WSplineComponent();
 
@@ -66,6 +76,8 @@ public:
 private:
 	std::vector<FSplineNode> mSplineNodes;
 
+	std::vector<FSplineFollower> mFollowers;
+
 	struct FSampleParam
 	{
 		float t0;
@@ -106,6 +118,11 @@ public:
 	__forceinline const FSplineLUT* GetSplineLUTAt(int i) const
 	{
 		return &mSplineLUT[i];
+	}
+
+	__forceinline void AddFollower(const FSplineFollower& Follower) 
+	{
+		mFollowers.push_back(Follower);
 	}
 };
 

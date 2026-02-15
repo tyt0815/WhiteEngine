@@ -16,8 +16,10 @@ public:
 
 	virtual void LoadBlueprint(const FBlueprintAsset* Asset) override;
 
+	virtual void OnDestroy() override;
+
 private:
-	TWeakPtr<WStateMachineComponent> mStateMachineComp;
+	WStateMachineComponent* mStateMachine;
 };
 
 REGISTER_ACTOR(AStateMachineActor);

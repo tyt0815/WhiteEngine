@@ -161,7 +161,7 @@ void AActor::BeginPlay()
 {
 	if (IsActivate())
 	{
-		Activate();
+		OnActivate();
 		BeginComponents();
 	}
 }

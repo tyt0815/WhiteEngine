@@ -65,8 +65,20 @@ public:
 	template<typename T>
 	void RegisterWProperty(const std::string& Name, T* PropertyRef);
 
+	void RegisterWProperty(const std::string& Name, WEvalValue Value);
+
+	void RegisterWFunction(const std::string& Name, std::function<WEvalValue()> Lambda);
+
+	WSourceRef GetWPropertyPtr(const std::string& Name);
+
+	void SetWPropertyValue(const std::string& Name, WEvalValue Value);
+
+	WEvalValue ExecuteWFunction(const std::string& Name) const;
+
 private:
 	std::unordered_map<std::string, WSourceRef> mWPropertiesMap;
+
+	std::unordered_map<std::string, std::function<WEvalValue()>> mWFunctionsMap;
 
 private:
 	ETickGroup mTickGroup = ETickGroup::ETG_None;
