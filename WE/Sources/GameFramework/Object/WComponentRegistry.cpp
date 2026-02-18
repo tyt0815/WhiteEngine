@@ -127,6 +127,10 @@ WComponentRegistry::WComponentRegistry()
             Owner->RegisterWProperty(Name + "." + PropName, TargetPtr);
         };
 
+        ApplyAttribute<float>(Attr, "LifeSpan", [Comp, RegProp](float v) {
+            Comp->SetLifeSpan(v); RegProp("LifeSpan", &Comp->mMaxSpeed);
+            });
+
         ApplyAttribute<float>(Attr, "MaxSpeed", [Comp, RegProp](float v) {
             Comp->SetMaxSpeed(v); RegProp("MaxSpeed", &Comp->mMaxSpeed);
             });
@@ -135,7 +139,6 @@ WComponentRegistry::WComponentRegistry()
             Comp->SetAcceleration(v); RegProp("Acceleration", &Comp->mAcceleration);
             });
 
-        // 호밍 (Homing)
         ApplyAttribute<std::string>(Attr, "HomingStrategy", "None", [Comp, RegProp](auto& v) {
             Comp->mHomingStrategy = v; RegProp("HomingStrategy", &Comp->mHomingStrategy);
             });
@@ -148,12 +151,10 @@ WComponentRegistry::WComponentRegistry()
             Comp->SetHomingTurnLimit(v); RegProp("HomingTurnRate", &Comp->mHomingTurnLimit);
             });
 
-        // 바운스 (Bounce)
         ApplyAttribute<bool>(Attr, "ShouldBounce", false, [Comp, RegProp](bool v) {
             Comp->mShouldBounce = v; RegProp("ShouldBounce", &Comp->mShouldBounce);
             });
 
-        // 웨이포인트 (Waypoint)
         ApplyAttribute<std::vector<XMFLOAT3>>(Attr, "Waypoints", [Comp, RegProp](auto& v) {
             Comp->mConfigWaypoints = v; RegProp("Waypoints", &Comp->mConfigWaypoints);
             });

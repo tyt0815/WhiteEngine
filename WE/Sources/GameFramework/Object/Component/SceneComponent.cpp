@@ -192,7 +192,7 @@ XMFLOAT3 WSceneComponent::GetWorldUpVector()
 	return Up;
 }
 
-XMFLOAT3 WSceneComponent::GetLocalForwardVector()
+XMFLOAT3 WSceneComponent::GetRelativeForwardVector()
 {
 	XMMATRIX RotationMatrix = mTransform.GetRotationMatrix();
 	XMVECTOR VForward = XMVector3Transform({ 0.0f, 0.0f, 1.0f }, RotationMatrix);
@@ -201,7 +201,7 @@ XMFLOAT3 WSceneComponent::GetLocalForwardVector()
 	return Foward;
 }
 
-XMFLOAT3 WSceneComponent::GetLocalRightVector()
+XMFLOAT3 WSceneComponent::GetRelativeRightVector()
 {
 	XMMATRIX RotationMatrix = mTransform.GetRotationMatrix();
 	XMVECTOR VRight = XMVector3Transform({ 1.0f, 0.0f, 0.0f }, RotationMatrix);
@@ -210,7 +210,7 @@ XMFLOAT3 WSceneComponent::GetLocalRightVector()
 	return Right;
 }
 
-XMFLOAT3 WSceneComponent::GetLocalUpVector()
+XMFLOAT3 WSceneComponent::GetRelativeUpVector()
 {
 	XMMATRIX RotationMatrix = mTransform.GetRotationMatrix();
 	XMVECTOR VUp = XMVector3Transform({ 0.0f, 1.0f, 0.0f }, RotationMatrix);

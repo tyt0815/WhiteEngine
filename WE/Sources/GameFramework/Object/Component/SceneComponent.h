@@ -47,11 +47,11 @@ public:
 
 	XMFLOAT3 GetWorldUpVector();
 
-	XMFLOAT3 GetLocalForwardVector();
+	XMFLOAT3 GetRelativeForwardVector();
 
-	XMFLOAT3 GetLocalRightVector();
+	XMFLOAT3 GetRelativeRightVector();
 
-	XMFLOAT3 GetLocalUpVector();
+	XMFLOAT3 GetRelativeUpVector();
 
 	FTransform GetWorldTransform();
 

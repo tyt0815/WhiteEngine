@@ -1,0 +1,23 @@
+<AStateMachineActor>
+    <Components>
+        <Movement Name = "Movement" InitSpeed = "{0, 0, 100}" MaxSpeed = "30" LifeSpan = "1000">
+            <Mesh Name = "Mesh" Asset = "SM_ScuffedGoldBox"/>
+
+        </Movement>
+    </Components>   
+
+    <StateMachine Initial = "Idle">
+
+        <State Name = "Global">
+
+        </State>
+
+        <State Name = "Idle" Base = "Global">
+            <OnUpdate>
+                <AddForce Target = "Movement" Force = "Movement.GetWorldRight() * (100 * $DeltaTime)"/>
+            </OnUpdate>
+        </State>
+
+    </StateMachine>
+
+</AStateMachineActor>

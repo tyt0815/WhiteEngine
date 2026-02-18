@@ -22,11 +22,13 @@ void WTestWorld::BeginPlay()
 	//Param.Transform.Translation.x += 2;
 	//GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Enemy", Param);
 	//Param.Transform.Translation.x += 2;
-	//GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Alliance", Param);
+	//GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Alliance", Param);x
 	//Param.Transform.Translation.x += 2;
 	//GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Enemy", Param);
 
-	SpawnActorByFactory<AActor>("BP_StateMachinProj");
+	//SpawnActorByFactory<AActor>("BP_StateMachinProj");
+
+	SpawnActorByFactory<AActor>("BP_TurnAroundProj");
 }
 
 void WTestWorld::Tick(float DeltaSecond)

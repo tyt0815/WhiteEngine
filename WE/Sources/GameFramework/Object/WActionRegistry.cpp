@@ -410,7 +410,7 @@ WActionRegistry::WActionRegistry()
 		};
 		});
 
-	Register_Internal("Transition", [](WObject* Target, const WAttributesMap& Attr) -> WActionLambda {
+	Register_Internal("ChangeState", [](WObject* Target, const WAttributesMap& Attr) -> WActionLambda {
 		// 1. 타겟 액터와 스테이트 머신 컴포넌트 확보
 		AActor* Actor = static_cast<AActor*>(Target);
 		auto* SM = Actor->GetWComponent<WStateMachineComponent>("StateMachine");
@@ -428,6 +428,33 @@ WActionRegistry::WActionRegistry()
 		// 2. 실행 시점 람다
 		return [SM, NextStateName]() {
 			SM->TransitionTo(NextStateName);
+		};
+		});
+
+	Register_Internal("AddForce", [](WObject* Target, const WAttributesMap& Attr) -> WActionLambda {
+		AActor* Owner = static_cast<AActor*>(Target);
+
+		std::string CompName = Attr.count("Target") ? Attr.at("Target") : "";
+
+		// 2. 힘(Force) 값을 표현식으로 바인딩 (XMFLOAT3 타입)
+		auto ForceFunc = WExpressionParser::Bind<XMFLOAT3>(Target, Attr, "Force", "{0, 0, 0}");
+
+		return [Owner, CompName, ForceFunc]() {
+			if (!Owner) return;
+
+			WProjectileMovementComponent* ProjectileComp = nullptr;
+
+			if (!CompName.empty()) 
+			{
+				ProjectileComp = Owner->GetWComponent<WProjectileMovementComponent>(CompName);
+
+				if (ProjectileComp) 
+				{
+					ProjectileComp->AddForce(ForceFunc());
+				}
+			}
+
+			
 		};
 		});
 }

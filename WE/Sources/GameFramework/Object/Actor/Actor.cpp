@@ -23,6 +23,8 @@ void AActor::Tick(float DeltaSecond)
 {
 	Super::Tick(DeltaSecond);
 
+	mDeltaTime = DeltaSecond;
+
 	mElapsedTime += DeltaSecond;
 
 	//if (mLifeSpan > 0 && mElapsedTime >= mLifeSpan)
@@ -291,6 +293,8 @@ void AActor::LoadBlueprint(const FBlueprintAsset* Asset)
 		// 컴포넌트 리스트에 등록 (GetWComponent 등으로 찾기 위해)
 		AddWComponent(Setup.Name, NewComp);
 
+		const std::string& Prefix = Setup.Name + ".";
+
 		// 계층 구조 처리 (SceneComponent인 경우)
 		WSceneComponent* SceneComp = dynamic_cast<WSceneComponent*>(NewComp);
 		if (SceneComp)
@@ -314,6 +318,48 @@ void AActor::LoadBlueprint(const FBlueprintAsset* Asset)
 			{
 				SceneComp->SetupAttachment(GetRootComponent());
 			}
+
+			RegisterWFunction(Prefix + "GetRelativeLocation()", [SceneComp]() {
+				return WEvalValue{ SceneComp->GetRelativeLocation() };
+				});
+			RegisterWFunction(Prefix + "GetWorldLocation()", [SceneComp]() {
+				return WEvalValue{ SceneComp->GetWorldLocation() };
+				});
+
+			RegisterWFunction(Prefix + "GetRelativeRotation()", [SceneComp]() {
+				return WEvalValue{ SceneComp->GetRelativeRotation() };
+				});
+			RegisterWFunction(Prefix + "GetWorldRotation()", [SceneComp]() {
+				return WEvalValue{ SceneComp->GetWorldRotation() };
+				});
+
+			RegisterWFunction(Prefix + "GetRelativeScale()", [SceneComp]() {
+				return WEvalValue{ SceneComp->GetRelativeScale() };
+				});
+			RegisterWFunction(Prefix + "GetWorldScale()", [SceneComp]() {
+				return WEvalValue{ SceneComp->GetWorldScale() };
+				});
+
+			RegisterWFunction(Prefix + "GetWorldForward()", [SceneComp]() {
+				return WEvalValue{ SceneComp->GetWorldForwardVector() };
+				});
+			RegisterWFunction(Prefix + "GetRelativeForward()", [SceneComp]() {
+				return WEvalValue{ SceneComp->GetRelativeForwardVector() };
+				});
+
+			RegisterWFunction(Prefix + "GetWorldRight()", [SceneComp]() {
+				return WEvalValue{ SceneComp->GetWorldRightVector() };
+				});
+			RegisterWFunction(Prefix + "GetRelativeRight()", [SceneComp]() {
+				return WEvalValue{ SceneComp->GetRelativeRightVector() };
+				});
+
+			RegisterWFunction(Prefix + "GetWorldUp()", [SceneComp]() {
+				return WEvalValue{ SceneComp->GetWorldUpVector() };
+				});
+			RegisterWFunction(Prefix + "GetRelativeUp()", [SceneComp]() {
+				return WEvalValue{ SceneComp->GetRelativeUpVector() };
+				});
 		}
 	}
 }

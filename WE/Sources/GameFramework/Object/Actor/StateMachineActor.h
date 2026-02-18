@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Actor.h"
+#include "Utility/Delegate.h"
 
 class WStateMachineComponent;
 
@@ -19,6 +20,8 @@ public:
 	virtual void OnDestroy() override;
 
 private:
+	void OnHit_Global();
+
 	WStateMachineComponent* mStateMachine;
 };
 

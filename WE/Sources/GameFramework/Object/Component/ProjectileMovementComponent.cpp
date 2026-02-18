@@ -32,7 +32,7 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
 
     // 1-1. 외부 가속도 적용 (AddForce로 누적된 값)
     XMVECTOR vExternalAccel = XMLoadFloat3(&mExternalAcceleration);
-    vWorldVelocity = XMVectorAdd(vWorldVelocity, XMVectorScale(vExternalAccel, DeltaTime));
+    vWorldVelocity = XMVectorAdd(vWorldVelocity, vExternalAccel);
 
     // 2. 호밍 로직 (속도 벡터의 방향을 꺾음)
     if (mbHomingProjectile)
@@ -120,7 +120,7 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
             vWorldVelocity = XMVectorScale(ForwardV, mMaxSpeed);
         }
     }
-
+	
     // 5. 최종 속도 저장
     XMStoreFloat3(&mVelocity, vWorldVelocity);
 

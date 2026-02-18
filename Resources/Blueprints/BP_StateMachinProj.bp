@@ -28,7 +28,7 @@
                 <Call Target = "BaseState.OnSpawn"/>
                 <Log Content = "State1::OnSpawn"/>
                 <Timer Time = "0.5" Loop = "true" Call = "Custom1"/>
-                <Transition Name = "BaseState"/>
+                <ChangeState Name = "BaseState"/>
             </OnSpawn>
 
             <Custom1>

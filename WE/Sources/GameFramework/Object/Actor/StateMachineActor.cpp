@@ -49,8 +49,6 @@ void AStateMachineActor::LoadBlueprint(const FBlueprintAsset* Asset)
 			}
 		}
 
-		
-
 		for (const auto& Setup : Asset->mComponentSetups)
 		{
 			if (WActorComponent* Comp = GetWComponent<WActorComponent>(Setup.Name))
@@ -72,7 +70,11 @@ void AStateMachineActor::LoadBlueprint(const FBlueprintAsset* Asset)
 
 				if (FCollisionGeneratorBase* CollisionComp = dynamic_cast<FCollisionGeneratorBase*>(Comp))
 				{
-					BindSMEvent(CollisionComp->mOnCollision, "OnCollision");
+					BindSMEvent(CollisionComp->mOnCollision, "OnHit");
+					CollisionComp->mOnCollision.AddLambda([this](auto&&...) 
+						{
+							OnHit_Global(); 
+						});
 				}
 				else if (WProjectileMovementComponent* ProjComp = dynamic_cast<WProjectileMovementComponent*>(Comp))
 				{
@@ -98,4 +100,9 @@ void AStateMachineActor::OnDestroy()
 {
 	mStateMachine->SendEvent("OnDestory");
 	Super::OnDestroy();
+}
+
+void AStateMachineActor::OnHit_Global()
+{
+	mStateMachine->SendEvent("OnHit");
 }

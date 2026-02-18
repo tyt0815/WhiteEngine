@@ -122,7 +122,7 @@ std::function<WEvalValue()> WExpressionParser::ParseFactor(WObject* Context, con
     }
 
     size_t Start = Pos;
-    while (Pos < Exp.length() && !IsOperator(Exp[Pos]) && Exp[Pos] != '(' && Exp[Pos] != ')') Pos++;
+    while (Pos == Start || (Pos < Exp.length() && !IsOperator(Exp[Pos]) && Exp[Pos] != '(' && Exp[Pos] != ')')) Pos++;
     if (Peek(Exp, Pos) == '(') 
     {
         while (Pos < Exp.length() && Exp[Pos] != ')') Pos++;
