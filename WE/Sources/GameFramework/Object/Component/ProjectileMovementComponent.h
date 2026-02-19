@@ -146,7 +146,7 @@ public:
 
 	inline WSceneComponent* GetHomingTarget() const
 	{
-		TSharedPtr<WSceneComponent> Target = mHomingTarget.lock();
+		TSharedPtr<WSceneComponent> Target = mFinalHomingTarget.lock();
 		return Target ? Target.get() : nullptr;
 	}
 

@@ -465,7 +465,6 @@ WActionRegistry::WActionRegistry()
 		};
 		});
 
-
 	Register_Internal("SpawnProjectile", [](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) -> WActionLambda {
 		std::string ActorName = Attr.at("Name");
 		AActor* Owner = static_cast<AActor*>(Target);
@@ -569,6 +568,33 @@ WActionRegistry::WActionRegistry()
 						SpawnLogic(idx);
 						return false; // 단발성
 						});
+				}
+			}
+		};
+		});
+
+	Register_Internal("SetHomingTarget", [](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) {
+		// 1. 정보를 줄 원본 컴포넌트 (A) 탐색 (예: "ProjectileMovementA")
+		std::vector<std::string> SourceTokens = SplitPath(Attr.at("Source")); // 원본(A)의 이름/경로
+
+		// 2. 정보를 받을 대상 컴포넌트 (B) 탐색 (예: "ProjectileMovementB")
+		std::vector<std::string> TargetTokens = SplitPath(Attr.at("Target")); // 대상(B)의 이름/경로
+
+		return [Target, SourceTokens, TargetTokens]()
+		{
+			std::string SourceName;
+			std::string TargetName;
+			WObject* SourceOwner = ResolveObjectPath(Target, SourceTokens, SourceName);
+			WObject* TargetOwner = ResolveObjectPath(Target, TargetTokens, TargetName);
+			WProjectileMovementComponent* CompA = SourceOwner ? SourceOwner->GetWObject<WProjectileMovementComponent>(SourceName) : nullptr;
+			WProjectileMovementComponent* CompB = TargetOwner ? TargetOwner->GetWObject<WProjectileMovementComponent>(TargetName) : nullptr;
+
+			if (CompA && CompB) {
+				// A가 현재 추적 중인 타겟 컴포넌트를 가져옴 (GetHomingTarget()이 있다고 가정)
+				WSceneComponent* CurrentTarget = CompA->GetHomingTarget();
+
+				if (CurrentTarget) {
+					CompB->SetHomingTarget(CurrentTarget);
 				}
 			}
 		};

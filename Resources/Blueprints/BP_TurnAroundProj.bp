@@ -57,6 +57,7 @@
 
                 <SpawnProjectile Name = "BP_TurnAroundProj" Interval = "0.1" Count = "4" Strategy = "Line" Range = "1" Loc = "{0, 10, 0}" Rot = "{0, 0, 0}">
                     <Set Name = "Movement.MaxSpeed" Value = "0.1"/>
+                    <SetHomingTarget Source = "Owner.Movement" Target = "Movement"/>
                 </SpawnProjectile>
             </OnEnter>
         </State>
