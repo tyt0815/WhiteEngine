@@ -410,7 +410,7 @@ void FBlueprintAsset::DeserializeStateMachine(FBinaryReader& Reader)
             FTransitionRuntimeBinding TransitionBinding;
             Reader >> TransitionBinding.Target;
             DeserializeAttributes(Reader, TransitionBinding.Attributes);
-            DeserializeActions(Reader, TransitionBinding.Actions);
+            DeserializeActions(Reader, TransitionBinding.ActionFactories);
             StateSetup.TransitionBindings.push_back(std::move(TransitionBinding));
         }
 
@@ -433,13 +433,13 @@ void FBlueprintAsset::DeserializeEvents(FBinaryReader& Reader, std::vector<FEven
         Reader >> Binding.Tag; // OnSpawn, OnHit 등
         DeserializeAttributes(Reader, Binding.Attributes);
 
-        DeserializeActions(Reader, Binding.Actions);
+        DeserializeActions(Reader, Binding.ActionFactories);
 
         OutBindings.push_back(std::move(Binding));
     }
 }
 
-void FBlueprintAsset::DeserializeActions(FBinaryReader& Reader, std::vector<FRuntimeAction>& OutActions)
+void FBlueprintAsset::DeserializeActions(FBinaryReader& Reader, std::vector<WActionFactory>& OutActions)
 {
     int NumActions;
     Reader >> NumActions;
@@ -448,17 +448,17 @@ void FBlueprintAsset::DeserializeActions(FBinaryReader& Reader, std::vector<FRun
     {
         std::string ActionTag;
         Reader >> ActionTag;
-        FRuntimeAction RuntimeAction;
 
         WAttributesMap ActionAttr;
         DeserializeAttributes(Reader, ActionAttr);
 
-        DeserializeActions(Reader, RuntimeAction.SubActions);
+        std::vector<WActionFactory> SubActions;
+        DeserializeActions(Reader, SubActions);
 
-        RuntimeAction.ActionFactory = [ActionTag, ActionAttr](WObject* Target) -> WActionLambda {
-            return WActionRegistry::Create(ActionTag, Target, ActionAttr);
+        WActionFactory Factory = [ActionTag, ActionAttr, SubActions = std::move(SubActions)](WObject* Target) -> WActionLambda {
+            return WActionRegistry::Create(ActionTag, Target, ActionAttr, SubActions);
         };
 
-        OutActions.push_back(std::move(RuntimeAction));
+        OutActions.push_back(std::move(Factory));
     }
 }

@@ -43,9 +43,9 @@ void AStateMachineActor::LoadBlueprint(const FBlueprintAsset* Asset)
 			{
 				// 스테이트 내부 이벤트 생성 및 액션 바인딩
 				WEvent* StateEvent = NewState->GetOrCreateEvent(Binding.Tag, Binding.Attributes);
-				for (const auto& Action : Binding.Actions)
+				for (const auto& ActionFactory : Binding.ActionFactories)
 				{
-					StateEvent->AddAction(Action.ActionFactory(this));
+					StateEvent->AddAction(ActionFactory(this));
 				}
 			}
 
@@ -69,9 +69,9 @@ void AStateMachineActor::LoadBlueprint(const FBlueprintAsset* Asset)
 					auto EventTrans = std::make_shared<WEventTransition>(TBinding.Target, CondFunc);
 
 					// 전이 시 실행될 액션들 바인딩
-					for (const auto& Action : TBinding.Actions)
+					for (const auto& ActionFactory : TBinding.ActionFactories)
 					{
-						EventTrans->AddAction(Action.ActionFactory(this));
+						EventTrans->AddAction(ActionFactory(this));
 					}
 
 					NewState->AddEventTransition(EventName, EventTrans);
@@ -82,9 +82,9 @@ void AStateMachineActor::LoadBlueprint(const FBlueprintAsset* Asset)
 					// Immediate는 반드시 Condition이 있어야 함
 					auto ImmTrans = std::make_shared<WImmediateTransition>(TBinding.Target, CondFunc);
 
-					for (const auto& Action : TBinding.Actions)
+					for (const auto& ActionFactory : TBinding.ActionFactories)
 					{
-						ImmTrans->AddAction(Action.ActionFactory(this));
+						ImmTrans->AddAction(ActionFactory(this));
 					}
 
 					NewState->AddImmediateTransition(ImmTrans);

@@ -18,8 +18,6 @@ class FBinaryReader;
 class AActor;
 class WActorComponent;
 
-using WActionFactory = std::function<WActionLambda(WObject* Target)>;
-
 struct FComponentRuntimeSetup {
     std::string Name;
     std::string ParentName;
@@ -28,23 +26,17 @@ struct FComponentRuntimeSetup {
     std::function<WActorComponent* (AActor* Owner)> CreateFunc;
 };
 
-struct FRuntimeAction
-{
-    WActionFactory ActionFactory;
-    std::vector<FRuntimeAction> SubActions;
-};
-
 struct FEventRuntimeBinding {
     std::string Tag;
     WAttributesMap Attributes;
-    std::vector<FRuntimeAction> Actions;
+    std::vector<WActionFactory> ActionFactories;
 };
 
 struct FTransitionRuntimeBinding
 {
     std::string Target;
     WAttributesMap Attributes;
-    std::vector<FRuntimeAction> Actions;
+    std::vector<WActionFactory> ActionFactories;
 };
 
 struct FStateRuntimeSetup {
@@ -92,7 +84,7 @@ private:
 
     void DeserializeEvents(FBinaryReader& Reader, std::vector<FEventRuntimeBinding>& OutBindings);
 
-    void DeserializeActions(FBinaryReader& Reader, std::vector<FRuntimeAction>& OutActions);
+    void DeserializeActions(FBinaryReader& Reader, std::vector<WActionFactory>& OutActions);
 
 public:
     // --- 컴파일된 런타임 데이터 ---
