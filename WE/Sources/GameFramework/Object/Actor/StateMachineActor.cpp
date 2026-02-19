@@ -3,6 +3,7 @@
 #include "Component/ProjectileMovementComponent.h"
 #include "Component/ObjectAnimComponent.h"
 #include "GameFramework/Interface/CollisionGenerator.h"
+#include "Parser.h"
 
 AStateMachineActor::AStateMachineActor()
 {
@@ -47,6 +48,48 @@ void AStateMachineActor::LoadBlueprint(const FBlueprintAsset* Asset)
 					StateEvent->AddAction(ActionFactory(this));
 				}
 			}
+
+			for (const auto& TBinding : StateSetup.TransitionBindings)
+			{
+				// Attributes에서 "Event" 태그가 있는지 확인 (사용자님의 명명 규칙에 따라 "Event" 키 사용)
+				auto it = TBinding.Attributes.find("Event");
+				std::string EventName = (it != TBinding.Attributes.end()) ? it->second : "";
+
+				// Condition 수식 바인딩 (Condition 속성이 있다면 람다 생성)
+				std::function<bool()> CondFunc = nullptr;
+				if (TBinding.Attributes.count("Condition"))
+				{
+					// WExpressionParser 등을 통해 bool을 반환하는 람다 생성
+					CondFunc = WExpressionParser::Bind<bool>(this, TBinding.Attributes, "Condition", "false");
+				}
+
+				if (!EventName.empty())
+				{
+					// Case 1 & 2: Event 기반 전이 (Target + Event [+ Condition])
+					auto EventTrans = std::make_shared<WEventTransition>(TBinding.Target, CondFunc);
+
+					// 전이 시 실행될 액션들 바인딩
+					for (const auto& ActionFactory : TBinding.ActionFactories)
+					{
+						EventTrans->AddAction(ActionFactory(this));
+					}
+
+					NewState->AddEventTransition(EventName, EventTrans);
+				}
+				else
+				{
+					// Case 3: 즉시 전이 (Target + Condition)
+					// Immediate는 반드시 Condition이 있어야 함
+					auto ImmTrans = std::make_shared<WImmediateTransition>(TBinding.Target, CondFunc);
+
+					for (const auto& ActionFactory : TBinding.ActionFactories)
+					{
+						ImmTrans->AddAction(ActionFactory(this));
+					}
+
+					NewState->AddImmediateTransition(ImmTrans);
+				}
+			}
 		}
 
 		for (const auto& Setup : Asset->mComponentSetups)
@@ -80,6 +123,7 @@ void AStateMachineActor::LoadBlueprint(const FBlueprintAsset* Asset)
 				{
 					BindSMEvent(ProjComp->mOnLockon, "OnLockon");
 					BindSMEvent(ProjComp->mOnBounce, "OnBounce");
+					BindSMEvent(ProjComp->mOnHomingSuccess, "OnHomingSuccess");
 					BindSMEvent(ProjComp->mOnHomingFail, "OnHomingFail");
 				}
 				else if (WObjectAnimComponent* AnimComp = dynamic_cast<WObjectAnimComponent*>(Comp))

@@ -213,27 +213,59 @@ void FBlueprintAsset::SerializeStateMachine(FBinaryWriter& Writer, FXMLElement* 
 void FBlueprintAsset::SerializeState(FBinaryWriter& Writer, FXMLElement* StateElement)
 {
     // 1. State 기본 정보 (Name, Base 상속 여부)
-    std::string StateName = "";
-    if (const char* Name = StateElement->Attribute("Name")) StateName = Name;
-
-    std::string BaseState = "";
-    if (const char* Base = StateElement->Attribute("Base")) BaseState = Base;
+    std::string StateName = StateElement->Attribute("Name") ? StateElement->Attribute("Name") : "";
+    std::string BaseState = StateElement->Attribute("Base") ? StateElement->Attribute("Base") : "";
 
     Writer << StateName << BaseState;
 
-    // 2. State 내부의 이벤트들 (OnSpawn, OnUpdate, Custom1 등)
-    // State 태그는 Attributes가 없을 수도 있지만, 확장성을 위해 처리
+    // 2. State 노드 자체의 속성 (확장성용)
     SerializeAttributes(Writer, StateElement);
 
-    int NumEventsInState = StateElement->ChildElementCount();
+    // 3. Transitions 처리
+    FXMLElement* TransitionsGroup = StateElement->FirstChildElement("Transitions");
+    int NumTransitions = TransitionsGroup ? TransitionsGroup->ChildElementCount() : 0;
+
+    Writer << NumTransitions; // 트랜지션 개수 기록
+
+    if (NumTransitions > 0)
+    {
+        FXMLElement* TransitionElement = TransitionsGroup->FirstChildElement("Transition");
+        while (TransitionElement)
+        {
+            // 각 Transition 노드의 속성 직렬화 (Event, Target, Condition 등)
+            SerializeTransition(Writer, TransitionElement);
+            TransitionElement = TransitionElement->NextSiblingElement("Transition");
+        }
+    }
+
+    // 4. 일반 이벤트들 처리 (Transitions 제외)
+    // 전체 자식 중 Transitions 노드를 제외한 나머지가 순수 이벤트 노드임
+    int NumEventsInState = StateElement->ChildElementCount() - (TransitionsGroup ? 1 : 0);
     Writer << NumEventsInState;
 
     FXMLElement* EventElement = StateElement->FirstChildElement();
     while (EventElement)
     {
-        SerializeEvent(Writer, EventElement);
+        // 이름이 "Transitions"가 아닌 경우만 직렬화
+        if (std::strcmp(EventElement->Name(), "Transitions") != 0)
+        {
+            SerializeEvent(Writer, EventElement);
+        }
         EventElement = EventElement->NextSiblingElement();
     }
+}
+
+// 개별 Transition 노드를 직렬화하는 헬퍼 함수
+void FBlueprintAsset::SerializeTransition(FBinaryWriter& Writer, FXMLElement* TransitionElement)
+{
+    std::string Target = TransitionElement->Attribute("Target") ? TransitionElement->Attribute("Target") : "";
+
+    Writer << Target;
+
+    // 2. 나머지 속성들 (Condition, Priority 등) 통합 직렬화
+    SerializeAttributes(Writer, TransitionElement);
+
+    SerializeActions(Writer, TransitionElement);
 }
 
 void FBlueprintAsset::SerializeEvents(FBinaryWriter& Writer, FXMLElement* EventsElement)
@@ -263,21 +295,42 @@ void FBlueprintAsset::SerializeEvent(FBinaryWriter& Writer, FXMLElement* EventEl
 
     SerializeAttributes(Writer, EventElement);
 
+    SerializeActions(Writer, EventElement);
+}
+
+void FBlueprintAsset::SerializeActions(FBinaryWriter& Writer, FXMLElement* ActionsElement)
+{
+    if (ActionsElement == nullptr)
+    {
+        Writer << (int)0;
+        return;
+    }
+
     // 2. 이 이벤트에 달린 액션 개수
-    int NumActions = EventElement->ChildElementCount();
+    int NumActions = ActionsElement->ChildElementCount();
     Writer << NumActions;
 
-    FXMLElement* ActionElement = EventElement->FirstChildElement();
+    FXMLElement* ActionElement = ActionsElement->FirstChildElement();
     while (ActionElement)
     {
-        // 3. 액션 정보 (Name과 Attributes)
-        std::string ActionName = ActionElement->Name();
-        Writer << ActionName;
-
-        SerializeAttributes(Writer, ActionElement);
+        SerializeAction(Writer, ActionElement);
 
         ActionElement = ActionElement->NextSiblingElement();
     }
+}
+
+void FBlueprintAsset::SerializeAction(FBinaryWriter& Writer, FXMLElement* ActionElement)
+{
+    if (!ActionElement)
+    {
+        return;
+    }
+
+    // 3. 액션 정보 (Name과 Attributes)
+    std::string ActionName = ActionElement->Name();
+    Writer << ActionName;
+
+    SerializeAttributes(Writer, ActionElement);
 }
 
 void FBlueprintAsset::Deserialize(FBinaryReader& Reader)
@@ -348,6 +401,17 @@ void FBlueprintAsset::DeserializeStateMachine(FBinaryReader& Reader)
         WAttributesMap StateAttr;
         DeserializeAttributes(Reader, StateAttr);
 
+        int NumTransitions;
+        Reader >> NumTransitions;
+        for (int j = 0; j < NumTransitions; ++j)
+        {
+            FTransitionRuntimeBinding TransitionBinding;
+            Reader >> TransitionBinding.Target;
+            DeserializeAttributes(Reader, TransitionBinding.Attributes);
+            DeserializeActions(Reader, TransitionBinding.ActionFactories);
+            StateSetup.TransitionBindings.push_back(std::move(TransitionBinding));
+        }
+
         // State 내부 이벤트들
         DeserializeEvents(Reader, StateSetup.EventBindings);
 
@@ -367,21 +431,28 @@ void FBlueprintAsset::DeserializeEvents(FBinaryReader& Reader, std::vector<FEven
         Reader >> Binding.Tag; // OnSpawn, OnHit 등
         DeserializeAttributes(Reader, Binding.Attributes);
 
-        int NumActions;
-        Reader >> NumActions;
-        for (int j = 0; j < NumActions; ++j)
-        {
-            std::string ActionTag;
-            Reader >> ActionTag;
-            WAttributesMap ActionAttr;
-            DeserializeAttributes(Reader, ActionAttr);
+        DeserializeActions(Reader, Binding.ActionFactories);
 
-            WActionFactory Factory = [ActionTag, ActionAttr](WObject* Target) -> WActionLambda {
-                return WActionRegistry::Create(ActionTag, Target, ActionAttr);
-            };
-
-            Binding.ActionFactories.push_back(std::move(Factory));
-        }
         OutBindings.push_back(std::move(Binding));
+    }
+}
+
+void FBlueprintAsset::DeserializeActions(FBinaryReader& Reader, std::vector<WActionFactory>& OutFactory)
+{
+    int NumActions;
+    Reader >> NumActions;
+
+    for (int j = 0; j < NumActions; ++j)
+    {
+        std::string ActionTag;
+        Reader >> ActionTag;
+        WAttributesMap ActionAttr;
+        DeserializeAttributes(Reader, ActionAttr);
+
+        WActionFactory Factory = [ActionTag, ActionAttr](WObject* Target) -> WActionLambda {
+            return WActionRegistry::Create(ActionTag, Target, ActionAttr);
+        };
+
+        OutFactory.push_back(std::move(Factory));
     }
 }

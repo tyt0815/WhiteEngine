@@ -28,6 +28,8 @@ public:
 
 	FProjectileMovementEventDelegate mOnBounce;
 
+	FProjectileMovementEventDelegate mOnHomingSuccess;
+
 	FProjectileMovementEventDelegate mOnHomingFail;
 
 protected:

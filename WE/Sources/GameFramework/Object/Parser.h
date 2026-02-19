@@ -52,7 +52,7 @@ template<> struct WValueParser<XMFLOAT3>
 			return false;
 		}
 
-		Out = std::move(Float3);
+		Out = Float3;
 
 		return true;
 	}

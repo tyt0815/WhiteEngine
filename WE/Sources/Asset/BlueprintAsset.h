@@ -34,19 +34,23 @@ struct FEventRuntimeBinding {
     std::vector<WActionFactory> ActionFactories;
 };
 
+struct FTransitionRuntimeBinding
+{
+    std::string Target;
+    WAttributesMap Attributes;
+    std::vector<WActionFactory> ActionFactories;
+};
+
 struct FStateRuntimeSetup {
     std::string Name;
     std::string BaseName;
     std::vector<FEventRuntimeBinding> EventBindings;
+    std::vector<FTransitionRuntimeBinding> TransitionBindings;
 };
 
 class FBlueprintAsset : public FAsset
 {
 	typedef FAsset Super;
-
-public:
-    // 실제 액터가 스폰될 때 이 함수를 호출하여 람다들을 인스턴스화함
-    void ApplyToActor(AActor* TargetActor) const;
 
 protected:
 	virtual bool LoadAsset(const std::wstring& FilePath) override;
@@ -66,8 +70,11 @@ private:
 	void SerializeComponent(FBinaryWriter& Writer, FXMLElement* ComponentElement);
 	void SerializeStateMachine(FBinaryWriter& Writer, FXMLElement* StateMachineElement);
 	void SerializeState(FBinaryWriter& Writer, FXMLElement* StateElement);
+    void SerializeTransition(FBinaryWriter& Writer, FXMLElement* TransitionElement);
 	void SerializeEvents(FBinaryWriter& Writer, FXMLElement* EventsElement);
 	void SerializeEvent(FBinaryWriter& Writer, FXMLElement* EventElement);
+    void SerializeActions(FBinaryWriter& Writer, FXMLElement* ActionsElement);
+    void SerializeAction(FBinaryWriter& Writer, FXMLElement* ActionElement);
 
 private:
     void Deserialize(FBinaryReader& Reader);
@@ -78,6 +85,8 @@ private:
     void DeserializeStateMachine(FBinaryReader& Reader);
 
     void DeserializeEvents(FBinaryReader& Reader, std::vector<FEventRuntimeBinding>& OutBindings);
+
+    void DeserializeActions(FBinaryReader& Reader, std::vector<WActionFactory>& OutFactory);
 
 public:
     // --- 컴파일된 런타임 데이터 ---

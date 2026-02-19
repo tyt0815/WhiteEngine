@@ -367,6 +367,10 @@ void WProjectileMovementComponent::UpdateHoming(float DeltaSecond)
 		{
 			mOnHomingFail.Broadcast();
 		}
+		else
+		{
+			mOnHomingSuccess.Broadcast();
+		}
 	}
 }
 

@@ -128,7 +128,7 @@ WComponentRegistry::WComponentRegistry()
         };
 
         ApplyAttribute<float>(Attr, "LifeSpan", [Comp, RegProp](float v) {
-            Comp->SetLifeSpan(v); RegProp("LifeSpan", &Comp->mMaxSpeed);
+            Comp->SetLifeSpan(v); RegProp("LifeSpan", &Comp->mLifeSpan);
             });
 
         ApplyAttribute<float>(Attr, "MaxSpeed", [Comp, RegProp](float v) {

@@ -1,8 +1,9 @@
 <AStateMachineActor>
     <Components>
-        <Movement Name = "Movement" InitSpeed = "{0, 0, 100}" MaxSpeed = "30" LifeSpan = "1000">
-            <Mesh Name = "Mesh" Asset = "SM_ScuffedGoldBox"/>
-
+        <Movement Name = "Movement" InitSpeed = "{0, 0, 100}" MaxSpeed = "30" LifeSpan = "0">
+            <Mesh Name = "Mesh" Asset = "SM_ScuffedGoldBox">
+                <Collision Name = "BoxCollision" Type = "Box" Extent = "{0.5, 0.5, 0.5}" Debug = "true"/>
+            </Mesh>
         </Movement>
     </Components>   
 
@@ -10,12 +11,27 @@
 
         <State Name = "Global">
 
+            <OnHit_BoxCollision>
+                <Destroy/>
+            </OnHit_BoxCollision>
+
         </State>
 
         <State Name = "Idle" Base = "Global">
+            <Transitions>
+                <Transition Event = "OnHomingSuccess" Target = "Homing"/>
+            </Transitions>
+
             <OnUpdate>
                 <AddForce Target = "Movement" Force = "Movement.GetWorldRight() * (100 * $DeltaTime)"/>
             </OnUpdate>
+        </State>
+
+        <State Name = "Homing" Base = "Global">
+            <OnEnter>
+                <Set Name = "Movement.MaxSpeed" Value = "10"/>
+                <Set Name = "Movement.LifeSpan" Value = "10"/>
+            </OnEnter>
         </State>
 
     </StateMachine>
