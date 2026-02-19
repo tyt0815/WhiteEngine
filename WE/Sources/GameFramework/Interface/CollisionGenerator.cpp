@@ -1,6 +1,18 @@
 #include "CollisionGenerator.h"
 #include "Component/ActorComponent.h"
 
+FCollisionGeneratorBase::FCollisionGeneratorBase()
+{
+    if (WObject* Obj = dynamic_cast<WObject*>(this))
+    {
+        Obj->RegisterWProperty("Delay",     &mHitDelay);
+        Obj->RegisterWProperty("MaxHit",    &mMaxHit);
+        Obj->RegisterWProperty("Damage",    &mDamage);
+        Obj->RegisterWProperty("TargetTags",&mTargetTags);
+        Obj->RegisterWProperty("Debug",     &mbDebug);
+    }
+}
+
 void FCollisionGeneratorBase::AddTargetTags(const TArray<std::string>& InTargetTags)
 {
     mTargetTags.insert(InTargetTags.begin(), InTargetTags.end());

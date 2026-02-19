@@ -27,31 +27,6 @@ void AActor::Tick(float DeltaSecond)
 
 	mElapsedTime += DeltaSecond;
 
-	//if (mLifeSpan > 0 && mElapsedTime >= mLifeSpan)
-	//{
-	//	Destroy();
-	//}
-
-	//// Timer 액션 처리
-	//while (!mTimerActionInfos.empty())
-	//{
-	//	if (mTimerActionInfos.top().ExpireTime > mElapsedTime)
-	//	{
-	//		break;
-	//	}
-
-	//	FTimerActionInfo Info = mTimerActionInfos.top();
-	//	mTimerActionInfos.pop();
-
-	//	Info.Event->Dispatch();
-
-	//	if (Info.bLoop)
-	//	{
-	//		Info.ExpireTime += Info.Time;
-	//		mTimerActionInfos.push(Info);
-	//	}
-	//}
-
 	// mSplineFollowInfos는 std::vector 또는 std::list라고 가정합니다.
 	for (auto it = mSplineFollowInfos.begin(); it != mSplineFollowInfos.end(); )
 	{
@@ -269,17 +244,6 @@ void AActor::BeginComponents()
 	}
 }
 
-void AActor::AddWComponent(const std::string& Name, WActorComponent* Comp)
-{
-	if (mWComponentsMap.count(Name) > 0)
-	{
-		std::cout << "Already registered WComponent: " + Name << std::endl;
-		return;
-	}
-
-	mWComponentsMap[Name] = Comp;
-}
-
 void AActor::LoadBlueprint(const FBlueprintAsset* Asset)
 {
 	if (!Asset) return;
@@ -291,7 +255,7 @@ void AActor::LoadBlueprint(const FBlueprintAsset* Asset)
 		if (!NewComp) continue;
 
 		// 컴포넌트 리스트에 등록 (GetWComponent 등으로 찾기 위해)
-		AddWComponent(Setup.Name, NewComp);
+		RegisterWObject(Setup.Name, NewComp);
 
 		const std::string& Prefix = Setup.Name + ".";
 
@@ -301,7 +265,8 @@ void AActor::LoadBlueprint(const FBlueprintAsset* Asset)
 		{
 			if (!Setup.ParentName.empty())
 			{
-				if (WSceneComponent* Parent = dynamic_cast<WSceneComponent*>(mWComponentsMap[Setup.ParentName]))
+				
+				if (WSceneComponent* Parent = GetWObject<WSceneComponent>(Setup.ParentName))
 				{
 					SceneComp->SetupAttachment(Parent);
 				}
@@ -318,48 +283,6 @@ void AActor::LoadBlueprint(const FBlueprintAsset* Asset)
 			{
 				SceneComp->SetupAttachment(GetRootComponent());
 			}
-
-			RegisterWFunction(Prefix + "GetRelativeLocation()", [SceneComp]() {
-				return WEvalValue{ SceneComp->GetRelativeLocation() };
-				});
-			RegisterWFunction(Prefix + "GetWorldLocation()", [SceneComp]() {
-				return WEvalValue{ SceneComp->GetWorldLocation() };
-				});
-
-			RegisterWFunction(Prefix + "GetRelativeRotation()", [SceneComp]() {
-				return WEvalValue{ SceneComp->GetRelativeRotation() };
-				});
-			RegisterWFunction(Prefix + "GetWorldRotation()", [SceneComp]() {
-				return WEvalValue{ SceneComp->GetWorldRotation() };
-				});
-
-			RegisterWFunction(Prefix + "GetRelativeScale()", [SceneComp]() {
-				return WEvalValue{ SceneComp->GetRelativeScale() };
-				});
-			RegisterWFunction(Prefix + "GetWorldScale()", [SceneComp]() {
-				return WEvalValue{ SceneComp->GetWorldScale() };
-				});
-
-			RegisterWFunction(Prefix + "GetWorldForward()", [SceneComp]() {
-				return WEvalValue{ SceneComp->GetWorldForwardVector() };
-				});
-			RegisterWFunction(Prefix + "GetRelativeForward()", [SceneComp]() {
-				return WEvalValue{ SceneComp->GetRelativeForwardVector() };
-				});
-
-			RegisterWFunction(Prefix + "GetWorldRight()", [SceneComp]() {
-				return WEvalValue{ SceneComp->GetWorldRightVector() };
-				});
-			RegisterWFunction(Prefix + "GetRelativeRight()", [SceneComp]() {
-				return WEvalValue{ SceneComp->GetRelativeRightVector() };
-				});
-
-			RegisterWFunction(Prefix + "GetWorldUp()", [SceneComp]() {
-				return WEvalValue{ SceneComp->GetWorldUpVector() };
-				});
-			RegisterWFunction(Prefix + "GetRelativeUp()", [SceneComp]() {
-				return WEvalValue{ SceneComp->GetRelativeUpVector() };
-				});
 		}
 	}
 }

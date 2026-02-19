@@ -14,70 +14,72 @@ void LogRegisterError(const std::string& ActionName, const std::string& Content)
 	std::cout << "Action Register Error[" + ActionName + "]" << Content << std::endl;
 }
 
+std::vector<std::string> SplitPath(const std::string& Path);
+WObject* ResolveObjectPath(WObject* StartContext, const std::vector<std::string>& PathTokens, std::string& OutFinalKey);
+
 WActionRegistry::WActionRegistry()
 {
-	Register_Internal("SetWorldLocation", [](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) {
-		const std::string TargetName = Attr.at("Target");
-		// AActor로 캐스팅하여 컴포넌트 탐색 (컴파일 시점에 미리 찾아둠)
-		AActor* Owner = static_cast<AActor*>(Target);
-		WSceneComponent* TargetComp = Owner->GetWComponent<WSceneComponent>(TargetName);
+	auto GetTargetComponent = [](WObject* Context, const std::string& PathStr) -> WSceneComponent* {
+		std::string FinalKey;
+		std::vector<std::string> Tokens = SplitPath(PathStr);
+		WObject* FinalOwner = ResolveObjectPath(Context, Tokens, FinalKey);
 
-		// Loc 수식 바인딩
+		return FinalOwner ? FinalOwner->GetWObject<WSceneComponent>(FinalKey) : nullptr;
+	};
+
+	// 1. SetWorldLocation
+	Register_Internal("SetWorldLocation", [GetTargetComponent](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) {
+		WSceneComponent* TargetComp = GetTargetComponent(Target, Attr.at("Target"));
 		auto LocFunc = WExpressionParser::Bind<XMFLOAT3>(Target, Attr, "Loc", "{0, 0, 0}");
 
 		return [TargetComp, LocFunc]() {
 			if (TargetComp) TargetComp->SetWorldLocation(LocFunc());
 		};
 		});
-	Register_Internal("SetRelativeLocation", [](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) {
-		const std::string TargetName = Attr.at("Target");
-		AActor* Owner = static_cast<AActor*>(Target);
-		WSceneComponent* TargetComp = Owner->GetWComponent<WSceneComponent>(TargetName);
 
+	// 2. SetRelativeLocation
+	Register_Internal("SetRelativeLocation", [GetTargetComponent](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) {
+		WSceneComponent* TargetComp = GetTargetComponent(Target, Attr.at("Target"));
 		auto LocFunc = WExpressionParser::Bind<XMFLOAT3>(Target, Attr, "Loc", "{0, 0, 0}");
 
 		return [TargetComp, LocFunc]() {
 			if (TargetComp) TargetComp->SetRelativeLocation(LocFunc());
 		};
 		});
-	Register_Internal("SetWorldRotation", [](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) {
-		const std::string TargetName = Attr.at("Target");
-		AActor* Owner = static_cast<AActor*>(Target);
-		WSceneComponent* TargetComp = Owner->GetWComponent<WSceneComponent>(TargetName);
 
+	// 3. SetWorldRotation
+	Register_Internal("SetWorldRotation", [GetTargetComponent](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) {
+		WSceneComponent* TargetComp = GetTargetComponent(Target, Attr.at("Target"));
 		auto RotFunc = WExpressionParser::Bind<XMFLOAT3>(Target, Attr, "Rot", "{0, 0, 0}");
 
 		return [TargetComp, RotFunc]() {
 			if (TargetComp) TargetComp->SetWorldRotation(RotFunc());
 		};
 		});
-	Register_Internal("SetRelativeRotation", [](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) {
-		const std::string TargetName = Attr.at("Target");
-		AActor* Owner = static_cast<AActor*>(Target);
-		WSceneComponent* TargetComp = Owner->GetWComponent<WSceneComponent>(TargetName);
 
+	// 4. SetRelativeRotation
+	Register_Internal("SetRelativeRotation", [GetTargetComponent](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) {
+		WSceneComponent* TargetComp = GetTargetComponent(Target, Attr.at("Target"));
 		auto RotFunc = WExpressionParser::Bind<XMFLOAT3>(Target, Attr, "Rot", "{0, 0, 0}");
 
 		return [TargetComp, RotFunc]() {
 			if (TargetComp) TargetComp->SetRelativeRotation(RotFunc());
 		};
 		});
-	Register_Internal("SetWorldScale", [](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) {
-		const std::string TargetName = Attr.at("Target");
-		AActor* Owner = static_cast<AActor*>(Target);
-		WSceneComponent* TargetComp = Owner->GetWComponent<WSceneComponent>(TargetName);
 
+	// 5. SetWorldScale
+	Register_Internal("SetWorldScale", [GetTargetComponent](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) {
+		WSceneComponent* TargetComp = GetTargetComponent(Target, Attr.at("Target"));
 		auto ScaleFunc = WExpressionParser::Bind<XMFLOAT3>(Target, Attr, "Scale", "{1, 1, 1}");
 
 		return [TargetComp, ScaleFunc]() {
 			if (TargetComp) TargetComp->SetWorldScale(ScaleFunc());
 		};
 		});
-	Register_Internal("SetRelativeScale", [](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) {
-		const std::string TargetName = Attr.at("Target");
-		AActor* Owner = static_cast<AActor*>(Target);
-		WSceneComponent* TargetComp = Owner->GetWComponent<WSceneComponent>(TargetName);
 
+	// 6. SetRelativeScale
+	Register_Internal("SetRelativeScale", [GetTargetComponent](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) {
+		WSceneComponent* TargetComp = GetTargetComponent(Target, Attr.at("Target"));
 		auto ScaleFunc = WExpressionParser::Bind<XMFLOAT3>(Target, Attr, "Scale", "{1, 1, 1}");
 
 		return [TargetComp, ScaleFunc]() {
@@ -118,7 +120,7 @@ WActionRegistry::WActionRegistry()
 		{
 			return []() {};
 		}
-		auto* SM = Actor->GetWComponent<WStateMachineComponent>("StateMachine");
+		auto* SM = Actor->GetWObject<WStateMachineComponent>("StateMachine");
 		if(SM == nullptr)
 		{
 			return []() {};
@@ -181,22 +183,27 @@ WActionRegistry::WActionRegistry()
 			Target->RegisterWProperty(Name, InitialValue);
 		};
 		});
-	Register_Internal("Set", [](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) {
-		std::string Name = Attr.at("Name");
-		// 수식 바인딩 (실행 시점에 계산될 값)
+
+	Register_Internal("Set", [](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) 
+		{
+		std::string PropName;
+		std::vector<std::string> Tokens = SplitPath(Attr.at("Name"));
+		WObject* FinalTarget = ResolveObjectPath(Target, Tokens, PropName);
+
 		auto ValueFunc = WExpressionParser::Bind(Target, Attr, "Value", "None");
 
-		return [Target, Name, ValueFunc]() {
-			// WObject 내부의 Variant 기반 프로퍼티 시스템 활용
-			WEvalValue NewValue = ValueFunc();
-			Target->SetWPropertyValue(Name, NewValue);
+		return [FinalTarget, PropName, ValueFunc]() {
+			if (FinalTarget) 
+			{
+				FinalTarget->SetWPropertyValue(PropName, ValueFunc());
+			}
 		};
 		});
 
 	auto RegisterActivateAction = [&](const std::string& Tag, bool bActivate) {
 		Register_Internal(Tag, [bActivate](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) {
 			AActor* Owner = static_cast<AActor*>(Target);
-			WSceneComponent* TargetComp = Owner->GetWComponent<WSceneComponent>(Attr.at("Target"));
+			WSceneComponent* TargetComp = Owner->GetWObject<WSceneComponent>(Attr.at("Target"));
 			auto WithChildFunc = WExpressionParser::Bind<bool>(Target, Attr, "WithChild", "true");
 
 			return [TargetComp, WithChildFunc, bActivate]() {
@@ -218,12 +225,12 @@ WActionRegistry::WActionRegistry()
 		// 1. 따라갈 대상 (기본값은 액터의 RootComponent)
 		std::string TargetName = Attr.count("Target") ? Attr.at("Target") : "";
 		WSceneComponent* TargetComp = TargetName.empty() ?
-			Owner->GetRootComponent() : Owner->GetWComponent<WSceneComponent>(TargetName);
+			Owner->GetRootComponent() : Owner->GetWObject<WSceneComponent>(TargetName);
 
 		// 2. 어떤 스플라인을 따라갈 것인가?
 		auto itSpline = Attr.find("Spline");
 		if (itSpline == Attr.end()) return []() {}; // 스플라인 지정 없으면 무시
-		WSplineComponent* Spline = Owner->GetWComponent<WSplineComponent>(itSpline->second);
+		WSplineComponent* Spline = Owner->GetWObject<WSplineComponent>(itSpline->second);
 
 		// 3. 수식 바인딩
 		auto DurationFunc = WExpressionParser::Bind<float>(Target, Attr, "Duration", "1");
@@ -251,7 +258,7 @@ WActionRegistry::WActionRegistry()
 		{
 			return []() {};
 		}
-		auto* SM = Actor->GetWComponent<WStateMachineComponent>("StateMachine");
+		auto* SM = Actor->GetWObject<WStateMachineComponent>("StateMachine");
 		if (SM == nullptr)
 		{
 			return []() {};
@@ -299,7 +306,7 @@ WActionRegistry::WActionRegistry()
 				{
 					// 액터의 스테이트 머신이나 커스텀 이벤트 핸들러에 신호 발송
 					// 앞서 만든 SendEvent나 Dispatch를 활용합니다.
-					if (auto* SM = Owner->GetWComponent<WStateMachineComponent>("StateMachine"))
+					if (auto* SM = Owner->GetWObject<WStateMachineComponent>("StateMachine"))
 					{
 						SM->SendEvent(EventName);
 						return true;
@@ -318,7 +325,7 @@ WActionRegistry::WActionRegistry()
 
 		return [Owner, TargetNameFunc, OrderFunc]() {
 			std::string TName = TargetNameFunc();
-			WObject* TargetObj = (TName == "this_self_none_default") ? Owner : Owner->GetWComponent<WObject>(TName);
+			WObject* TargetObj = (TName == "this_self_none_default") ? Owner : Owner->GetWObject<WObject>(TName);
 			if (!TargetObj) return;
 
 			int TotalOrder = static_cast<int>(OrderFunc());
@@ -339,7 +346,7 @@ WActionRegistry::WActionRegistry()
 		std::string TargetCompName = Attr.at("Target");
 
 		// 런타임 성능을 위해 컴포넌트 포인터를 미리 찾아둠 (컴파일 시점)
-		auto* Anim = Owner->GetWComponent<WObjectAnimComponent>(TargetCompName);
+		auto* Anim = Owner->GetWObject<WObjectAnimComponent>(TargetCompName);
 
 		auto PlayRateFunc = WExpressionParser::Bind<float>(Target, Attr, "PlayRate", "1");
 		auto LoopFunc = WExpressionParser::Bind<bool>(Target, Attr, "Loop", "false");
@@ -381,7 +388,7 @@ WActionRegistry::WActionRegistry()
 	// 2. CurveBind: 애니메이션 커브와 프로퍼티 연결
 	Register_Internal("CurveBind", [](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) {
 		AActor* Owner = static_cast<AActor*>(Target);
-		auto* Anim = Owner->GetWComponent<WObjectAnimComponent>(Attr.at("Target"));
+		auto* Anim = Owner->GetWObject<WObjectAnimComponent>(Attr.at("Target"));
 
 		std::string PropertyName = Attr.at("Property");
 		// 프로퍼티 포인터 획득 (WObject의 프로퍼티 시스템 활용)
@@ -400,8 +407,8 @@ WActionRegistry::WActionRegistry()
 	// 3. BindCollision: 이동 컴포넌트와 충돌 컴포넌트 물리적 연결
 	Register_Internal("BindCollision", [](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) {
 		AActor* Owner = static_cast<AActor*>(Target);
-		auto* Movement = Owner->GetWComponent<WProjectileMovementComponent>(Attr.at("Movement"));
-		auto* Collision = Owner->GetWComponent<FCollisionGeneratorBase>(Attr.at("Collision"));
+		auto* Movement = Owner->GetWObject<WProjectileMovementComponent>(Attr.at("Movement"));
+		auto* Collision = Owner->GetWObject<FCollisionGeneratorBase>(Attr.at("Collision"));
 
 		return [=]() {
 			if (Movement && Collision) {
@@ -413,7 +420,7 @@ WActionRegistry::WActionRegistry()
 	Register_Internal("ChangeState", [](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) -> WActionLambda {
 		// 1. 타겟 액터와 스테이트 머신 컴포넌트 확보
 		AActor* Actor = static_cast<AActor*>(Target);
-		auto* SM = Actor->GetWComponent<WStateMachineComponent>("StateMachine");
+		auto* SM = Actor->GetWObject<WStateMachineComponent>("StateMachine");
 		if (SM == nullptr)
 		{
 			return []() {};
@@ -446,7 +453,7 @@ WActionRegistry::WActionRegistry()
 
 			if (!CompName.empty()) 
 			{
-				ProjectileComp = Owner->GetWComponent<WProjectileMovementComponent>(CompName);
+				ProjectileComp = Owner->GetWObject<WProjectileMovementComponent>(CompName);
 
 				if (ProjectileComp) 
 				{
@@ -537,11 +544,12 @@ WActionRegistry::WActionRegistry()
 			XMFLOAT3 BaseRot = RotFunc();
 			float Range = RangeFunc();
 
-			auto SpawnLogic = [World, ActorName, CalcFunc, BaseLoc, BaseRot, Range, &SubActionFactories](int idx) {
+			auto SpawnLogic = [Owner, World, ActorName, CalcFunc, BaseLoc, BaseRot, Range, &SubActionFactories](int idx) {
 				auto [FinalLoc, FinalRot] = CalcFunc(idx, BaseLoc, BaseRot, Range);
 				FActorSpawnParameter Param;
 				Param.Transform.Translation = FinalLoc;
 				Param.Transform.Rotation = FinalRot;
+				Param.Owner = Owner;
 				AActor* Projectile = World->SpawnActorByFactory<AActor>(ActorName, Param).lock().get();
 				for (auto& ActionFactory : SubActionFactories)
 				{

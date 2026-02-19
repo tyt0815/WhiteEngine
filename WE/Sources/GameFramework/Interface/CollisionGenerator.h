@@ -24,6 +24,8 @@ public:
 class FCollisionGeneratorBase : public ICollisionGenerator
 {
 public:
+	FCollisionGeneratorBase();
+
 	void AddTargetTags(const TArray<std::string>& InTargetTags);
 
 	void AddTargetTags(const std::set<std::string>& InTargetTags);

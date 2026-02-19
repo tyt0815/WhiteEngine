@@ -15,6 +15,7 @@ class WPhysicsComponent;
 struct FActorSpawnParameter
 {
 	FTransform Transform;
+	AActor* Owner;
 };
 
 

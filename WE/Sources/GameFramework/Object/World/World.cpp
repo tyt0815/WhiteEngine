@@ -864,6 +864,7 @@ void WWorld::TickWorldTimer(float DeltaSecond)
 void WWorld::OnSpawnActor(AActor* Actor, const FActorSpawnParameter& Param)
 {
 	Actor->SetActorTransform(Param.Transform);
+	Actor->SetOwner(Param.Owner);
 	Actor->GetRootComponent()->PropagateWorldFloat4Dirty(true);
 	Actor->BeginPlay();
 }

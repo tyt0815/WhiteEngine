@@ -87,27 +87,27 @@ WComponentRegistry::WComponentRegistry()
             // 속성 적용 및 프로퍼티 등록 (Name.Property 형식)
             ApplyAttribute<float>(Attr, "Delay", 0.0f, [Owner, Gen, Name](float v) {
                 Gen->SetHitDelay(v);
-                Owner->RegisterWProperty(Name + ".Delay", &Gen->mHitDelay);
+                
                 });
 
             ApplyAttribute<float>(Attr, "MaxHit", 0.0f, [Owner, Gen, Name](float v) {
                 Gen->SetMaxHit((int)v);
-                Owner->RegisterWProperty(Name + ".MaxHit", &Gen->mMaxHit);
+                
                 });
 
             ApplyAttribute<float>(Attr, "Damage", 0.0f, [Owner, Gen, Name](float v) {
                 Gen->SetDamage(v);
-                Owner->RegisterWProperty(Name + ".Damage", &Gen->mDamage);
+                
                 });
 
             ApplyAttribute<std::set<std::string>>(Attr, "TargetTags", [Owner, Gen, Name](auto& v) {
                 Gen->AddTargetTags(v);
-                Owner->RegisterWProperty(Name + ".TargetTags", &Gen->mTargetTags);
+                
                 });
 
             ApplyAttribute<bool>(Attr, "Debug", false, [Owner, Gen, Name](bool v) {
                 Gen->SetDebug(v);
-                Owner->RegisterWProperty(Name + ".Debug", &Gen->mbDebug);
+                
                 });
 
             ApplyAttribute<float>(Attr, "Interval", 1.0f / 60.0f, [Gen](float v) { Gen->mCollisionInterval = v; });
@@ -123,79 +123,73 @@ WComponentRegistry::WComponentRegistry()
         // 물리/이동 속성
         ApplyAttribute<XMFLOAT3>(Attr, "InitSpeed", [Comp](auto& v) { Comp->SetInitialVelocity(v); });
 
-        auto RegProp = [&](const std::string& PropName, auto* TargetPtr) {
-            Owner->RegisterWProperty(Name + "." + PropName, TargetPtr);
-        };
-
-        ApplyAttribute<float>(Attr, "LifeSpan", [Comp, RegProp](float v) {
-            Comp->SetLifeSpan(v); RegProp("LifeSpan", &Comp->mLifeSpan);
+        ApplyAttribute<float>(Attr, "LifeSpan", [Comp](float v) {
+            Comp->SetLifeSpan(v); 
             });
 
-        ApplyAttribute<float>(Attr, "MaxSpeed", [Comp, RegProp](float v) {
-            Comp->SetMaxSpeed(v); RegProp("MaxSpeed", &Comp->mMaxSpeed);
+        ApplyAttribute<float>(Attr, "MaxSpeed", [Comp](float v) {
+            Comp->SetMaxSpeed(v); 
             });
 
-        ApplyAttribute<float>(Attr, "Acceleration", [Comp, RegProp](float v) {
-            Comp->SetAcceleration(v); RegProp("Acceleration", &Comp->mAcceleration);
+        ApplyAttribute<float>(Attr, "Acceleration", [Comp](float v) {
+            Comp->SetAcceleration(v); 
             });
 
-        ApplyAttribute<std::string>(Attr, "HomingStrategy", "None", [Comp, RegProp](auto& v) {
-            Comp->mHomingStrategy = v; RegProp("HomingStrategy", &Comp->mHomingStrategy);
+        ApplyAttribute<std::string>(Attr, "HomingStrategy", "None", [Comp](auto& v) {
+            Comp->mHomingStrategy = v; 
             });
 
-        ApplyAttribute<std::set<std::string>>(Attr, "HomingTags", [Comp, RegProp](auto& v) {
-            Comp->mHomingTargetTags = v; RegProp("HomingTags", &Comp->mHomingTargetTags);
+        ApplyAttribute<std::set<std::string>>(Attr, "HomingTags", [Comp](auto& v) {
+            Comp->mHomingTargetTags = v;
             });
 
-        ApplyAttribute<float>(Attr, "HomingTurnRate", [Comp, RegProp](float v) {
-            Comp->SetHomingTurnLimit(v); RegProp("HomingTurnRate", &Comp->mHomingTurnLimit);
+        ApplyAttribute<float>(Attr, "HomingTurnRate", [Comp](float v) {
+            Comp->SetHomingTurnLimit(v); 
             });
 
-        ApplyAttribute<float>(Attr, "HomingRange", 10.0f, [Comp, RegProp](float v) {
-            Comp->mHomingRange = v; RegProp("HomingRange", &Comp->mHomingRange);
+        ApplyAttribute<float>(Attr, "HomingRange", 10.0f, [Comp](float v) {
+            Comp->mHomingRange = v; 
             });
 
-        ApplyAttribute<float>(Attr, "HomingAngle", 45.0f, [Comp, RegProp](float v) {
-            Comp->mHomingAngle = v; RegProp("HomingAngle", &Comp->mHomingAngle);
+        ApplyAttribute<float>(Attr, "HomingAngle", 45.0f, [Comp](float v) {
+            Comp->mHomingAngle = v; 
             });
 
-        ApplyAttribute<float>(Attr, "RetargetTick", 0.0f, [Comp, RegProp](float v) {
-            Comp->mRetargetTick = v; RegProp("RetargetTick", &Comp->mRetargetTick);
+        ApplyAttribute<float>(Attr, "RetargetTick", 0.0f, [Comp](float v) {
+            Comp->mRetargetTick = v; 
             });
 
-        ApplyAttribute<float>(Attr, "HomingStopRange", 0.0f, [Comp, RegProp](float v) {
-            Comp->mHomingStopRange = v; RegProp("HomingStopRange", &Comp->mHomingStopRange);
+        ApplyAttribute<float>(Attr, "HomingStopRange", 0.0f, [Comp](float v) {
+            Comp->mHomingStopRange = v; 
             });
 
-        ApplyAttribute<bool>(Attr, "ForgetPreviousTarget", true, [Comp, RegProp](bool v) {
-            Comp->mbForgetPreviousTarget = v; RegProp("ForgetPreviousTarget", &Comp->mbForgetPreviousTarget);
+        ApplyAttribute<bool>(Attr, "ForgetPreviousTarget", true, [Comp](bool v) {
+            Comp->mbForgetPreviousTarget = v; 
             });
 
-        ApplyAttribute<bool>(Attr, "ShouldBounce", false, [Comp, RegProp](bool v) {
-            Comp->mShouldBounce = v; RegProp("ShouldBounce", &Comp->mShouldBounce);
+        ApplyAttribute<bool>(Attr, "ShouldBounce", false, [Comp](bool v) {
+            Comp->mShouldBounce = v; 
             });
 
-        ApplyAttribute<std::vector<XMFLOAT3>>(Attr, "Waypoints", [Comp, RegProp](auto& v) {
-            Comp->mConfigWaypoints = v; RegProp("Waypoints", &Comp->mConfigWaypoints);
+        ApplyAttribute<std::vector<XMFLOAT3>>(Attr, "Waypoints", [Comp](auto& v) {
+            Comp->mConfigWaypoints = v; 
             });
 
-        ApplyAttribute<bool>(Attr, "UseWaypoints", false, [Comp, RegProp](bool v) {
-            Comp->mbUseWaypoints = v; RegProp("UseWaypoints", &Comp->mbUseWaypoints);
+        ApplyAttribute<bool>(Attr, "UseWaypoints", false, [Comp](bool v) {
+            Comp->mbUseWaypoints = v; 
             });
 
-        ApplyAttribute<std::string>(Attr, "WaypointSpace", "Direction", [Comp, RegProp](auto& v) {
-            Comp->mWaypointSpace = v; RegProp("WaypointSpace", &Comp->mWaypointSpace);
+        ApplyAttribute<std::string>(Attr, "WaypointSpace", "Direction", [Comp](auto& v) {
+            Comp->mWaypointSpace = v; 
             });
 
-        ApplyAttribute<std::string>(Attr, "WaypointBase", "Target", [Comp, RegProp](auto& v) {
-            Comp->mWaypointBase = v; RegProp("WaypointBase", &Comp->mWaypointBase);
+        ApplyAttribute<std::string>(Attr, "WaypointBase", "Target", [Comp](auto& v) {
+            Comp->mWaypointBase = v; 
             });
 
-        ApplyAttribute<std::string>(Attr, "WaypointType", "Value", [Comp, RegProp](auto& v) {
-            Comp->mWaypointType = v; RegProp("WaypointType", &Comp->mWaypointType);
+        ApplyAttribute<std::string>(Attr, "WaypointType", "Value", [Comp](auto& v) {
+            Comp->mWaypointType = v;
             });
-
-        RegProp("Velocity", &Comp->mVelocity);
 
         return Comp;
         });

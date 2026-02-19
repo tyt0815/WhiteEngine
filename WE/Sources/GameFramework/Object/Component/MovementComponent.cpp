@@ -4,6 +4,8 @@
 WMovementComponent::WMovementComponent()
 {
 	SetTickGroup(ETickGroup::ETG_PrePhysics, ETickPriority::ETP_High);
+
+	RegisterWProperty("Velocity", &mVelocity);
 }
 
 void WMovementComponent::Tick(float DeltaTime)

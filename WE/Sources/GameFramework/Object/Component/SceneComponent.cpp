@@ -3,6 +3,47 @@
 
 WSceneComponent::WSceneComponent()
 {
+	RegisterWFunction("GetRelativeLocation", [this]() {
+		return WEvalValue{ GetRelativeLocation() };
+		});
+	RegisterWFunction("GetWorldLocation", [this]() {
+		return WEvalValue{ GetWorldLocation() };
+		});
+
+	RegisterWFunction("GetRelativeRotation", [this]() {
+		return WEvalValue{ GetRelativeRotation() };
+		});
+	RegisterWFunction("GetWorldRotation", [this]() {
+		return WEvalValue{ GetWorldRotation() };
+		});
+
+	RegisterWFunction("GetRelativeScale", [this]() {
+		return WEvalValue{ GetRelativeScale() };
+		});
+	RegisterWFunction("GetWorldScale", [this]() {
+		return WEvalValue{ GetWorldScale() };
+		});
+
+	RegisterWFunction("GetWorldForward", [this]() {
+		return WEvalValue{ GetWorldForwardVector() };
+		});
+	RegisterWFunction("GetRelativeForward", [this]() {
+		return WEvalValue{ GetRelativeForwardVector() };
+		});
+
+	RegisterWFunction("GetWorldRight", [this]() {
+		return WEvalValue{ GetWorldRightVector() };
+		});
+	RegisterWFunction("GetRelativeRight", [this]() {
+		return WEvalValue{ GetRelativeRightVector() };
+		});
+
+	RegisterWFunction("GetWorldUp", [this]() {
+		return WEvalValue{ GetWorldUpVector() };
+		});
+	RegisterWFunction("GetRelativeUp", [this]() {
+		return WEvalValue{ GetRelativeUpVector() };
+		});
 }
 
 void WSceneComponent::ActivateWithChild()

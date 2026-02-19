@@ -8,7 +8,7 @@
 AStateMachineActor::AStateMachineActor()
 {
 	mStateMachine = CreateComponent<WStateMachineComponent>();
-	AddWComponent("StateMachine", mStateMachine);
+	RegisterWObject("StateMachine", mStateMachine);
 
 	SetTickGroup(ETickGroup::ETG_PrePhysics, ETickPriority::ETP_Low);
 }
@@ -94,7 +94,7 @@ void AStateMachineActor::LoadBlueprint(const FBlueprintAsset* Asset)
 
 		for (const auto& Setup : Asset->mComponentSetups)
 		{
-			if (WActorComponent* Comp = GetWComponent<WActorComponent>(Setup.Name))
+			if (WActorComponent* Comp = GetWObject<WActorComponent>(Setup.Name))
 			{
 				const std::string& CompName = Setup.Name;
 

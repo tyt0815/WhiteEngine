@@ -105,19 +105,11 @@ private:
 	// 
 	/////////////////////////////////////////////////////////////////////////////////////////////
 protected:
-	void AddWComponent(const std::string& Name, WActorComponent* Comp);
-
 	virtual void LoadBlueprint(const FBlueprintAsset* Asset);
 
 private:
-	std::unordered_map<std::string, WActorComponent*> mWComponentsMap;
 
 public:
-	template<typename T>
-	__forceinline T* GetWComponent(const std::string& Name) const
-	{
-		return dynamic_cast<T*>(mWComponentsMap.at(Name));
-	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////

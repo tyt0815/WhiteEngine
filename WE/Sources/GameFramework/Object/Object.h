@@ -47,6 +47,16 @@ public:
 
 	void AddTags(TArray<std::string>& InTags);
 
+	void SetOwner(WObject* NewOwner);
+
+	WObject* GetWObject(const std::string& Name) const;
+
+	template<typename T>
+	T* GetWObject(const std::string& Name) const
+	{
+		return dynamic_cast<T*>(GetWObject(Name));
+	}
+
 	FOnActivate mOnActivate;
 
 	FOnDeactivate mOnDeactivate;
@@ -57,6 +67,12 @@ protected:
 	virtual void OnActivate();
 
 	virtual void OnDeactivate();
+
+	void RegisterWObject(const std::string& Name, WObject* Obj);
+
+	void SetWObject(const std::string& Name, WObject* Obj);
+
+	void SetOrRegisterWObject(const std::string& Name, WObject* Obj);
 
 	//////////////////////////////////////////////////////////////////////////////
 	// WProperty
@@ -81,6 +97,8 @@ private:
 	std::unordered_map<std::string, WSourceRef> mWPropertiesMap;
 
 	std::unordered_map<std::string, std::function<WEvalValue()>> mWFunctionsMap;
+
+	std::unordered_map<std::string, WObject*> mWObjectsMap;
 
 private:
 	ETickGroup mTickGroup = ETickGroup::ETG_None;
@@ -122,18 +140,13 @@ public:
 		return mTags.count(Tag) > 0;
 	}
 
-
-
 	template<typename T>
 	__forceinline T* GetOwner() const
 	{
 		return dynamic_cast<T*>(mOwner);
 	}
 
-	__forceinline void SetOwner(WObject* NewOwner)
-	{
-		mOwner = NewOwner;
-	}
+	
 
 	friend class WWorld;
 };

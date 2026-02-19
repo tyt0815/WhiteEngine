@@ -3,6 +3,7 @@
 
 WObject::WObject()
 {
+	mWObjectsMap["Self"] = this;
 }
 
 void WObject::Tick(float DeltaSecond)
@@ -35,6 +36,19 @@ void WObject::Deactivate()
 	}
 }
 
+void WObject::SetOwner(WObject* NewOwner)
+{
+	mOwner = NewOwner;
+
+	SetOrRegisterWObject("Owner", NewOwner);
+}
+
+WObject* WObject::GetWObject(const std::string& Name) const
+{
+	auto Iter = mWObjectsMap.find(Name);
+	return Iter == mWObjectsMap.end() ? nullptr : Iter->second;
+}
+
 void WObject::OnDestroy()
 {
 	Deactivate();
@@ -50,6 +64,39 @@ void WObject::OnDeactivate()
 {
 	GetWorld()->DequeueTick(this);
 	mOnDeactivate.Broadcast();
+}
+
+void WObject::RegisterWObject(const std::string& Name, WObject* Obj)
+{
+	if (mWObjectsMap.count(Name) > 0)
+	{
+		std::cout << "Already registered WObject: " + Name << std::endl;
+		return;
+	}
+
+	mWObjectsMap[Name] = Obj;
+}
+
+void WObject::SetWObject(const std::string& Name, WObject* Obj)
+{
+	if (mWObjectsMap.count(Name) == 0)
+	{
+		std::cout << "Unregistered WObject: " + Name << std::endl;
+		return;
+	}
+	mWObjectsMap[Name] = Obj;
+}
+
+void WObject::SetOrRegisterWObject(const std::string& Name, WObject* Obj)
+{
+	if (mWObjectsMap.count(Name) > 0)
+	{
+		SetWObject(Name, Obj);
+	}
+	else
+	{
+		RegisterWObject(Name, Obj);
+	}
 }
 
 void WObject::RegisterWProperty(const std::string& Name, WEvalValue Value)

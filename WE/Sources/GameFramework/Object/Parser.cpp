@@ -1,6 +1,37 @@
 #include "Parser.h"
 #include "Actor/Actor.h"
 
+std::vector<std::string> SplitPath(const std::string& Path) 
+{
+    std::vector<std::string> Tokens;
+    std::stringstream ss(Path);
+    std::string Token;
+    while (std::getline(ss, Token, '.')) {
+        if (!Token.empty()) Tokens.push_back(Token);
+    }
+    return Tokens;
+}
+
+WObject* ResolveObjectPath(WObject* StartContext, const std::vector<std::string>& PathTokens, std::string& OutFinalKey) 
+{
+    if (!StartContext || PathTokens.empty()) return StartContext;
+
+    WObject* Current = StartContext;
+
+    for (size_t i = 0; i < PathTokens.size() - 1; ++i) 
+    {
+        const std::string& Node = PathTokens[i];
+
+        Current = Current->GetWObject(Node);
+
+        if (!Current) return nullptr;
+    }
+
+    // 마지막 토큰은 실제 참조할 키값으로 반환
+    OutFinalKey = PathTokens.back();
+    return Current;
+}
+
 WEvalValue WExpressionParser::Evaluate(WObject* Context, const WAttributesMap& Attributes, const std::string& Name, const std::string& DefaultExpression)
 {
     auto it = Attributes.find(Name);
@@ -144,22 +175,34 @@ std::function<WEvalValue()> WExpressionParser::ParseFactor(WObject* Context, con
     Token.erase(std::remove(Token.begin(), Token.end(), ' '), Token.end());
 
     // A. 함수 처리
-    if (!Token.empty() && Token.back() == ')') {
-        return [Context, Token]() { return Context->ExecuteWFunction(Token); };
+    if (Token.back() == ')') {
+        size_t openParen = Token.find('(');
+        std::string PathStr = Token.substr(0, openParen);
+
+        std::string FunctionName;
+        std::vector<std::string> Tokens = SplitPath(PathStr);
+        WObject* FinalContext = ResolveObjectPath(Context, Tokens, FunctionName);
+
+        return [FinalContext, FunctionName]() {
+            return FinalContext ? FinalContext->ExecuteWFunction(FunctionName) : WEvalValue{};
+        };
     }
     // B. 소스 참조 ($)
-    else if (!Token.empty() && (Token[0] == '$')) 
-    {
-        std::string PropName = Token.substr(1);
-        return [Context, PropName]() 
-        {
-            WSourceRef Ref = Context->GetWPropertyPtr(PropName);
-            return WVariantOp::Deref(Ref); // 포인터를 값으로 변환
+    else if (Token[0] == '$') {
+        std::string PathStr = Token.substr(1);
+
+        std::string PropName;
+        std::vector<std::string> Tokens = SplitPath(PathStr);
+        WObject* FinalContext = ResolveObjectPath(Context, Tokens, PropName);
+
+        return [FinalContext, PropName]() {
+            if (!FinalContext) return WEvalValue{};
+            WSourceRef Ref = FinalContext->GetWPropertyPtr(PropName);
+            return WVariantOp::Deref(Ref);
         };
     }
     // C. 일반 값
-    else 
-    {
+    else {
         WEvalValue Val = ParseToVariant(Token, WEvalValue{});
         return [Val]() { return Val; };
     }

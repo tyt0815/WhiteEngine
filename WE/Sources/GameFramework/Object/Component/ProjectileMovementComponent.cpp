@@ -5,6 +5,26 @@
 
 WProjectileMovementComponent::WProjectileMovementComponent()
 {
+	RegisterWProperty("LifeSpan", &mLifeSpan);
+	RegisterWProperty("MaxSpeed", &mMaxSpeed);
+	RegisterWProperty("Acceleration", &mAcceleration);
+	
+	RegisterWProperty("ShouldBounce", &mShouldBounce);
+	
+	RegisterWProperty("HomingStrategy", &mHomingStrategy);
+	RegisterWProperty("HomingTags", &mHomingTargetTags);
+	RegisterWProperty("HomingTurnRate", &mHomingTurnLimit);
+	RegisterWProperty("HomingRange", &mHomingRange);
+	RegisterWProperty("HomingAngle", &mHomingAngle);
+	RegisterWProperty("HomingStopRange", &mHomingStopRange);
+	RegisterWProperty("RetargetTick", &mRetargetTick);
+	RegisterWProperty("ForgetPreviousTarget", &mbForgetPreviousTarget);
+	
+	RegisterWProperty("UseWaypoints", &mbUseWaypoints);
+	RegisterWProperty("Waypoints", &mConfigWaypoints);
+	RegisterWProperty("WaypointSpace", &mWaypointSpace);
+	RegisterWProperty("WaypointBase", &mWaypointBase);
+	RegisterWProperty("WaypointType", &mWaypointType);
 }
 
 void WProjectileMovementComponent::Tick(float DeltaTime)
