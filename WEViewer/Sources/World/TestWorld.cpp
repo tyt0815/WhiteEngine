@@ -1,7 +1,8 @@
 #include "TestWorld.h"
 #include "Actor/PhysicsBox.h"
 #include "Actor/PhysicsSphere.h"
-#include "Actor/HitReactor.h"
+#include "Actor/Enemy.h"
+#include "Actor/Alliance.h"
 #include "Actor/StateMachineActor.h"
 
 void WTestWorld::BeginPlay()
@@ -10,23 +11,36 @@ void WTestWorld::BeginPlay()
 
 	Super::BeginPlay();
 
-	//FActorSpawnParameter Param;
-	//Param.Transform.Scale = XMFLOAT3(1, 2, 1);
-	//Param.Transform.Translation = XMFLOAT3(-40, 1, 30);
-	//GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Enemy", Param);
-	//Param.Transform.Translation.x += 2;
-	//Param.Transform.Translation.z += 6;
-	//GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Enemy", Param);
-	//Param.Transform.Translation.x += 6;
-	//GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Alliance", Param);
-	//Param.Transform.Translation.x += 2;
-	//GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Enemy", Param);
-	//Param.Transform.Translation.x += 2;
-	//GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Alliance", Param);x
-	//Param.Transform.Translation.x += 2;
-	//GetWorld()->SpawnActorByFactory<AHitReactor>("BP_Enemy", Param);
+	FActorSpawnParameter Param;
+	Param.Transform.Scale = XMFLOAT3(1, 2, 1);
+	Param.Transform.Translation = XMFLOAT3(-40, 1, 30);
+	GetWorld()->SpawnActor<AEnemy>(Param);
+	Param.Transform.Translation.x += 2;
+	Param.Transform.Translation.z += 6;
+	GetWorld()->SpawnActor<AEnemy>(Param);
+	Param.Transform.Translation.x += 6;
+	GetWorld()->SpawnActor<AAlliance>(Param);
+	Param.Transform.Translation.x += 2;
+	GetWorld()->SpawnActor<AEnemy>(Param);
+	Param.Transform.Translation.x += 2;
+	GetWorld()->SpawnActor<AAlliance>(Param);
+	Param.Transform.Translation.x += 2;
+	GetWorld()->SpawnActor<AEnemy>(Param);
+	Param.Transform.Translation.x += 2;
+	GetWorld()->SpawnActor<AAlliance>(Param);
+	Param.Transform.Translation.x += 2;
+	GetWorld()->SpawnActor<AEnemy>(Param);
+	Param.Transform.Translation.x += 2;
+	GetWorld()->SpawnActor<AAlliance>(Param);
+	Param.Transform.Translation.x += 2;
+	GetWorld()->SpawnActor<AEnemy>(Param);
+	Param.Transform.Translation.x += 2;
+	GetWorld()->SpawnActor<AAlliance>(Param);
+	Param.Transform.Translation.x += 2;
+	GetWorld()->SpawnActor<AEnemy>(Param);
 
-	//SpawnActorByFactory<AActor>("BP_StateMachinProj");
+
+	SpawnActorByFactory<AActor>("BP_StateMachinProj");
 
 	SpawnActorByFactory<AActor>("BP_TurnAroundProj");
 }

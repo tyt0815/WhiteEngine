@@ -151,6 +151,26 @@ WComponentRegistry::WComponentRegistry()
             Comp->SetHomingTurnLimit(v); RegProp("HomingTurnRate", &Comp->mHomingTurnLimit);
             });
 
+        ApplyAttribute<float>(Attr, "HomingRange", 10.0f, [Comp, RegProp](float v) {
+            Comp->mHomingRange = v; RegProp("HomingRange", &Comp->mHomingRange);
+            });
+
+        ApplyAttribute<float>(Attr, "HomingAngle", 45.0f, [Comp, RegProp](float v) {
+            Comp->mHomingAngle = v; RegProp("HomingAngle", &Comp->mHomingAngle);
+            });
+
+        ApplyAttribute<float>(Attr, "RetargetTick", 0.0f, [Comp, RegProp](float v) {
+            Comp->mRetargetTick = v; RegProp("RetargetTick", &Comp->mRetargetTick);
+            });
+
+        ApplyAttribute<float>(Attr, "HomingStopRange", 0.0f, [Comp, RegProp](float v) {
+            Comp->mHomingStopRange = v; RegProp("HomingStopRange", &Comp->mHomingStopRange);
+            });
+
+        ApplyAttribute<bool>(Attr, "ForgetPreviousTarget", true, [Comp, RegProp](bool v) {
+            Comp->mbForgetPreviousTarget = v; RegProp("ForgetPreviousTarget", &Comp->mbForgetPreviousTarget);
+            });
+
         ApplyAttribute<bool>(Attr, "ShouldBounce", false, [Comp, RegProp](bool v) {
             Comp->mShouldBounce = v; RegProp("ShouldBounce", &Comp->mShouldBounce);
             });
@@ -158,6 +178,24 @@ WComponentRegistry::WComponentRegistry()
         ApplyAttribute<std::vector<XMFLOAT3>>(Attr, "Waypoints", [Comp, RegProp](auto& v) {
             Comp->mConfigWaypoints = v; RegProp("Waypoints", &Comp->mConfigWaypoints);
             });
+
+        ApplyAttribute<bool>(Attr, "UseWaypoints", false, [Comp, RegProp](bool v) {
+            Comp->mbUseWaypoints = v; RegProp("UseWaypoints", &Comp->mbUseWaypoints);
+            });
+
+        ApplyAttribute<std::string>(Attr, "WaypointSpace", "Direction", [Comp, RegProp](auto& v) {
+            Comp->mWaypointSpace = v; RegProp("WaypointSpace", &Comp->mWaypointSpace);
+            });
+
+        ApplyAttribute<std::string>(Attr, "WaypointBase", "Target", [Comp, RegProp](auto& v) {
+            Comp->mWaypointBase = v; RegProp("WaypointBase", &Comp->mWaypointBase);
+            });
+
+        ApplyAttribute<std::string>(Attr, "WaypointType", "Value", [Comp, RegProp](auto& v) {
+            Comp->mWaypointType = v; RegProp("WaypointType", &Comp->mWaypointType);
+            });
+
+        RegProp("Velocity", &Comp->mVelocity);
 
         return Comp;
         });

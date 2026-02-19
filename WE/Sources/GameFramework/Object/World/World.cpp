@@ -848,7 +848,7 @@ void WWorld::TickWorldTimer(float DeltaSecond)
 		bool bLoop = Timer.bLoop;
 		if (Timer.Delegate)
 		{
-			bLoop = bLoop && Timer.Delegate();
+			bLoop = Timer.Delegate() && bLoop;
 		}
 
 		// 5. 루프 타이머인 경우 다시 큐에 삽입

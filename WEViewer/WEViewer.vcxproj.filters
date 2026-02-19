@@ -59,6 +59,12 @@
     <ClCompile Include="Sources\Actor\ProjectileBase.cpp">
       <Filter>Sources\Actor\빌드제외</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Actor\Enemy.cpp">
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Actor\Alliance.cpp">
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\World\TestWorld.h">
@@ -93,6 +99,12 @@
     </ClInclude>
     <ClInclude Include="Sources\Actor\ProjectileBase.h">
       <Filter>Sources\Actor\빌드제외</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\Enemy.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\Alliance.h">
+      <Filter>Sources\Actor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

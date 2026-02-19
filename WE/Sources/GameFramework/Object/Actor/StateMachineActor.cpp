@@ -37,7 +37,7 @@ void AStateMachineActor::LoadBlueprint(const FBlueprintAsset* Asset)
 		for (const auto& [StateName, StateSetup] : SMData.States)
 		{
 			// 스테이트 인스턴스 생성 및 부모 설정(상속 처리)
-			WState* NewState = mStateMachine->CreateState(StateName, StateSetup.BaseName);
+			WState* NewState = mStateMachine->CreateStateOrGet(StateName, StateSetup.BaseName);
 
 			for (const auto& Binding : StateSetup.EventBindings)
 			{

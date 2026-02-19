@@ -138,7 +138,7 @@ public:
     virtual void Tick(float DeltaSecond) override;
 
 public:
-    WState* CreateState(const std::string& Name, const std::string& BaseName = "");
+    WState* CreateStateOrGet(const std::string& Name, const std::string& BaseName = "");
 
     void SetInitialState(const std::string& Name);
 

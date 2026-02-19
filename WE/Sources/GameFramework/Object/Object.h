@@ -76,6 +76,8 @@ public:
 	WEvalValue ExecuteWFunction(const std::string& Name) const;
 
 private:
+	std::vector<TSharedPtr<void>> mCustomWProperties;
+
 	std::unordered_map<std::string, WSourceRef> mWPropertiesMap;
 
 	std::unordered_map<std::string, std::function<WEvalValue()>> mWFunctionsMap;

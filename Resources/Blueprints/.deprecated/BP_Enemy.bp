@@ -1,11 +1,5 @@
 <AHitReactor>
-    <Configs>
-        <General Tags = "[Enemy]"/>
-    </Configs>
-
     <Components>
         <Mesh Name = "Root" Asset = "SM_LaminateFlooringBrownBox" Scale = "{1, 2, 1}"/>
     </Components>
-
-
 </AHitReactor>

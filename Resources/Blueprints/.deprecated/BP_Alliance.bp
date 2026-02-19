@@ -1,11 +1,5 @@
 <AHitReactor>
-    <Configs>
-        <General Tags = "[Alliance]"/>
-    </Configs>
-
     <Components>
         <Mesh Name = "Root" Asset = "SM_ScuffedGoldBox" Scale = "{1, 1, 1}"/>
     </Components>
-
-
 </AHitReactor>

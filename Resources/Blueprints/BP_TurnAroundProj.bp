@@ -1,13 +1,13 @@
 <AStateMachineActor>
     <Components>
-        <Movement Name = "Movement" InitSpeed = "{0, 0, 100}" MaxSpeed = "30" LifeSpan = "0">
+        <Movement Name = "Movement" InitSpeed = "{0, 5, 10}" MaxSpeed = "10" LifeSpan = "0" HomingTags = "[Enemy]">
             <Mesh Name = "Mesh" Asset = "SM_ScuffedGoldBox">
                 <Collision Name = "BoxCollision" Type = "Box" Extent = "{0.5, 0.5, 0.5}" Debug = "true"/>
             </Mesh>
         </Movement>
     </Components>   
 
-    <StateMachine Initial = "Idle">
+    <StateMachine Initial = "Launch">
 
         <State Name = "Global">
 
@@ -15,22 +15,44 @@
                 <Destroy/>
             </OnHit_BoxCollision>
 
+            <OnSpawn>
+                <Register Name = "InitRotation" Value = "Movement.GetWorldRotation()"/>
+            </OnSpawn>
+
+        </State>
+
+        <State Name = "Launch" Base = "Global">
+            <OnEnter>
+                 <Timer Time = "1" Loop = "false" Call = "ToIdleState"/>
+            </OnEnter>
+            
+            <ToIdleState>
+                <ChangeState Name = "Idle"/>
+            </ToIdleState>
         </State>
 
         <State Name = "Idle" Base = "Global">
             <Transitions>
-                <Transition Event = "OnHomingSuccess" Target = "Homing"/>
+                <Transition Event = "OnHomingSuccess_Movement" Target = "Homing"/>
             </Transitions>
+            
+            <OnEnter>
+                <SetWorldRotation Target = "Movement" Rot = "$InitRotation"/>
+                <Set Name = "Movement.Velocity" Value = "{-30, 0, 0}"/>
+                <Set Name = "Movement.MaxSpeed" Value = "30"/>
+                <Set Name = "Movement.HomingStrategy" Value = "Nearest"/>
+            </OnEnter>
 
             <OnUpdate>
                 <AddForce Target = "Movement" Force = "Movement.GetWorldRight() * (100 * $DeltaTime)"/>
+                <Set Name = "Movement.HomingRange" Value = "$Movement.HomingRange + (1 * $DeltaTime)"/>
             </OnUpdate>
         </State>
 
         <State Name = "Homing" Base = "Global">
             <OnEnter>
-                <Set Name = "Movement.MaxSpeed" Value = "10"/>
-                <Set Name = "Movement.LifeSpan" Value = "10"/>
+                <Set Name = "Movement.MaxSpeed" Value = "5"/>
+                <Set Name = "Movement.LifeSpan" Value = "0"/>
             </OnEnter>
         </State>
 

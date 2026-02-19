@@ -209,6 +209,7 @@ void WProjectileMovementComponent::SetHomingTarget(WSceneComponent* Target)
     }
 
 	TSharedPtr<WSceneComponent> CurrTarget = mHomingTarget.lock();
+	mFinalHomingTarget = CurrTarget;
 
 	if (CurrTarget.get() == Target)
 	{
@@ -382,7 +383,12 @@ AActor* WProjectileMovementComponent::FindBestHomingTarget()
 	TArray<FHitResult> Hits;
 
 	// 1. 주변 액터 수집
-	GetWorld()->SphereOverlap(GetWorldLocation(), mHomingRange, Ignore, Hits, false);
+	GetWorld()->SphereOverlap(GetWorldLocation(), mHomingRange, Ignore, Hits, false, 0);
+
+	if (Hits.empty())
+	{
+		return nullptr;
+	}
 
 	if (mHomingStrategy == "Nearest")
 	{

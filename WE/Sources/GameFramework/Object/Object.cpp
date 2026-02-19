@@ -56,7 +56,10 @@ void WObject::RegisterWProperty(const std::string& Name, WEvalValue Value)
 {
 	std::visit([=](auto&& v) 
 		{
-			RegisterWProperty(Name, v);
+			using T = std::decay_t<decltype(v)>;
+			TSharedPtr<T> CustomValue = MakeShared<T>(v);
+			mCustomWProperties.push_back(CustomValue);
+			RegisterWProperty<T>(Name, CustomValue.get());
 		}, Value
 	);
 }

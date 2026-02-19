@@ -54,10 +54,16 @@ void WStateMachineComponent::Tick(float DeltaSecond)
     }
 }
 
-WState* WStateMachineComponent::CreateState(const std::string& Name, const std::string& BaseName)
+WState* WStateMachineComponent::CreateStateOrGet(const std::string& Name, const std::string& BaseName)
 {
+    auto Iter = mStates.find(Name);
+    if (Iter != mStates.end())
+    {
+        return Iter->second.get();
+    }
+
     WState* Base = nullptr;
-    if (!BaseName.empty()) Base = GetState(BaseName);
+    if (!BaseName.empty()) Base = CreateStateOrGet(BaseName);
 
     auto NewState = std::make_unique<WState>(Name, Base);
     WState* Ptr = NewState.get();
