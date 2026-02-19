@@ -21,7 +21,7 @@ void WSplineComponent::Tick(float Delta)
 	
 	int ColorSelector = 0;
 
-	for (int i = 0; i < mSplineLUT.size() - 1; ++i)
+	for (int i = 0; i < (int)mSplineLUT.size() - 1; ++i)
 	{
 		XMFLOAT3 Start = GetWorldTransformAtDistanceAlongSpline(mSplineLUT[i].Distance).Translation;
 		XMFLOAT3 End = GetWorldTransformAtDistanceAlongSpline(mSplineLUT[i + 1].Distance).Translation;

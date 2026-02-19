@@ -13,13 +13,8 @@ void WTestWorld::BeginPlay()
 
 	FActorSpawnParameter Param;
 	Param.Transform.Scale = XMFLOAT3(1, 2, 1);
-	Param.Transform.Translation = XMFLOAT3(-40, 1, 30);
+	Param.Transform.Translation = XMFLOAT3(-40, 1, 40);
 	GetWorld()->SpawnActor<AEnemy>(Param);
-	Param.Transform.Translation.x += 2;
-	Param.Transform.Translation.z += 6;
-	GetWorld()->SpawnActor<AEnemy>(Param);
-	Param.Transform.Translation.x += 6;
-	GetWorld()->SpawnActor<AAlliance>(Param);
 	Param.Transform.Translation.x += 2;
 	GetWorld()->SpawnActor<AEnemy>(Param);
 	Param.Transform.Translation.x += 2;
@@ -38,11 +33,10 @@ void WTestWorld::BeginPlay()
 	GetWorld()->SpawnActor<AAlliance>(Param);
 	Param.Transform.Translation.x += 2;
 	GetWorld()->SpawnActor<AEnemy>(Param);
-
-
-	SpawnActorByFactory<AActor>("BP_StateMachinProj");
-
-	SpawnActorByFactory<AActor>("BP_TurnAroundProj");
+	Param.Transform.Translation.x += 2;
+	GetWorld()->SpawnActor<AAlliance>(Param);
+	Param.Transform.Translation.x += 2;
+	GetWorld()->SpawnActor<AEnemy>(Param);
 }
 
 void WTestWorld::Tick(float DeltaSecond)
@@ -55,41 +49,12 @@ void WTestWorld::Tick(float DeltaSecond)
 
 	if (a > SpawnDelay)
 	{
-		//FActorSpawnParameter Param;
-		//Param.Transform.Translation = XMFLOAT3(-50, 0, 10);
-		//SpawnActorByFactory<AProjectileBase>("BP_Projectile1", Param);
+		FActorSpawnParameter Param;
+		Param.Transform.Translation = XMFLOAT3(-50, 0, 10);
+		SpawnActorByFactory<AActor>("BP_TurnAroundProj", Param);
 
-		//Param.Transform.Translation.x += 2;
-		//SpawnActorByFactory<AProjectileBase>("BP_Projectile2", Param);
-
-		//Param.Transform.Translation.x += 2;
-		//SpawnActorByFactory<AProjectileBase>("BP_Projectile3", Param);
-
-		//Param.Transform.Translation.x += 10;
-		//SpawnActorByFactory<AProjectileBase>("BP_Projectile4", Param);
-		//SpawnActorByFactory<AProjectileBase>("BP_Projectile5", Param);
-
-		//Param.Transform.Translation.x += 8;
-		//SpawnActorByFactory<AProjectileBase>("BP_Projectile6", Param);
-
-		//Param.Transform.Translation.x += 2;
-		//SpawnActorByFactory<AProjectileBase>("BP_Projectile7", Param);
-
-		//Param.Transform.Translation.x += 2;
-		//SpawnActorByFactory<AProjectileBase>("BP_Projectile8", Param);
-		//Param.Transform.Translation.x += 2;
-		//SpawnActorByFactory<AProjectileBase>("BP_Projectile9", Param);
-
-		//Param.Transform.Translation.x += 4;
-		//SpawnActorByFactory<AProjectileBase>("BP_Projectile10", Param);
-
-		//Param.Transform.Translation.x += 4;
-		//SpawnActorByFactory<AProjectileBase>("BP_Projectile11", Param);
-
-		//Param.Transform.Translation.x += 4;
-		//SpawnActorByFactory<AProjectileBase>("BP_Projectile12", Param);
-
-		
+		Param.Transform.Translation.x += 4;
+		SpawnActorByFactory<AActor>("BP_Missile", Param);
 
 		a = 0;
 
