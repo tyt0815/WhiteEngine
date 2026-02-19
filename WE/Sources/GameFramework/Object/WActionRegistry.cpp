@@ -233,16 +233,16 @@ WActionRegistry::WActionRegistry()
 		WSplineComponent* Spline = Owner->GetWObject<WSplineComponent>(itSpline->second);
 
 		// 3. 수식 바인딩
-		auto DurationFunc = WExpressionParser::Bind<float>(Target, Attr, "Duration", "1");
+		auto SpeedRateFunc = WExpressionParser::Bind<float>(Target, Attr, "SpeedRate", "1");
 		auto UseRotFunc = WExpressionParser::Bind<bool>(Target, Attr, "UseRotation", "true");
 		auto LoopFunc = WExpressionParser::Bind<bool>(Target, Attr, "Loop", "false");
 
-		return [TargetComp, Spline, DurationFunc, UseRotFunc, LoopFunc]() {
+		return [TargetComp, Spline, SpeedRateFunc, UseRotFunc, LoopFunc]() {
 			if (!TargetComp || !Spline) return;
 
 			WSplineComponent::FSplineFollower Follower;
 			Follower.Target = TargetComp;
-			Follower.Duration = DurationFunc();
+			Follower.SpeedRate = SpeedRateFunc();
 			Follower.bUseRotation = UseRotFunc();
 			Follower.bLoop = LoopFunc();
 			Follower.CurrentDistance = 0.0f;

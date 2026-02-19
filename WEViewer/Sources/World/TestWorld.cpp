@@ -37,6 +37,9 @@ void WTestWorld::BeginPlay()
 	GetWorld()->SpawnActor<AAlliance>(Param);
 	Param.Transform.Translation.x += 2;
 	GetWorld()->SpawnActor<AEnemy>(Param);
+
+
+	SpawnActorByFactory<AActor>("BP_StateMachinProj");
 }
 
 void WTestWorld::Tick(float DeltaSecond)

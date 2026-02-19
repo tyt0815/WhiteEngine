@@ -28,7 +28,7 @@ public:
 	{
 		WSceneComponent* Target; // 따라갈 컴포넌트
 		float CurrentDistance = 0.0f;
-		float Duration = 1.0f;
+		float SpeedRate = 1.0f;
 		bool bUseRotation = true;
 		bool bLoop = false;
 		bool bFinished = false;

@@ -36,7 +36,7 @@ void WSplineComponent::Tick(float Delta)
 	for (auto it = mFollowers.begin(); it != mFollowers.end(); )
 	{
 		// 이동 속도 계산 (길이 / 지속시간)
-		float Speed = TotalLength / it->Duration;
+		float Speed = GetCustomProperty1AtDistanceAlongSpline(it->CurrentDistance) * it->SpeedRate;
 		it->CurrentDistance += Speed * Delta;
 
 		// 종료 판정
