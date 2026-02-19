@@ -131,7 +131,7 @@ void WPhysicsComponent::CreatePhysicsBody()
 	JPH::ShapeRefC Shape = CreatePhysicsShape();
 	JPH::BodyCreationSettings Settings = JPH::BodyCreationSettings(Shape, JPH::RVec3(), JPH::Quat::sIdentity(), mMotionType, mObjectChannel);
 	Settings.mIsSensor = mbGenerateOverlapEvent;
-	UINT GroupID = GetOwner().lock()->mActorCounter;
+	UINT GroupID = GetOwner<AActor>()->mActorCounter;
 	Settings.mCollisionGroup.SetGroupID(GroupID);
 	Settings.mCollisionGroup.SetGroupFilter(Physics::g_GroupFilter);
 	mBody->Create(Settings);

@@ -45,7 +45,7 @@ void WPrimitiveCollisionComponent::Tick(float DeltaSecond)
     FHitResult Hit;
 
     TArray<AActor*> TraceIgnore = mCachedIgnoreList;
-    if (auto Owner = GetOwner().lock()) TraceIgnore.push_back(Owner.get());
+    if (auto Owner = GetOwner<AActor>()) TraceIgnore.push_back(Owner);
 
     // 하위 클래스에서 구현된 Trace 실행
     TraceShape(mPrevLocation, CurrTransform, TraceIgnore, Hit);

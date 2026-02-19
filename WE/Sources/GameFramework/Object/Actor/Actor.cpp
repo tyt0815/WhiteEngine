@@ -238,7 +238,7 @@ void AActor::SetActorTransform(FTransform Transform)
 
 void AActor::OnCreateComponent(WActorComponent* Comp)
 {
-	Comp->mOwner = this;
+	Comp->SetOwner(this);
 	if (WSceneComponent* SceneComp = dynamic_cast<WSceneComponent*>(Comp))
 	{
 		mAllSceneComponent.emplace_back(SceneComp->GetWeakPtr<WSceneComponent>());

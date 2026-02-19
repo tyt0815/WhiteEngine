@@ -342,7 +342,7 @@ void WProjectileMovementComponent::UpdateHoming(float DeltaSecond)
 					// 최종 목적지 도착 -> 호밍 해제
 					if (mbForgetPreviousTarget)
 					{
-						mVisitedTargets.insert(FinalHomingTarget->GetOwner().lock().get());
+						mVisitedTargets.insert(FinalHomingTarget->GetOwner<AActor>());
 					}
 
 					FinalHomingTarget = nullptr;
@@ -378,8 +378,7 @@ void WProjectileMovementComponent::UpdateHoming(float DeltaSecond)
 AActor* WProjectileMovementComponent::FindBestHomingTarget()
 {
 	TArray<AActor*> Ignore;
-	TSharedPtr<AActor> Owner = GetOwner().lock();
-	Ignore.push_back(Owner.get());
+	Ignore.push_back(GetOwner<AActor>());
 	TArray<FHitResult> Hits;
 
 	// 1. 주변 액터 수집

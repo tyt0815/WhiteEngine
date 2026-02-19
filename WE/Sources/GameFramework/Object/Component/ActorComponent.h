@@ -19,14 +19,10 @@ public:
 	// TODO: 미구현
 	void Destroy() override;
 
-	TWeakPtr<AActor> GetOwner() const;
-
 	bool HasTag(const std::string& Tag, bool bCheckOwner);
 
 public:
 	virtual void BeginComponent();
-
-	AActor* mOwner;
 
 public:
 

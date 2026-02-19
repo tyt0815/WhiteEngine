@@ -93,6 +93,8 @@ private:
 
 	bool mbActivate = true;
 
+	WObject* mOwner = nullptr;
+
 public:
 	template<typename T>
 	__forceinline TWeakPtr<T> GetWeakPtr()
@@ -120,6 +122,18 @@ public:
 		return mTags.count(Tag) > 0;
 	}
 
+
+
+	template<typename T>
+	__forceinline T* GetOwner() const
+	{
+		return dynamic_cast<T*>(mOwner);
+	}
+
+	__forceinline void SetOwner(WObject* NewOwner)
+	{
+		mOwner = NewOwner;
+	}
 
 	friend class WWorld;
 };

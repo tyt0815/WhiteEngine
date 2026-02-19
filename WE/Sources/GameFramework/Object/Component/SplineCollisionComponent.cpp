@@ -20,14 +20,14 @@ void WSplineCollisionComponent::Tick(float DeltaSecond)
 
 	// 무시 리스트 준비 (캐싱된 리스트 사용)
 	TArray<AActor*> TraceIgnore = mCachedIgnoreList;
-	if (auto Owner = GetOwner().lock()) TraceIgnore.push_back(Owner.get());
+	if (auto Owner = GetOwner<AActor>()) TraceIgnore.push_back(Owner);
 
 	bool bNeedCollisionCheck = true;
 	if (mbUseBoundingBox)
 	{
 		FHitResult BoxHit;
 		GetWorld()->BoxTrace(mBoundingBox.PrevLocation, mBoundingBox.CenterComp->GetWorldLocation(),
-			XMFLOAT3(1, 1, 1), GetOwner().lock()->GetActorRotation(), TraceIgnore, BoxHit, mbDebug, mCollisionInterval);
+			XMFLOAT3(1, 1, 1), GetOwner<AActor>()->GetActorRotation(), TraceIgnore, BoxHit, mbDebug, mCollisionInterval);
 
 		mBoundingBox.PrevLocation = mBoundingBox.CenterComp->GetWorldLocation();
 		if (BoxHit.Actor.expired()) bNeedCollisionCheck = false;
@@ -68,7 +68,7 @@ void WSplineCollisionComponent::GenerateCollision()
 		return;
 	}
 
-	TSharedPtr<AActor> Owner = GetOwner().lock();
+	AActor* Owner = GetOwner<AActor>();
 	assert(Owner);
 
 	int Step = FDXMath::Max(1, SplineLUTNum / mSegment);

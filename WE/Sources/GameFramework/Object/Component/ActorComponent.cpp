@@ -11,14 +11,9 @@ void WActorComponent::Destroy()
 	OnDestroy();
 }
 
-TWeakPtr<AActor> WActorComponent::GetOwner() const
-{
-	return mOwner->GetWeakPtr<AActor>();
-}
-
 bool WActorComponent::HasTag(const std::string& Tag, bool bCheckOwner)
 {
-	return WObject::HasTag(Tag) || (bCheckOwner && mOwner->HasTag(Tag));
+	return WObject::HasTag(Tag) || (bCheckOwner && GetOwner<AActor>()->HasTag(Tag));
 }
 
 void WActorComponent::BeginComponent()
