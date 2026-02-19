@@ -28,17 +28,23 @@ struct FComponentRuntimeSetup {
     std::function<WActorComponent* (AActor* Owner)> CreateFunc;
 };
 
+struct FRuntimeAction
+{
+    WActionFactory ActionFactory;
+    std::vector<FRuntimeAction> SubActions;
+};
+
 struct FEventRuntimeBinding {
     std::string Tag;
     WAttributesMap Attributes;
-    std::vector<WActionFactory> ActionFactories;
+    std::vector<FRuntimeAction> Actions;
 };
 
 struct FTransitionRuntimeBinding
 {
     std::string Target;
     WAttributesMap Attributes;
-    std::vector<WActionFactory> ActionFactories;
+    std::vector<FRuntimeAction> Actions;
 };
 
 struct FStateRuntimeSetup {
@@ -86,7 +92,7 @@ private:
 
     void DeserializeEvents(FBinaryReader& Reader, std::vector<FEventRuntimeBinding>& OutBindings);
 
-    void DeserializeActions(FBinaryReader& Reader, std::vector<WActionFactory>& OutFactory);
+    void DeserializeActions(FBinaryReader& Reader, std::vector<FRuntimeAction>& OutActions);
 
 public:
     // --- 컴파일된 런타임 데이터 ---

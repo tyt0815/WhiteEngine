@@ -331,6 +331,8 @@ void FBlueprintAsset::SerializeAction(FBinaryWriter& Writer, FXMLElement* Action
     Writer << ActionName;
 
     SerializeAttributes(Writer, ActionElement);
+
+    SerializeActions(Writer, ActionElement);
 }
 
 void FBlueprintAsset::Deserialize(FBinaryReader& Reader)
@@ -408,7 +410,7 @@ void FBlueprintAsset::DeserializeStateMachine(FBinaryReader& Reader)
             FTransitionRuntimeBinding TransitionBinding;
             Reader >> TransitionBinding.Target;
             DeserializeAttributes(Reader, TransitionBinding.Attributes);
-            DeserializeActions(Reader, TransitionBinding.ActionFactories);
+            DeserializeActions(Reader, TransitionBinding.Actions);
             StateSetup.TransitionBindings.push_back(std::move(TransitionBinding));
         }
 
@@ -431,13 +433,13 @@ void FBlueprintAsset::DeserializeEvents(FBinaryReader& Reader, std::vector<FEven
         Reader >> Binding.Tag; // OnSpawn, OnHit 등
         DeserializeAttributes(Reader, Binding.Attributes);
 
-        DeserializeActions(Reader, Binding.ActionFactories);
+        DeserializeActions(Reader, Binding.Actions);
 
         OutBindings.push_back(std::move(Binding));
     }
 }
 
-void FBlueprintAsset::DeserializeActions(FBinaryReader& Reader, std::vector<WActionFactory>& OutFactory)
+void FBlueprintAsset::DeserializeActions(FBinaryReader& Reader, std::vector<FRuntimeAction>& OutActions)
 {
     int NumActions;
     Reader >> NumActions;
@@ -446,13 +448,17 @@ void FBlueprintAsset::DeserializeActions(FBinaryReader& Reader, std::vector<WAct
     {
         std::string ActionTag;
         Reader >> ActionTag;
+        FRuntimeAction RuntimeAction;
+
         WAttributesMap ActionAttr;
         DeserializeAttributes(Reader, ActionAttr);
 
-        WActionFactory Factory = [ActionTag, ActionAttr](WObject* Target) -> WActionLambda {
+        DeserializeActions(Reader, RuntimeAction.SubActions);
+
+        RuntimeAction.ActionFactory = [ActionTag, ActionAttr](WObject* Target) -> WActionLambda {
             return WActionRegistry::Create(ActionTag, Target, ActionAttr);
         };
 
-        OutFactory.push_back(std::move(Factory));
+        OutActions.push_back(std::move(RuntimeAction));
     }
 }

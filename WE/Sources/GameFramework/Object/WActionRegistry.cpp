@@ -457,6 +457,110 @@ WActionRegistry::WActionRegistry()
 			
 		};
 		});
+
+
+	Register_Internal("SpawnProjectile", [](WObject* Target, const WAttributesMap& Attr) -> WActionLambda {
+		std::string ActorName = Attr.at("Name");
+		AActor* Owner = static_cast<AActor*>(Target);
+		WWorld* World = GetWorld();
+
+		// 1. 공통 속성 추출
+		int Count = Attr.count("Count") ? std::stoi(Attr.at("Count")) : 1;
+		float Interval = Attr.count("Interval") ? std::stof(Attr.at("Interval")) : 0.0f;
+		std::string Strategy = Attr.count("Strategy") ? Attr.at("Strategy") : "Direct";
+
+		// 2. 수식 바인딩 (Loc, Rot은 모든 전략 공통)
+		auto LocFunc = WExpressionParser::Bind<XMFLOAT3>(Target, Attr, "Loc", "Root.GetWorldLocation()");
+		auto RotFunc = WExpressionParser::Bind<XMFLOAT3>(Target, Attr, "Rot", "Root.GetWorldRotation()");
+		auto RangeFunc = WExpressionParser::Bind<float>(Target, Attr, "Range", "0");
+
+		// 3. 전략별 "오프셋/회전 계산 함수" 생성 (컴파일 시점에 람다 확정)
+		// 인자: index, baseLoc, baseRot, range
+		using TCalculator = std::function<std::pair<XMFLOAT3, XMFLOAT3>(int, const XMFLOAT3&, const XMFLOAT3&, float)>;
+		TCalculator CalcFunc;
+
+		if (Strategy == "Fan") {
+			CalcFunc = [Count](int i, const XMFLOAT3& L, const XMFLOAT3& R, float Range) {
+				float StartAngle = -Range * 0.5f;
+				float CurrentAngle = (i == 0 && Range == 0) ? 0 : StartAngle + (Range / (Count - 1) * i); // 실제로는 루프 밖에서 계산된 Step 적용 권장
+				// 단순화를 위해 람다 내부 캡처로 Step 미리 계산 가능
+				return std::make_pair(L, XMFLOAT3(R.x, R.y + CurrentAngle, R.z));
+			};
+		}
+		else if (Strategy == "Circle") {
+			CalcFunc = [Count](int i, const XMFLOAT3& L, const XMFLOAT3& R, float Range) {
+				float CurrentAngle = (360.0f / Count) * i; // 실제 갯수(Count) 캡처 필요
+				return std::make_pair(L, XMFLOAT3(R.x, R.y + CurrentAngle, R.z));
+			};
+		}
+		else if (Strategy == "Line") {
+			// 1. 속성 추가 파싱 (Ratio: 0.5면 중앙 정렬, Angle: 배치 선의 회전)
+			float Ratio = Attr.count("Ratio") ? std::stof(Attr.at("Ratio")) : 0.5f;
+			float LineAngle = Attr.count("LineAngle") ? std::stof(Attr.at("LineAngle")) : 0.0f;
+			int TotalCount = Count; // 전체 개수 캡처
+
+			CalcFunc = [Ratio, LineAngle, TotalCount](int i, const XMFLOAT3& L, const XMFLOAT3& R, float Range) {
+				// R(회전값)로부터 현재 바라보는 방향의 Rotation Matrix 생성
+				XMMATRIX RotMatrix = XMMatrixRotationRollPitchYaw(
+					XMConvertToRadians(R.x),
+					XMConvertToRadians(R.y),
+					XMConvertToRadians(R.z)
+				);
+
+				// 기본 축 추출 (Right, Up)
+				XMVECTOR RightDir = RotMatrix.r[0]; // 로컬 Right
+				XMVECTOR UpDir = RotMatrix.r[1];    // 로컬 Up
+
+				// LineAngle(배치 회전) 적용: 0이면 Right방향(ㅡ), 90이면 Up방향(ㅣ)
+				XMVECTOR vRad = XMVectorReplicate(XMConvertToRadians(LineAngle));
+				XMVECTOR LayoutDir = XMVectorCos(vRad) * RightDir + XMVectorSin(vRad) * UpDir;
+
+				// Ratio 적용: i=0일 때의 시작 오프셋 계산
+				// Ratio 0.5일 때: i=0은 -0.5 * Range * (Total-1) 위치에서 시작
+				float StartOffset = -Ratio * (TotalCount - 1) * Range;
+				float CurrentOffset = StartOffset + (i * Range);
+
+				XMVECTOR vLoc = XMLoadFloat3(&L);
+				XMFLOAT3 FinalLoc;
+				XMStoreFloat3(&FinalLoc, vLoc + (LayoutDir * CurrentOffset));
+
+				return std::make_pair(FinalLoc, R);
+			};
+		}
+		else { // Direct
+			CalcFunc = [](int i, const XMFLOAT3& L, const XMFLOAT3& R, float Range) { return std::make_pair(L, R); };
+		}
+
+		// 최종 실행 람다
+		return [Owner, World, ActorName, Count, Interval, LocFunc, RotFunc, RangeFunc, CalcFunc]() {
+			XMFLOAT3 BaseLoc = LocFunc();
+			XMFLOAT3 BaseRot = RotFunc();
+			float Range = RangeFunc();
+
+			auto SpawnLogic = [World, ActorName, CalcFunc, BaseLoc, BaseRot, Range](int idx) {
+				auto [FinalLoc, FinalRot] = CalcFunc(idx, BaseLoc, BaseRot, Range);
+				FActorSpawnParameter Param;
+				Param.Transform.Translation = FinalLoc;
+				Param.Transform.Rotation = FinalRot;
+				World->SpawnActorByFactory<AActor>(ActorName, Param);
+			};
+
+			if (Interval <= 0.0f) {
+				// 즉시 발사
+				for (int i = 0; i < Count; ++i) SpawnLogic(i);
+			}
+			else {
+				// 시간차 발사 (Interval 옵션)
+				for (int i = 0; i < Count; ++i) {
+					World->AddWorldTimer(Interval * i, false, [idx = i, SpawnLogic]() 
+						{
+						SpawnLogic(idx);
+						return false; // 단발성
+						});
+				}
+			}
+		};
+		});
 }
 
 WActionRegistry::~WActionRegistry()
