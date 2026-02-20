@@ -3,7 +3,7 @@
         <Anim Name = "Anim">
             <Movement Name = "ProjMove" InitSpeed = "{0, 0, 30}" MaxSpeed = "30" LifeSpan = "2">
                 <Mesh Name = "Mesh" Asset = "SM_ScuffedGoldBox">
-                    <Collision Name = "BoxCollision" Type = "Box" Extent = "{0.5, 0.5, 0.5}" Debug = "false"/>
+                    <Collision Name = "BoxCollision" Type = "Box" Extent = "{0.5, 0.5, 0.5}" Debug = "true"/>
                 </Mesh>
             </Movement>
         </Anim>

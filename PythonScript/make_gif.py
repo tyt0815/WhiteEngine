@@ -49,7 +49,7 @@ def make_gif(input_path, output_path, start_time, end_time, fps=18, width=1200, 
         print(f"에러 발생: {e}")
 
 if __name__ == "__main__":
-    in_path = "Component - Movement.mp4"
+    in_path = "BP_TurnAroundProj.mp4"
     folder_path, file_name = os.path.split(in_path)
     out_path = os.path.join(folder_path, file_name.split('.')[0] + '.gif')
     

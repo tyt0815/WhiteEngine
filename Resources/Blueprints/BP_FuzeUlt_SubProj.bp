@@ -1,0 +1,22 @@
+<AStateMachineActor>
+    <Components>
+        <Movement Name = "ProjMove" InitSpeed = "{0, 0, 30}" GravityScale = "8" MaxSpeed = "30" LifeSpan = "2">
+            <Mesh Name = "Mesh" Asset = "SM_ScuffedGoldSphere">
+                <Collision Name = "SphereCollision" Type = "Sphere" Radius = "1" Debug = "true"/>
+            </Mesh>
+        </Movement>
+    </Components>
+
+    <StateMachine Initial = "Global">
+        <State Name = "Global">
+            <DestroyEvent>
+                <Log Content = "BP_FuzeUlt_SubProj: Destroy"/>
+                <Destroy/>
+            </DestroyEvent>
+
+            <OnDeactivate_SphereCollision>
+                <Call Target = "Global.DestroyEvent"/>
+            </OnDeactivate_SphereCollision>
+        </State>
+    </StateMachine>
+</AStateMachineActor>

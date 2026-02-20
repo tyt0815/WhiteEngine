@@ -1,7 +1,7 @@
 <AStateMachineActor>
     <Components>
-        <Movement Name = "Movement" InitSpeed = "{0, 5, 0}" MaxSpeed = "30" LifeSpan = "0" HomingTags = "[Enemy]" HomingStopRange = "0.25"
-        UseWaypoints = "false" Waypoints = "[{0, 0.5, 0}]" WaypointType = "Adaptive" WaypointSpace = "World">
+        <Movement Name = "Movement" InitSpeed = "{0, 5, 0}" MaxSpeed = "30" LifeSpan = "0" 
+        HomingTags = "[Enemy]" HomingStopRange = "0.25">
             <Mesh Name = "Mesh" Asset = "SM_ScuffedGoldBox">
                 <Collision Name = "BoxCollision" Type = "Box" Extent = "{0.5, 0.5, 0.5}" Debug = "true"/>
             </Mesh>
@@ -35,7 +35,7 @@
 
         <State Name = "Idle" Base = "Global">
             <Transitions>
-                <Transition Event = "OnHomingSuccess_Movement" Target = "Homing"/>
+                <Transition Target = "Homing" Event = "OnHomingSuccess_Movement" />
             </Transitions>
             
             <OnEnter>
@@ -55,11 +55,6 @@
             <OnEnter>
                 <Set Name = "Movement.MaxSpeed" Value = "10"/>
                 <Set Name = "Movement.LifeSpan" Value = "10"/>
-
-                <!-- <SpawnProjectile Name = "BP_TurnAroundProj" Interval = "0.1" Count = "4" Strategy = "Line" Range = "1" Loc = "{0, 10, 0}" Rot = "{0, 0, 0}">
-                    <Set Name = "Movement.MaxSpeed" Value = "0.1"/>
-                    <SetHomingTarget Source = "Owner.Movement" Target = "Movement"/>
-                </SpawnProjectile> -->
             </OnEnter>
         </State>
 

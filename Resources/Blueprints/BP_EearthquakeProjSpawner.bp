@@ -1,12 +1,8 @@
 <AStateMachineActor>
-    <Components>
-        <Mesh Name = "Mesh" Asset = "SM_ScuffedGoldBox"/>
-    </Components>
-
     <StateMachine Initial = "Global">
         <State Name = "Global">
             <OnSpawn>
-                <Register Name = "LifeSpan" Value = "1"/>
+                <Register Name = "LifeSpan" Value = "2"/>
                 <Timer Time = "$LifeSpan" Loop = "false" Call = "DestroyEvent"/>
 
                 <SpawnProjectile Name = "BP_EearthquakeProj" Count = "4" Strategy = "Fan" Range = "45" Loc = "Root.GetWorldLocation()" Rot = "Root.GetWorldRotation()">

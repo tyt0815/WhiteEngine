@@ -135,8 +135,12 @@ WComponentRegistry::WComponentRegistry()
             Comp->SetAcceleration(v); 
             });
 
+        ApplyAttribute<float>(Attr, "GravityScale", 0, [Comp](auto& v) {
+            Comp->mGravityScale = v;
+            });
+
         ApplyAttribute<std::string>(Attr, "HomingStrategy", "None", [Comp](auto& v) {
-            Comp->mHomingStrategy = v; 
+            Comp->mHomingStrategy = v;
             });
 
         ApplyAttribute<std::set<std::string>>(Attr, "HomingTags", [Comp](auto& v) {

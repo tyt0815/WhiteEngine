@@ -1,0 +1,26 @@
+<AStateMachineActor>
+    <Components>
+        <Movement Name = "ProjMove" Acceleration = "100" GravityScale = "1" InitSpeed = "{0, 10, 10}" MaxSpeed = "30" LifeSpan = "20">
+            <Mesh Name = "Mesh" Asset = "SM_ScuffedGoldSphere">
+                <Collision Name = "SphereCollision" Type = "Sphere" Debug = "true"/>
+            </Mesh>
+        </Movement>
+    </Components>
+
+    <StateMachine Initial = "Global">
+        <State Name = "Global">
+            <OnSpawn>
+                <Register Name = "LifeSpan" Value = "2"/>
+                <Timer Time = "$LifeSpan" Loop = "false" Call = "DestroyEvent"/>
+            </OnSpawn>
+
+            <DestroyEvent>
+                <SpawnProjectile Name = "BP_FuzeUlt_SubProj" Count = "8" Strategy = "Circle" Loc = "ProjMove.GetWorldLocation()" Rot = "ProjMove.GetWorldRotation()">
+
+                </SpawnProjectile>
+                <Log Content = "BP_EearthquakeProjSpawner: Destroy"/>
+                <Destroy/>
+            </DestroyEvent>
+        </State>
+    </StateMachine>
+</AStateMachineActor>
