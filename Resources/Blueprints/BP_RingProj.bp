@@ -1,20 +1,19 @@
 <AStateMachineActor>
     <Components>
-        <Movement Name = "ProjMove" InitSpeed = "{0, 0, 0}" MaxSpeed = "30" LifeSpan = "20" HomingTags = "[Enemy]"
-        HomingRange = "50">
-            <Mesh Name = "Mesh" Asset = "SM_ScuffedGoldBox">
-                <Collision Name = "BoxCollision" Type = "Box" Extent = "{0.5, 0.5, 0.5}" Debug = "true"/>
+        <Movement Name = "ProjMove" InitSpeed = "{0, 0, 0}" MaxSpeed = "10" LifeSpan = "20">
+            <Mesh Name = "Mesh" Asset = "SM_MetalRing">
+                <Collision Name = "SplineCollision" Type = "Spline" Asset = "SP_Ring" Segment = "4" BoundingBox = "true" Debug = "true"/>
             </Mesh>
         </Movement>
-        <Spline Name = "LaunchSpline" Asset = "SP_MissileLaunchPath"/>
+        <Spline Name = "LaunchSpline" Asset = "SP_RingProjPath"/>
     </Components>
 
     <StateMachine Initial = "Launch">
         <State Name = "Global">
-            <OnDeactivate_BoxCollision>
-                <Log Content = "BP_LaunchedMissile: Destroy"/>
+            <OnDeactivate_SplineCollision>
+                <Log Content = "BP_RingProj: Destroy"/>
                 <Destroy/>
-            </OnDeactivate_BoxCollision>
+            </OnDeactivate_SplineCollision>
         </State>
 
         <State Name = "Launch" Base = "Global">
@@ -30,7 +29,6 @@
         <State Name = "Flying" Base = "Global">
             <OnEnter>
                 <Set Name = "ProjMove.Acceleration" Value = "1000"/>
-                <Set Name = "ProjMove.HomingStrategy" Value = "Angle"/>
             </OnEnter>
         </State>
     </StateMachine>

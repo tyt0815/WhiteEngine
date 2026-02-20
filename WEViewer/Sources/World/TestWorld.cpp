@@ -37,6 +37,15 @@ void WTestWorld::BeginPlay()
 	GetWorld()->SpawnActor<AAlliance>(Param);
 	Param.Transform.Translation.x += 2;
 	GetWorld()->SpawnActor<AEnemy>(Param);
+
+	Param.Transform.Translation.x = -10;
+	Param.Transform.Translation.y = 2.5;
+	Param.Transform.Translation.z = 20;
+	Param.Transform.Scale = XMFLOAT3(0.5, 0.5, 0.5);
+	GetWorld()->SpawnActor<AEnemy>(Param);
+	Param.Transform.Translation.y += 0.5;
+	Param.Transform.Translation.z = 30;
+	GetWorld()->SpawnActor<AEnemy>(Param);
 }
 
 void WTestWorld::Tick(float DeltaSecond)
@@ -58,6 +67,9 @@ void WTestWorld::Tick(float DeltaSecond)
 
 		Param.Transform.Translation.x += 8;
 		SpawnActorByFactory<AActor>("BP_EearthquakeProjSpawner", Param);
+
+		Param.Transform.Translation.x = -10;
+		SpawnActorByFactory<AActor>("BP_RingProj", Param);
 
 		a = 0;
 
