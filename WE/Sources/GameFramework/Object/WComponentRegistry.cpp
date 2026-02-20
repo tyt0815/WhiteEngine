@@ -81,9 +81,8 @@ WComponentRegistry::WComponentRegistry()
         }
 
         // 공통 Collision 설정 (FCollisionGeneratorBase 인터페이스)
-        if (auto* Gen = dynamic_cast<FCollisionGeneratorBase*>(Component)) {
-            Gen->GenerateCollision();
-
+        if (auto* Gen = dynamic_cast<FCollisionGeneratorBase*>(Component)) 
+        {
             // 속성 적용 및 프로퍼티 등록 (Name.Property 형식)
             ApplyAttribute<float>(Attr, "Delay", 0.0f, [Owner, Gen, Name](float v) {
                 Gen->SetHitDelay(v);

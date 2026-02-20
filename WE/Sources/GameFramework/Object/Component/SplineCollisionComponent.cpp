@@ -10,6 +10,7 @@ WSplineCollisionComponent::WSplineCollisionComponent()
 void WSplineCollisionComponent::Tick(float DeltaSecond)
 {
 	Super::Tick(DeltaSecond);
+	GenerateCollision();
 
 	// FCollisionGeneratorBase의 시간 관리 업데이트
 	UpdateActorsToIgnore(DeltaSecond);
@@ -57,6 +58,8 @@ void WSplineCollisionComponent::Tick(float DeltaSecond)
 void WSplineCollisionComponent::BeginComponent()
 {
 	Super::BeginComponent();
+
+	
 }
 
 void WSplineCollisionComponent::GenerateCollision()
@@ -75,6 +78,8 @@ void WSplineCollisionComponent::GenerateCollision()
 
 	int i = 0;
 	int j = min(Step, SplineLUTNum - 1);
+
+	mCapsuleCollider.clear();
 	while (true)
 	{
 		FTransform Transform;

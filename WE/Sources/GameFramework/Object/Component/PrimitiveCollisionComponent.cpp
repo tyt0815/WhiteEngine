@@ -11,6 +11,8 @@ WPrimitiveCollisionComponent::WPrimitiveCollisionComponent()
 void WPrimitiveCollisionComponent::BeginComponent()
 {
     Super::BeginComponent();
+
+    GenerateCollision();
 }
 
 void WPrimitiveCollisionComponent::GenerateCollision()

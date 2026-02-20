@@ -58,7 +58,8 @@
             </SetHomingTurnRate>
 
             <OnUpdate>
-                <SetRelativeRotation Target = "ProjMove" Rot = "ProjMove.GetRelativeRotation() + (({0, 0, 1} * $DeltaTime) * $RotateRate)"/>
+                <SetRelativeRotation Target = "ProjMove" 
+                Rot = "ProjMove.GetRelativeRotation() + (({0, 0, 1} * $DeltaTime) * $RotateRate)"/>
             </OnUpdate>
         </State>
     </StateMachine>
