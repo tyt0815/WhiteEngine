@@ -6,6 +6,13 @@ ATargetMarker::ATargetMarker()
 	SetTickGroup(ETickGroup::ETG_PostPhysics, ETickPriority::ETP_Low);
 }
 
+void ATargetMarker::BeginPlay()
+{
+    Super::BeginPlay();
+
+    GetWorld()->AddWorldTimer(10, false, [=]() {Destroy(); return true; });
+}
+
 void ATargetMarker::Tick(float DeltaSecond)
 {
     Super::Tick(DeltaSecond);

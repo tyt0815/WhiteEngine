@@ -9,11 +9,11 @@ void AMissileGridManager::AddMissile(ATopAttackMissile* Instigator)
 		mMissiles.push_back(Instigator);
 	}
 
-	const auto& Deque = Instigator->mHomingPathMarkerDeque;
-	for (auto Iter = Deque.begin(); Iter != Deque.end(); ++Iter)
-	{
-		mHomingPaths.push_back(Iter->lock().get());
-	}
+	//const auto& Deque = Instigator->mHomingPathMarkerDeque;
+	//for (auto Iter = Deque.begin(); Iter != Deque.end(); ++Iter)
+	//{
+	//	mHomingPaths.push_back(Iter->lock().get());
+	//}
 	
 }
 

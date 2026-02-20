@@ -602,6 +602,23 @@ WActionRegistry::WActionRegistry()
 			}
 		};
 		});
+
+
+	Register_Internal("Rand", [](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories)
+		{
+			std::vector<std::string> Tokens = SplitPath(Attr.at("Name"));
+
+			auto MinFunc = WExpressionParser::Bind(Target, Attr, "Min", "0");
+			auto MaxFunc = WExpressionParser::Bind(Target, Attr, "Max", "1");
+
+			return [Target, Tokens, MinFunc, MaxFunc]() {
+				std::string PropName;
+				if (WObject* FinalTarget = ResolveObjectPath(Target, Tokens, PropName))
+				{
+					FinalTarget->SetWPropertyValue(PropName, FDXMath::RandF(std::get<float>(MinFunc()), std::get<float>(MaxFunc())));
+				}
+			};
+		});
 }
 
 WActionRegistry::~WActionRegistry()

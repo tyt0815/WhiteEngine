@@ -10,7 +10,7 @@ AStateMachineActor::AStateMachineActor()
 {
 	mStateMachine = CreateComponent<WStateMachineComponent>();
 	RegisterWObject("StateMachine", mStateMachine);
-
+	
 	SetTickGroup(ETickGroup::ETG_PrePhysics, ETickPriority::ETP_Low);
 }
 

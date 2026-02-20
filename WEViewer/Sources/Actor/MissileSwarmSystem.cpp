@@ -30,12 +30,9 @@ void AMissileSwarmSystem::Tick(float Delta)
 				FActorSpawnParameter Param;
 				Param.Transform = GetActorTransform();
 				Param.Transform.Translation = GetGridLocationAtIndex(r, c, Col, 0.3f, GetActorLocation(), XMFLOAT3(0, 1, 0), GetRightVector());
-				if (auto Missile = GetWorld()->SpawnActorByFactory<ATopAttackMissile>("BP_TopAttackMissile", Param).lock())
+				if (auto Missile = GetWorld()->SpawnActorByFactory<ATopAttackMissile>("BP_MissileSwarmProj", Param).lock())
 				{
-					TArray<TWeakPtr<AActor>> HomingPaths;
-					CreateHomingPaths(mTargetMarkers[r][c], HomingPaths);
-
-					Missile->Initialize(HomingPaths, mMissileGridManager.lock().get());
+					Missile->Initialize(mTargetMarkers[r][c].lock()->GetRootComponent());
 				}
 			}
 		}

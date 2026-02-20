@@ -1,0 +1,66 @@
+<ATopAttackMissile>
+    <Components>
+        <Movement Name = "ProjMove" InitSpeed = "{0, 0, 0}" GravityScale = "0" MaxSpeed = "25" LifeSpan = "10" 
+        HomingStopRange = "1" HomingTurnRate = "90"
+        UseWaypoints = "true" Waypoints = "[{0, 0.5, -0.25}]" WaypointSpace = "Relative" WaypointType = "Adaptive">
+            <Anim Name = "Anim">
+                <Mesh Name = "Mesh" Asset = "SM_ScuffedGoldSphere" Scale = "{0.1, 0.1, 0.1}">
+                    <Collision Name = "SphereCollision" Type = "Sphere" Radius = "1" Debug = "true"/>
+                </Mesh>
+            </Anim>
+        </Movement>
+    </Components>
+
+    <StateMachine Initial = "ColdLaunch">
+        <State Name = "Global">
+            <OnSpawn>
+                <Register Name = "PlayRate" Value = "1"/>
+                <Rand Name = "PlayRate" Min = "0.75" Max = "4"/>
+
+                <Register Name = "RotateRate" Value = "1"/>
+                <Rand Name = "RotateRate" Min = "-360" Max = "360"/>
+            </OnSpawn>
+
+            <DestroyEvent>
+                <Log Content = "BP_MissileSwarmProj: Destroy"/>
+                <Destroy/>
+            </DestroyEvent>
+
+            <OnDeactivate_SphereCollision>
+                <Call Target = "DestroyEvent"/>
+            </OnDeactivate_SphereCollision>
+        </State>
+
+        <State Name = "ColdLaunch" Base = "Global">
+            <OnSpawn>
+                <Call Target = "Global.OnSpawn"/>
+
+                <PlayAnim Target = "Anim" Asset = "OA_ColdLaunch" Loop = "false" Anim = "[Projectile]"/>
+            </OnSpawn>
+
+            <OnAnimStop_Anim>
+                <ChangeState Name = "Flying"/>
+            </OnAnimStop_Anim>
+        </State>
+
+        <State Name = "Flying" Base = "Global">
+            <OnEnter>
+                <Set Name = "ProjMove.Acceleration" Value = "100"/>
+
+                <PlayAnim Target = "Anim" Asset = "OA_MissileTrack" Loop = "true"  PlayRate = "$PlayRate"
+                    Loc = "XY" Anim = "[Proj1, Proj2, Proj3, Proj4, Proj5, Proj6]"/>
+                
+                <Timer Time = "0.5" Loop = "false" Call = "SetHomingTurnRate"/>
+            </OnEnter>
+
+            <SetHomingTurnRate>
+                <Set Name = "ProjMove.HomingTurnRate" Value = "180"/>
+            </SetHomingTurnRate>
+
+            <OnUpdate>
+                <SetRelativeRotation Target = "ProjMove" Rot = "ProjMove.GetRelativeRotation() + (({0, 0, 1} * $DeltaTime) * $RotateRate)"/>
+            </OnUpdate>
+        </State>
+    </StateMachine>
+</ATopAttackMissile>
+

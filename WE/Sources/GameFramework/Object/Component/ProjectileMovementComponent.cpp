@@ -543,11 +543,24 @@ void WProjectileMovementComponent::GenerateWaypoints(WSceneComponent* Target)
 	}
 	else if (mWaypointSpace == "Relative")
 	{
-		XMFLOAT3 WorldF = GetWorldForwardVector();
+		XMFLOAT3 WorldF;
+		XMFLOAT3 WorldU;
+		XMFLOAT3 WorldR;
+		if (mWaypointBase == "Actor")
+		{
+			WorldF = GetWorldForwardVector();
+			WorldU = GetWorldUpVector();
+			WorldR = GetWorldRightVector();
+		}
+		else
+		{
+			WorldF = Target->GetWorldForwardVector();
+			WorldU = Target->GetWorldUpVector();
+			WorldR = Target->GetWorldRightVector();
+		}
+
 		VForward = XMLoadFloat3(&WorldF);
-		XMFLOAT3 WorldU = GetWorldUpVector();
 		VUp = XMLoadFloat3(&WorldU);
-		XMFLOAT3 WorldR = GetWorldRightVector();
 		VRight = XMLoadFloat3(&WorldR);
 	}
 	else

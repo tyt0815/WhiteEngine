@@ -7,5 +7,7 @@ class ATargetMarker : public AActor
 public:
 	ATargetMarker();
 
+	virtual void BeginPlay() override;
+
 	virtual void Tick(float DeltaSecond) override;
 };

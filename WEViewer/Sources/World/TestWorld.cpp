@@ -4,10 +4,11 @@
 #include "Actor/Enemy.h"
 #include "Actor/Alliance.h"
 #include "Actor/StateMachineActor.h"
+#include "Pawn/PlayerPawn.h"
 
 void WTestWorld::BeginPlay()
 {	
-	// SetPlayer(SpawnActor<APlayerPawn>());
+	SetPlayer(SpawnActor<APlayerPawn>());
 
 	Super::BeginPlay();
 
