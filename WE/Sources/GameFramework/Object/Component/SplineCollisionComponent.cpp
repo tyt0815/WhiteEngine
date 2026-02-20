@@ -10,7 +10,6 @@ WSplineCollisionComponent::WSplineCollisionComponent()
 void WSplineCollisionComponent::Tick(float DeltaSecond)
 {
 	Super::Tick(DeltaSecond);
-	GenerateCollision();
 
 	// FCollisionGeneratorBase의 시간 관리 업데이트
 	UpdateActorsToIgnore(DeltaSecond);
@@ -59,7 +58,7 @@ void WSplineCollisionComponent::BeginComponent()
 {
 	Super::BeginComponent();
 
-	
+	GenerateCollision();
 }
 
 void WSplineCollisionComponent::GenerateCollision()
@@ -85,8 +84,13 @@ void WSplineCollisionComponent::GenerateCollision()
 		FTransform Transform;
 		const WSplineComponent::FSplineLUT* Point0 = GetSplineLUTAt(i);
 		const WSplineComponent::FSplineLUT* Point1 = GetSplineLUTAt(j);
+
+
+		XMMATRIX TransformMat = GetRelativeTransform().GetTransformMatrix();
 		XMVECTOR P0 = XMLoadFloat3(&Point0->Location);
+		P0 = XMVector3Transform(P0, TransformMat);
 		XMVECTOR P1 = XMLoadFloat3(&Point1->Location);
+		P1 = XMVector3Transform(P1, TransformMat);
 		XMStoreFloat3(&Transform.Translation, (P0 + P1) / 2.0f);
 
 		const auto Mid = GetSplineLUTAtDistanceAlongSpline((Point0->Distance + Point1->Distance) / 2.0f);

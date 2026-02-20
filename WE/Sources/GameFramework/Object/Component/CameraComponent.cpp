@@ -29,8 +29,8 @@ void WCameraComponent::UpdateViewMatrix()
 {
 	if (mbViewFloat4x4Dirty)
 	{
-		XMMATRIX RotationMatrix = GetLocalTransform().GetRotationMatrix();
-		XMVECTOR P = GetLocalTransform().GetTranslationVector();
+		XMMATRIX RotationMatrix = GetRelativeTransform().GetRotationMatrix();
+		XMVECTOR P = GetRelativeTransform().GetTranslationVector();
 		XMVECTOR L = XMVector3Transform({ 0.0f, 0.0f, 1.0f }, RotationMatrix);
 		XMVECTOR U = XMVector3Transform({ 0.0f, 1.0f, 0.0f }, RotationMatrix);
 		XMVECTOR R = XMVector3Transform({ 1.0f, 0.0f, 0.0f }, RotationMatrix);

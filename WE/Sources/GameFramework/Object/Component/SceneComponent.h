@@ -101,10 +101,11 @@ private:
 	std::vector<TWeakPtr<WSceneComponent>> mChilds;
 
 public:
-	inline FTransform GetLocalTransform() const
+	inline FTransform GetRelativeTransform() const
 	{
 		return mTransform;
 	}
+
 	inline DirectX::XMFLOAT3 GetRelativeLocation() const
 	{
 		return mTransform.Translation;

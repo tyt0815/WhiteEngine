@@ -138,7 +138,7 @@ public:
 
 	__forceinline FTransform GetActorTransform() const
 	{
-		return mRootComponent.lock()->GetLocalTransform();
+		return mRootComponent.lock()->GetRelativeTransform();
 	}
 
 	__forceinline XMFLOAT3 GetActorLocation() const
