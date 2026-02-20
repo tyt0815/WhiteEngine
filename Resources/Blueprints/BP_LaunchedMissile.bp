@@ -1,6 +1,7 @@
 <AStateMachineActor>
     <Components>
-        <Movement Name = "ProjMove" InitSpeed = "{0, 0, 0}" MaxSpeed = "30" LifeSpan = "20" HomingTags = "[Enemy]"
+        <Movement Name = "ProjMove" InitSpeed = "{0, 0, 0}" MaxSpeed = "30" LifeSpan = "20" 
+        HomingTags = "[Enemy]"
         HomingRange = "50">
             <Mesh Name = "Mesh" Asset = "SM_ScuffedGoldBox">
                 <Collision Name = "BoxCollision" Type = "Box" Extent = "{0.5, 0.5, 0.5}" Debug = "true"/>
@@ -35,3 +36,4 @@
         </State>
     </StateMachine>
 </AStateMachineActor>
+

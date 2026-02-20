@@ -15,7 +15,8 @@
             </OnSpawn>
 
             <DestroyEvent>
-                <SpawnProjectile Name = "BP_FuzeUlt_SubProj" Count = "8" Strategy = "Circle" Loc = "ProjMove.GetWorldLocation()" Rot = "ProjMove.GetWorldRotation()">
+                <SpawnProjectile Name = "BP_FuzeUlt_SubProj" Count = "8" Strategy = "Circle" 
+                Loc = "ProjMove.GetWorldLocation()" Rot = "ProjMove.GetWorldRotation()">
 
                 </SpawnProjectile>
                 <Log Content = "BP_EearthquakeProjSpawner: Destroy"/>
@@ -24,3 +25,5 @@
         </State>
     </StateMachine>
 </AStateMachineActor>
+
+
