@@ -1,7 +1,10 @@
 #pragma once
 
 #include "SceneComponent.h"
+#include "Utility/Delegate.h"
 #include <string>
+
+DECLARE_MULTICAST_DELEGATE(FSplineCompDelegate)
 
 class WSplineComponent : public WSceneComponent
 {
@@ -72,6 +75,8 @@ public:
 	void SelectSplineNodesByInputKey(float InputKey, FSplineNode& LeftNode, FSplineNode& RightNode, float& t);
 
 	void SelectBezierPointsByInputKey(float InputKey, XMVECTOR* P0, XMVECTOR* P1, XMVECTOR* P2, XMVECTOR* P3, float& t);
+
+	FSplineCompDelegate mOnFollowSplineEnd;
 
 private:
 	std::vector<FSplineNode> mSplineNodes;

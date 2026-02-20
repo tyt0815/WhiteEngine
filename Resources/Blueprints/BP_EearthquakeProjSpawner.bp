@@ -1,0 +1,25 @@
+<AStateMachineActor>
+    <Components>
+        <Mesh Name = "Mesh" Asset = "SM_ScuffedGoldBox"/>
+    </Components>
+
+    <StateMachine Initial = "Global">
+        <State Name = "Global">
+            <OnSpawn>
+                <Register Name = "LifeSpan" Value = "1"/>
+                <Timer Time = "$LifeSpan" Loop = "false" Call = "DestroyEvent"/>
+
+                <SpawnProjectile Name = "BP_EearthquakeProj" Count = "4" Strategy = "Fan" Range = "45" Loc = "Root.GetWorldLocation()" Rot = "Root.GetWorldRotation()">
+                    <Set Name = "ProjMove.LifeSpan" Value = "$Owner.LifeSpan"/>
+                    
+                    <PlayAnim Target = "Anim" Asset = "OA_EarthquakeProj" Loop = "true" Loc = "X" Rot = "XZ" Scale = "XYZ" Anim = "[Proj_Spiral, Proj_ZigZag, Proj_Wobble]"/>
+                </SpawnProjectile>
+            </OnSpawn>
+
+            <DestroyEvent>
+                <Log Content = "BP_EearthquakeProjSpawner: Destroy"/>
+                <Destroy/>
+            </DestroyEvent>
+        </State>
+    </StateMachine>
+</AStateMachineActor>

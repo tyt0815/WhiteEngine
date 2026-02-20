@@ -37,9 +37,6 @@ void WTestWorld::BeginPlay()
 	GetWorld()->SpawnActor<AAlliance>(Param);
 	Param.Transform.Translation.x += 2;
 	GetWorld()->SpawnActor<AEnemy>(Param);
-
-
-	SpawnActorByFactory<AActor>("BP_StateMachinProj");
 }
 
 void WTestWorld::Tick(float DeltaSecond)
@@ -56,8 +53,11 @@ void WTestWorld::Tick(float DeltaSecond)
 		Param.Transform.Translation = XMFLOAT3(-50, 0, 10);
 		SpawnActorByFactory<AActor>("BP_TurnAroundProj", Param);
 
-		Param.Transform.Translation.x += 4;
-		SpawnActorByFactory<AActor>("BP_Missile", Param);
+		Param.Transform.Translation.x += 20;
+		SpawnActorByFactory<AActor>("BP_LaunchedMissile", Param);
+
+		Param.Transform.Translation.x += 8;
+		SpawnActorByFactory<AActor>("BP_EearthquakeProjSpawner", Param);
 
 		a = 0;
 

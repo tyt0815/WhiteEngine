@@ -12,9 +12,10 @@
 
         <State Name = "Global">
 
-            <OnHit_BoxCollision>
+            <OnDeactivate_BoxCollision>
+                <Log Content = "BP_TurnAroundProj: Destroy"/>
                 <Destroy/>
-            </OnHit_BoxCollision>
+            </OnDeactivate_BoxCollision>
 
             <OnSpawn>
                 <Register Name = "InitRotation" Value = "Movement.GetWorldRotation()"/>

@@ -90,7 +90,7 @@ WComponentRegistry::WComponentRegistry()
                 
                 });
 
-            ApplyAttribute<float>(Attr, "MaxHit", 0.0f, [Owner, Gen, Name](float v) {
+            ApplyAttribute<float>(Attr, "MaxHit", 1.0f, [Owner, Gen, Name](float v) {
                 Gen->SetMaxHit((int)v);
                 
                 });
@@ -143,7 +143,7 @@ WComponentRegistry::WComponentRegistry()
             Comp->mHomingTargetTags = v;
             });
 
-        ApplyAttribute<float>(Attr, "HomingTurnRate", [Comp](float v) {
+        ApplyAttribute<float>(Attr, "HomingTurnRate", 180, [Comp](float v) {
             Comp->SetHomingTurnLimit(v); 
             });
 
@@ -215,8 +215,15 @@ WActorComponent* WComponentRegistry::Create_Internal(const std::string& Tag, AAc
     auto it = mCreators.find(Tag);
     if (it != mCreators.end())
     {
-        // 등록된 생성 함수 호출
-        return it->second(Owner, Attributes);
+        WActorComponent* Comp = it->second(Owner, Attributes);
+        if (WSceneComponent* SceneComp = dynamic_cast<WSceneComponent*>(Comp))
+        {
+            FTransform Transform;
+            ExtractAttribute(Attributes, "Scale", Transform.Scale);
+
+            SceneComp->SetRelativeTransform(Transform);
+        }
+        return Comp;
     }
 
     // 등록되지 않은 태그일 경우 에러 로그 출력 권장

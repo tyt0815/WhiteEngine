@@ -1,0 +1,24 @@
+<AStateMachineActor>
+    <Components>
+        <Anim Name = "Anim">
+            <Movement Name = "ProjMove" InitSpeed = "{0, 0, 30}" MaxSpeed = "30" LifeSpan = "2">
+                <Mesh Name = "Mesh" Asset = "SM_ScuffedGoldBox">
+                    <Collision Name = "BoxCollision" Type = "Box" Extent = "{0.5, 0.5, 0.5}" Debug = "false"/>
+                </Mesh>
+            </Movement>
+        </Anim>
+    </Components>
+
+    <StateMachine Initial = "Global">
+        <State Name = "Global">
+            <DestroyEvent>
+                <Log Content = "BP_EearthquakeProj: Destroy"/>
+                <Destroy/>
+            </DestroyEvent>
+
+            <OnDeactivate_BoxCollision>
+                <Call Target = "Global.DestroyEvent"/>
+            </OnDeactivate_BoxCollision>
+        </State>
+    </StateMachine>
+</AStateMachineActor>

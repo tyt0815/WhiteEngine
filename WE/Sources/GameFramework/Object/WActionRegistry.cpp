@@ -372,12 +372,15 @@ WActionRegistry::WActionRegistry()
 		// 자산 정보가 있는지 확인
 		bool bHasAsset = Attr.count("Asset") > 0;
 		std::string AssetName = bHasAsset ? Attr.at("Asset") : "";
-		std::string AnimName = bHasAsset ? Attr.at("Anim") : "";
 
+		std::vector<std::string> AnimNames;
+		ExtractAttribute<std::vector<std::string>>(Attr, "Anim", AnimNames);
 		return [=]() {
 			if (!Anim) return;
-			if (bHasAsset) {
-				Anim->LoadAndPlay(AssetName, AnimName, PlayRateFunc(), LoopFunc(), Flags, RootMotionFunc());
+			if (bHasAsset) 
+			{
+				int i = FDXMath::Rand(0, (int)AnimNames.size() - 1);
+				Anim->LoadAndPlay(AssetName, AnimNames[i], PlayRateFunc(), LoopFunc(), Flags, RootMotionFunc());
 			}
 			else {
 				Anim->Play(PlayRateFunc(), LoopFunc(), Flags, RootMotionFunc());

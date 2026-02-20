@@ -2,6 +2,7 @@
 #include "Component/StateMachineComponent.h"
 #include "Component/ProjectileMovementComponent.h"
 #include "Component/ObjectAnimComponent.h"
+#include "Component/SplineComponent.h"
 #include "GameFramework/Interface/CollisionGenerator.h"
 #include "Parser.h"
 
@@ -129,6 +130,10 @@ void AStateMachineActor::LoadBlueprint(const FBlueprintAsset* Asset)
 				else if (WObjectAnimComponent* AnimComp = dynamic_cast<WObjectAnimComponent*>(Comp))
 				{
 					BindSMEvent(AnimComp->mOnStop, "OnAnimStop");
+				}
+				else if (WSplineComponent* SplineComp = dynamic_cast<WSplineComponent*>(Comp))
+				{
+					BindSMEvent(SplineComp->mOnFollowSplineEnd, "OnFollowSplineEnd");
 				}
 			}
 		}

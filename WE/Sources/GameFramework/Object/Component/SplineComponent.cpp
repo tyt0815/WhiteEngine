@@ -66,6 +66,7 @@ void WSplineComponent::Tick(float Delta)
 		// 끝난 팔로워는 제거
 		if (it->bFinished) {
 			it = mFollowers.erase(it);
+			mOnFollowSplineEnd.Broadcast();
 		}
 		else {
 			++it;

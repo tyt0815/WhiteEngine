@@ -1,0 +1,37 @@
+<AStateMachineActor>
+    <Components>
+        <Movement Name = "ProjMove" InitSpeed = "{0, 0, 0}" MaxSpeed = "30" LifeSpan = "20" HomingTags = "[Enemy]"
+        HomingRange = "50">
+            <Mesh Name = "Mesh" Asset = "SM_ScuffedGoldBox">
+                <Collision Name = "BoxCollision" Type = "Box" Extent = "{0.5, 0.5, 0.5}" Debug = "true"/>
+            </Mesh>
+        </Movement>
+        <Spline Name = "LaunchSpline" Asset = "SP_MissileLaunchPath"/>
+    </Components>
+
+    <StateMachine Initial = "Launch">
+        <State Name = "Global">
+            <OnDeactivate_BoxCollision>
+                <Log Content = "BP_LaunchedMissile: Destroy"/>
+                <Destroy/>
+            </OnDeactivate_BoxCollision>
+        </State>
+
+        <State Name = "Launch" Base = "Global">
+            <OnEnter>
+                <FollowSpline Spline = "LaunchSpline" Target = "ProjMove" SpeedRate = "$ProjMove.MaxSpeed"/>
+            </OnEnter>
+
+            <OnFollowSplineEnd_LaunchSpline>
+                <ChangeState Name = "Flying"/>
+            </OnFollowSplineEnd_LaunchSpline>
+        </State>
+
+        <State Name = "Flying" Base = "Global">
+            <OnEnter>
+                <Set Name = "ProjMove.Acceleration" Value = "1000"/>
+                <Set Name = "ProjMove.HomingStrategy" Value = "Nearest"/>
+            </OnEnter>
+        </State>
+    </StateMachine>
+</AStateMachineActor>

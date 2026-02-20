@@ -128,7 +128,7 @@ void AActor::OnDeactivate()
 {
 	for (auto& Comp : mAllComponents)
 	{
-		Comp->OnDeactivate();
+		Comp->Deactivate();
 	}
 	GetWorld()->DeactivateActor(this);
 	Super::OnDeactivate();
@@ -201,6 +201,8 @@ void AActor::SetRootComponent(TWeakPtr<WSceneComponent> Component)
 	}
 
 	mRootComponent = Component;
+
+	SetOrRegisterWObject("Root", mRootComponent.lock().get());
 }
 
 void AActor::SetActorTransform(FTransform Transform)
