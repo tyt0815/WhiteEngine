@@ -47,6 +47,7 @@
     <ClCompile Include="Sources\GameFramework\Object\Component\LightComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\MovementComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\PhysicsComponent.cpp" />
+    <ClCompile Include="Sources\GameFramework\Object\Component\PhysicsMovementComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\PrimitiveCollisionComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\PrimitiveComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\ObjectAnimComponent.cpp" />

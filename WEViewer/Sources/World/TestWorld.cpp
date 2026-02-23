@@ -67,21 +67,21 @@ void WTestWorld::Tick(float DeltaSecond)
 
 	if (a > SpawnDelay)
 	{
-		//FActorSpawnParameter Param;
-		//Param.Transform.Translation = XMFLOAT3(-50, 0, 10);
-		//SpawnActorByFactory<AActor>("BP_TurnAroundProj", Param);
+		FActorSpawnParameter Param;
+		Param.Transform.Translation = XMFLOAT3(-50, 0, 10);
+		SpawnActorByFactory<AActor>("BP_TurnAroundProj", Param);
 
-		//Param.Transform.Translation.x += 20;
-		//SpawnActorByFactory<AActor>("BP_LaunchedMissile", Param);
+		Param.Transform.Translation.x += 20;
+		SpawnActorByFactory<AActor>("BP_LaunchedMissile", Param);
 
-		//Param.Transform.Translation.x += 8;
-		//SpawnActorByFactory<AActor>("BP_EearthquakeProjSpawner", Param);
+		Param.Transform.Translation.x += 8;
+		SpawnActorByFactory<AActor>("BP_EearthquakeProjSpawner", Param);
 
-		//Param.Transform.Translation.x = -10;
-		//SpawnActorByFactory<AActor>("BP_RingProj", Param);
+		Param.Transform.Translation.x = -10;
+		SpawnActorByFactory<AActor>("BP_RingProj", Param);
 
-		//Param.Transform.Translation.x = +10;
-		//SpawnActorByFactory<AActor>("BP_FuzeUlt", Param);
+		Param.Transform.Translation.x = +10;
+		SpawnActorByFactory<AActor>("BP_FuzeUlt", Param);
 
 		a = 0;
 

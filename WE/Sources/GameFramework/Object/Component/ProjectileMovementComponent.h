@@ -1,13 +1,12 @@
 #pragma once
-#include "MovementComponent.h"
+#include "PhysicsMovementComponent.h"
 #include "Physics/HitResult.h"
-#include "SceneComponent.h"
 
 DECLARE_MULTICAST_DELEGATE(FProjectileMovementEventDelegate);
 
-class WProjectileMovementComponent : public WMovementComponent
+class WProjectileMovementComponent : public WPhysicsMovementComponent
 {
-	typedef WMovementComponent Super;
+	typedef WPhysicsMovementComponent Super;
 public:
 	WProjectileMovementComponent();
 
@@ -19,8 +18,6 @@ public:
 	void SetHomingTarget(WSceneComponent* Target);
 
 	void SetHomingLocation(const XMFLOAT3& Loc);
-
-	void AddForce(const XMFLOAT3& Force);
 
 	void BindCollisionEvent(class FCollisionGeneratorBase* CollisionGenerator);
 
@@ -34,11 +31,7 @@ public:
 
 protected:
 
-	float mMaxSpeed = 0.0f;		// 0일 경우 제한x
-
 	float mAcceleration = 0.0f; // 전방 추진 가속도 (스칼라)
-
-	float mGravityScale = 0; // 중력 배율 (기본 9.8m/s^2에 곱해질 값)
 
 	// 투사체 수명. 0일시 영구 지속
 	float mLifeSpan = 5.0f;
@@ -46,8 +39,6 @@ protected:
 	float mHomingTurnLimit = 0;
 
 	bool mbHomingProjectile = false;
-
-	bool mbOrientRotationToMovement = true;
 
 private:
 	void OnCollision(WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpulseDir, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance);
@@ -57,8 +48,6 @@ private:
 	TWeakPtr<WSceneComponent> mHomingTarget;
 
 	XMFLOAT3 mHomingLocation;
-
-	XMFLOAT3 mExternalAcceleration = { 0,0,0 };
 
 	float mLifeTimeElapsed = 0.0f;
 
@@ -117,26 +106,15 @@ private:
 
 
 public:
-	__forceinline const XMFLOAT3& GetInitialVelocity() const { return mInitialVelocity; }
-	__forceinline void SetInitialVelocity(const XMFLOAT3& Value) { mInitialVelocity = Value; }
-
-	// --- Max Speed ---
 	__forceinline float GetMaxSpeed() const { return mMaxSpeed; }
 	__forceinline void SetMaxSpeed(float Value) { mMaxSpeed = Value; }
 
-	// --- Acceleration ---
 	__forceinline float GetAcceleration() const { return mAcceleration; }
 	__forceinline void SetAcceleration(float Value) { mAcceleration = Value; }
 
-	// --- Gravity Scale ---
-	__forceinline float GetGravityScale() const { return mGravityScale; }
-	__forceinline void SetGravityScale(float Value) { mGravityScale = Value; }
-
-	// --- Life Span ---
 	__forceinline float GetLifeSpan() const { return mLifeSpan; }
 	__forceinline void SetLifeSpan(float Value) { mLifeSpan = Value; }
 
-	// --- Homing Properties ---
 	__forceinline bool IsHoming() const { return mbHomingProjectile; }
 	__forceinline void SetHoming(bool bEnabled) { mbHomingProjectile = bEnabled; }
 

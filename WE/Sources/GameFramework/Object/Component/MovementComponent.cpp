@@ -22,15 +22,3 @@ void WMovementComponent::Tick(float DeltaTime)
 	XMStoreFloat3(&WorldLocation, LocationVector);
 	SetWorldLocation(WorldLocation);
 }
-
-void WMovementComponent::BeginComponent()
-{
-	Super::BeginComponent();
-
-	XMFLOAT4 CurrQuat = GetWorldQuatRotation();
-	XMVECTOR CurrQuatV = XMLoadFloat4(&CurrQuat);
-	XMVECTOR LocalVelocityV = XMLoadFloat3(&mInitialVelocity);
-
-	XMVECTOR WorldVelocityV = XMVector3Rotate(LocalVelocityV, CurrQuatV);
-	XMStoreFloat3(&mVelocity, WorldVelocityV);
-}

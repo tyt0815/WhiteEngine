@@ -338,6 +338,9 @@
     <ClCompile Include="Sources\GameFramework\Object\Character\Character.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Component\PhysicsMovementComponent.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
