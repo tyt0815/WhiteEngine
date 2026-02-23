@@ -1,5 +1,4 @@
 #include "MissileGridManager.h"
-#include "Interface/HitInterface.h"
 #include "TopAttackMissile.h"
 
 void AMissileGridManager::AddMissile(ATopAttackMissile* Instigator)

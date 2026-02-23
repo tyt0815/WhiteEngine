@@ -75,6 +75,13 @@ void FPhysicsBody::SetMotiontype(EMotionType MotionType)
 	Physics::GetBodyInterface().SetMotionType(mBody->GetID(), MotionType, JPH::EActivation::Activate);
 }
 
+void FPhysicsBody::AddImpulse(const XMFLOAT3& InImpulse, const XMFLOAT3& InPoint)
+{
+	Vec3Arg Impulse = ToJPHPosition(InImpulse);
+	RVec3Arg Point = ToJPHPosition(InPoint);
+	Physics::GetBodyInterface().AddImpulse(GetBodyID(), Impulse, Point);
+}
+
 XMFLOAT3 FPhysicsBody::GetLocation() const
 {
 	return ToDXLocation(Physics::GetBodyInterface().GetCenterOfMassPosition(mBody->GetID()));

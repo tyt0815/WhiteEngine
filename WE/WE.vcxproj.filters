@@ -643,6 +643,9 @@
     <ClInclude Include="Sources\GameFramework\Object\Component\StateMachineComponent.h">
       <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Interface\HitInterface.h">
+      <Filter>Sources\GameFramework\Interface</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\BillboardCommon.hlsli">

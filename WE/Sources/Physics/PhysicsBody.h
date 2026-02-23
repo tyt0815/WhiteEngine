@@ -34,6 +34,8 @@ public:
 
 	void SetMotiontype(JPH::EMotionType MotionType);
 
+	void AddImpulse(const XMFLOAT3& Impulse, const XMFLOAT3& Point);
+
 	XMFLOAT3 GetLocation() const;
 
 	XMFLOAT3 GetRotation() const;

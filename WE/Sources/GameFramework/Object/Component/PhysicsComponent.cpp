@@ -121,6 +121,11 @@ void WPhysicsComponent::SetObjectChannel(EObjectChannel::EObjectChannel ObjectCh
 	}
 }
 
+void WPhysicsComponent::AddImpulse(const XMFLOAT3& Impulse, const XMFLOAT3& Point)
+{
+	mBody->AddImpulse(Impulse, Point);
+}
+
 namespace Physics
 {
 	extern class JPH::GroupFilter* g_GroupFilter;
@@ -129,7 +134,11 @@ namespace Physics
 void WPhysicsComponent::CreatePhysicsBody()
 {
 	JPH::ShapeRefC Shape = CreatePhysicsShape();
+	auto MassProperties = Shape->GetMassProperties();
+	MassProperties.ScaleToMass(mMass);
 	JPH::BodyCreationSettings Settings = JPH::BodyCreationSettings(Shape, JPH::RVec3(), JPH::Quat::sIdentity(), mMotionType, mObjectChannel);
+	Settings.mMassPropertiesOverride = MassProperties;
+	Settings.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
 	Settings.mIsSensor = mbGenerateOverlapEvent;
 	UINT GroupID = GetOwner<AActor>()->mActorCounter;
 	Settings.mCollisionGroup.SetGroupID(GroupID);

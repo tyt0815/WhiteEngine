@@ -37,7 +37,7 @@ XMFLOAT4 GetDamageColor(float Damage)
     return Steps[7].Color;
 }
 
-void AHitReactor::OnHit(WSceneComponent* Instigator, WPhysicsComponent* HittedComp, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Damage)
+void AHitReactor::OnHit(WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpulseDir, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage)
 {
     // 1. 데미지에 따른 색상 결정
     XMFLOAT4 DebugColor = GetDamageColor(Damage);
@@ -46,6 +46,18 @@ void AHitReactor::OnHit(WSceneComponent* Instigator, WPhysicsComponent* HittedCo
 
     // 2. 피격 지점에서 공격자 방향으로 라인 (파란색 계열 유지 혹은 데미지 색상)
     GetWorld()->DrawDebugLine(ImpactPoint, Instigator->GetWorldLocation(), DebugColor, Duration);
+
+    XMVECTOR vImpact = XMLoadFloat3(&ImpactPoint);
+    XMVECTOR vNormal = XMLoadFloat3(&Normal);
+    XMFLOAT3 LineEnd;
+    XMStoreFloat3(&LineEnd, vImpact + vNormal);
+    GetWorld()->DrawDebugLine(ImpactPoint, LineEnd, XMFLOAT4(1, 0, 0, 1), Duration);
+
+    XMVECTOR vImpulse = XMLoadFloat3(&ImpulseDir);
+    vImpulse *= Damage;
+    XMFLOAT3 Impulse;
+    XMStoreFloat3(&Impulse, vImpulse);
+    AddImpulse(Impulse, ImpactPoint);
 
     //// 3. 충돌 지점(ImpactPoint) 기준 XYZ 축 디버그 라인
     //// X축

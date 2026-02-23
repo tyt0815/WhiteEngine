@@ -41,6 +41,8 @@ public:
 
 	void SetObjectChannel(EObjectChannel::EObjectChannel ObjectChannel);
 
+	void AddImpulse(const XMFLOAT3& Impulse, const XMFLOAT3& Point);
+
 	FComponentHitDelegate mOnHitDelegate;
 
 	FComponentBeginOverlapDelegate mOnBeginOverlapDelegate;
@@ -64,6 +66,14 @@ private:
 	TUniquePtr<FPhysicsBody> mBody;
 
 	int mPhysicsCompQueueId = -1;
+
+	float mMass = 1;
+
+public:
+	__forceinline void SetMass(float Value)
+	{
+		mMass = Value;
+	}
 
 	friend class WWorld;
 };

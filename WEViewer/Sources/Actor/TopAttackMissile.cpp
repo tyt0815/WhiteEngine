@@ -1,7 +1,6 @@
 #include "TopAttackMissile.h"
 #include "World/World.h"
 #include "MissileGridManager.h"
-#include "Interface/HitInterface.h"
 #include "Component/ProjectileMovementComponent.h"
 
 ATopAttackMissile::ATopAttackMissile()

@@ -20,7 +20,7 @@ public:
 	virtual void OnDestroy() override;
 
 private:
-	void OnHit_Global();
+	void OnHit_Global(WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpulseDir, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage);
 
 	WStateMachineComponent* mStateMachine;
 };

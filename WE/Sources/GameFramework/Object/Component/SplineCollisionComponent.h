@@ -49,6 +49,8 @@ private:
 
 	int mSegment = 1;
 
+	XMFLOAT3 mPrevLocation;
+
 public:
 	__forceinline void SetSegment(int Value)
 	{

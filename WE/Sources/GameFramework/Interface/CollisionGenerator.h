@@ -9,9 +9,9 @@ class AActor;
 class WPhysicsComponent;
 using namespace DirectX;
 
-// void OnCollision(WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage)
-// Instigator, HittedComponent, ImpactPoint, Normal, Distance, Damage;
-DECLARE_MULTICAST_DELEGATE_SixParams(FOnCollision, WSceneComponent*, WPhysicsComponent*, XMFLOAT3, XMFLOAT3, float, float);
+// void OnCollision(WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpulseDir, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage)
+// Instigator, HittedComponent, ImpulseDir, ImpactPoint, Normal, Distance, Damage;
+DECLARE_MULTICAST_DELEGATE_SevenParams(FOnCollision, WSceneComponent*, WPhysicsComponent*, XMFLOAT3, XMFLOAT3, XMFLOAT3, float, float);
 
 class ICollisionGenerator
 {
@@ -45,6 +45,8 @@ protected:
 	bool mbDebug = false;
 
 	float mCollisionInterval = 1.0f / 60.0f;
+
+	XMFLOAT3 mMoveDir;
 
 private:
 	std::set<std::string> mTargetTags;

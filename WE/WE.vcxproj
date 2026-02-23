@@ -130,6 +130,7 @@
     <ClInclude Include="Sources\GameFramework\GameCore.h" />
     <ClInclude Include="Sources\GameFramework\InputSystem\InputSystem.h" />
     <ClInclude Include="Sources\GameFramework\Interface\CollisionGenerator.h" />
+    <ClInclude Include="Sources\GameFramework\Interface\HitInterface.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\Actor.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\ActorFactory.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\DirectionalLight.h" />

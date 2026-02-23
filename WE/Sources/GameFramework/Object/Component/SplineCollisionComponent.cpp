@@ -52,6 +52,13 @@ void WSplineCollisionComponent::Tick(float DeltaSecond)
 		
 		Capsule.PrevLocation = CurrLoc;
 	}
+
+	XMFLOAT3 CurrLoc = GetWorldLocation();
+	XMVECTOR vCollisionForward = XMLoadFloat3(&CurrLoc) - XMLoadFloat3(&mPrevLocation);
+	XMVector3Normalize(vCollisionForward);
+	XMStoreFloat3(&mMoveDir, vCollisionForward);
+
+	mPrevLocation = CurrLoc;
 }
 
 void WSplineCollisionComponent::BeginComponent()
@@ -59,6 +66,8 @@ void WSplineCollisionComponent::BeginComponent()
 	Super::BeginComponent();
 
 	GenerateCollision();
+
+	mPrevLocation = GetWorldLocation();
 }
 
 void WSplineCollisionComponent::GenerateCollision()

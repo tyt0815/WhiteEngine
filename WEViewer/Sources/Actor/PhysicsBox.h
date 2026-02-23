@@ -9,6 +9,8 @@ class APhysicsBox : public AActor
 public:
 	APhysicsBox();
 
+	void AddImpulse(const XMFLOAT3& Impulse, const XMFLOAT3& Point);
+
 private:
-	TWeakPtr<WBoxComponent> mBoxComp;
+	WBoxComponent* mBoxComp;
 };

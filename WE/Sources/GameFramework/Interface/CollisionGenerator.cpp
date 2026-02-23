@@ -1,6 +1,11 @@
 #include "CollisionGenerator.h"
 #include "Component/ActorComponent.h"
 
+bool IsZeroVector(const XMFLOAT3& Vec)
+{
+    return Vec.x == 0 && Vec.y == 0 && Vec.z == 0;
+}
+
 FCollisionGeneratorBase::FCollisionGeneratorBase()
 {
     if (WObject* Obj = dynamic_cast<WObject*>(this))
@@ -102,10 +107,24 @@ void FCollisionGeneratorBase::ProcessHit(const FHitResult& Hit)
 
     if (WSceneComponent* Comp = dynamic_cast<WSceneComponent*>(this))
     {
+        XMFLOAT3 ImpulseDir;
+        if (IsZeroVector(mMoveDir))
+        {
+            XMFLOAT3 Start = Comp->GetWorldLocation();
+            XMFLOAT3 End = Hit.HitComponent.lock()->GetWorldLocation();
+            XMVECTOR vStart = XMLoadFloat3(&Start);
+            XMVECTOR vEnd = XMLoadFloat3(&End);
+            XMStoreFloat3(&ImpulseDir, XMVector3Normalize(vEnd - vStart));
+        }
+        else
+        {
+            ImpulseDir = mMoveDir;
+        }
         // 4. 이벤트 방송
         mOnCollision.Broadcast(
             Comp,
             Hit.HitComponent.lock().get(),
+            ImpulseDir,
             Hit.ImpactPoint,
             Hit.Normal,
             Hit.Distance,

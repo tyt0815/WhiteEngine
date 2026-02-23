@@ -15,9 +15,6 @@
     <Filter Include="Sources\World">
       <UniqueIdentifier>{ae9dc88c-18df-4a1e-ac8f-b9d057b00f1f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Interface">
-      <UniqueIdentifier>{9170ee33-1e7e-4658-bcd5-57b0acc303ff}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Pawn">
       <UniqueIdentifier>{2fa35f5e-e51e-4c9d-986f-8f36bc750324}</UniqueIdentifier>
     </Filter>
@@ -69,9 +66,6 @@
     </ClInclude>
     <ClInclude Include="Sources\Actor\PhysicsBox.h">
       <Filter>Sources\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\Interface\HitInterface.h">
-      <Filter>Sources\Interface</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Actor\HitReactor.h">
       <Filter>Sources\Actor</Filter>

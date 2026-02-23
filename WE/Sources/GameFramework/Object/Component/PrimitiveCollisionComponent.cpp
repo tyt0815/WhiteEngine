@@ -52,6 +52,10 @@ void WPrimitiveCollisionComponent::Tick(float DeltaSecond)
     // 하위 클래스에서 구현된 Trace 실행
     TraceShape(mPrevLocation, CurrTransform, TraceIgnore, Hit);
 
+    XMVECTOR vCollisionForward = XMLoadFloat3(&CurrTransform.Translation) - XMLoadFloat3(&mPrevLocation);
+    XMVector3Normalize(vCollisionForward);
+    XMStoreFloat3(&mMoveDir, vCollisionForward);
+
     if (!Hit.Actor.expired())
     {
         ProcessHit(Hit);
