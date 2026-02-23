@@ -51,7 +51,7 @@ protected:
 	bool mbOrientRotationToMovement = true;
 
 private:
-	void OnCollision(WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpulseDir, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage);
+	void OnCollision(WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpulseDir, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance);
 
 	void Bounce_Internal(XMFLOAT3 Normal);
 

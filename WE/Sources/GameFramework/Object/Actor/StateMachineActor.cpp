@@ -5,6 +5,7 @@
 #include "Component/SplineComponent.h"
 #include "GameFramework/Interface/CollisionGenerator.h"
 #include "GameFramework/Interface/HitInterface.h"
+#include "World/World.h"
 #include "Parser.h"
 
 AStateMachineActor::AStateMachineActor()
@@ -117,6 +118,11 @@ void AStateMachineActor::LoadBlueprint(const FBlueprintAsset* Asset)
 				{
 					BindSMEvent(CollisionComp->mOnCollision, "OnHit");
 					CollisionComp->mOnCollision.Add(this, &AStateMachineActor::OnHit_Global);
+					CollisionComp->mOnCollision.AddLambda([this](auto&&...) 
+						{ 
+							mbNeedHit = false; 
+							mbNeedExplosion = false;
+						});
 				}
 				else if (WProjectileMovementComponent* ProjComp = dynamic_cast<WProjectileMovementComponent*>(Comp))
 				{
@@ -149,12 +155,53 @@ void AStateMachineActor::OnDestroy()
 	Super::OnDestroy();
 }
 
-void AStateMachineActor::OnHit_Global(WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpulseDir, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage)
+void AStateMachineActor::Hit(float Damage)
+{
+	mbNeedHit = true;
+	mHitDamage = Damage;
+}
+
+void AStateMachineActor::Explosion(float Damage, float Radius)
+{
+	mbNeedExplosion = true;
+	mExplosionDamage = Damage;
+	mExplosionRadius = Radius;
+}
+
+void AStateMachineActor::OnHit_Global(WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpulseDir, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance)
 {
 	mStateMachine->SendEvent("OnHit");
 
-	if (IHitInterface* HitInterf = dynamic_cast<IHitInterface*>(HittedComponent->GetOwner<AActor>()))
+	WWorld* World = GetWorld();
+
+	if (mbNeedHit)
 	{
-		HitInterf->OnHit(Instigator, HittedComponent, ImpulseDir, ImpactPoint, Normal, Distance, Damage);
+		if (IHitInterface* HitInterf = dynamic_cast<IHitInterface*>(HittedComponent->GetOwner<AActor>()))
+		{
+			HitInterf->OnHit(Instigator, HittedComponent, ImpulseDir, ImpactPoint, Normal, Distance, mHitDamage);
+		}
 	}
+
+	if (mbNeedExplosion)
+	{
+		const XMFLOAT3& Origin = ImpactPoint;
+		XMVECTOR vOrigin = XMLoadFloat3(&Origin);
+
+		TArray<FHitResult> Hits;
+		World->SphereOverlap(Origin, mExplosionRadius, {}, Hits, true, 1);
+
+		for (const FHitResult& Hit : Hits)
+		{
+			if (IHitInterface* HitInterf = dynamic_cast<IHitInterface*>(Hit.Actor.lock().get()))
+			{
+				const XMFLOAT3& ExplosionImpactPoint = Hit.ImpactPoint;
+				XMVECTOR vExplosionImpactPoint = XMLoadFloat3(&ExplosionImpactPoint);
+				XMFLOAT3 ExplosionImpulseDir;
+				XMStoreFloat3(&ExplosionImpulseDir, XMVector3Normalize(vExplosionImpactPoint - vOrigin));
+				HitInterf->OnHit(Instigator, Hit.HitComponent.lock().get(), ExplosionImpulseDir, Hit.ImpactPoint, Hit.Normal, Hit.Distance, mExplosionDamage);
+			}
+		}
+	}
+
+	mbNeedHit = false;
 }

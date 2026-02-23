@@ -60,6 +60,9 @@
     <Filter Include="Sources\GameFramework\Interface">
       <UniqueIdentifier>{3041f1da-9af5-4076-9931-0a5af183bbf7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\GameFramework\Object\Character">
+      <UniqueIdentifier>{e063b02f-c2b5-4a86-9e6c-31415d9ff636}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Utility\Timer.cpp">
@@ -651,6 +654,12 @@
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\Component\CapsuleComponent.h">
       <Filter>Sources\GameFramework\Object\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Interface\HitInstigator.h">
+      <Filter>Sources\GameFramework\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Character\Character.h">
+      <Filter>Sources\GameFramework\Object\Character</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

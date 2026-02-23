@@ -12,7 +12,6 @@ FCollisionGeneratorBase::FCollisionGeneratorBase()
     {
         Obj->RegisterWProperty("Delay",     &mHitDelay);
         Obj->RegisterWProperty("MaxHit",    &mMaxHit);
-        Obj->RegisterWProperty("Damage",    &mDamage);
         Obj->RegisterWProperty("TargetTags",&mTargetTags);
         Obj->RegisterWProperty("Debug",     &mbDebug);
     }
@@ -127,8 +126,7 @@ void FCollisionGeneratorBase::ProcessHit(const FHitResult& Hit)
             ImpulseDir,
             Hit.ImpactPoint,
             Hit.Normal,
-            Hit.Distance,
-            mDamage
+            Hit.Distance
         );
 
         if (mMaxHit > 0 && mHitCount >= mMaxHit)

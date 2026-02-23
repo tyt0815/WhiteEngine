@@ -94,11 +94,6 @@ WComponentRegistry::WComponentRegistry()
                 
                 });
 
-            ApplyAttribute<float>(Attr, "Damage", 0.0f, [Owner, Gen, Name](float v) {
-                Gen->SetDamage(v);
-                
-                });
-
             ApplyAttribute<std::set<std::string>>(Attr, "TargetTags", [Owner, Gen, Name](auto& v) {
                 Gen->AddTargetTags(v);
                 

@@ -278,7 +278,7 @@ void WProjectileMovementComponent::BindCollisionEvent(FCollisionGeneratorBase* C
 	}
 }
 
-void WProjectileMovementComponent::OnCollision(WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpulseDir, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage)
+void WProjectileMovementComponent::OnCollision(WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpulseDir, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance)
 {
 	if (mShouldBounce)
 	{

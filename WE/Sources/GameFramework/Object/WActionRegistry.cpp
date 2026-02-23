@@ -8,6 +8,7 @@
 #include "Component/StateMachineComponent.h"
 #include "Component/ObjectAnimComponent.h"
 #include "Component/ProjectileMovementComponent.h"
+#include "GameFramework/Interface/HitInstigator.h"
 
 void LogRegisterError(const std::string& ActionName, const std::string& Content)
 {
@@ -618,6 +619,37 @@ WActionRegistry::WActionRegistry()
 					FinalTarget->SetWPropertyValue(PropName, FDXMath::RandF(std::get<float>(MinFunc()), std::get<float>(MaxFunc())));
 				}
 			};
+		});
+
+	Register_Internal("Hit", [](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) -> WActionLambda
+		{
+			auto DamageFunc = WExpressionParser::Bind<float>(Target, Attr, "Damage", "0");
+			if (IHitInstigator* HitInstigator = dynamic_cast<IHitInstigator*>(Target))
+			{
+				return [HitInstigator, DamageFunc]() {
+					HitInstigator->Hit(DamageFunc());
+				};
+			}
+			else
+			{
+				return []() {};
+			}
+		});
+
+	Register_Internal("Explosion", [](WObject* Target, const WAttributesMap& Attr, const std::vector<WActionFactory>& SubActionFactories) -> WActionLambda
+		{
+			auto DamageFunc = WExpressionParser::Bind<float>(Target, Attr, "Damage", "0");
+			auto RadiusFunc = WExpressionParser::Bind<float>(Target, Attr, "Radius", "1");
+			if (IHitInstigator* HitInstigator = dynamic_cast<IHitInstigator*>(Target))
+			{
+				return [HitInstigator, DamageFunc, RadiusFunc]() {
+					HitInstigator->Explosion(DamageFunc(), RadiusFunc());
+				};
+			}
+			else
+			{
+				return []() {};
+			}
 		});
 }
 

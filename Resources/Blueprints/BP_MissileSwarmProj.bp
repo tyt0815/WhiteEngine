@@ -29,6 +29,10 @@
             <OnDeactivate_SphereCollision>
                 <Call Target = "DestroyEvent"/>
             </OnDeactivate_SphereCollision>
+
+            <OnHit_SphereCollision>
+                <Explosion Damage = "10" Radius = "1"/>
+            </OnHit_SphereCollision>
         </State>
 
         <State Name = "ColdLaunch" Base = "Global">

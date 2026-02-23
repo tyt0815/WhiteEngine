@@ -15,6 +15,11 @@
                 <Destroy/>
             </DestroyEvent>
 
+            <OnHit_BoxCollision>
+                <Hit Damage = "50"/>
+                <!-- <Explosion Damage = "25" Radius = "1"/> -->
+            </OnHit_BoxCollision>
+
             <OnDeactivate_BoxCollision>
                 <Call Target = "Global.DestroyEvent"/>
             </OnDeactivate_BoxCollision>

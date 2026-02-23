@@ -9,9 +9,9 @@ class AActor;
 class WPhysicsComponent;
 using namespace DirectX;
 
-// void OnCollision(WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpulseDir, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage)
-// Instigator, HittedComponent, ImpulseDir, ImpactPoint, Normal, Distance, Damage;
-DECLARE_MULTICAST_DELEGATE_SevenParams(FOnCollision, WSceneComponent*, WPhysicsComponent*, XMFLOAT3, XMFLOAT3, XMFLOAT3, float, float);
+// void OnCollision(WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpulseDir, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance)
+// Instigator, HittedComponent, ImpulseDir, ImpactPoint, Normal, Distance
+DECLARE_MULTICAST_DELEGATE_SixParams(FOnCollision, WSceneComponent*, WPhysicsComponent*, XMFLOAT3, XMFLOAT3, XMFLOAT3, float);
 
 class ICollisionGenerator
 {
@@ -59,8 +59,6 @@ private:
 
 	int mHitCount = 0;
 
-	float mDamage = 0;
-
 public:
 	__forceinline void SetHitDelay(float Value)
 	{
@@ -70,11 +68,6 @@ public:
 	__forceinline void SetMaxHit(int Value)
 	{
 		mMaxHit = (float)Value;
-	}
-
-	__forceinline void SetDamage(float Value)
-	{
-		mDamage = Value;
 	}
 
 	__forceinline void SetDebug(bool Value)

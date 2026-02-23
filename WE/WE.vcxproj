@@ -132,11 +132,13 @@
     <ClInclude Include="Sources\GameFramework\InputSystem\InputSystem.h" />
     <ClInclude Include="Sources\GameFramework\Interface\CollisionGenerator.h" />
     <ClInclude Include="Sources\GameFramework\Interface\HitInterface.h" />
+    <ClInclude Include="Sources\GameFramework\Interface\HitInstigator.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\Actor.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\ActorFactory.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\DirectionalLight.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\Floor.h" />
     <ClInclude Include="Sources\GameFramework\Object\Actor\StateMachineActor.h" />
+    <ClInclude Include="Sources\GameFramework\Object\Character\Character.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\ActorComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\BoxCollisionComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\BoxComponent.h" />
