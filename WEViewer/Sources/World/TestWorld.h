@@ -2,6 +2,8 @@
 
 #include "GameFramework/Object/World/DefaultWorld.h"
 
+class ADenseBoxHitReactorManager;
+
 class WTestWorld : public WDefaultWorld
 {
 	typedef WDefaultWorld Super;
@@ -11,4 +13,5 @@ public:
 	virtual void Tick(float DeltaSecond) override;
 
 private:
+	ADenseBoxHitReactorManager* mDenseBoxHitReactorManager;
 };

@@ -25,14 +25,14 @@ void AMissileSwarmSystem::Tick(float Delta)
 	{
 		for (int c = 0; c < mTargetMarkers[r].size(); ++c)
 		{
-			if (auto Marker = mTargetMarkers[r][c].lock())
+			if (auto Marker = mTargetMarkers[r][c])
 			{
 				FActorSpawnParameter Param;
 				Param.Transform = GetActorTransform();
 				Param.Transform.Translation = GetGridLocationAtIndex(r, c, Col, 0.3f, GetActorLocation(), XMFLOAT3(0, 1, 0), GetRightVector());
-				if (auto Missile = GetWorld()->SpawnActorByFactory<ATopAttackMissile>("BP_MissileSwarmProj", Param).lock())
+				if (auto Missile = GetWorld()->SpawnActorByFactory<ATopAttackMissile>("BP_MissileSwarmProj", Param))
 				{
-					Missile->Initialize(mTargetMarkers[r][c].lock()->GetRootComponent());
+					Missile->Initialize(mTargetMarkers[r][c]->GetRootComponent());
 				}
 			}
 		}
@@ -43,7 +43,7 @@ void AMissileSwarmSystem::Tick(float Delta)
 	if (mLastFiredRow + 1 >= mTargetMarkers.size())
 	{
 		mbIsLaunching = false;
-		mMissileGridManager.reset();
+		mMissileGridManager = nullptr;
 		mTargetMarkers.clear();
 	}
 		
@@ -53,12 +53,9 @@ void AMissileSwarmSystem::ClearTargetMarkers()
 {
 	for (auto Row : mTargetMarkers)
 	{
-		for (auto Weak : Row)
+		for (auto Marker : Row)
 		{
-			if (auto Marker = Weak.lock())
-			{
-				Marker->Destroy();
-			}
+			Marker->Destroy();
 		}
 	}
 
@@ -167,7 +164,7 @@ void AMissileSwarmSystem::SetTargetMarkersLocation(XMFLOAT3 Origin, XMFLOAT3 Rig
 		for (int c = 0; c < Col; ++c)
 		{
 			// std::weak_ptr나 raw pointer라고 가정하고 lock() 혹은 체크 후 사용
-			if (auto Marker = mTargetMarkers[r][c].lock())
+			if (auto Marker = mTargetMarkers[r][c])
 			{
 				XMFLOAT3 TraceStart = GridPositionOrigins[r][c];
 				TraceStart.y += 2;
@@ -203,10 +200,7 @@ void AMissileSwarmSystem::Fire()
 	mElapsedTime = 0.0f;
 
 	mMissileGridManager = GetWorld()->SpawnActor<AMissileGridManager>();
-	if (auto Manager = mMissileGridManager.lock())
-	{
-		Manager->SetMissileCounting((int)(mTargetMarkers.size() * mTargetMarkers[0].size()));
-	}
+	mMissileGridManager->SetMissileCounting((int)(mTargetMarkers.size() * mTargetMarkers[0].size()));
 }
 
 void AMissileSwarmSystem::CreateHomingPaths(TWeakPtr<AActor> Target, TArray<TWeakPtr<AActor>>& HomingPaths)
@@ -261,8 +255,8 @@ void AMissileSwarmSystem::CreateHomingPaths(TWeakPtr<AActor> Target, TArray<TWea
 			{
 				FActorSpawnParameter Param;
 				Param.Transform.Translation = TraceEnd;
-				TWeakPtr<AActor> Path = GetWorld()->SpawnActor<AActor>(Param);
-				HomingPaths.push_back(Path);
+				AActor* Path = GetWorld()->SpawnActor<AActor>(Param);
+				HomingPaths.push_back(Path->GetWeakPtr<AActor>());
 			}
 		}
 	}

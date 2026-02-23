@@ -552,7 +552,7 @@ WActionRegistry::WActionRegistry()
 				Param.Transform.Translation = FinalLoc;
 				Param.Transform.Rotation = FinalRot;
 				Param.Owner = Owner;
-				AActor* Projectile = World->SpawnActorByFactory<AActor>(ActorName, Param).lock().get();
+				AActor* Projectile = World->SpawnActorByFactory<AActor>(ActorName, Param);
 				for (auto& ActionFactory : SubActionFactories)
 				{
 					ActionFactory(Projectile)();

@@ -1,9 +1,9 @@
 <AStateMachineActor>
     <Components>
         <Movement Name = "Movement" InitSpeed = "{0, 5, 0}" MaxSpeed = "30" LifeSpan = "0" 
-        HomingTags = "[Enemy]" HomingStopRange = "0.25">
+        HomingTags = "[Dynamic]" HomingStopRange = "0.25">
             <Mesh Name = "Mesh" Asset = "SM_ScuffedGoldBox">
-                <Collision Name = "BoxCollision" Type = "Box" Extent = "{0.5, 0.5, 0.5}" Debug = "true"/>
+                <Collision Name = "BoxCollision" Type = "Box" Extent = "{0.5, 0.5, 0.5}" Debug = "true" Damage = "10"/>
             </Mesh>
         </Movement>
     </Components>   

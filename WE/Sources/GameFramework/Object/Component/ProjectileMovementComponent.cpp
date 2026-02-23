@@ -166,6 +166,9 @@ void WProjectileMovementComponent::BeginComponent()
 {
     Super::BeginComponent();
 
+	mHomingTarget.reset();
+	mFinalHomingTarget.reset();
+
     // 1. 로컬 초기 속도를 월드 속도로 변환
     // mInitialVelocity는 로컬 기준(예: {500, 0, 0})이라고 가정합니다.
     XMFLOAT4 CurrQuat = GetWorldQuatRotation();
@@ -324,6 +327,7 @@ void WProjectileMovementComponent::Bounce_Internal(XMFLOAT3 Normal)
 
 void WProjectileMovementComponent::UpdateHoming(float DeltaSecond)
 {
+	
 	if (auto FinalHomingTarget = mFinalHomingTarget.lock())
 	{
 		if (mHomingStopRange > 0.0f)

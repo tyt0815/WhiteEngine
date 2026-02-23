@@ -20,7 +20,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Actor\Alliance.cpp" />
+    <ClCompile Include="Sources\Actor\BoxHitReactor.cpp" />
+    <ClCompile Include="Sources\Actor\DenseBoxHitReactorManager.cpp" />
     <ClCompile Include="Sources\Actor\Enemy.cpp" />
+    <ClCompile Include="Sources\Actor\HitReactorManager.cpp" />
     <ClCompile Include="Sources\Actor\MissileGridManager.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
@@ -63,7 +66,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Actor\Alliance.h" />
+    <ClInclude Include="Sources\Actor\BoxHitReactor.h" />
+    <ClInclude Include="Sources\Actor\DenseBoxHitReactorManager.h" />
     <ClInclude Include="Sources\Actor\Enemy.h" />
+    <ClInclude Include="Sources\Actor\HitReactorManager.h" />
     <ClInclude Include="Sources\Actor\MissileGridManager.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
@@ -92,6 +98,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="Sources\Interface\InteractionInterface.h" />
     <ClInclude Include="Sources\Pawn\PlayerPawn.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>

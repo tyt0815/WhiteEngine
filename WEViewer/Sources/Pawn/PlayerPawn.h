@@ -15,11 +15,17 @@ public:
 	virtual void Tick(float Delta) override;
 
 private:
-	TWeakPtr<AMissileSwarmSystem> mMissileSwarmSystem;
+	AMissileSwarmSystem* mMissileSwarmSystem;
 
 	void TriggerMissileSwarm(float Delta);
 
+	void FireArcProjectile(float Delta);
+
 	float mMissileSwarmTrigger = 0;
+
+	const float mArcProjectileDelay = 0.1f;
+
+	float mArcProjectileCoolTime = 0;
 
 	bool mbMissileAiming = false;
 };

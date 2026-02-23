@@ -5,7 +5,7 @@
         UseWaypoints = "true" Waypoints = "[{0, 0.5, -0.25}]" WaypointSpace = "Relative" WaypointType = "Adaptive">
             <Anim Name = "Anim">
                 <Mesh Name = "Mesh" Asset = "SM_ScuffedGoldSphere" Scale = "{0.1, 0.1, 0.1}">
-                    <Collision Name = "SphereCollision" Type = "Sphere" Radius = "1" Debug = "true"/>
+                    <Collision Name = "SphereCollision" Type = "Sphere" Radius = "1" Debug = "true" Damage = "50"/>
                 </Mesh>
             </Anim>
         </Movement>
@@ -54,7 +54,7 @@
             </OnEnter>
 
             <SetHomingTurnRate>
-                <Set Name = "ProjMove.HomingTurnRate" Value = "180"/>
+                <Set Name = "ProjMove.HomingTurnRate" Value = "360"/>
             </SetHomingTurnRate>
 
             <OnUpdate>

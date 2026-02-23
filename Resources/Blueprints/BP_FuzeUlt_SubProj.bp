@@ -2,7 +2,7 @@
     <Components>
         <Movement Name = "ProjMove" InitSpeed = "{0, 0, 30}" GravityScale = "8" MaxSpeed = "30" LifeSpan = "2">
             <Mesh Name = "Mesh" Asset = "SM_ScuffedGoldSphere">
-                <Collision Name = "SphereCollision" Type = "Sphere" Radius = "1" Debug = "true"/>
+                <Collision Name = "SphereCollision" Type = "Sphere" Radius = "1" Debug = "true" Damage = "10"/>
             </Mesh>
         </Movement>
     </Components>

@@ -40,6 +40,7 @@
     <ClCompile Include="Sources\GameFramework\Object\Component\BoxComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\CameraComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\CapsuleCollisionComponent.cpp" />
+    <ClCompile Include="Sources\GameFramework\Object\Component\CapsuleComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\ComponentFactory.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\DirectionalLightComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\LightComponent.cpp" />
@@ -141,6 +142,7 @@
     <ClInclude Include="Sources\GameFramework\Object\Component\BoxComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\CameraComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\CapsuleCollisionComponent.h" />
+    <ClInclude Include="Sources\GameFramework\Object\Component\CapsuleComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\ComponentFactory.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\DirectionalLightComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\LightComponent.h" />

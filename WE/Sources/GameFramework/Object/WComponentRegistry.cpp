@@ -222,6 +222,8 @@ WActorComponent* WComponentRegistry::Create_Internal(const std::string& Tag, AAc
         if (WSceneComponent* SceneComp = dynamic_cast<WSceneComponent*>(Comp))
         {
             FTransform Transform;
+            ExtractAttribute(Attributes, "Loc", Transform.Translation);
+            ExtractAttribute(Attributes, "Rot", Transform.Rotation);
             ExtractAttribute(Attributes, "Scale", Transform.Scale);
 
             SceneComp->SetRelativeTransform(Transform);

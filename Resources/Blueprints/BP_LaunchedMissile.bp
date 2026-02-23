@@ -1,10 +1,10 @@
 <AStateMachineActor>
     <Components>
         <Movement Name = "ProjMove" InitSpeed = "{0, 0, 0}" MaxSpeed = "30" LifeSpan = "20" 
-        HomingTags = "[Enemy]"
+        HomingTags = "[Dynamic]"
         HomingRange = "50">
             <Mesh Name = "Mesh" Asset = "SM_ScuffedGoldBox">
-                <Collision Name = "BoxCollision" Type = "Box" Extent = "{0.5, 0.5, 0.5}" Debug = "true"/>
+                <Collision Name = "BoxCollision" Type = "Box" Extent = "{0.5, 0.5, 0.5}" Debug = "true" Damage = "10"/>
             </Mesh>
         </Movement>
         <Spline Name = "LaunchSpline" Asset = "SP_MissileLaunchPath"/>

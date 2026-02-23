@@ -22,8 +22,8 @@ void WWorld::BeginPlay()
 {
 	if (mPlayer.expired())
 	{
-		TWeakPtr<APawn> Player = SpawnActor<AGhostCameraPawn>();
-		SetPlayer(Player);
+		APawn* Player = SpawnActor<AGhostCameraPawn>();
+		SetPlayer(Player->GetWeakPtr<APawn>());
 	}
 
 	// 프로파일링용 GUI

@@ -49,16 +49,16 @@ public:
 	void SetPlayer(TWeakPtr<APawn> Player);
 
 	template<typename T>
-	TWeakPtr<T> SpawnActor();
+	T* SpawnActor();
 
 	template<typename T>
-	TWeakPtr<T> SpawnActor(const FActorSpawnParameter& Param);
+	T* SpawnActor(const FActorSpawnParameter& Param);
 
 	template<typename T>
-	TWeakPtr<T> SpawnActorByFactory(const std::string& Name);
+	T* SpawnActorByFactory(const std::string& Name);
 
 	template<typename T>
-	TWeakPtr<T> SpawnActorByFactory(const std::string& Name, const FActorSpawnParameter& Param);
+	T* SpawnActorByFactory(const std::string& Name, const FActorSpawnParameter& Param);
 
 	void DestroyActor(const TSharedPtr<AActor>& Actor);
 
@@ -296,25 +296,25 @@ inline WWorld* GetWorld()
 }
 
 template<typename T>
-inline TWeakPtr<T> WWorld::SpawnActor()
+inline T* WWorld::SpawnActor()
 {
 	FActorSpawnParameter Param;
 	return SpawnActor<T>(Param);
 }
 
 template<typename T>
-inline TWeakPtr<T> WWorld::SpawnActor(const FActorSpawnParameter& Param)
+inline T* WWorld::SpawnActor(const FActorSpawnParameter& Param)
 {
 	TSharedPtr<T> Actor = MakeShared<T>();
 	RegisterActor(Actor);
 
 	OnSpawnActor(Actor.get(), Param);
 
-	return TWeakPtr<T>(Actor);
+	return Actor.get();
 }
 
 template<typename T>
-inline TWeakPtr<T> WWorld::SpawnActorByFactory(const std::string& Name)
+inline T* WWorld::SpawnActorByFactory(const std::string& Name)
 {
 	FActorSpawnParameter Param;
 
@@ -322,7 +322,7 @@ inline TWeakPtr<T> WWorld::SpawnActorByFactory(const std::string& Name)
 }
 
 template<typename T>
-inline TWeakPtr<T> WWorld::SpawnActorByFactory(const std::string& Name, const FActorSpawnParameter& Param)
+inline T* WWorld::SpawnActorByFactory(const std::string& Name, const FActorSpawnParameter& Param)
 {
 	TSharedPtr<T> Actor = FActorFactory::CreateActor<T>(Name);
 	assert(Actor != nullptr && "부모 클래스를 제대로 설정했는지 확인");
@@ -330,7 +330,7 @@ inline TWeakPtr<T> WWorld::SpawnActorByFactory(const std::string& Name, const FA
 
 	OnSpawnActor(Actor.get(), Param);
 
-	return TWeakPtr<T>(Actor);
+	return Actor.get();
 }
 
 template<typename T>

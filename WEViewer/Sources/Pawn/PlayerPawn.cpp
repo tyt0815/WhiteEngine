@@ -17,45 +17,62 @@ void APlayerPawn::SetupPlayerInput()
 {
 	Super::SetupPlayerInput();
 
-	GetInputSystemManager()->BindKeyboardAction('1', this, &APlayerPawn::TriggerMissileSwarm);
+	GetInputSystemManager()->BindKeyboardAction('1', this, &APlayerPawn::FireArcProjectile);
+	GetInputSystemManager()->BindKeyboardAction('2', this, &APlayerPawn::TriggerMissileSwarm);
 }
 
 void APlayerPawn::Tick(float Delta)
 {
 	Super::Tick(Delta);
 
-	if (auto MissileSystem = mMissileSwarmSystem.lock())
+	mArcProjectileCoolTime = max(mArcProjectileCoolTime - Delta, 0);
+
+	WWorld* World = GetWorld();
+	XMFLOAT3 CurrLoc = GetActorLocation();
+	const XMVECTOR vCurrLoc = XMLoadFloat3(&CurrLoc);
+	XMFLOAT3 Forward = GetForwardVector();
+	const XMVECTOR ForwardV = XMLoadFloat3(&Forward);
+	XMFLOAT3 Right = GetRightVector();
+	XMFLOAT3 CurrRot = GetActorRotation();
+
+	// Interaction
 	{
-		MissileSystem->SetActorTransform(GetActorTransform());
+		const XMFLOAT3& TraceStart = CurrLoc;
+		XMFLOAT3 TraceEnd;
+		XMStoreFloat3(&TraceEnd, XMVectorAdd(vCurrLoc, XMVectorScale(ForwardV, 10.0f)));
 
-		if (mbMissileAiming)
-		{
-			WWorld* World = GetWorld();
-			XMFLOAT3 TraceStart = GetActorLocation();
-			const XMVECTOR TraceStartV = XMLoadFloat3(&TraceStart);
-			XMFLOAT3 Forward = GetForwardVector();
-			const XMVECTOR ForwardV = XMLoadFloat3(&Forward);
-			XMFLOAT3 Right = GetRightVector();
-			XMVECTOR RightV = XMLoadFloat3(&Right);
-			XMFLOAT3 TraceEnd;
-			XMStoreFloat3(&TraceEnd, XMVectorAdd(TraceStartV, XMVectorScale(ForwardV, 100.0f)));
-			XMFLOAT3 Orientaion = GetActorRotation();
+		TArray<AActor*> ActorsToIgnore;
+		FHitResult HitResult;
+		World->LineTrace(
+			TraceStart, TraceEnd,
+			ActorsToIgnore,
+			HitResult,
+			true,
+			0
+		);
+	}
 
-			TArray<AActor*> ActorsToIgnore;
-			FHitResult HitResult;
-			World->BoxTrace(
-				TraceStart, TraceEnd,
-				XMFLOAT3(0, 1.0f, 1.0f),
-				Orientaion,
-				ActorsToIgnore,
-				HitResult,
-				true,
-				0
-			);
+	if (mbMissileAiming)
+	{
+		const XMFLOAT3& TraceStart = CurrLoc;
+		XMFLOAT3 TraceEnd;
+		XMStoreFloat3(&TraceEnd, XMVectorAdd(vCurrLoc, XMVectorScale(ForwardV, 100.0f)));
 
-			MissileSystem->SetTargetMarkersLocation(HitResult.ImpactPoint, Right, 1);
-		}
-	}	
+		TArray<AActor*> ActorsToIgnore;
+		FHitResult HitResult;
+		World->BoxTrace(
+			TraceStart, TraceEnd,
+			XMFLOAT3(0, 1.0f, 1.0f),
+			CurrRot,
+			ActorsToIgnore,
+			HitResult,
+			false,
+			0
+		);
+
+		mMissileSwarmSystem->SetActorTransform(GetActorTransform());
+		mMissileSwarmSystem->SetTargetMarkersLocation(HitResult.ImpactPoint, Right, 1);
+	}
 }
 
 void APlayerPawn::TriggerMissileSwarm(float Delta)
@@ -70,7 +87,7 @@ void APlayerPawn::TriggerMissileSwarm(float Delta)
 	mbMissileAiming = !mbMissileAiming;
 
 
-	if (auto MissileSystem = mMissileSwarmSystem.lock())
+	if (auto MissileSystem = mMissileSwarmSystem)
 	{
 		if (!mbMissileAiming)
 		{
@@ -86,4 +103,19 @@ void APlayerPawn::TriggerMissileSwarm(float Delta)
 		}
 	}
 	
+}
+
+void APlayerPawn::FireArcProjectile(float Delta)
+{
+	if (mArcProjectileCoolTime > 0)
+	{
+		return;
+	}
+	mArcProjectileCoolTime = mArcProjectileDelay;
+
+	FActorSpawnParameter Param;
+	Param.Transform = GetActorTransform();
+	Param.Transform.Scale = XMFLOAT3(1, 1, 1);
+
+	GetWorld()->SpawnActorByFactory<AActor>("BP_ArcProjectile", Param);
 }

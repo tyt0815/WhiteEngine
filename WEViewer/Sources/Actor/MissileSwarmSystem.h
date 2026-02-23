@@ -27,9 +27,9 @@ public:
 private:
 	void CreateHomingPaths(TWeakPtr<AActor> Target, TArray<TWeakPtr<AActor>>& HomingPaths);
 
-	TArray<TArray<TWeakPtr<ATargetMarker>>> mTargetMarkers;
+	TArray<TArray<ATargetMarker*>> mTargetMarkers;
 
-	TWeakPtr<AMissileGridManager> mMissileGridManager;
+	AMissileGridManager* mMissileGridManager;
 
 	float mFireDelay = 0.2f;
 

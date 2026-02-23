@@ -329,6 +329,9 @@
     <ClCompile Include="Sources\GameFramework\Object\Component\StateMachineComponent.cpp">
       <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Component\CapsuleComponent.cpp">
+      <Filter>Sources\GameFramework\Object\Component</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -645,6 +648,9 @@
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\Interface\HitInterface.h">
       <Filter>Sources\GameFramework\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Component\CapsuleComponent.h">
+      <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

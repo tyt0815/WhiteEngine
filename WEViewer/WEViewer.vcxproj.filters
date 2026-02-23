@@ -56,6 +56,15 @@
     <ClCompile Include="Sources\Actor\TopAttackMissile.cpp">
       <Filter>Sources\Actor</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Actor\BoxHitReactor.cpp">
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Actor\HitReactorManager.cpp">
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Actor\DenseBoxHitReactorManager.cpp">
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\World\TestWorld.h">
@@ -89,6 +98,18 @@
       <Filter>Sources\Actor</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Actor\TargetMarker.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\BoxHitReactor.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\HitReactorManager.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\DenseBoxHitReactorManager.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Interface\InteractionInterface.h">
       <Filter>Sources\Actor</Filter>
     </ClInclude>
   </ItemGroup>
