@@ -35,6 +35,7 @@
     <ClCompile Include="Sources\GameFramework\Object\Actor\DirectionalLight.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Actor\Floor.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Actor\StateMachineActor.cpp" />
+    <ClCompile Include="Sources\GameFramework\Object\Character\Character.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\ActorComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\BoxCollisionComponent.cpp" />
     <ClCompile Include="Sources\GameFramework\Object\Component\BoxComponent.cpp" />
@@ -150,6 +151,7 @@
     <ClInclude Include="Sources\GameFramework\Object\Component\LightComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\MovementComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\PhysicsComponent.h" />
+    <ClInclude Include="Sources\GameFramework\Object\Component\PhysicsMovementComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\PrimitiveCollisionComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\PrimitiveComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\ObjectAnimComponent.h" />

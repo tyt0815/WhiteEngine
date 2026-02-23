@@ -18,6 +18,9 @@
     <Filter Include="Sources\Pawn">
       <UniqueIdentifier>{2fa35f5e-e51e-4c9d-986f-8f36bc750324}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Character">
+      <UniqueIdentifier>{1cda6217-32df-49d8-9f22-0ffcd6df389f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Main.cpp">
@@ -117,6 +120,9 @@
     </ClInclude>
     <ClInclude Include="Sources\Actor\Button.h">
       <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Character\PlayerCharacter.h">
+      <Filter>Sources\Character</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

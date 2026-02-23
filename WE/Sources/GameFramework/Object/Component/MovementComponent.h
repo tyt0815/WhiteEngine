@@ -9,8 +9,12 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void BeginComponent() override;
+
 public:
 	XMFLOAT3 mVelocity = { 0, 0, 0 };
 
 	XMFLOAT3 mAcceleration = {0, 0, 0};
+
+	XMFLOAT3 mInitialVelocity = { 0, 0, 0 };
 };

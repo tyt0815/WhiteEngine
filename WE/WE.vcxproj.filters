@@ -335,6 +335,9 @@
     <ClCompile Include="Sources\GameFramework\Object\Component\CapsuleComponent.cpp">
       <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\GameFramework\Object\Character\Character.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Utility\Class.h">
@@ -660,6 +663,9 @@
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\Character\Character.h">
       <Filter>Sources\GameFramework\Object\Character</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Component\PhysicsMovementComponent.h">
+      <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

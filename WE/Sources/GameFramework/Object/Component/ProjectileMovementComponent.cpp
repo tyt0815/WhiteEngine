@@ -165,21 +165,10 @@ void WProjectileMovementComponent::Tick(float DeltaTime)
 void WProjectileMovementComponent::BeginComponent()
 {
     Super::BeginComponent();
-
-	mHomingTarget.reset();
-	mFinalHomingTarget.reset();
-
-    // 1. 로컬 초기 속도를 월드 속도로 변환
-    // mInitialVelocity는 로컬 기준(예: {500, 0, 0})이라고 가정합니다.
-    XMFLOAT4 CurrQuat = GetWorldQuatRotation();
-    XMVECTOR CurrQuatV = XMLoadFloat4(&CurrQuat);
-    XMVECTOR LocalVelocityV = XMLoadFloat3(&mInitialVelocity);
-
-    // 액터의 회전(Quat)을 이용하여 로컬 벡터를 월드 방향으로 회전시킵니다.
-    XMVECTOR WorldVelocityV = XMVector3Rotate(LocalVelocityV, CurrQuatV);
-
-    // 2. 부모 MovementComponent의 mVelocity(월드 속도)에 저장
-    XMStoreFloat3(&mVelocity, WorldVelocityV);
+    
+	XMVECTOR WorldVelocityV = XMLoadFloat3(&mVelocity);
+	XMFLOAT4 CurrQuat = GetWorldQuatRotation();
+	XMVECTOR CurrQuatV = XMLoadFloat4(&CurrQuat);
 
     // 4. 액터가 실제 날아가는 방향(월드 속도 방향)을 바라보게 회전
     if (mbOrientRotationToMovement && XMVectorGetX(XMVector3Length(WorldVelocityV)) > 0.0001f)

@@ -33,7 +33,6 @@ public:
 	FProjectileMovementEventDelegate mOnHomingFail;
 
 protected:
-	XMFLOAT3 mInitialVelocity = { 0, 0, 0 };
 
 	float mMaxSpeed = 0.0f;		// 0일 경우 제한x
 
