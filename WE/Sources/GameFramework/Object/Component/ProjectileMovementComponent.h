@@ -30,7 +30,6 @@ public:
 	FProjectileMovementEventDelegate mOnHomingFail;
 
 protected:
-
 	float mAcceleration = 0.0f; // 전방 추진 가속도 (스칼라)
 
 	// 투사체 수명. 0일시 영구 지속

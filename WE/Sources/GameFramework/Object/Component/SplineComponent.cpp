@@ -14,7 +14,7 @@ void WSplineComponent::Tick(float Delta)
 {
 	Super::Tick(Delta);
 
-	const XMFLOAT4 DebugColors[] = {
+	/*const XMFLOAT4 DebugColors[] = {
 		{1, 0, 0, 1}, {0, 1, 0, 1}, {0, 0, 1, 1},
 		{1, 1, 0, 1}, {1, 0, 1, 1}, {0, 1, 1, 1}
 	};
@@ -27,7 +27,7 @@ void WSplineComponent::Tick(float Delta)
 		XMFLOAT3 End = GetWorldTransformAtDistanceAlongSpline(mSplineLUT[i + 1].Distance).Translation;
 		GetWorld()->DrawDebugLine(Start, End, DebugColors[ColorSelector], 0);
 		ColorSelector = (ColorSelector + 1) % 6;
-	}
+	}*/
 
 
 	float TotalLength = GetSplineLength();

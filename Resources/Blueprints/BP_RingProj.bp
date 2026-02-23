@@ -1,7 +1,9 @@
 <AStateMachineActor>
     <Components>
         <Movement Name = "ProjMove" InitSpeed = "{0, 0, 0}" MaxSpeed = "10" LifeSpan = "10">
-                <Collision Name = "SplineCollision" Type = "Spline" Asset = "SP_Ring" Segment = "4" BoundingBox = "true" Debug = "true" Damage = "10"/>
+            <Mesh Name = "Mesh" Asset = "SM_MetalRing">
+                <Collision Name = "SplineCollision" Type = "Spline" Asset = "SP_Ring" Segment = "4" BoundingBox = "true" Debug = "true"/>
+            </Mesh>
         </Movement>
         <Spline Name = "LaunchSpline" Asset = "SP_RingProjPath"/>
     </Components>
