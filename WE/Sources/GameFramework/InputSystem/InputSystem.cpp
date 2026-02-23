@@ -13,6 +13,7 @@ FInputSystemManager::~FInputSystemManager()
 
 void FInputSystemManager::Tick(float Delta)
 {
+	UpdateKeyStates();
 	if (GetMainWindowPtr()->IsCaptured())
 	{
 		ProcessKeyboardActions(Delta);
@@ -35,5 +36,34 @@ void FInputSystemManager::ProcessKeyboardActions(float Delta)
 	for (const std::function<void(float)>& ActionFunction : mKeyboardActions)
 	{
 		ActionFunction(Delta);
+	}
+}
+
+void FInputSystemManager::UpdateKeyStates()
+{
+	for (auto& [Key, KeyState] : mKeyStates)
+	{
+		if (IsKeyDown(Key))
+		{
+			if (KeyState == EKeyboardInputType::EKIT_Pressed)
+			{
+				KeyState = EKeyboardInputType::EKIT_Down;
+			}
+			else if (KeyState != EKeyboardInputType::EKIT_Down)
+			{
+				KeyState = EKeyboardInputType::EKIT_Pressed;
+			}
+		}
+		else
+		{
+			if (KeyState == EKeyboardInputType::EKIT_Down || KeyState == EKeyboardInputType::EKIT_Pressed)
+			{
+				KeyState = EKeyboardInputType::EKIT_Released;
+			}
+			else
+			{
+				KeyState = EKeyboardInputType::EKIT_None;
+			}
+		}
 	}
 }

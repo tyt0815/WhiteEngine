@@ -23,6 +23,8 @@ void FStaticMeshManager::BuildStaticMeshs()
 	BuildStaticMesh("SM_MetalCylinder", "Cylinder", EMT_Black);
 	BuildStaticMesh("SM_MetalRing", "Ring", EMT_ScuffedGold);
 	BuildStaticMesh("SM_LaminateFlooringBrownBox", "Box", EMT_LaminateFlooringBrown);
+	BuildStaticMesh("SM_BlackBox", "Box", EMT_Black);
+	BuildStaticMesh("SM_WhiteBox", "Box", EMT_White);
 }
 
 void FStaticMeshManager::BuildStaticMesh(const std::string& Name, std::string MeshName, EMaterialType MaterialType)

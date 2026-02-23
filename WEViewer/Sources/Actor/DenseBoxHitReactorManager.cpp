@@ -2,6 +2,11 @@
 #include "BoxHitReactor.h"
 #include "World/World.h"
 
+void ADenseBoxHitReactorManager::BeginPlay()
+{
+    Super::BeginPlay();
+}
+
 void ADenseBoxHitReactorManager::SpawnHitReactors()
 {
 	const int X = mSize.x;

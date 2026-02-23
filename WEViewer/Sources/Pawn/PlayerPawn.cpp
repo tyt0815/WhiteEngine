@@ -1,5 +1,6 @@
 #include "PlayerPawn.h"
 #include "World/World.h"
+#include "Interface/InteractionInterface.h"
 
 APlayerPawn::APlayerPawn()
 {
@@ -17,8 +18,9 @@ void APlayerPawn::SetupPlayerInput()
 {
 	Super::SetupPlayerInput();
 
-	GetInputSystemManager()->BindKeyboardAction('1', this, &APlayerPawn::FireArcProjectile);
-	GetInputSystemManager()->BindKeyboardAction('2', this, &APlayerPawn::TriggerMissileSwarm);
+	GetInputSystemManager()->BindKeyboardAction('1', EKeyboardInputType::EKIT_Down, this, &APlayerPawn::FireArcProjectile);
+	GetInputSystemManager()->BindKeyboardAction('2', EKeyboardInputType::EKIT_Pressed, this, &APlayerPawn::TriggerMissileSwarm);
+	GetInputSystemManager()->BindKeyboardAction('f', EKeyboardInputType::EKIT_Pressed, this, &APlayerPawn::Interaction);
 }
 
 void APlayerPawn::Tick(float Delta)
@@ -50,6 +52,23 @@ void APlayerPawn::Tick(float Delta)
 			true,
 			0
 		);
+
+		auto HittedActor = HitResult.Actor.lock();
+		IInteractionInterface* Target = dynamic_cast<IInteractionInterface*>(HittedActor.get());
+
+		if (mInteractionTarget != Target)
+		{
+			if (mInteractionTarget)
+			{
+				mInteractionTarget->OnEndInteractionFocus();
+			}
+
+			if (Target)
+			{
+				Target->OnBeginInteractionFocus();
+			}
+			mInteractionTarget = Target;
+		}
 	}
 
 	if (mbMissileAiming)
@@ -77,15 +96,7 @@ void APlayerPawn::Tick(float Delta)
 
 void APlayerPawn::TriggerMissileSwarm(float Delta)
 {
-	mMissileSwarmTrigger += Delta;
-	if (mMissileSwarmTrigger < 0.3f)
-	{
-		return;
-	}
-	mMissileSwarmTrigger = 0;
-
 	mbMissileAiming = !mbMissileAiming;
-
 
 	if (auto MissileSystem = mMissileSwarmSystem)
 	{
@@ -118,4 +129,16 @@ void APlayerPawn::FireArcProjectile(float Delta)
 	Param.Transform.Scale = XMFLOAT3(1, 1, 1);
 
 	GetWorld()->SpawnActorByFactory<AActor>("BP_ArcProjectile", Param);
+}
+
+void APlayerPawn::Interaction(float Delta)
+{
+	if (mInteractionTarget)
+	{
+		mInteractionTarget->Interaction();
+	}
+	else
+	{
+		std::cout << "No interaction target" << std::endl;
+	}
 }

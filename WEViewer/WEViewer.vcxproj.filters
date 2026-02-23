@@ -65,6 +65,9 @@
     <ClCompile Include="Sources\Actor\DenseBoxHitReactorManager.cpp">
       <Filter>Sources\Actor</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Actor\Button.cpp">
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\World\TestWorld.h">
@@ -110,6 +113,9 @@
       <Filter>Sources\Actor</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Interface\InteractionInterface.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\Button.h">
       <Filter>Sources\Actor</Filter>
     </ClInclude>
   </ItemGroup>

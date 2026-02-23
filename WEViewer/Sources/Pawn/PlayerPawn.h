@@ -2,6 +2,8 @@
 #include "Pawn/GhostCameraPawn.h"
 #include "Actor/MissileSwarmSystem.h"
 
+class IInteractionInterface;
+
 class APlayerPawn : public AGhostCameraPawn
 {
 	typedef AGhostCameraPawn Super;
@@ -21,11 +23,13 @@ private:
 
 	void FireArcProjectile(float Delta);
 
-	float mMissileSwarmTrigger = 0;
-
 	const float mArcProjectileDelay = 0.1f;
 
 	float mArcProjectileCoolTime = 0;
 
 	bool mbMissileAiming = false;
+
+	void Interaction(float Delta);
+
+	IInteractionInterface* mInteractionTarget = nullptr;
 };

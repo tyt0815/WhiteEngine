@@ -11,14 +11,14 @@ AGhostCameraPawn::AGhostCameraPawn()
 void AGhostCameraPawn::SetupPlayerInput()
 {
 	// TODO
-	GetInputSystemManager()->BindKeyboardAction('w', this, &AGhostCameraPawn::MoveForward);	
-	GetInputSystemManager()->BindKeyboardAction('s', this, &AGhostCameraPawn::MoveBackward);
-	GetInputSystemManager()->BindKeyboardAction('d', this, &AGhostCameraPawn::MoveRight);
-	GetInputSystemManager()->BindKeyboardAction('a', this, &AGhostCameraPawn::MoveLeft);
-	GetInputSystemManager()->BindKeyboardAction('e', this, &AGhostCameraPawn::MoveUp);
-	GetInputSystemManager()->BindKeyboardAction('q', this, &AGhostCameraPawn::MoveDown);
-	GetInputSystemManager()->BindKeyboardAction('z', this, &AGhostCameraPawn::SpeedUp);
-	GetInputSystemManager()->BindKeyboardAction('x', this, &AGhostCameraPawn::SpeedDown);
+	GetInputSystemManager()->BindKeyboardAction('w', EKeyboardInputType::EKIT_Down, this, &AGhostCameraPawn::MoveForward);	
+	GetInputSystemManager()->BindKeyboardAction('s', EKeyboardInputType::EKIT_Down, this, &AGhostCameraPawn::MoveBackward);
+	GetInputSystemManager()->BindKeyboardAction('d', EKeyboardInputType::EKIT_Down, this, &AGhostCameraPawn::MoveRight);
+	GetInputSystemManager()->BindKeyboardAction('a', EKeyboardInputType::EKIT_Down, this, &AGhostCameraPawn::MoveLeft);
+	GetInputSystemManager()->BindKeyboardAction('e', EKeyboardInputType::EKIT_Down, this, &AGhostCameraPawn::MoveUp);
+	GetInputSystemManager()->BindKeyboardAction('q', EKeyboardInputType::EKIT_Down, this, &AGhostCameraPawn::MoveDown);
+	GetInputSystemManager()->BindKeyboardAction('z', EKeyboardInputType::EKIT_Down, this, &AGhostCameraPawn::SpeedUp);
+	GetInputSystemManager()->BindKeyboardAction('x', EKeyboardInputType::EKIT_Down, this, &AGhostCameraPawn::SpeedDown);
 	GetInputSystemManager()->BindMouseAction(EMIT_Move, this, &AGhostCameraPawn::Look);
 	GetInputSystemManager()->BindMouseAction(EMIT_LDown, this, &AGhostCameraPawn::LeftClick);
 }
