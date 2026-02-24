@@ -13,7 +13,6 @@
     <StateMachine Initial = "Launch">
         <State Name = "Global">
             <OnDeactivate_BoxCollision>
-                <Log Content = "BP_LaunchedMissile: Destroy"/>
                 <Destroy/>
             </OnDeactivate_BoxCollision>
         </State>

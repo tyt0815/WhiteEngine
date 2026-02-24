@@ -15,7 +15,6 @@
             </OnSpawn>
 
             <DestroyEvent>
-                <Log Content = "BP_EearthquakeProjSpawner: Destroy"/>
                 <Destroy/>
             </DestroyEvent>
         </State>

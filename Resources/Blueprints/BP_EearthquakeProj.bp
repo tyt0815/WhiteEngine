@@ -12,7 +12,6 @@
     <StateMachine Initial = "Global">
         <State Name = "Global">
             <DestroyEvent>
-                <Log Content = "BP_EearthquakeProj: Destroy"/>
                 <Destroy/>
             </DestroyEvent>
 

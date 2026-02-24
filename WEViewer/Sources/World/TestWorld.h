@@ -14,4 +14,16 @@ public:
 
 private:
 	ADenseBoxHitReactorManager* mDenseBoxHitReactorManager;
+
+	XMFLOAT3 SpawnPlatform(
+		const XMFLOAT3& StartPos,
+		int TotalFloors,
+		int SideCountX = 5,
+		int SideCountZ = 5,
+		float PlatformScale = 1.0f,
+		float HorizontalSpacing = 4.0f,
+		float VerticalSpacing = 0.5f,
+		std::vector<int> DirectionX = { 1, 0, -1, 0 },
+		std::vector<int> DirectionZ = { 0, 1, 0, -1 }
+	);
 };

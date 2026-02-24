@@ -19,7 +19,6 @@
                 Loc = "ProjMove.GetWorldLocation()" Rot = "ProjMove.GetWorldRotation()">
 
                 </SpawnProjectile>
-                <Log Content = "BP_EearthquakeProjSpawner: Destroy"/>
                 <Destroy/>
             </DestroyEvent>
         </State>

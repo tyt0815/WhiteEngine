@@ -32,45 +32,61 @@ void APlayerCharacter::Tick(float DeltaSecond)
 {
     Super::Tick(DeltaSecond);
 
-    mArcProjectileCoolTime = max(mArcProjectileCoolTime - DeltaSecond, 0);
+    if (!mbIsGrounded)
+    {
+        AddForce(XMFLOAT3(0, mGravity * mMass, 0));
+    }
 
-    // --- 1. 수평 속도 계산 (WASD) ---
+    // WASD 이동 의지를 Force로 변환
     XMVECTOR vInput = XMLoadFloat3(&mInputDirection);
-    XMVECTOR vDesiredHorizontalVel = XMVectorZero();
-
     if (!XMVector3Equal(vInput, XMVectorZero()))
     {
         vInput = XMVector3Normalize(vInput);
         float Yaw = XMConvertToRadians(mCameraPivot->GetWorldRotation().y);
         XMVECTOR vQuat = XMQuaternionRotationRollPitchYaw(0, Yaw, 0);
+        XMVECTOR vDir = XMVector3Rotate(vInput, vQuat);
 
-        vDesiredHorizontalVel = XMVector3Rotate(vInput, vQuat);
-        vDesiredHorizontalVel = XMVectorScale(vDesiredHorizontalVel, mMoveSpeed);
+        // 입력에 따른 추진력 추가
+        AddForce(XMFLOAT3(
+            XMVectorGetX(vDir) * mAcceleration * mMass,
+            0,
+            XMVectorGetZ(vDir) * mAcceleration * mMass
+        ));
     }
 
-    // --- 2. 전체 속도 통합 (mVelocity 업데이트) ---
-    XMVECTOR vCurrentVel = XMLoadFloat3(&mVelocity);
+    // --- 2. 속도 업데이트 (v = v + a*dt) ---
+    XMVECTOR vVel = XMLoadFloat3(&mVelocity);
 
-    // 수평 속도는 매 프레임 입력에 따라 덮어쓰기 (또는 가속도 로직 적용 가능)
-    // 수직 속도는 중력에 의해 누적
-    float CurrentVerticalVel = XMVectorGetY(vCurrentVel);
-    if (!mbIsGrounded)
+    // a = F / m
+    XMVECTOR vAccel = XMVectorScale(mPendingForce, 1.0f / mMass);
+    vVel = XMVectorAdd(vVel, XMVectorScale(vAccel, DeltaSecond));
+
+    // --- 3. 저항(마찰력) 처리 ---
+    XMVECTOR vHorizontalVel = XMVectorSetY(vVel, 0.0f);
+    float VerticalVel = XMVectorGetY(vVel);
+
+    // 수평 속도 감쇠 (v = v * (1 - friction * dt))
+    float Drag = 1.0f - (mFriction * DeltaSecond);
+    if (Drag < 0) Drag = 0;
+    vHorizontalVel = XMVectorScale(vHorizontalVel, Drag);
+
+    // --- 4. 최대 속도 제한 (Clamping) ---
+    // 입력에 의한 속도만 제한하고 싶다면 로직을 분리할 수 있지만, 
+    // 기본적으로 수평 속도가 mMaxSpeed를 넘지 않게 조절합니다.
+    float SpeedSq = XMVectorGetX(XMVector3LengthSq(vHorizontalVel));
+    if (SpeedSq > mMaxSpeed * mMaxSpeed)
     {
-        CurrentVerticalVel += mGravity * DeltaSecond;
+        vHorizontalVel = XMVectorScale(XMVector3Normalize(vHorizontalVel), mMaxSpeed);
     }
 
-    // 최종 속도 조합 (Horizontal X, Z + Vertical Y)
-    XMVECTOR vFinalVel = XMVectorSetY(vDesiredHorizontalVel, CurrentVerticalVel);
+    // 최종 속도 재조합
+    vVel = XMVectorSetY(vHorizontalVel, VerticalVel);
+    XMStoreFloat3(&mVelocity, vVel);
 
-    
-    XMStoreFloat3(&mVelocity, vFinalVel);
-
-    // --- 3. 위치 업데이트 ---
+    // --- 5. 위치 업데이트 ---
     XMFLOAT3 CurrLoc = GetActorLocation();
     XMVECTOR vCurrLoc = XMLoadFloat3(&CurrLoc);
-
-    // 신규 위치 = 현재 위치 + (통합 속도 * 시간)
-    XMVECTOR vNewLoc = XMVectorAdd(vCurrLoc, XMVectorScale(vFinalVel, DeltaSecond));
+    XMVECTOR vNewLoc = XMVectorAdd(vCurrLoc, XMVectorScale(vVel, DeltaSecond));
 
     // --- 4. 바닥 충돌 및 상태 체크
     XMFLOAT3 FinalLoc;
@@ -105,8 +121,10 @@ void APlayerCharacter::Tick(float DeltaSecond)
     SetActorLocation(FinalLoc);
 
     // 입력 누적 초기화
+    mPendingForce = XMVectorZero();
     mInputDirection = { 0, 0, 0 };
 
+    mArcProjectileCoolTime = max(mArcProjectileCoolTime - DeltaSecond, 0);
 
     // Interaction
     {
@@ -145,6 +163,10 @@ void APlayerCharacter::Tick(float DeltaSecond)
             mInteractionTarget = Target;
         }
     }
+
+    vVel = XMLoadFloat3(&mVelocity);
+    
+    std::cout << XMVectorGetX(XMVector3Length(vVel)) << std::endl;
 }
 
 void APlayerCharacter::SetupPlayerInput()
@@ -158,7 +180,7 @@ void APlayerCharacter::SetupPlayerInput()
     GetInputSystemManager()->BindKeyboardAction('S', EKeyboardInputType::EKIT_Down, this, &APlayerCharacter::MoveBack);
     GetInputSystemManager()->BindKeyboardAction('A', EKeyboardInputType::EKIT_Down, this, &APlayerCharacter::MoveLeft);
     GetInputSystemManager()->BindKeyboardAction('D', EKeyboardInputType::EKIT_Down, this, &APlayerCharacter::MoveRight);
-    GetInputSystemManager()->BindKeyboardAction(VK_SPACE, EKeyboardInputType::EKIT_Pressed, this, &APlayerCharacter::Jump);
+    GetInputSystemManager()->BindKeyboardAction(VK_SPACE, EKeyboardInputType::EKIT_Down, this, &APlayerCharacter::Jump);
 
     GetInputSystemManager()->BindKeyboardAction('1', EKeyboardInputType::EKIT_Down, this, &APlayerCharacter::FireArcProjectile);
     GetInputSystemManager()->BindKeyboardAction('f', EKeyboardInputType::EKIT_Pressed, this, &APlayerCharacter::Interaction);
@@ -170,6 +192,28 @@ void APlayerCharacter::OnHit(
     XMFLOAT3 Normal, float Distance, float Damage
 )
 {
+    XMVECTOR vImpulse = XMVectorScale(XMLoadFloat3(&ImpulseDir), Damage);
+
+    XMFLOAT3 FinalImpulse;
+    XMStoreFloat3(&FinalImpulse, vImpulse);
+
+    AddImpulse(FinalImpulse);
+}
+
+void APlayerCharacter::AddForce(const XMFLOAT3& Force)
+{
+    XMVECTOR vForce = XMLoadFloat3(&Force);
+    mPendingForce = XMVectorAdd(mPendingForce, vForce);
+}
+
+void APlayerCharacter::AddImpulse(const XMFLOAT3& Impulse)
+{
+    // I = m * deltaV  =>  deltaV = I / m
+    XMVECTOR vImpulse = XMLoadFloat3(&Impulse);
+    XMVECTOR vDeltaVel = XMVectorScale(vImpulse, 1.0f / mMass);
+
+    XMVECTOR vCurrentVel = XMLoadFloat3(&mVelocity);
+    XMStoreFloat3(&mVelocity, XMVectorAdd(vCurrentVel, vDeltaVel));
 }
 
 void APlayerCharacter::FireArcProjectile(float Delta)
@@ -201,30 +245,31 @@ void APlayerCharacter::Interaction(float Delta)
 
 void APlayerCharacter::MoveForward(float Delta) 
 { 
-    mInputDirection.z += 1.0f; 
+    mInputDirection.z += 1;
 }
 
 void APlayerCharacter::MoveBack(float Delta) 
 { 
-    mInputDirection.z -= 1.0f; 
+    mInputDirection.z -= 1;
 }
 
 void APlayerCharacter::MoveRight(float Delta) 
 { 
-    mInputDirection.x += 1.0f; 
+    mInputDirection.x += 1;
 }
 
 void APlayerCharacter::MoveLeft(float Delta) 
 {
-    mInputDirection.x -= 1.0f; 
+    mInputDirection.x -= 1;
 }
 
 void APlayerCharacter::Jump(float Delta)
 {
     if (mbIsGrounded)
     {
-        // 수직 속도(y)만 즉시 변경
-        mVelocity.y = mJumpImpulse;
+        // 점프는 위 방향으로 즉각적인 속도 변화를 주는 Impulse가 적합합니다.
+        // v = mJumpImpulse가 되게 하려면, I = m * mJumpImpulse
+        AddImpulse(XMFLOAT3(0, mJumpImpulse * mMass, 0));
         mbIsGrounded = false;
     }
 }

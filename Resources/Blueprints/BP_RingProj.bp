@@ -11,9 +11,12 @@
     <StateMachine Initial = "Launch">
         <State Name = "Global">
             <OnDeactivate_SplineCollision>
-                <Log Content = "BP_RingProj: Destroy"/>
                 <Destroy/>
             </OnDeactivate_SplineCollision>
+
+            <OnHit_SplineCollision>
+                <Hit Damage = "50"/>
+            </OnHit_SplineCollision>
         </State>
 
         <State Name = "Launch" Base = "Global">

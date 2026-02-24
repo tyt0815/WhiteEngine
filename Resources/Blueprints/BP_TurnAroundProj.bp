@@ -13,7 +13,6 @@
         <State Name = "Global">
 
             <OnDeactivate_BoxCollision>
-                <Log Content = "BP_TurnAroundProj: Destroy"/>
                 <Destroy/>
             </OnDeactivate_BoxCollision>
 

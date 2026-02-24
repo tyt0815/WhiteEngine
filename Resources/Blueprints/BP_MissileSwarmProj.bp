@@ -22,7 +22,6 @@
             </OnSpawn>
 
             <DestroyEvent>
-                <Log Content = "BP_MissileSwarmProj: Destroy"/>
                 <Destroy/>
             </DestroyEvent>
 

@@ -10,7 +10,6 @@
     <StateMachine Initial = "Global">
         <State Name = "Global">
             <DestroyEvent>
-                <Log Content = "BP_FuzeUlt_SubProj: Destroy"/>
                 <Destroy/>
             </DestroyEvent>
 
