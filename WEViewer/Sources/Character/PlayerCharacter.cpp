@@ -165,8 +165,6 @@ void APlayerCharacter::Tick(float DeltaSecond)
     }
 
     vVel = XMLoadFloat3(&mVelocity);
-    
-    std::cout << XMVectorGetX(XMVector3Length(vVel)) << std::endl;
 }
 
 void APlayerCharacter::SetupPlayerInput()
