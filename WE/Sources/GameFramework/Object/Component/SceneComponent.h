@@ -77,6 +77,8 @@ public:
 
 	void PropagateWorldFloat4Dirty(bool bForce = false);
 
+	virtual void OnPropagateWorldFloat4Dirty();
+
 	void AddWorldOffset(XMFLOAT3 WorldOffset);
 
 protected:

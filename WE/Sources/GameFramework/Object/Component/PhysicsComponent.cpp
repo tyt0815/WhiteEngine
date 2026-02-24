@@ -143,5 +143,7 @@ void WPhysicsComponent::CreatePhysicsBody()
 	UINT GroupID = GetOwner<AActor>()->mActorCounter;
 	Settings.mCollisionGroup.SetGroupID(GroupID);
 	Settings.mCollisionGroup.SetGroupFilter(Physics::g_GroupFilter);
+	Settings.mAllowedDOFs = mAllowedDOFs;
+	Settings.mGravityFactor = mGravityFactor;
 	mBody->Create(Settings);
 }

@@ -4,10 +4,11 @@
 #include "Actor/DenseBoxHitReactorManager.h"
 #include "Actor/Button.h"
 #include "Pawn/PlayerPawn.h"
+#include "Character/PlayerCharacter.h"
 
 void WTestWorld::BeginPlay()
 {	
-	SetPlayer(SpawnActor<APlayerPawn>()->GetWeakPtr<APawn>());
+	SetPlayer(SpawnActor<APlayerCharacter>()->GetWeakPtr<APlayerCharacter>());
 
 	Super::BeginPlay();
 
@@ -68,20 +69,20 @@ void WTestWorld::Tick(float DeltaSecond)
 	if (a > SpawnDelay)
 	{
 		FActorSpawnParameter Param;
-		Param.Transform.Translation = XMFLOAT3(-50, 0, 10);
-		SpawnActorByFactory<AActor>("BP_TurnAroundProj", Param);
+		//Param.Transform.Translation = XMFLOAT3(-50, 0, 10);
+		//SpawnActorByFactory<AActor>("BP_TurnAroundProj", Param);
 
-		Param.Transform.Translation.x += 20;
-		SpawnActorByFactory<AActor>("BP_LaunchedMissile", Param);
+		//Param.Transform.Translation.x += 20;
+		//SpawnActorByFactory<AActor>("BP_LaunchedMissile", Param);
 
-		Param.Transform.Translation.x += 8;
-		SpawnActorByFactory<AActor>("BP_EearthquakeProjSpawner", Param);
+		//Param.Transform.Translation.x += 8;
+		//SpawnActorByFactory<AActor>("BP_EearthquakeProjSpawner", Param);
 
-		Param.Transform.Translation.x = -10;
-		SpawnActorByFactory<AActor>("BP_RingProj", Param);
+		//Param.Transform.Translation.x = -10;
+		//SpawnActorByFactory<AActor>("BP_RingProj", Param);
 
-		Param.Transform.Translation.x = +10;
-		SpawnActorByFactory<AActor>("BP_FuzeUlt", Param);
+		//Param.Transform.Translation.x = +10;
+		//SpawnActorByFactory<AActor>("BP_FuzeUlt", Param);
 
 		a = 0;
 

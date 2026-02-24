@@ -20,14 +20,14 @@ protected:
 
 	void AddRollInput(float Value);
 
-	TWeakPtr<WCameraComponent> mCameraComponent;
+	WCameraComponent* mCameraComponent;
 
 	float mMoveSpeed = 8.0f;
 
 	float mCameraSpeed = 1.f;
 
 public:
-	inline TWeakPtr<WCameraComponent> GetCameraComponent() const
+	__forceinline WCameraComponent* GetCameraComponent() const
 	{
 		return mCameraComponent;
 	}

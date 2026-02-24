@@ -130,7 +130,7 @@ void WWorld::Tick(float Delta)
 		Actor->UpdateRecursive();
 	}
 
-	if (auto Camera = mPlayer.lock()->GetCameraComponent().lock())
+	if (auto Camera = mPlayer.lock()->GetCameraComponent())
 	{
 		mRenderItemProxy.ViewMatrix = Camera->GetViewMatrix();
 		mRenderItemProxy.ProjMatrix = Camera->GetProjMatrix();
@@ -150,7 +150,7 @@ TWeakPtr<WCameraComponent> WWorld::GetPlayerCamera() const
 {
 	if (TSharedPtr<APawn> Player = mPlayer.lock())
 	{
-		return Player->GetCameraComponent();
+		return Player->GetCameraComponent()->GetWeakPtr<WCameraComponent>();
 	}
 	return TWeakPtr<WCameraComponent>();
 }

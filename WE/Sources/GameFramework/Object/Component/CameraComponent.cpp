@@ -19,18 +19,19 @@ DirectX::XMFLOAT4X4 WCameraComponent::GetProjMatrix()
 	return mProj;
 }
 
-void WCameraComponent::OnSetTransform()
+void WCameraComponent::OnPropagateWorldFloat4Dirty()
 {
+	Super::OnPropagateWorldFloat4Dirty();
 	mbViewFloat4x4Dirty = true;
-	Super::OnSetTransform();
 }
 
 void WCameraComponent::UpdateViewMatrix()
 {
 	if (mbViewFloat4x4Dirty)
 	{
-		XMMATRIX RotationMatrix = GetRelativeTransform().GetRotationMatrix();
-		XMVECTOR P = GetRelativeTransform().GetTranslationVector();
+		FTransform WorldTransform = GetWorldTransform();
+		XMMATRIX RotationMatrix = WorldTransform.GetRotationMatrix();
+		XMVECTOR P = WorldTransform.GetTranslationVector();
 		XMVECTOR L = XMVector3Transform({ 0.0f, 0.0f, 1.0f }, RotationMatrix);
 		XMVECTOR U = XMVector3Transform({ 0.0f, 1.0f, 0.0f }, RotationMatrix);
 		XMVECTOR R = XMVector3Transform({ 1.0f, 0.0f, 0.0f }, RotationMatrix);

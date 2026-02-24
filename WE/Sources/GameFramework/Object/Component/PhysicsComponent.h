@@ -13,6 +13,8 @@ DECLARE_DELEGATE_TwoParams(FComponentBeginOverlapDelegate, TWeakPtr<WPhysicsComp
 
 using EMotionType = JPH::EMotionType;
 
+using EAllowedDOFs = JPH::EAllowedDOFs;
+
 class WPhysicsComponent : public WSceneComponent
 {
 	typedef WSceneComponent Super;
@@ -46,6 +48,10 @@ public:
 	FComponentHitDelegate mOnHitDelegate;
 
 	FComponentBeginOverlapDelegate mOnBeginOverlapDelegate;
+
+	EAllowedDOFs mAllowedDOFs = EAllowedDOFs::All;
+
+	float mGravityFactor = 1;
 
 protected:
 	virtual JPH::ShapeRefC CreatePhysicsShape() = 0;

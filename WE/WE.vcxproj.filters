@@ -336,10 +336,10 @@
       <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClCompile>
     <ClCompile Include="Sources\GameFramework\Object\Character\Character.cpp">
-      <Filter>Sources</Filter>
+      <Filter>Sources\GameFramework\Object\Character</Filter>
     </ClCompile>
     <ClCompile Include="Sources\GameFramework\Object\Component\PhysicsMovementComponent.cpp">
-      <Filter>Sources</Filter>
+      <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -669,6 +669,12 @@
     </ClInclude>
     <ClInclude Include="Sources\GameFramework\Object\Component\PhysicsMovementComponent.h">
       <Filter>Sources\GameFramework\Object\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GameFramework\Object\Component\CharacterMovementComponent.h">
+      <Filter>Sources\GameFramework\Object\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Asset\SkeletalMeshAsset.h">
+      <Filter>Sources\Asset</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

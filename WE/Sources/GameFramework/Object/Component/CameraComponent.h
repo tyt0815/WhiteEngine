@@ -15,7 +15,9 @@ public:
 
 protected:
 
-	virtual void OnSetTransform() override;
+	virtual void OnPropagateWorldFloat4Dirty();
+
+
 
 private:
 	void UpdateViewMatrix();

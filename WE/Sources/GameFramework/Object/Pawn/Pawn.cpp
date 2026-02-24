@@ -8,7 +8,7 @@ void APawn::OnCreateComponent(WActorComponent* Comp)
 
 	if (WCameraComponent* CameraComp = dynamic_cast<WCameraComponent*>(Comp))
 	{
-		mCameraComponent = Comp->GetWeakPtr<WCameraComponent>();
+		mCameraComponent = CameraComp;
 	}
 }
 

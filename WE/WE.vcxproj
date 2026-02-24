@@ -119,6 +119,7 @@
     <ClInclude Include="Sources\Asset\BlueprintAsset.h" />
     <ClInclude Include="Sources\Asset\BlueprintTypes.h" />
     <ClInclude Include="Sources\Asset\ObjectAnimDataAsset.h" />
+    <ClInclude Include="Sources\Asset\SkeletalMeshAsset.h" />
     <ClInclude Include="Sources\Asset\SplineDataAsset.h" />
     <ClInclude Include="Sources\Asset\XMLDataAsset.h" />
     <ClInclude Include="Sources\DirectX\d3dx12.h" />
@@ -147,6 +148,7 @@
     <ClInclude Include="Sources\GameFramework\Object\Component\CameraComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\CapsuleCollisionComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\CapsuleComponent.h" />
+    <ClInclude Include="Sources\GameFramework\Object\Component\CharacterMovementComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\ComponentFactory.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\DirectionalLightComponent.h" />
     <ClInclude Include="Sources\GameFramework\Object\Component\LightComponent.h" />

@@ -362,6 +362,7 @@ void WSceneComponent::PropagateWorldFloat4Dirty(bool bForce)
 	}
 
 	mbWorldFloat4x4Dirty = true;
+	OnPropagateWorldFloat4Dirty();
 	for (TWeakPtr<WSceneComponent> ChildWeak : mChilds)
 	{
 		// 핵심: 나(this)가 아니라 Child의 함수를 호출해야 함
@@ -370,6 +371,10 @@ void WSceneComponent::PropagateWorldFloat4Dirty(bool bForce)
 			Child->PropagateWorldFloat4Dirty(bForce);
 		}
 	}
+}
+
+void WSceneComponent::OnPropagateWorldFloat4Dirty()
+{
 }
 
 void WSceneComponent::AddWorldOffset(XMFLOAT3 WorldOffset)

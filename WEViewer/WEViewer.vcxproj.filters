@@ -71,6 +71,9 @@
     <ClCompile Include="Sources\Actor\Button.cpp">
       <Filter>Sources\Actor</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Character\PlayerCharacter.cpp">
+      <Filter>Sources\Character</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\World\TestWorld.h">
