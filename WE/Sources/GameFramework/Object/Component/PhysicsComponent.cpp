@@ -145,5 +145,7 @@ void WPhysicsComponent::CreatePhysicsBody()
 	Settings.mCollisionGroup.SetGroupFilter(Physics::g_GroupFilter);
 	Settings.mAllowedDOFs = mAllowedDOFs;
 	Settings.mGravityFactor = mGravityFactor;
+	Settings.mFriction = mFriction;
+	Settings.mMaxLinearVelocity = mMaxLinearVelocity;
 	mBody->Create(Settings);
 }

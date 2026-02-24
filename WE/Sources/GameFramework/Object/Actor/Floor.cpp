@@ -24,6 +24,8 @@ AFloor::AFloor()
 		BoxComp->SetObjectChannel(EObjectChannel::EOC_WorldStatic);
 		BoxComp->SetRelativeLocation(XMFLOAT3(0, -Height, 0));
 	}
+
+	AddTag("WorldStatic");
 }
 
 void AFloor::BeginPlay()

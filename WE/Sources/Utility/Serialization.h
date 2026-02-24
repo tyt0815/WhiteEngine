@@ -7,6 +7,16 @@ class FBinaryWriter
 public:
     FBinaryWriter(std::vector<unsigned char>& InBuffer) : Buffer(InBuffer) {}
 
+    template<typename T>
+    void WriteRaw(const T* Data, size_t Count) {
+        static_assert(std::is_trivially_copyable_v<T>, "This type cannot be copied raw.");
+
+        if (Count == 0) return;
+
+        const unsigned char* Ptr = reinterpret_cast<const unsigned char*>(Data);
+        Buffer.insert(Buffer.end(), Ptr, Ptr + (sizeof(T) * Count));
+    }
+
     // 기본 타입 (int, float, bool 등)
     template<typename T>
     FBinaryWriter& operator<<(const T& Value) 
@@ -58,6 +68,17 @@ class FBinaryReader
 public:
     FBinaryReader(const std::vector<unsigned char>& InBuffer)
         : Buffer(InBuffer), Offset(0) {}
+
+    template<typename T>
+    void ReadRaw(T* OutData, size_t Count) {
+        static_assert(std::is_trivially_copyable_v<T>, "This type cannot be copied raw.");
+
+        size_t TotalSize = sizeof(T) * Count;
+        if (Offset + TotalSize <= Buffer.size()) {
+            std::memcpy(OutData, &Buffer[Offset], TotalSize);
+            Offset += TotalSize;
+        }
+    }
 
     // 기본 타입 (int, float, bool 등)
     template<typename T>

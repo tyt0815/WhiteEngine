@@ -1,9 +1,8 @@
 <AStateMachineActor>
-
     <Components>
         <Movement Name = "Movement" InitSpeed = "{0, 0, 30}" GravityScale = "1" MaxSpeed = "30" LifeSpan = "2">
             <Mesh Name = "Mesh" Asset = "SM_MetalCylinder" Rot = "{90, 0, 0}" Scale = "{0.25, 0.5, 0.25}">
-                <Collision Name = "BoxCollision" Type = "Box" Extent = "{0.5, 0.5, 0.5}" Debug = "true" Damage = "50"/>
+                <Collision Name = "BoxCollision" Type = "Box" Extent = "{0.5, 0.5, 0.5}" Debug = "true" Damage = "50" TargetTags = "[WorldDynamic, WorldStatic]"/>
             </Mesh>
         </Movement>
     </Components>

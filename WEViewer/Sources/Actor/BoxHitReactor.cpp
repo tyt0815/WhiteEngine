@@ -16,4 +16,6 @@ ABoxHitReactor::ABoxHitReactor()
 	WStaticMeshComponent* SMComp = CreateComponent<WStaticMeshComponent>();
 	SMComp->SetupAttachment(GetRootComponent());
 	SMComp->SetStaticMesh("SM_ScuffedGoldBox");
+
+	AddTag("WorldDynamic");
 }

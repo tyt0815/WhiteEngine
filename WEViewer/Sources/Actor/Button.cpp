@@ -14,7 +14,7 @@ AButton::AButton()
 
 	mStaticMeshComp = CreateComponent<WStaticMeshComponent>();
 	mStaticMeshComp->SetupAttachment(GetRootComponent());
-	mStaticMeshComp->SetStaticMesh("SM_BlackBox");
+	mStaticMeshComp->SetStaticMesh("SM_RedBox");
 }
 
 void AButton::Interaction()
@@ -25,10 +25,10 @@ void AButton::Interaction()
 
 void AButton::OnBeginInteractionFocus()
 {
-	mStaticMeshComp->SetStaticMesh("SM_WhiteBox");
+	mStaticMeshComp->SetStaticMesh("SM_GreenBox"); 
 }
 
 void AButton::OnEndInteractionFocus()
 {
-	mStaticMeshComp->SetStaticMesh("SM_BlackBox");
+	mStaticMeshComp->SetStaticMesh("SM_RedBox");
 }

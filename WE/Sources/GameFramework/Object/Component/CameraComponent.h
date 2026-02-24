@@ -34,12 +34,24 @@ private:
 	bool mbViewFloat4x4Dirty = true;
 	bool mbProjFloat4x4Dirty = true;
 public:
-	inline float GetNearZ() const
+	__forceinline float GetNearZ() const
 	{
 		return mNearZ;
 	}
-	inline float GetFarZ() const
+
+	__forceinline void SetNearZ(float Value)
+	{
+		mNearZ = Value;
+	}
+
+	__forceinline float GetFarZ() const
 	{
 		return mFarZ;
 	}
+
+	__forceinline void SetFarZ(float Value)
+	{
+		mFarZ = Value;
+	}
+	
 };

@@ -25,7 +25,6 @@ public:
 	void Fire();
 
 private:
-	void CreateHomingPaths(TWeakPtr<AActor> Target, TArray<TWeakPtr<AActor>>& HomingPaths);
 
 	TArray<TArray<ATargetMarker*>> mTargetMarkers;
 

@@ -74,6 +74,9 @@
     <ClCompile Include="Sources\Character\PlayerCharacter.cpp">
       <Filter>Sources\Character</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Actor\Platform.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\World\TestWorld.h">
@@ -126,6 +129,9 @@
     </ClInclude>
     <ClInclude Include="Sources\Character\PlayerCharacter.h">
       <Filter>Sources\Character</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\Platform.h">
+      <Filter>Sources\Actor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

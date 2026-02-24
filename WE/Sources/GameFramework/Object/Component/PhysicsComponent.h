@@ -53,6 +53,10 @@ public:
 
 	float mGravityFactor = 1;
 
+	float mFriction = 0.2f;
+
+	float mMaxLinearVelocity = 500.0f;
+
 protected:
 	virtual JPH::ShapeRefC CreatePhysicsShape() = 0;
 

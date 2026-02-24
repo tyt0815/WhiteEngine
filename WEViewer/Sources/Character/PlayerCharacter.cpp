@@ -3,25 +3,36 @@
 #include "Component/CapsuleComponent.h"
 #include "Component/StaticMeshComponent.h"
 #include "World/World.h"
+#include "Interface/InteractionInterface.h"
 
 APlayerCharacter::APlayerCharacter()
 {
 	SetTickGroup(ETickGroup::ETG_PrePhysics, ETickPriority::ETP_Low);
 
+    WCapsuleComponent* Capsule = GetCapsule();
+    Capsule->SetHalfHeight(0.5f);
+    Capsule->SetRadius(0.4f);
+    Capsule->mFriction = 1;
+     //Capsule->mMaxLinearVelocity = 1;
+    Capsule->mGravityFactor = 0;
+
 	mCameraPivot = CreateComponent<WSceneComponent>();
 	mCameraPivot->SetupAttachment(GetRootComponent());
+    mCameraPivot->SetRelativeLocation(XMFLOAT3(0, 0.7f, 0));
 	mCameraComponent = CreateComponent<WCameraComponent>();
 	mCameraComponent->SetupAttachment(mCameraPivot);
-	mCameraComponent->SetRelativeLocation(XMFLOAT3(0, 0, -5));
+	mCameraComponent->SetRelativeLocation(XMFLOAT3(0, 0, 0));
 
     WStaticMeshComponent* SMComp = CreateComponent<WStaticMeshComponent>();
     SMComp->SetupAttachment(GetRootComponent());
-    SMComp->SetStaticMesh("SM_MetalRing");
+    SMComp->SetStaticMesh("SM_MetalCylinder");
 }
 
 void APlayerCharacter::Tick(float DeltaSecond)
 {
     Super::Tick(DeltaSecond);
+
+    mArcProjectileCoolTime = max(mArcProjectileCoolTime - DeltaSecond, 0);
 
     // --- 1. 수평 속도 계산 (WASD) ---
     XMVECTOR vInput = XMLoadFloat3(&mInputDirection);
@@ -50,6 +61,8 @@ void APlayerCharacter::Tick(float DeltaSecond)
 
     // 최종 속도 조합 (Horizontal X, Z + Vertical Y)
     XMVECTOR vFinalVel = XMVectorSetY(vDesiredHorizontalVel, CurrentVerticalVel);
+
+    
     XMStoreFloat3(&mVelocity, vFinalVel);
 
     // --- 3. 위치 업데이트 ---
@@ -59,20 +72,19 @@ void APlayerCharacter::Tick(float DeltaSecond)
     // 신규 위치 = 현재 위치 + (통합 속도 * 시간)
     XMVECTOR vNewLoc = XMVectorAdd(vCurrLoc, XMVectorScale(vFinalVel, DeltaSecond));
 
-    // --- 4. 바닥 충돌 및 상태 체크 (간이 로직) ---
+    // --- 4. 바닥 충돌 및 상태 체크
     XMFLOAT3 FinalLoc;
     XMStoreFloat3(&FinalLoc, vNewLoc);
     {
         WCapsuleComponent* Capsule = GetCapsule();
-        float HalfHeight = Capsule->GetScaledHalfHeight() + Capsule->GetScaledRadius();
-
         const XMFLOAT3& TraceStart = FinalLoc;
         XMFLOAT3 TraceEnd = TraceStart;
-        TraceEnd.y -= HalfHeight + 0.01f;
+        TraceEnd.y -= Capsule->GetScaledHalfHeight()+ 0.01f;
+
         FHitResult Hit;
         TArray<AActor*> ActorsToIgnore;
         ActorsToIgnore.push_back(this);
-        GetWorld()->LineTrace(TraceStart, TraceEnd, ActorsToIgnore, Hit, true, 0);
+        GetWorld()->SphereTrace(TraceStart, TraceEnd, Capsule->GetScaledRadius(), ActorsToIgnore, Hit, true, 0);
 
         // OnAir
         if (Hit.Actor.expired())
@@ -83,7 +95,7 @@ void APlayerCharacter::Tick(float DeltaSecond)
         {
             if (!mbIsGrounded)
             {
-                FinalLoc.y = Hit.ImpactPoint.y + HalfHeight;
+                // FinalLoc.y = Hit.ImpactPoint.y + HalfHeight;
                 mVelocity.y = 0;
                 mbIsGrounded = true;
             }
@@ -92,13 +104,47 @@ void APlayerCharacter::Tick(float DeltaSecond)
 
     SetActorLocation(FinalLoc);
 
-    XMFLOAT3 WorldCameraRot = mCameraPivot->GetWorldRotation();
-    XMFLOAT3 CharacterRot = XMFLOAT3(0, WorldCameraRot.y, 0);
-    SetActorRotation(CharacterRot);
-    mCameraPivot->SetWorldRotation(WorldCameraRot);
-
     // 입력 누적 초기화
     mInputDirection = { 0, 0, 0 };
+
+
+    // Interaction
+    {
+        XMFLOAT3 TraceStart = mCameraComponent->GetWorldLocation();
+        XMVECTOR vTraceStart = XMLoadFloat3(&TraceStart);
+        XMFLOAT3 Forward = mCameraComponent->GetWorldForwardVector();
+        XMVECTOR vForward = XMLoadFloat3(&Forward);
+        XMFLOAT3 TraceEnd;
+        XMStoreFloat3(&TraceEnd, XMVectorAdd(vTraceStart, XMVectorScale(vForward, 2.0f)));
+
+        TArray<AActor*> ActorsToIgnore;
+        ActorsToIgnore.push_back(this);
+        FHitResult HitResult;
+        GetWorld()->LineTrace(
+            TraceStart, TraceEnd,
+            ActorsToIgnore,
+            HitResult,
+            true,
+            0
+        );
+
+        auto HittedActor = HitResult.Actor.lock();
+        IInteractionInterface* Target = dynamic_cast<IInteractionInterface*>(HittedActor.get());
+
+        if (mInteractionTarget != Target)
+        {
+            if (mInteractionTarget)
+            {
+                mInteractionTarget->OnEndInteractionFocus();
+            }
+
+            if (Target)
+            {
+                Target->OnBeginInteractionFocus();
+            }
+            mInteractionTarget = Target;
+        }
+    }
 }
 
 void APlayerCharacter::SetupPlayerInput()
@@ -112,7 +158,45 @@ void APlayerCharacter::SetupPlayerInput()
     GetInputSystemManager()->BindKeyboardAction('S', EKeyboardInputType::EKIT_Down, this, &APlayerCharacter::MoveBack);
     GetInputSystemManager()->BindKeyboardAction('A', EKeyboardInputType::EKIT_Down, this, &APlayerCharacter::MoveLeft);
     GetInputSystemManager()->BindKeyboardAction('D', EKeyboardInputType::EKIT_Down, this, &APlayerCharacter::MoveRight);
-    GetInputSystemManager()->BindKeyboardAction(VK_SPACE, EKeyboardInputType::EKIT_Down, this, &APlayerCharacter::Jump);
+    GetInputSystemManager()->BindKeyboardAction(VK_SPACE, EKeyboardInputType::EKIT_Pressed, this, &APlayerCharacter::Jump);
+
+    GetInputSystemManager()->BindKeyboardAction('1', EKeyboardInputType::EKIT_Down, this, &APlayerCharacter::FireArcProjectile);
+    GetInputSystemManager()->BindKeyboardAction('f', EKeyboardInputType::EKIT_Pressed, this, &APlayerCharacter::Interaction);
+}
+
+void APlayerCharacter::OnHit(
+    WSceneComponent* Instigator, WPhysicsComponent* HittedComponent,
+    XMFLOAT3 ImpulseDir, XMFLOAT3 ImpactPoint,
+    XMFLOAT3 Normal, float Distance, float Damage
+)
+{
+}
+
+void APlayerCharacter::FireArcProjectile(float Delta)
+{
+    if (mArcProjectileCoolTime > 0)
+    {
+        return;
+    }
+    mArcProjectileCoolTime = mArcProjectileDelay;
+
+    FActorSpawnParameter Param;
+    Param.Transform = mCameraComponent->GetWorldTransform();
+    Param.Transform.Scale = XMFLOAT3(1, 1, 1);
+
+    GetWorld()->SpawnActorByFactory<AActor>("BP_ArcProjectile", Param);
+}
+
+void APlayerCharacter::Interaction(float Delta)
+{
+    if (mInteractionTarget)
+    {
+        mInteractionTarget->Interaction();
+    }
+    else
+    {
+        std::cout << "No interaction target" << std::endl;
+    }
 }
 
 void APlayerCharacter::MoveForward(float Delta) 

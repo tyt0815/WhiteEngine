@@ -34,6 +34,8 @@ enum EMaterialType : UINT16
 	EMT_Metal049A,
 	EMT_White,
 	EMT_Black,
+	EMT_Red,
+	EMT_Green,
 	EMT_None
 };
 

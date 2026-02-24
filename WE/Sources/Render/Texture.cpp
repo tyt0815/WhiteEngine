@@ -65,6 +65,8 @@ void FTextureManager::LoadTextures(ID3D12Device* Device, ID3D12GraphicsCommandLi
 	LoadTexture("Default", Device, CommandList);
 	LoadTexture("White", Device, CommandList);
 	LoadTexture("Black", Device, CommandList);
+	LoadTexture("Red", Device, CommandList);
+	LoadTexture("Green", Device, CommandList);
 
 	LoadTexture("RustedIron2_Albedo", Device, CommandList);
 	LoadTexture("RustedIron2_Normal", Device, CommandList);

@@ -29,6 +29,8 @@ private:
 
 	void LoadSplines();
 
+	void LoadSkeletalMeshs();
+
 	std::unordered_map<std::string, TUniquePtr<FAsset>> mAssets;
 };
 

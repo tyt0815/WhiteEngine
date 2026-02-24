@@ -1,7 +1,8 @@
 #pragma once
 #include "Character/Character.h"
+#include "GameFramework/Interface/HitInterface.h"
 
-class APlayerCharacter : public ACharacter
+class APlayerCharacter : public ACharacter, public IHitInterface
 {
     typedef ACharacter Super;
 public:
@@ -9,9 +10,17 @@ public:
     virtual void Tick(float DeltaSecond) override;
     virtual void SetupPlayerInput() override;
 
-private:
-    WSceneComponent* mCameraPivot;
+    virtual void OnHit(WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpulseDir, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage) override;
 
+private:
+    void FireArcProjectile(float Delta);
+    const float mArcProjectileDelay = 0.1f;
+    float mArcProjectileCoolTime = 0;
+
+    void Interaction(float Delta);
+    class IInteractionInterface* mInteractionTarget = nullptr;
+
+    WSceneComponent* mCameraPivot;
 
     void Look(FMouseInputParameter Parameter);
 

@@ -171,8 +171,10 @@ void AMissileSwarmSystem::SetTargetMarkersLocation(XMFLOAT3 Origin, XMFLOAT3 Rig
 				XMFLOAT3 TraceEnd = GridPositionOrigins[r][c];
 				TraceEnd.y -= 5;
 				TArray<AActor*> ActorsToIgnore;
+				ActorsToIgnore.push_back(this);
+				ActorsToIgnore.push_back(GetOwner<AActor>());
 				FHitResult Hit;
-				World->LineTrace(TraceStart, TraceEnd, ActorsToIgnore, Hit, false, 0);
+				World->LineTrace(TraceStart, TraceEnd, ActorsToIgnore, Hit, true, 0);
 				if(Hit.Actor.expired())
 				{
 					Transform.Translation = TraceEnd;
@@ -201,65 +203,4 @@ void AMissileSwarmSystem::Fire()
 
 	mMissileGridManager = GetWorld()->SpawnActor<AMissileGridManager>();
 	mMissileGridManager->SetMissileCounting((int)(mTargetMarkers.size() * mTargetMarkers[0].size()));
-}
-
-void AMissileSwarmSystem::CreateHomingPaths(TWeakPtr<AActor> Target, TArray<TWeakPtr<AActor>>& HomingPaths)
-{
-	if (auto TargetMarker = Target.lock())
-	{
-		XMFLOAT3 CurrPos = GetActorLocation();
-		XMFLOAT3 TargetPos = TargetMarker->GetActorLocation();
-		XMVECTOR TargetPosV = XMLoadFloat3(&TargetPos);
-		XMVECTOR CurrPosV = XMLoadFloat3(&CurrPos);
-		XMVECTOR ToTargetV = XMVectorSubtract(TargetPosV, CurrPosV);
-		float Dist = XMVectorGetX(XMVector3Length(ToTargetV));
-
-		XMFLOAT3 TraceStart = TargetPos;
-		XMVECTOR TraceStartV = XMLoadFloat3(&TraceStart);
-		TraceStart.y += 0.1f;
-		XMVECTOR ToTargetN = XMVector3Normalize(ToTargetV);
-		XMVECTOR UpN = XMVectorSet(0, 1, 0, 0);
-		float Radian = XMVectorGetX(XMVector3AngleBetweenNormals(UpN, ToTargetN));
-		if (XMConvertToRadians(90) <= Radian && Radian < 175)
-		{
-			XMVECTOR RightN = XMVector3Normalize(XMVector3Cross(UpN, ToTargetN));
-			XMVECTOR ForwardN = XMVector3Normalize(XMVector3Cross(RightN, UpN));
-
-			XMVECTOR TraceEndV = XMVectorAdd(
-				TraceStartV,
-				XMVectorAdd(
-					XMVectorMultiply(
-						RightN,
-						XMVectorReplicate(FDXMath::RandF(mMinHomingPathOffset.x, mMaxHomingPathOffset.x))
-					),
-					XMVectorAdd(
-						XMVectorMultiply(
-							UpN,
-							XMVectorReplicate(FDXMath::Clamp(Dist / 2.0f, mMinHomingPathOffset.y, mMaxHomingPathOffset.y))
-						),
-						XMVectorMultiply(
-							ForwardN,
-							XMVectorReplicate(FDXMath::RandF(mMinHomingPathOffset.z, mMaxHomingPathOffset.z))
-						)
-					)
-				)
-			);
-			XMFLOAT3 TraceEnd;
-			XMStoreFloat3(&TraceEnd, TraceEndV);
-			FHitResult HitResult;
-
-			TArray<AActor*> ActorsToIgnore;
-			GetWorld()->LineTrace(TraceStart, TraceEnd, ActorsToIgnore, HitResult, false, 1.0f);
-
-			if (HitResult.HitComponent.expired())
-			{
-				FActorSpawnParameter Param;
-				Param.Transform.Translation = TraceEnd;
-				AActor* Path = GetWorld()->SpawnActor<AActor>(Param);
-				HomingPaths.push_back(Path->GetWeakPtr<AActor>());
-			}
-		}
-	}
-
-	HomingPaths.push_back(Target);
 }

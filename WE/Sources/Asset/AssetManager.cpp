@@ -1,6 +1,7 @@
 #include "AssetManager.h"
 #include <filesystem>
 #include "SplineDataAsset.h"
+#include "SkeletalMeshAsset.h"
 #include "XMLDataAsset.h"
 #include "ObjectAnimDataAsset.h"
 #include "BlueprintAsset.h"
@@ -44,6 +45,8 @@ void FAssetManager::LoadAssets()
 	LoadBlueprints();
 
 	LoadObjectAnimations();
+
+	LoadSkeletalMeshs();
 }
 
 FAsset* FAssetManager::GetAsset(const std::string& Name)
@@ -95,5 +98,19 @@ void FAssetManager::LoadSplines()
 	for (const auto& FileName : SplineFileName)
 	{
 		LoadAsset<FSplineDataAsset>(FolderPath + L"\\" + FileName + Extension, WStringToString(FileName));
+	}
+}
+
+void FAssetManager::LoadSkeletalMeshs()
+{
+	const std::wstring FolderPath = SOLUTION_DIR_W + std::wstring(L"Resources\\SkeletalMeshs");
+	const std::wstring Extension = L".fbx";
+	TArray<std::wstring> SkeletalMeshFileName;
+
+	GetFileNameByExtension(FolderPath, Extension, SkeletalMeshFileName);
+
+	for (const auto& FileName : SkeletalMeshFileName)
+	{
+		LoadAsset<FSkeletalMeshAsset>(FolderPath + L"\\" + FileName + Extension, WStringToString(FileName));
 	}
 }

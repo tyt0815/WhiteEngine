@@ -111,6 +111,28 @@ void FMaterialManager::BuildMaterials()
 		"White",
 		FDXMath::Identity4x4()
 	);
+
+	BuildMaterial(
+		EMT_Red,
+		ESM_DefaultLit,
+		EBM_Opaque,
+		"Red",
+		"Black",
+		"White",
+		"White",
+		FDXMath::Identity4x4()
+	);
+
+	BuildMaterial(
+		EMT_Green,
+		ESM_DefaultLit,
+		EBM_Opaque,
+		"Green",
+		"Black",
+		"White",
+		"White",
+		FDXMath::Identity4x4()
+	);
 }
 
 void FMaterialManager::Internal_BuildMaterial(

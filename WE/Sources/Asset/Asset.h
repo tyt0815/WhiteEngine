@@ -19,3 +19,5 @@ protected:
 
 	friend class FAssetManager;
 };
+
+bool CheckIfNeedCompile(const std::wstring& Src, const std::wstring& Bin);
