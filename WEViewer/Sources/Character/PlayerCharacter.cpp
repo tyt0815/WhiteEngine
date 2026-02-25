@@ -13,9 +13,9 @@ APlayerCharacter::APlayerCharacter()
     Capsule->SetHalfHeight(0.5f);
     Capsule->SetRadius(0.4f);
     Capsule->mFriction = 1;
-     //Capsule->mMaxLinearVelocity = 1;
+    //Capsule->mMaxLinearVelocity = 1;
     Capsule->mGravityFactor = 0;
-
+    
 	mCameraPivot = CreateComponent<WSceneComponent>();
 	mCameraPivot->SetupAttachment(GetRootComponent());
     mCameraPivot->SetRelativeLocation(XMFLOAT3(0, 0.7f, 0));

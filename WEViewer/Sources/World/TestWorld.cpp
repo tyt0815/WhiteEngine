@@ -113,6 +113,17 @@ void WTestWorld::BeginPlay()
 	AButton* ResetButton = GetWorld()->SpawnActor<AButton>(Param);
 	ResetButton->mOnButtonInteracted.AddLambda([this]() { mDenseBoxHitReactorManager->Reset(); });
 
+	Param.Transform.Translation = XMFLOAT3(10, 0, 10);
+	AButton* TargetButton = GetWorld()->SpawnActor<AButton>(Param);
+	TargetButton->mOnButtonInteracted.AddLambda([TargetButton]()
+		{ 
+			XMFLOAT3 RandLoc;
+			RandLoc.x = FDXMath::RandF(15, 25);
+			RandLoc.y = FDXMath::RandF(0, 10);
+			RandLoc.z = FDXMath::RandF(30, 40);
+			TargetButton->SetActorLocation(RandLoc);
+		});
+
 
 	XMFLOAT3 PlatformPos = { 0, -2, -0 };
 	
@@ -248,10 +259,6 @@ void WTestWorld::Tick(float DeltaSecond)
 
 		Param.Transform.Translation.x = +10;
 		SpawnActorByFactory<AActor>("BP_FuzeUlt", Param);
-
-		
-
-		
 
 		SpawnTime = 0;
 	}
