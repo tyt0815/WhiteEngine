@@ -132,7 +132,7 @@ void FCollisionGeneratorBase::ProcessHit(const FHitResult& Hit)
         if (mMaxHit > 0 && mHitCount >= mMaxHit)
         {
 
-            Comp->Deactivate();
+            Comp->DeactivateWithChild();
 
         }
     }

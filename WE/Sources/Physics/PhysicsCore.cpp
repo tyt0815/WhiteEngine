@@ -94,6 +94,11 @@ namespace Physics
 		return g_PhysicsSystem->GetBodyInterface();
 	}
 
+	BodyInterface& GetBodyInterfaceNoLock()
+	{
+		return g_PhysicsSystem->GetBodyInterfaceNoLock();
+	}
+
 	const BodyLockInterface& GetBodyLockInterface()
 	{
 		return	g_PhysicsSystem->GetBodyLockInterface();

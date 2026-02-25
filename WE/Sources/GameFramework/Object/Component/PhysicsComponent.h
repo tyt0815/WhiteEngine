@@ -8,8 +8,10 @@
 
 class WPhysicsComponent;
 
-DECLARE_DELEGATE_TwoParams(FComponentHitDelegate, TWeakPtr<WPhysicsComponent>, XMFLOAT3);
-DECLARE_DELEGATE_TwoParams(FComponentBeginOverlapDelegate, TWeakPtr<WPhysicsComponent>, XMFLOAT3);
+DECLARE_DELEGATE_TwoParams(FComponentHitDelegate, WPhysicsComponent*, XMFLOAT3);
+DECLARE_DELEGATE_TwoParams(FComponentBeginOverlapDelegate, WPhysicsComponent*, XMFLOAT3);
+DECLARE_DELEGATE_OneParam(FComponentExitHitDelegate, WPhysicsComponent*);
+DECLARE_DELEGATE_OneParam(FComponentEndOverlapDelegate, WPhysicsComponent*);
 
 using EMotionType = JPH::EMotionType;
 
@@ -48,6 +50,10 @@ public:
 	FComponentHitDelegate mOnHitDelegate;
 
 	FComponentBeginOverlapDelegate mOnBeginOverlapDelegate;
+
+	FComponentExitHitDelegate mOnExitHitDelegate;
+
+	FComponentEndOverlapDelegate mOnEndOverlapDelegate;
 
 	EAllowedDOFs mAllowedDOFs = EAllowedDOFs::All;
 

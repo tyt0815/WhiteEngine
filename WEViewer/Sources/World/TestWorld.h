@@ -3,6 +3,14 @@
 #include "GameFramework/Object/World/DefaultWorld.h"
 
 class ADenseBoxHitReactorManager;
+class APlatform;
+
+struct FStageInfo
+{
+	int StartIdx;
+	int EndIdx;
+	XMFLOAT3 Dir;
+};
 
 class WTestWorld : public WDefaultWorld
 {
@@ -26,4 +34,12 @@ private:
 		std::vector<int> DirectionX = { 1, 0, -1, 0 },
 		std::vector<int> DirectionZ = { 0, 1, 0, -1 }
 	);
+
+	void SpawnPlatforms(XMFLOAT3& Loc, int Count, const XMFLOAT3& Offset, float Scale = 1);
+
+	void SpawnPlatform(const FTransform& Transform	);
+
+	std::vector<APlatform*> mPlatforms;
+
+	std::vector<FStageInfo> mStageInfos;
 };

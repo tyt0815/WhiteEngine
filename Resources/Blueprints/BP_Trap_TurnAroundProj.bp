@@ -1,0 +1,25 @@
+<AStateMachineActor>
+    <Components>
+        <Movement Name = "Movement" InitSpeed = "{0, 0, 10}" MaxSpeed = "10" LifeSpan = "0">
+            <Collision Name = "BoxCollision" Type = "Box" Extent = "{0.5, 0.5, 0.5}" Debug = "false" MaxHit = "0" Scale = "{0.25, 0.5, 0.25}" Rot = "{90, 0, 0}">
+                <Mesh Name = "Mesh" Asset = "SM_MetalCylinder"/>
+            </Collision>
+        </Movement>
+    </Components>   
+
+    <StateMachine Initial = "Global">
+
+        <State Name = "Global">
+            <OnUpdate>
+                <AddForce Target = "Movement" Force = "Movement.GetWorldRight() * (-30 * $DeltaTime)"/>
+            </OnUpdate>
+
+            <OnHit_BoxCollision>
+                <Hit Damage = "100"/>
+            </OnHit_BoxCollision>
+        </State>
+
+    </StateMachine>
+
+</AStateMachineActor>
+

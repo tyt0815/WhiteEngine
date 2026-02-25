@@ -36,7 +36,7 @@ inline constexpr bool g_bLimitFrame = false;
 
 namespace Physics
 {
-	bool g_bDrawShape = true;
+	bool g_bDrawShape = false;
 	bool g_bDrawBoundingBox = false;
 }
 

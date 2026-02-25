@@ -84,8 +84,8 @@ void WWorld::Tick(float Delta)
 			{
 				if (auto Comp2 = Info.Comp2.lock())
 				{
-					Comp1->mOnBeginOverlapDelegate.Execute(Info.Comp2, Info.ImpactPoint1);
-					Comp2->mOnBeginOverlapDelegate.Execute(Info.Comp1, Info.ImpactPoint2);
+					Comp1->mOnBeginOverlapDelegate.Execute(Comp2.get(), Info.ImpactPoint1);
+					Comp2->mOnBeginOverlapDelegate.Execute(Comp1.get(), Info.ImpactPoint2);
 				}
 			}
 		}
@@ -97,12 +97,38 @@ void WWorld::Tick(float Delta)
 			{
 				if (auto Comp2 = Info.Comp2.lock())
 				{
-					Comp1->mOnHitDelegate.Execute(Info.Comp2, Info.ImpactPoint1);
-					Comp2->mOnHitDelegate.Execute(Info.Comp1, Info.ImpactPoint2);
+					Comp1->mOnHitDelegate.Execute(Comp2.get(), Info.ImpactPoint1);
+					Comp2->mOnHitDelegate.Execute(Comp1.get(), Info.ImpactPoint2);
 				}
 			}
 		}
 		mOnHitEventQueue.clear();
+
+		for (const FPhysicEventInfo& Info : mOnEndOverlapEventQueue)
+		{
+			if (auto Comp1 = Info.Comp1.lock())
+			{
+				if (auto Comp2 = Info.Comp2.lock())
+				{
+					Comp1->mOnEndOverlapDelegate.Execute(Comp2.get());
+					Comp2->mOnEndOverlapDelegate.Execute(Comp1.get());
+				}
+			}
+		}
+		mOnEndOverlapEventQueue.clear();
+
+		for (const FPhysicEventInfo& Info : mOnExitHitEventQueue)
+		{
+			if (auto Comp1 = Info.Comp1.lock())
+			{
+				if (auto Comp2 = Info.Comp2.lock())
+				{
+					Comp1->mOnExitHitDelegate.Execute(Comp2.get());
+					Comp2->mOnExitHitDelegate.Execute(Comp1.get());
+				}
+			}
+		}
+		mOnExitHitEventQueue.clear();
 	}
 	Timer.Tick();
 	ProfilingData.Time_Physics_Event = Timer.GetDeltaMilliSecond();
@@ -238,6 +264,18 @@ void WWorld::EnqueueOnHitEvent(const FPhysicEventInfo& Info)
 {
 	std::lock_guard<std::mutex> Lock(mEventQueueMutex);
 	mOnHitEventQueue.emplace_back(Info);
+}
+
+void WWorld::EnqueueOnEndOverlapEvent(const FPhysicEventInfo& Info)
+{
+	std::lock_guard<std::mutex> Lock(mEventQueueMutex);
+	mOnEndOverlapEventQueue.emplace_back(Info);
+}
+
+void WWorld::EnqueueOnExitHitEvent(const FPhysicEventInfo& Info)
+{
+	std::lock_guard<std::mutex> Lock(mEventQueueMutex);
+	mOnExitHitEventQueue.emplace_back(Info);
 }
 
 void WWorld::ActivateActor(AActor* Actor)

@@ -32,6 +32,13 @@ void APlayerCharacter::Tick(float DeltaSecond)
 {
     Super::Tick(DeltaSecond);
 
+    WCapsuleComponent* Capsule = GetCapsule();
+    const float HalfHeight = Capsule->GetScaledHalfHeight();
+    const float HalfRadius = Capsule->GetScaledRadius();
+
+    XMFLOAT3 CurrLoc = GetActorLocation();
+    XMVECTOR vCurrLoc = XMLoadFloat3(&CurrLoc);
+
     if (!mbIsGrounded)
     {
         AddForce(XMFLOAT3(0, mGravity * mMass, 0));
@@ -44,13 +51,17 @@ void APlayerCharacter::Tick(float DeltaSecond)
         vInput = XMVector3Normalize(vInput);
         float Yaw = XMConvertToRadians(mCameraPivot->GetWorldRotation().y);
         XMVECTOR vQuat = XMQuaternionRotationRollPitchYaw(0, Yaw, 0);
-        XMVECTOR vDir = XMVector3Rotate(vInput, vQuat);
+        XMVECTOR vDir = XMVector3Rotate(vInput, vQuat) * mAcceleration * mMass;
+        if (!mbIsGrounded)
+        {
+            vDir *= mAirControl;
+        }
 
         // 입력에 따른 추진력 추가
         AddForce(XMFLOAT3(
-            XMVectorGetX(vDir) * mAcceleration * mMass,
+            XMVectorGetX(vDir),
             0,
-            XMVectorGetZ(vDir) * mAcceleration * mMass
+            XMVectorGetZ(vDir)
         ));
     }
 
@@ -64,9 +75,11 @@ void APlayerCharacter::Tick(float DeltaSecond)
     // --- 3. 저항(마찰력) 처리 ---
     XMVECTOR vHorizontalVel = XMVectorSetY(vVel, 0.0f);
     float VerticalVel = XMVectorGetY(vVel);
+    VerticalVel = mbIsGrounded && VerticalVel < 0 ? 0 : VerticalVel;
 
     // 수평 속도 감쇠 (v = v * (1 - friction * dt))
-    float Drag = 1.0f - (mFriction * DeltaSecond);
+    float Friction = mbIsGrounded ? mGroundFriction : mAirFriction;
+    float Drag = 1.0f - (Friction * DeltaSecond);
     if (Drag < 0) Drag = 0;
     vHorizontalVel = XMVectorScale(vHorizontalVel, Drag);
 
@@ -84,18 +97,16 @@ void APlayerCharacter::Tick(float DeltaSecond)
     XMStoreFloat3(&mVelocity, vVel);
 
     // --- 5. 위치 업데이트 ---
-    XMFLOAT3 CurrLoc = GetActorLocation();
-    XMVECTOR vCurrLoc = XMLoadFloat3(&CurrLoc);
     XMVECTOR vNewLoc = XMVectorAdd(vCurrLoc, XMVectorScale(vVel, DeltaSecond));
 
-    // --- 4. 바닥 충돌 및 상태 체크
     XMFLOAT3 FinalLoc;
     XMStoreFloat3(&FinalLoc, vNewLoc);
+    SetActorLocation(FinalLoc);
     {
         WCapsuleComponent* Capsule = GetCapsule();
         const XMFLOAT3& TraceStart = FinalLoc;
         XMFLOAT3 TraceEnd = TraceStart;
-        TraceEnd.y -= Capsule->GetScaledHalfHeight()+ 0.01f;
+        TraceEnd.y -= Capsule->GetScaledHalfHeight();
 
         FHitResult Hit;
         TArray<AActor*> ActorsToIgnore;
@@ -118,7 +129,7 @@ void APlayerCharacter::Tick(float DeltaSecond)
         }
     }
 
-    SetActorLocation(FinalLoc);
+    
 
     // 입력 누적 초기화
     mPendingForce = XMVectorZero();
@@ -167,6 +178,15 @@ void APlayerCharacter::Tick(float DeltaSecond)
     vVel = XMLoadFloat3(&mVelocity);
 }
 
+void APlayerCharacter::BeginPlay()
+{
+    Super::BeginPlay();
+
+    WCapsuleComponent* Capsule = GetCapsule();
+    Capsule->mOnHitDelegate.Bind(this, &APlayerCharacter::OnCapsuleHit);
+    Capsule->mOnExitHitDelegate.Bind(this, &APlayerCharacter::OnExitCapsuleHit);
+}
+
 void APlayerCharacter::SetupPlayerInput()
 {
     Super::SetupPlayerInput();
@@ -180,7 +200,7 @@ void APlayerCharacter::SetupPlayerInput()
     GetInputSystemManager()->BindKeyboardAction('D', EKeyboardInputType::EKIT_Down, this, &APlayerCharacter::MoveRight);
     GetInputSystemManager()->BindKeyboardAction(VK_SPACE, EKeyboardInputType::EKIT_Down, this, &APlayerCharacter::Jump);
 
-    GetInputSystemManager()->BindKeyboardAction('1', EKeyboardInputType::EKIT_Down, this, &APlayerCharacter::FireArcProjectile);
+    GetInputSystemManager()->BindKeyboardAction(VK_LBUTTON, EKeyboardInputType::EKIT_Down, this, &APlayerCharacter::FireArcProjectile);
     GetInputSystemManager()->BindKeyboardAction('f', EKeyboardInputType::EKIT_Pressed, this, &APlayerCharacter::Interaction);
 }
 
@@ -212,6 +232,38 @@ void APlayerCharacter::AddImpulse(const XMFLOAT3& Impulse)
 
     XMVECTOR vCurrentVel = XMLoadFloat3(&mVelocity);
     XMStoreFloat3(&mVelocity, XMVectorAdd(vCurrentVel, vDeltaVel));
+}
+
+void APlayerCharacter::OnCapsuleHit(WPhysicsComponent* OtherComp, XMFLOAT3 ImpactPoint)
+{
+    AActor* Actor = OtherComp->GetOwner<AActor>();
+
+    int Count = (int)std::count_if(mContactedActor.begin(), mContactedActor.end(), [Actor](auto&& OtherWeak) -> bool
+        {
+            if (TSharedPtr<AActor> Other = OtherWeak.lock())
+            {
+                return Other.get() == Actor;
+            }
+            return false;
+        });
+
+    assert(Count < 2);
+
+    if (Count == 0)
+    {
+        mContactedActor.push_back(Actor->GetWeakPtr<AActor>());
+    }
+}
+
+void APlayerCharacter::OnExitCapsuleHit(WPhysicsComponent* OtherComp)
+{
+    AActor* Actor = OtherComp->GetOwner<AActor>();
+
+    auto Iter = std::remove_if(mContactedActor.begin(), mContactedActor.end(), [Actor](auto&& OtherActorWeak) {
+        auto OtherActor = OtherActorWeak.lock();
+        return !OtherActor || OtherActor.get() == Actor; // 만료된 포인터도 이때 같이 청소
+        });
+    mContactedActor.erase(Iter, mContactedActor.end()); // 실제로 벡터에서 제거
 }
 
 void APlayerCharacter::FireArcProjectile(float Delta)

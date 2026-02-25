@@ -1,0 +1,26 @@
+<AStateMachineActor>
+    <Components>
+        <Movement Name = "Movement" InitSpeed = "{0, 0, 10}" GravityScale = "1" MaxSpeed = "1000" LifeSpan = "4" ShouldBounce = "true">
+            <Collision Name = "BoxCollision" Type = "Box" Extent = "{0.5, 0.5, 0.5}" Debug = "false" MaxHit = "0" Scale = "{0.25, 0.5, 0.25}" Rot = "{90, 0, 0}" Delay = "0.05">
+                <Mesh Name = "Mesh" Asset = "SM_MetalCylinder"/>
+            </Collision>
+        </Movement>
+    </Components>
+
+    <StateMachine Initial = "Global">
+        <State Name = "Global">
+            <OnSpawn>
+                <BindCollision Movement = "Movement" Collision = "BoxCollision"/>
+            </OnSpawn>
+
+            <OnHit_BoxCollision>
+                <Hit Damage = "100"/>
+            </OnHit_BoxCollision>
+
+            <OnDeactivate_Movement>
+                <Destroy/>
+            </OnDeactivate_Movement>
+        </State>
+    </StateMachine>
+
+</AStateMachineActor>

@@ -68,4 +68,4 @@ def generate_dds_texture(n, color, output_name="result.dds"):
 if __name__ == "__main__":
     # 원하는 크기(n), 색상(RGB), 파일명 설정
     # 예: 1024x1024 크기의 보라색 텍스처 생성
-    generate_dds_texture(512, (0, 256, 0), "Greed.dds")
+    generate_dds_texture(512, (0, 256, 0), "Green.dds")

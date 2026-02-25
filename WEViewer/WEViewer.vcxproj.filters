@@ -75,7 +75,10 @@
       <Filter>Sources\Character</Filter>
     </ClCompile>
     <ClCompile Include="Sources\Actor\Platform.cpp">
-      <Filter>Sources</Filter>
+      <Filter>Sources\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Actor\ProjectileSpawner.cpp">
+      <Filter>Sources\Actor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -131,6 +134,9 @@
       <Filter>Sources\Character</Filter>
     </ClInclude>
     <ClInclude Include="Sources\Actor\Platform.h">
+      <Filter>Sources\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Actor\ProjectileSpawner.h">
       <Filter>Sources\Actor</Filter>
     </ClInclude>
   </ItemGroup>

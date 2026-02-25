@@ -8,6 +8,7 @@ class APlayerCharacter : public ACharacter, public IHitInterface
 public:
     APlayerCharacter();
     virtual void Tick(float DeltaSecond) override;
+    virtual void BeginPlay() override;
     virtual void SetupPlayerInput() override;
 
     virtual void OnHit(WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpulseDir, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage) override;
@@ -18,6 +19,9 @@ public:
     void AddImpulse(const XMFLOAT3& Impulse);
 
 private:
+    void OnCapsuleHit(WPhysicsComponent* Other, XMFLOAT3 ImpactPoint);
+    void OnExitCapsuleHit(WPhysicsComponent* Other);
+
     void FireArcProjectile(float Delta);
     const float mArcProjectileDelay = 0.1f;
     float mArcProjectileCoolTime = 0;
@@ -44,12 +48,17 @@ private:
 
     // 설정값
     const float mMass = 1.0f;
-    const float mFriction = 8.0f; // 바닥 마찰력 (속도 감쇠용)
-    const float mMaxSpeed = 5.0f;      // 수평 이동 제한 속도
+    const float mGroundFriction = 8.0f; // 바닥 마찰력 (속도 감쇠용)
+    const float mAirFriction = 2.0f;
+    const float mMaxSpeed = 50.0f;      // 수평 이동 제한 속도
 
     XMFLOAT3 mInputDirection = { 0, 0, 0 }; // WASD 방향 누적
 
     const float mAcceleration = 50.0f;  // 초당 가속도
     const float mJumpImpulse = 5.0f;
     const float mGravity = -9.8f;
+
+    const float mAirControl = mAirFriction / mGroundFriction;
+
+    std::vector<TWeakPtr<AActor>> mContactedActor;
 };

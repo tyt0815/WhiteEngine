@@ -169,6 +169,14 @@ WComponentRegistry::WComponentRegistry()
             Comp->mShouldBounce = v; 
             });
 
+        ApplyAttribute<float>(Attr, "Bounciness", 1.0f, [Comp](float v) {
+            Comp->mBounciness = v;
+            });
+
+        ApplyAttribute<float>(Attr, "MaxBounces", 0, [Comp](float v) {
+            Comp->mMaxBounces = v;
+            });float   mMaxBounces = 0;
+
         ApplyAttribute<std::vector<XMFLOAT3>>(Attr, "Waypoints", [Comp](auto& v) {
             Comp->mConfigWaypoints = v; 
             });

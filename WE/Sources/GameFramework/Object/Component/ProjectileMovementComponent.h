@@ -51,8 +51,8 @@ private:
 	float mLifeTimeElapsed = 0.0f;
 
 	bool mShouldBounce = false;
-	float mBounciness = 0.6f;
-	float   mMaxBounces = 3;
+	float mBounciness = 1.0f;
+	float   mMaxBounces = 0;
 	int   mCurrentBounces = 0;
 
 	/////////////////////////////////////////////////////////////////////////////////////////

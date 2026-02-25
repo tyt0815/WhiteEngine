@@ -4,6 +4,7 @@
 
 AButton::AButton()
 {
+	
 	mBoxComp = CreateComponent<WBoxComponent>();
 	SetRootComponent(mBoxComp->GetWeakPtr<WBoxComponent>());
 
@@ -15,12 +16,13 @@ AButton::AButton()
 	mStaticMeshComp = CreateComponent<WStaticMeshComponent>();
 	mStaticMeshComp->SetupAttachment(GetRootComponent());
 	mStaticMeshComp->SetStaticMesh("SM_RedBox");
+
+	AddTag("WorldStatic");
 }
 
 void AButton::Interaction()
 {
 	mOnButtonInteracted.Broadcast();
-	std::cout << "Interaction" << std::endl;
 }
 
 void AButton::OnBeginInteractionFocus()
@@ -31,4 +33,9 @@ void AButton::OnBeginInteractionFocus()
 void AButton::OnEndInteractionFocus()
 {
 	mStaticMeshComp->SetStaticMesh("SM_RedBox");
+}
+
+void AButton::OnHit(WSceneComponent* Instigator, WPhysicsComponent* HittedComponent, XMFLOAT3 ImpulseDir, XMFLOAT3 ImpactPoint, XMFLOAT3 Normal, float Distance, float Damage)
+{
+	Interaction();
 }

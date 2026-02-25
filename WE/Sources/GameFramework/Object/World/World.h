@@ -70,6 +70,10 @@ public:
 
 	void EnqueueOnHitEvent(const FPhysicEventInfo& Info);
 
+	void EnqueueOnEndOverlapEvent(const FPhysicEventInfo& Info);
+
+	void EnqueueOnExitHitEvent(const FPhysicEventInfo& Info);
+
 	void ActivateActor(AActor* Actor);
 
 	void DeactivateActor(AActor* Actor);
@@ -191,6 +195,10 @@ private:
 	std::vector<FPhysicEventInfo> mOnBeginOverlapEventQueue;
 
 	std::vector<FPhysicEventInfo> mOnHitEventQueue;
+
+	std::vector<FPhysicEventInfo> mOnEndOverlapEventQueue;
+
+	std::vector<FPhysicEventInfo> mOnExitHitEventQueue;
 
 	std::vector<TSharedPtr<AActor>> DestroyQueue;
 

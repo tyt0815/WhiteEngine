@@ -46,6 +46,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Sources\Actor\Platform.cpp" />
+    <ClCompile Include="Sources\Actor\ProjectileSpawner.cpp" />
     <ClCompile Include="Sources\Actor\TargetMarker.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -95,6 +96,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="Sources\Actor\Platform.h" />
+    <ClInclude Include="Sources\Actor\ProjectileSpawner.h" />
     <ClInclude Include="Sources\Actor\TargetMarker.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>

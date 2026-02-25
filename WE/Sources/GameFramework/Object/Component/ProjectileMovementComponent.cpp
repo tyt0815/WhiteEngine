@@ -214,6 +214,7 @@ void WProjectileMovementComponent::OnCollision(WSceneComponent* Instigator, WPhy
 	if (mShouldBounce)
 	{
 		Bounce_Internal(Normal);
+		GetWorld()->DrawDebugLine(ImpactPoint, ImpactPoint + Normal, XMFLOAT4(0, 1, 1, 1), 1);
 	}
 }
 
@@ -252,7 +253,7 @@ void WProjectileMovementComponent::Bounce_Internal(XMFLOAT3 Normal)
 	XMStoreFloat3(&Correction, XMVectorScale(vNormal, 0.1f));
 	AddWorldOffset(Correction);
 
-	// 8. 바운스 이벤트 알림 (사운드나 이펙트 처리용)
+	// 8. 바운스 이벤트 알림
 	mOnBounce.Broadcast(); 
 }
 
