@@ -258,7 +258,7 @@ void WTestWorld::Tick(float DeltaSecond)
 		SpawnActorByFactory<AActor>("BP_RingProj", Param);
 
 		Param.Transform.Translation.x = +10;
-		SpawnActorByFactory<AActor>("BP_FuzeUlt", Param);
+		//SpawnActorByFactory<AActor>("BP_FuzeUlt", Param);
 
 		SpawnTime = 0;
 	}

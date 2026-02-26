@@ -55,6 +55,10 @@
                 <Set Name = "Movement.MaxSpeed" Value = "10"/>
                 <Set Name = "Movement.LifeSpan" Value = "10"/>
             </OnEnter>
+
+            <OnHit_BoxCollision>
+                <Hit Damage = "50"/>
+            </OnHit_BoxCollision>
         </State>
 
     </StateMachine>

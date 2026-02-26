@@ -13,6 +13,11 @@
                 <Destroy/>
             </DestroyEvent>
 
+            <OnHit_SphereCollision>
+                <Explosion Radius = "5" Damage = "10"/>
+            </OnHit_SphereCollision>
+
+
             <OnDeactivate_SphereCollision>
                 <Call Target = "Global.DestroyEvent"/>
             </OnDeactivate_SphereCollision>

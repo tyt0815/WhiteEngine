@@ -345,7 +345,7 @@
       <Filter>Sources\Asset</Filter>
     </ClCompile>
     <ClCompile Include="Sources\GameFramework\Object\Component\SkeletalMeshComponent.cpp">
-      <Filter>Sources</Filter>
+      <Filter>Sources\GameFramework\Object\Component</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

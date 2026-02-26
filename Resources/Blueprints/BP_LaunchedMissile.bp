@@ -32,6 +32,10 @@
                 <Set Name = "ProjMove.Acceleration" Value = "1000"/>
                 <Set Name = "ProjMove.HomingStrategy" Value = "Angle"/>
             </OnEnter>
+
+            <OnHit_BoxCollision>
+                <Hit Damage = "50"/>
+            </OnHit_BoxCollision>
         </State>
     </StateMachine>
 </AStateMachineActor>
