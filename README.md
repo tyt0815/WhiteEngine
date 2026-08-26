@@ -1,26 +1,27 @@
 # WhiteEngine
 
-### DirectX 12 기반 개인 렌더링 엔진
+### DirectX 12 렌더링 엔진에서 게임 시스템에 필요한 엔진 구조까지 확장한 개인 프로젝트
 
-Deferred Rendering과 PBR을 직접 구현한 개인 엔진이며, 이후 펄어비스 인턴 개인 과제에서 개인 WhiteEngine을 기반으로 Actor/Component와 데이터 기반 Projectile System을 확장했습니다.
+인턴 전에는 Deferred Rendering과 PBR을 구현한 개인 렌더링 엔진이었으며, 이후 **펄어비스 인턴 개인 과제**에서 개인 WhiteEngine을 기반으로 World / Actor / Component, Physics, Projectile, Spline, Animation, Collision, XML Blueprint, State Machine을 확장했습니다.
 
 `C++17` · `DirectX 12` · `HLSL` · `Jolt Physics` · `XML`
 
-[WhiteEngine Demo](https://www.youtube.com/watch?v=nirO4MNBapQ)
+[▶ Rendering Demo](https://www.youtube.com/watch?v=nirO4MNBapQ)
 
 ## 핵심 결과
 
 - 16-bit float Normal로 Specular artifact를 줄이고, Position Buffer 대신 Depth로 World Position을 복원해 메모리 절감과 복원 연산 비용의 trade-off를 선택했습니다.
-- 펄어비스 인턴 개인 과제에서 대용량 애니메이션 데이터 로딩을 `6,646ms → 46ms`로 단축했습니다.
+- 개인 렌더링 엔진 위에 Component 조합과 XML 데이터로 투사체 동작을 정의하는 엔진 구조를 구축했습니다.
+- 인턴 개인 과제의 대용량 애니메이션 데이터 로딩 실험에서 `6,646ms → 46ms`를 기록했습니다.
 
 ## 프로젝트 개요
 
-WhiteEngine은 DirectX 12 기반의 개인 렌더링 엔진입니다. Deferred Rendering과 PBR을 구현한 뒤, 펄어비스 인턴 기간에는 이 개인 엔진을 기반으로 게임플레이 구조와 데이터 제작 흐름을 확장하는 개인 과제를 수행했습니다.
+WhiteEngine은 DirectX 12 기반의 개인 렌더링 엔진입니다. 인턴 전까지 Deferred Rendering과 PBR 중심의 렌더러를 개발했고, 펄어비스 인턴 기간에는 이 개인 엔진을 기반으로 게임 시스템에 필요한 엔진 구조와 데이터 제작 흐름을 확장하는 개인 과제를 수행했습니다.
 
-| 구분 | 범위 |
+| 단계 | 범위 |
 | --- | --- |
-| 개인 렌더링 엔진 | Deferred Rendering, PBR, Shadow Map, Environment Map, Post Process |
-| 펄어비스 인턴 개인 과제 | Actor/Component, Physics Event Queue, Data-Driven Projectile, 성능 최적화 |
+| 인턴 이전 — 개인 렌더링 엔진 | Deferred Rendering, PBR, Shadow Map, Environment Map, Post Process |
+| 펄어비스 인턴 — 개인 WhiteEngine 기반 개인 과제 | World / Actor / Component, Physics Event Queue, Projectile, Spline, Object Animation, Collision, XML Blueprint, State Machine, 성능 최적화 |
 
 ## DirectX 12 Rendering Engine
 
@@ -138,3 +139,13 @@ WhiteEngine/
 - Jolt Physics, LZ4, tinyxml2
 
 `WhiteEngine.sln`을 열고 실행할 Application 프로젝트를 시작 프로젝트로 지정합니다. 프로젝트 파일의 FBX SDK Include/Library 경로는 기본 설치 경로인 `C:\Program Files\Autodesk\FBX\FBX SDK\2020.3.7`을 기준으로 설정되어 있습니다.
+
+## Demo
+
+### ▶ Rendering Demo
+
+[![WhiteEngine Rendering Demo](https://img.youtube.com/vi/nirO4MNBapQ/hqdefault.jpg)](https://www.youtube.com/watch?v=nirO4MNBapQ)
+
+[Watch on YouTube](https://www.youtube.com/watch?v=nirO4MNBapQ)
+
+> 펄어비스 인턴 개인 과제 결과는 별도 영상 대신 위 섹션의 GIF에서 확인할 수 있습니다.
