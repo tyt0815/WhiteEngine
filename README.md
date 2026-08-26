@@ -6,13 +6,22 @@
 
 `C++17` · `DirectX 12` · `HLSL` · `Jolt Physics` · `XML`
 
-[▶ Rendering Demo](https://www.youtube.com/watch?v=nirO4MNBapQ)
 
 ## 핵심 결과
 
-- 16-bit float Normal로 Specular artifact를 줄이고, Position Buffer 대신 Depth로 World Position을 복원해 메모리 절감과 복원 연산 비용의 trade-off를 선택했습니다.
+- 16-bit float Normal로 Specular artifact를 줄였고, 추가 Position Buffer를 두지 않고 Depth로 World Position을 복원하는 대신 복원 연산 비용을 감수했습니다.
 - 개인 렌더링 엔진 위에 Component 조합과 XML 데이터로 투사체 동작을 정의하는 엔진 구조를 구축했습니다.
-- 인턴 개인 과제의 대용량 애니메이션 데이터 로딩 실험에서 `6,646ms → 46ms`를 기록했습니다.
+- 인턴 개인 과제의 100,000 Frame / 135MB XML 애니메이션 데이터 로딩 실험에서 `6,646ms → 46ms`를 기록했습니다.
+
+## Demo
+
+### ▶ Rendering Demo
+
+[![WhiteEngine Rendering Demo](https://img.youtube.com/vi/nirO4MNBapQ/hqdefault.jpg)](https://www.youtube.com/watch?v=nirO4MNBapQ)
+
+[▶ Watch Rendering Demo on YouTube](https://www.youtube.com/watch?v=nirO4MNBapQ)
+
+> 펄어비스 인턴 개인 과제 결과는 별도 YouTube 영상 대신 아래 `Pearl Abyss Internship Project` 섹션의 GIF에서 확인할 수 있습니다.
 
 ## 프로젝트 개요
 
@@ -36,6 +45,10 @@ Geometry Pass에서 Geometry별 출력을 여러 번 그리지 않고 하나의 
 ### Normal Precision
 
 8-bit Normal 저장에서는 Specular artifact가 나타났습니다. 이를 16-bit float 포맷으로 전환해 화질을 개선했으며, 그 대신 G-Buffer 메모리 사용량이 증가하는 trade-off를 감수했습니다.
+
+<p align="center">
+  <img src="Images/normal-precision-comparison.png" width="850" alt="Normal G-Buffer precision comparison">
+</p>
 
 ### Depth 기반 World Position 복원
 
@@ -139,13 +152,3 @@ WhiteEngine/
 - Jolt Physics, LZ4, tinyxml2
 
 `WhiteEngine.sln`을 열고 실행할 Application 프로젝트를 시작 프로젝트로 지정합니다. 프로젝트 파일의 FBX SDK Include/Library 경로는 기본 설치 경로인 `C:\Program Files\Autodesk\FBX\FBX SDK\2020.3.7`을 기준으로 설정되어 있습니다.
-
-## Demo
-
-### ▶ Rendering Demo
-
-[![WhiteEngine Rendering Demo](https://img.youtube.com/vi/nirO4MNBapQ/hqdefault.jpg)](https://www.youtube.com/watch?v=nirO4MNBapQ)
-
-[Watch on YouTube](https://www.youtube.com/watch?v=nirO4MNBapQ)
-
-> 펄어비스 인턴 개인 과제 결과는 별도 영상 대신 위 섹션의 GIF에서 확인할 수 있습니다.
