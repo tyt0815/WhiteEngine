@@ -6,6 +6,12 @@
 
 `C++17` · `DirectX 12` · `HLSL` · `Jolt Physics` · `XML`
 
+| 구분 | 기간 | 역할 |
+| --- | --- | --- |
+| 개인 렌더링 엔진 개발 | 2025.03–2025.05 | 렌더링 엔진 설계·구현, 1인 개발 |
+| 펄어비스 인턴 개인 과제 | 2026.01–2026.02 | 게임 시스템 확장·검증, 1인 개발 |
+
+> 펄어비스 구간은 상용 프로젝트나 사내 엔진 개발이 아닌, 개인 WhiteEngine을 기반으로 수행한 인턴 개인 과제입니다.
 
 ## 핵심 결과
 
@@ -78,6 +84,8 @@ PBR, Shadow Map, Environment Map과 Compute Shader 기반 Gaussian Blur를 구�
 
 `mutex`로 Queue 접근을 보호하고, `weak_ptr`와 `shared_ptr`로 이벤트 처리 시점의 객체 수명을 관리했습니다. 렌더링에 필요한 데이터는 `FRenderItemProxy`로 갱신해 Render Item에 반영합니다.
 
+실제 구현에서는 [`World.cpp`](WE/Sources/GameFramework/Object/World/World.cpp)의 `WWorld::Tick`이 `mOnHitEventQueue`를 순회하고, 유효한 두 Component에 각각 `mOnHitDelegate.Execute(...)`를 호출한 뒤 Queue를 비웁니다. 이벤트 추가도 같은 파일의 `EnqueueOnHitEvent`에서 `mEventQueueMutex`로 보호합니다.
+
 ### Data-Driven Projectile
 
 Movement, Physics, Spline, Object Animation, Collision을 독립적인 Component로 분리했습니다. XML Blueprint에서 Component / Event / Action을 조합하고, State 상속과 Event Override를 통해 동작을 정의한 뒤 Compile / Load합니다.
@@ -106,13 +114,42 @@ Movement, Physics, Spline, Object Animation, Collision을 독립적인 Component
 
 </div>
 
+### XML Blueprint 재설계: 문법보다 제작 흐름에 맞추기
+
+초기 XML은 자료형을 직접 선언하고 함수 호출 결과를 다른 함수의 파라미터로 전달할 수 있는 범용 문법에 가깝게 설계했습니다. 사수 피드백에서 비개발자가 빠르게 익혀 사용하기에는 복잡하다는 점을 확인한 뒤, 목표 사용자를 아티스트로 다시 정의했습니다.
+
+그 결과 XML은 `Component → Event → Action` 흐름으로 바꿨습니다. 투사체를 구성하는 Component를 선언하고, `OnHit` 같은 Event 아래에 `Set`, `Branch`, `Timer`, `Destroy` Action을 조합하도록 하여 자료형이나 엔진 함수 호출 구조를 직접 알아야 하는 부담을 줄였습니다. State 상속과 Event Override는 상태별 동작 차이를 데이터로 표현하는 데 사용했습니다.
+
+구현은 XML 문법을 그대로 매 프레임 해석하지 않습니다.
+
+1. [`BlueprintAsset.cpp`](WE/Sources/Asset/BlueprintAsset.cpp)의 `OnCompile`이 XML의 Component, State, Event, Action을 이진 데이터로 직렬화합니다.
+2. `SmartLoad`가 소스와 `bin` 결과물의 갱신 시점을 확인한 뒤 이진 버퍼를 Load하고, `DeserializeComponents`와 `DeserializeActions`가 런타임 생성 정보를 복원합니다.
+3. [`WComponentRegistry.cpp`](WE/Sources/GameFramework/Object/WComponentRegistry.cpp)와 [`WActionRegistry.cpp`](WE/Sources/GameFramework/Object/WActionRegistry.cpp)의 Registry·Factory가 태그와 속성을 실제 Component 및 Action 생성으로 연결합니다. `BindToActorFactory`는 완성된 Blueprint를 Actor 생성 경로에 등록합니다.
+
+재설계한 문법으로 발표용 투사체를 직접 제작해 제작 흐름을 점검했고, 사수에게 사용 가능성을 검토받았습니다.
+
+### 고속 투사체 충돌: CCD 대안과 Line Trace 선택
+
+박스 Rigid Body를 Tick마다 이동시키면 한 프레임의 이동 구간에서 얇은 벽을 지나칠 수 있어(tunneling) 충돌체를 통과할 위험이 있습니다. 낮은 Tick Rate, 높은 투사체 속도, 벽과 투사체의 두께가 이 현상에 영향을 줍니다.
+
+Jolt의 CCD를 적용하는 대안도 검토했습니다. 이 과제에서는 직전 위치와 현재 위치 사이의 이동 구간을 매 Tick `Line Trace`로 검사하는 방식을 선택했습니다. 이동 경로 자체를 검사하므로 위의 tunneling 조건을 직접 다룰 수 있으며, [`World.cpp`](WE/Sources/GameFramework/Object/World/World.cpp)의 `WWorld::LineTrace`가 `Physics::LineTrace` 호출과 디버그 표시를 제공하도록 구현되어 있습니다.
+
+약 350개 미사일을 둔 **단일 프로파일**에서 다음 값을 기록했습니다. 이 표는 반복 측정 평균이나 모든 장면의 처리 성능을 뜻하지 않습니다.
+
+| 충돌 방식 | 프레임 시간 | Tick | 렌더링 FPS |
+| --- | ---: | ---: | ---: |
+| RigidBody | 5.502ms | 181 | 299 |
+| Trace | 3.987ms | 250 | 299 |
+
+두 방식 모두 렌더링 FPS는 299로 기록됐으며, 이 결과는 해당 단일 프로파일에서 충돌 방식별 상황을 비교한 값입니다.
+
 ### 성능 최적화
 
 - 로딩: 6,646ms → 46ms, Binary Compile + LZ4 + Zero-Copy
 - 데이터 용량: 135MB → 20.5MB, Binary Layout과 LZ4 압축
 - Game/Render Thread 분리 실험: 70.9 FPS → 306.9 FPS
 
-세 수치는 서로 다른 인턴 개인 과제 내부 실험의 전후 측정값이며, 하나의 누적 벤치마크가 아닙니다.
+세 수치는 서로 다른 인턴 개인 과제 내부 실험의 전후 측정값이며, 하나의 누적 벤치마크가 아닙니다. Game/Render Thread 수치는 당시 단일 전후 측정값으로, 하드웨어·빌드·장면 조건을 별도로 기록하지 않아 재현 가능한 벤치마크로 제시하지 않습니다.
 
 ## 프로젝트 구조
 
